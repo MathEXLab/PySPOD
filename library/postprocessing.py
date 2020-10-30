@@ -535,10 +535,10 @@ def plot_2D_modes_at_frequency(modes,
 				real_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
 				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
 				if len(title) > 1:
-					plt.title(title + \
+					fig.title(title + \
 						', mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
 				else:
-					plt.title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+					fig.title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
@@ -948,7 +948,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
 			else:
-				plt.figure(figsize=figsize)
+				fig = plt.figure(figsize=figsize)
 				real_ax = plt.gca()
 				real = real_ax.contourf(
 					xx, yy, np.real(mode).T,
