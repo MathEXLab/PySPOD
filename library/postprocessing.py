@@ -1401,16 +1401,14 @@ def generate_2D_data_video(X,
 								vmin=vmin,vmax=vmax);
 				 plt.scatter(coast['coastlon'],
 				 			 coast['coastlat'],
-							 marker='.', c='k', s=1)
-				]
+							 marker='.', c='k', s=1)]
 				for state in time_range
 			]
 		else:
 			frames = [
 				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
 								shading='gouraud',
-								vmin=vmin,vmax=vmax)
-				]
+								vmin=vmin,vmax=vmax)]
 				for state in time_range
 			]
 		a = animation.ArtistAnimation(
