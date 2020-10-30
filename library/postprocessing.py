@@ -440,13 +440,13 @@ def plot_2D_modes_at_frequency(modes,
 				real_ax = fig.add_subplot(1, 2, 1)
 				real = real_ax.contourf(
 					x1, x2, np.real(mode).T,
-					vmin=-np.abs(mode).max(),
-					vmax= np.abs(mode).max())
+					vmin=-np.abs(mode).max()*1.2,
+					vmax= np.abs(mode).max()*1.2)
 				imag_ax = fig.add_subplot(1, 2, 2)
 				imag = imag_ax.contourf(
 					x1, x2, np.imag(mode).T,
-					vmin=-np.abs(mode).max(),
-					vmax= np.abs(mode).max())
+					vmin=-np.abs(mode).max()*1.2,
+					vmax= np.abs(mode).max()*1.2)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
@@ -503,8 +503,8 @@ def plot_2D_modes_at_frequency(modes,
 				real_ax = plt.gca()
 				real = real_ax.contourf(
 					x1, x2, np.real(mode).T,
-					vmin=-np.abs(mode).max(),
-					vmax= np.abs(mode).max())
+					vmin=-np.abs(mode).max()*1.2,
+					vmax= np.abs(mode).max()*1.2)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
