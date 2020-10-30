@@ -20,7 +20,7 @@ pyfftw.config.NUM_THREADS = 4
 pyfftw.config.PLANNER_EFFORT = 'FFTW_ESTIMATE'
 
 # import PySPOD base class for SPOD_low_storage
-from .spod_base import SPOD_base
+from pyspod.spod_base import SPOD_base
 
 # Current, parent and file paths
 CWD = os.getcwd()
