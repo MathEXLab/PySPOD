@@ -522,7 +522,6 @@ def plot_2D_modes_at_frequency(modes,
 					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
-
 				# axis management
 				if equal_axes:
 					real_ax.set_aspect('equal')
@@ -535,10 +534,10 @@ def plot_2D_modes_at_frequency(modes,
 				real_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
 				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
 				if len(title) > 1:
-					fig.title(title + \
+					real_ax.set_title(title + \
 						', mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
 				else:
-					fig.title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+					real_ax.set_title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
