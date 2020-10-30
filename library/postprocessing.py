@@ -1197,6 +1197,13 @@ def plot_2D_data(X,
 				raise ValueError('Data dimension Z = (N,M); x1 and x2 must '
 								 'have dimension N and M, respectively.')
 
+			# plot data
+			contour = plt.contourf(
+				x1, x2, x.T,
+				vmin=np.nanmin(x),
+				vmax=np.nanmax(x))
+			fig.colorbar(contour)
+
 			# overlay coastlines if required
 			if coastlines.lower() == 'regular':
 				coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
@@ -1206,13 +1213,6 @@ def plot_2D_data(X,
 				coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
 				plt.scatter(coast['coastlon'], coast['coastlat'],
 								marker='.', c='k', s=1)
-
-			# plot data
-			contour = plt.contourf(
-				x1, x2, x.T,
-				vmin=np.nanmin(x),
-				vmax=np.nanmax(x))
-			fig.colorbar(contour)
 
 			# save or show plots
 			if filename:
@@ -1379,26 +1379,40 @@ def generate_2D_data_video(X,
 	wsize = figsize[0]
 	hsize = figsize[1]
 
+	# overlay coastlines if required
+	if coastlines.lower() == 'regular':
+		coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+		cst = True
+	elif coastlines.lower() == 'centred':
+		coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+		cst = True
+
 	# Generate movie
 	vmin = np.nanmin(X)
 	vmax = np.nanmax(X)
 	for i in vars_idx:
 		fig = plt.figure()
-		# overlay coastlines if required
-		if coastlines.lower() == 'regular':
-			coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
-			plt.scatter(coast['coastlon'], coast['coastlat'],
-						marker='.', c='k', s=1)
-		elif coastlines.lower() == 'centred':
-			coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
-			plt.scatter(coast['coastlon'], coast['coastlat'],
-						marker='.', c='k', s=1)
-		frames = [
-			[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
-							shading='gouraud',
-							vmin=vmin,vmax=vmax)]
-			for state in time_range
-		]
+
+		# generate movie
+		if cst:
+			frames = [
+				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
+								shading='gouraud',
+								vmin=vmin,vmax=vmax);
+				 plt.scatter(coast['coastlon'],
+				 			 coast['coastlat'],
+							 marker='.', c='k', s=1)
+				]
+				for state in time_range
+			]
+		else:
+			frames = [
+				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
+								shading='gouraud',
+								vmin=vmin,vmax=vmax)
+				]
+				for state in time_range
+			]
 		a = animation.ArtistAnimation(
 			fig, frames, interval=70, blit=False, repeat=False)
 		Writer = animation.writers['ffmpeg']

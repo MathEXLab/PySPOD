@@ -600,6 +600,7 @@ class SPOD_base(object):
 								   fftshift=False,
 								   imaginary=False,
 								   plot_max=False,
+								   coastlines='',
 								   title='',
 								   xticks=None,
 								   yticks=None,
@@ -610,11 +611,10 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_2D_modes_at_frequency(
-			self.modes, freq_required=freq_required, freq=freq, vars_idx=vars_idx, modes_idx=modes_idx,
-			x1=x1, x2=x2, fftshift=fftshift, imaginary=imaginary,
-			plot_max=plot_max, title=title, xticks=xticks, yticks=yticks,
-			figsize=figsize, equal_axes=equal_axes, path=self.save_dir,
-			filename=filename)
+			self.modes, freq_required=freq_required, freq=freq, vars_idx=vars_idx,
+			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift, imaginary=imaginary,
+			plot_max=plot_max, coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
+			figsize=figsize, equal_axes=equal_axes, path=self.save_dir, filename=filename)
 
 	def plot_2D_mode_slice_vs_time(self,
 								   freq_required,
@@ -651,7 +651,7 @@ class SPOD_base(object):
 								         fftshift=False,
 								         imaginary=False,
 								         plot_max=False,
-										 coastlines=False,
+										 coastlines='',
 								         title='',
 								         xticks=None,
 								         yticks=None,
@@ -694,7 +694,7 @@ class SPOD_base(object):
 					 x1=None,
 					 x2=None,
 					 title='',
-					 coastlines=False,
+					 coastlines='',
 					 figsize=(12,8),
 					 filename=None):
 		'''
@@ -733,7 +733,7 @@ class SPOD_base(object):
 						       sampling=1,
 					 	       x1=None,
 					 	       x2=None,
-						       coastlines=False,
+						       coastlines='',
 						       figsize=(12,8),
 					 	       filename='data_video.mp4'):
 		'''
