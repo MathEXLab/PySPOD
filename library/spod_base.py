@@ -10,15 +10,7 @@ import sys
 import psutil
 import warnings
 import numpy as np
-import matplotlib as mpl
 import scipy.special as sc
-import matplotlib.pyplot as plt
-from matplotlib import animation
-import matplotlib.gridspec as gridspec
-from matplotlib import colors as mcolors
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-mpl.rc('figure', max_open_warning = 0)
-from os.path import splitext
 
 # Import custom Python packages
 import library.postprocessing as post
