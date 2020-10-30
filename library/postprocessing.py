@@ -6,6 +6,7 @@ Derived module from spodbase.py for classic spod.
 import os
 import sys
 import numpy as np
+from scipy.io import loadmat
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import animation
@@ -354,6 +355,7 @@ def plot_2D_modes_at_frequency(modes,
 							   fftshift=False,
 							   imaginary=False,
 							   plot_max=False,
+							   coastlines=None,
 							   title='',
 							   xticks=None,
 							   yticks=None,
@@ -377,6 +379,11 @@ def plot_2D_modes_at_frequency(modes,
 	:param bool imaginary: whether to plot imaginary part. Default is False
 	:param bool plot_max: whether to plot a dot at maximum value of the plot.
 		Default is False.
+	:param str coastlines: whether to overlay coastlines.
+		Options are
+			`regular` (longitude from 0 to 360) and
+			`centred` (longitude from -180 to 180)
+		Default is None.
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
@@ -458,6 +465,21 @@ def plot_2D_modes_at_frequency(modes,
 				imag_cax = imag_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
 				plt.colorbar(imag, cax=imag_cax)
+
+				# overlay coastlines if required
+				if coastlines.lower() == 'regular':
+					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+				elif coastlines.lower() == 'centred':
+					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+
 				# axis management
 				real_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
 				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
@@ -496,6 +518,17 @@ def plot_2D_modes_at_frequency(modes,
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
+
+				# overlay coastlines if required
+				if coastlines.lower() == 'regular':
+					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+				elif coastlines.lower() == 'centred':
+					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+
 				# axis management
 				if equal_axes:
 					real_ax.set_aspect('equal')
@@ -742,7 +775,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 							         fftshift=False,
 							         imaginary=False,
 							         plot_max=False,
-									 coastlines=False,
+									 coastlines=None,
 							         title='',
 							         xticks=None,
 							         yticks=None,
@@ -772,7 +805,11 @@ def plot_3D_modes_slice_at_frequency(modes,
 	:param bool imaginary: whether to plot imaginary part. Default is False
 	:param bool plot_max: whether to plot a dot at maximum value of the plot.
 		Default is False.
-	:param bool coastlines: whether to overlay coastlines. Default is False.
+	:param str coastlines: whether to overlay coastlines.
+		Options are
+			`regular` (longitude from 0 to 360) and
+			`centred` (longitude from -180 to 180)
+		Default is None.
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
@@ -825,14 +862,14 @@ def plot_3D_modes_slice_at_frequency(modes,
 				mode = mode_3d[slice_id,:,:]
 				xx = x2
 				xx = x3
-				coastlines = False
+				coastlines = None
 			elif slice_dim == 1:
 				if slice_id is None:
 					slice_id = np.argmax(mode_3d, axis=1)
 				mode = mode_3d[:,slice_id,:]
 				xx = x1
 				yy = x3
-				coastlines = False
+				coastlines = None
 			elif slice_dim == 2:
 				if slice_id is None:
 					slice_id = np.argmax(mode_3d, axis=2)
@@ -876,6 +913,21 @@ def plot_3D_modes_slice_at_frequency(modes,
 				imag_cax = imag_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
 				plt.colorbar(imag, cax=imag_cax)
+
+				# overlay coastlines if required
+				if coastlines.lower() == 'regular':
+					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+				elif coastlines.lower() == 'centred':
+					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+
 				# axis management
 				real_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
 				real_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
@@ -915,13 +967,17 @@ def plot_3D_modes_slice_at_frequency(modes,
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
+
 				# overlay coastlines if required
-				if coastlines:
-					from scipy.io import loadmat
-					coast = loadmat('/Users/gian/Desktop/SEOF_reanalysis-master/utils/coast.mat')
-					coastlon = coast['coastlon']
-					coastlat = coast['coastlat']
-					real_ax.plot(coastlon+180, coastlat, 'k-', linewidth=0.5)
+				if coastlines.lower() == 'regular':
+					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+				elif coastlines.lower() == 'centred':
+					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					real_ax.scatter(coast['coastlon'], coast['coastlat'],
+									marker='.', c='k', s=1)
+
 				# axis management
 				if equal_axes:
 					real_ax.set_aspect('equal')
@@ -1080,7 +1136,7 @@ def plot_2D_data(X,
 				 x1=None,
 				 x2=None,
 				 title='',
-				 coastlines=False,
+				 coastlines=None,
 				 figsize=(12,8),
 				 path=CWD,
 				 filename=None):
@@ -1096,7 +1152,11 @@ def plot_2D_data(X,
 	:param numpy.ndarray x1: x-axis coordinate. Default is None.
 	:param numpy.ndarray x2: y-axis coordinate. Default is None.
 	:param str title: if specified, title of the plot. Default is ''.
-	:param bool coastlines: whether to overlay coastlines. Default is False.
+	:param str coastlines: whether to overlay coastlines.
+		Options are
+			`regular` (longitude from 0 to 360) and
+			`centred` (longitude from -180 to 180)
+		Default is None.
 	:param tuple(int,int) figsize: size of the figure (width,height).
 		Default is (12,8).
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
@@ -1144,12 +1204,14 @@ def plot_2D_data(X,
 								 'have dimension N and M, respectively.')
 
 			# overlay coastlines if required
-			if coastlines:
-				from scipy.io import loadmat
-				coast = loadmat('/Users/gian/Desktop/SEOF_reanalysis-master/utils/coast.mat')
-				coastlon = coast['coastlon']
-				coastlat = coast['coastlat']
-				plt.plot(coastlon+180, coastlat, 'k-', linewidth=1.5)
+			if coastlines.lower() == 'regular':
+				coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+				plt.scatter(coast['coastlon'], coast['coastlat'],
+								marker='.', c='k', s=1)
+			elif coastlines.lower() == 'centred':
+				coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+				plt.scatter(coast['coastlon'], coast['coastlat'],
+								marker='.', c='k', s=1)
 
 			# plot data
 			contour = plt.contourf(
@@ -1261,7 +1323,7 @@ def generate_2D_data_video(X,
 					       sampling=1,
 				 	       x1=None,
 				 	       x2=None,
-					       coastlines=False,
+					       coastlines=None,
 					       figsize=(12,8),
 					       path=CWD,
 				 	       filename='data_video.mp4'):
@@ -1277,8 +1339,11 @@ def generate_2D_data_video(X,
 		Default is 1 (use all timeframes).
 	:param numpy.ndarray x1: x-axis coordinate. Default is None.
 	:param numpy.ndarray x2: y-axis coordinate. Default is None.
-	:param bool coastlines: whether to overlay coastlines.
-		Default is False.
+	:param str coastlines: whether to overlay coastlines.
+		Options are
+			`regular` (longitude from 0 to 360) and
+			`centred` (longitude from -180 to 180)
+		Default is None.
 	:param tuple(int,int) figsize: size of the figure (width,height).
 		Default is (12,8).
 	:param str path: if specified, the plot is saved at `path`.
@@ -1325,6 +1390,15 @@ def generate_2D_data_video(X,
 	vmax = np.nanmax(X)
 	for i in vars_idx:
 		fig = plt.figure()
+		# overlay coastlines if required
+		if coastlines.lower() == 'regular':
+			coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+			plt.scatter(coast['coastlon'], coast['coastlat'],
+						marker='.', c='k', s=1)
+		elif coastlines.lower() == 'centred':
+			coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+			plt.scatter(coast['coastlon'], coast['coastlat'],
+						marker='.', c='k', s=1)
 		frames = [
 			[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
 							shading='gouraud',

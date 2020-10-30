@@ -6,21 +6,6 @@ Derived module from spodbase.py for classic spod.
 import os
 import sys
 import numpy as np
-import warnings
-
-# Current, parent and file paths
-CWD = os.getcwd()
-CF  = os.path.realpath(__file__)
-CFD = os.path.dirname(CF)
-
-
-
-def unitary_weights(nx, n_vars):
-	'''
-	unitary integration weights (aka no weighting applied)
-	'''
-	dA = np.ones([nx,1])
-	return dA
 
 
 
