@@ -462,13 +462,13 @@ def plot_2D_modes_at_frequency(modes,
 
 				# overlay coastlines if required
 				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
@@ -515,11 +515,11 @@ def plot_2D_modes_at_frequency(modes,
 
 				# overlay coastlines if required
 				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 				# axis management
@@ -909,13 +909,13 @@ def plot_3D_modes_slice_at_frequency(modes,
 
 				# overlay coastlines if required
 				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
@@ -963,11 +963,11 @@ def plot_3D_modes_slice_at_frequency(modes,
 
 				# overlay coastlines if required
 				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
 					real_ax.scatter(coast['coastlon'], coast['coastlat'],
 									marker='.', c='k', s=1)
 
@@ -1205,11 +1205,11 @@ def plot_2D_data(X,
 
 			# overlay coastlines if required
 			if coastlines.lower() == 'regular':
-				coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+				coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
 				plt.scatter(coast['coastlon'], coast['coastlat'],
 								marker='.', c='k', s=1)
 			elif coastlines.lower() == 'centred':
-				coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+				coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
 				plt.scatter(coast['coastlon'], coast['coastlat'],
 								marker='.', c='k', s=1)
 
@@ -1381,10 +1381,10 @@ def generate_2D_data_video(X,
 	# overlay coastlines if required
 	cst = False
 	if coastlines.lower() == 'regular':
-		coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
+		coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
 		cst = True
 	elif coastlines.lower() == 'centred':
-		coast = loadmat(os.path.join(CFD,'utils','coast_centred.mat'))
+		coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
 		cst = True
 
 	# Generate movie

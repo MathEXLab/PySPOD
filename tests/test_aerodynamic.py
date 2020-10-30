@@ -28,7 +28,6 @@ from library.spod_low_ram import SPOD_low_ram
 from library.spod_low_storage import SPOD_low_storage
 from library.spod_streaming import SPOD_streaming
 
-
 # data ingestion and configuration
 file = os.path.join(CWD,'data','aerodynamic_data.mat')
 with h5py.File(file, 'r') as f:
@@ -375,7 +374,7 @@ def test_postprocessing():
 	spod.plot_2D_data(time_idx=[0,10], filename='data.png')
 	spod.plot_data_tracers(coords_list=[(10,10), (14,14)],
 						 	filename='data_tracers.png')
-	spod.generate_2D_data_video(filename='data_movie.mp4')
+	# spod.generate_2D_data_video(filename='data_movie.mp4')
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 0.0004634362811441267 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 0.0004634362811441267 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.00015920889387988687+tol) & \
@@ -396,6 +395,7 @@ def test_postprocessing():
 
 
 if __name__ == "__main__":
+
 	test_spod_low_storage_blockwise_mean()
 	test_spod_low_storage_longtime_mean ()
 	test_spod_low_ram_blockwise_mean    ()
