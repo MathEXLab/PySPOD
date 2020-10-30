@@ -245,9 +245,6 @@ def plot_eigs_vs_frequency(eigs,
 	ax.grid(True)
 
 	# axes management
-	xlim_min = (np.nanmin(freq))
-	xlim_max = (np.nanmax(freq))
-	ax.set_xlim(1.1*xlim_min, 1.1*xlim_max)
 	plt.xlabel('Frequency')
 	plt.ylabel('Eigenvalues')
 	if xticks:
@@ -319,9 +316,6 @@ def plot_eigs_vs_period(eigs,
 	ax.grid(True)
 
 	# set limits for axis
-	xlim_min = (1./np.nanmin(freq[1:]))
-	xlim_max = (1./np.nanmax(freq))
-	ax.set_xlim(1.1*xlim_min, 1.1*xlim_max)
 	if xticks:
 		ax.set_xticks(xticks)
 		ax.set_xticklabels(xticks)
@@ -355,7 +349,7 @@ def plot_2D_modes_at_frequency(modes,
 							   fftshift=False,
 							   imaginary=False,
 							   plot_max=False,
-							   coastlines=None,
+							   coastlines='',
 							   title='',
 							   xticks=None,
 							   yticks=None,
@@ -383,7 +377,7 @@ def plot_2D_modes_at_frequency(modes,
 		Options are
 			`regular` (longitude from 0 to 360) and
 			`centred` (longitude from -180 to 180)
-		Default is None.
+		Default is '' (no coastlines).
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
@@ -775,7 +769,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 							         fftshift=False,
 							         imaginary=False,
 							         plot_max=False,
-									 coastlines=None,
+									 coastlines='',
 							         title='',
 							         xticks=None,
 							         yticks=None,
@@ -809,7 +803,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 		Options are
 			`regular` (longitude from 0 to 360) and
 			`centred` (longitude from -180 to 180)
-		Default is None.
+		Default is '' (no coastlines).
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
@@ -862,14 +856,14 @@ def plot_3D_modes_slice_at_frequency(modes,
 				mode = mode_3d[slice_id,:,:]
 				xx = x2
 				xx = x3
-				coastlines = None
+				coastlines = ''
 			elif slice_dim == 1:
 				if slice_id is None:
 					slice_id = np.argmax(mode_3d, axis=1)
 				mode = mode_3d[:,slice_id,:]
 				xx = x1
 				yy = x3
-				coastlines = None
+				coastlines = ''
 			elif slice_dim == 2:
 				if slice_id is None:
 					slice_id = np.argmax(mode_3d, axis=2)
@@ -1136,7 +1130,7 @@ def plot_2D_data(X,
 				 x1=None,
 				 x2=None,
 				 title='',
-				 coastlines=None,
+				 coastlines='',
 				 figsize=(12,8),
 				 path=CWD,
 				 filename=None):
@@ -1156,7 +1150,7 @@ def plot_2D_data(X,
 		Options are
 			`regular` (longitude from 0 to 360) and
 			`centred` (longitude from -180 to 180)
-		Default is None.
+		Default is '' (no coastlines).
 	:param tuple(int,int) figsize: size of the figure (width,height).
 		Default is (12,8).
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
@@ -1323,7 +1317,7 @@ def generate_2D_data_video(X,
 					       sampling=1,
 				 	       x1=None,
 				 	       x2=None,
-					       coastlines=None,
+					       coastlines='',
 					       figsize=(12,8),
 					       path=CWD,
 				 	       filename='data_video.mp4'):
@@ -1343,7 +1337,7 @@ def generate_2D_data_video(X,
 		Options are
 			`regular` (longitude from 0 to 360) and
 			`centred` (longitude from -180 to 180)
-		Default is None.
+		Default is '' (no coastlines).
 	:param tuple(int,int) figsize: size of the figure (width,height).
 		Default is (12,8).
 	:param str path: if specified, the plot is saved at `path`.
