@@ -16,7 +16,7 @@ import shutil
 import psutil
 
 # import PySPOD base class for SSPOD
-from .spod_base import SPOD_base
+from pyspod.spod_base import SPOD_base
 
 # Current, parent and file paths
 CWD = os.getcwd()

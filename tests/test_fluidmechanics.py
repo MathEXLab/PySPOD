@@ -24,12 +24,12 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # project libraries
-from library.spod_low_ram import SPOD_low_ram
-from library.spod_low_storage import SPOD_low_storage
-from library.spod_streaming import SPOD_streaming
+from pyspod.spod_low_ram import SPOD_low_ram
+from pyspod.spod_low_storage import SPOD_low_storage
+from pyspod.spod_streaming import SPOD_streaming
 
 # data ingestion and configuration
-file = os.path.join(CWD,'data','aerodynamic_data.mat')
+file = os.path.join(CWD,'data','fluidmechanic_data.mat')
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
 	for k, v in f.items():

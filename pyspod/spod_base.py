@@ -13,7 +13,7 @@ import numpy as np
 import scipy.special as sc
 
 # Import custom Python packages
-import library.postprocessing as post
+import pyspod.postprocessing as post
 
 # Current, parent and file paths
 CWD = os.getcwd()

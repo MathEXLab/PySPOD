@@ -17,7 +17,7 @@ import shutil
 import psutil
 
 # Import PySPOD base class for SPOD_low_ram
-from .spod_base import SPOD_base
+from pyspod.spod_base import SPOD_base
 
 # Current, parent and file paths
 CF  = os.path.realpath(__file__)

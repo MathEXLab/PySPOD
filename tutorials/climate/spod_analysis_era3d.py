@@ -16,9 +16,9 @@ import scipy.io
 
 sys.path.append("../../")
 sys.path.append("../../library")
-from library.spod_low_storage import SPOD_low_storage
-from library.spod_low_ram     import SPOD_low_ram
-import library.weights as weights
+from pyspod.spod_low_storage import SPOD_low_storage
+from pyspod.spod_low_ram     import SPOD_low_ram
+import pyspod.weights as weights
 
 
 
