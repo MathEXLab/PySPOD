@@ -1379,6 +1379,7 @@ def generate_2D_data_video(X,
 	hsize = figsize[1]
 
 	# overlay coastlines if required
+	cst = False
 	if coastlines.lower() == 'regular':
 		coast = loadmat(os.path.join(CFD,'utils','coast.mat'))
 		cst = True
