@@ -125,8 +125,11 @@ def apply_normalization(X, weights, method='variance'):
 		print('Normalization by variance')
 		print('-------------------------')
 		n_variables = X.shape[-1]
+		print(n_variables)
+		axis = tuple(np.arange(0,X[...,0].ndim))
 		for i in range(0,n_variables):
-			sigma2 = np.nanvar(np.reshape(X[...,i],np.size(X[...,i])), axis=0)
+			sigma2 = np.nanvar(X[...,i], axis=axis)
+			print(sigma2)
 			weights[...,i] = weights[...,i] / sigma2
 	else:
 		print('')

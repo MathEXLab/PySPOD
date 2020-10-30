@@ -28,10 +28,10 @@ class SPOD_streaming(SPOD_base):
 	"""
 	Spectral Proper Orthogonal Decomposition
 	"""
-	def __init__(self, X, params):
-		super().__init__(X, params)
+	def __init__(self, X, params, file_handler):
+		super().__init__(X, params, file_handler)
 
-	def fit(self, X):
+	def fit(self):
 		"""
 		Compute the Spectral Proper Orthogonal Decomposition to the input data.
 
@@ -40,47 +40,16 @@ class SPOD_streaming(SPOD_base):
 		"""
 		start = time.time()
 
-		# Problem dimensions
-		# note: `time` should come as the first dimension
-		self._nt = self._params['nt'] # time dimension
-		self._dt = self._params['dt'] # time-step
-		self._nx = np.size(X[0])      # dimension of single snapshot as a column
-		self._dim = X.shape           # dimensions of X
-		self._tdim = self._dim[0]
-		self._xdim = self._dim[1:]
-		n_vars = self._params['n_vars']
 
-		# Determine whether data is real-valued or complex-valued-valued
-		# to decide on one- or two-sided spectrum. If "opts.isreal"
-		# is not set, determine from data
-		if 'isreal'.lower() in self._params:
-			isrealx = self._params['isreal']
-		else:
-			for ti in range(0,self._nt):
-				isrealx = np.isreal(X[ti]).all()
-				if not isrealx:
-					break
-
-		# get default spectral estimation parameters and options
-		window, weights, n_overlap, n_DFT, self._n_blocks, x_mean, mean_type, self._freq, self._n_freq = \
-			self.parse_parameters(
-				nt=self._nt,
-				nx=self._nx,
-				isrealx=isrealx,
-				params=self._params
-		)
-
-		# determine correction for FFT window gain
-		winWeight = 1 / np.mean(window)
 
 		# sqrt of weights
-		sqrtW = np.sqrt(weights)
+		sqrtW = np.sqrt(self._weights)
 
 		# separation between adjacent blocks
-		dn = n_DFT - n_overlap
+		dn = self._n_DFT - self._n_overlap
 
 		# number of blocks being updated in parallel if segments overlap
-		n_blocks_parallel = int(np.ceil(n_DFT/dn))
+		n_blocks_parallel = int(np.ceil(self._n_DFT/dn))
 
 		# sliding, relative time index for each block
 		t_idx = np.zeros([n_blocks_parallel,1],dtype=int)
@@ -89,13 +58,9 @@ class SPOD_streaming(SPOD_base):
 
 		# create folder to save results
 		self._save_dir = self._params.get('savedir',CWD)
-		saveDir = os.path.join(self._save_dir,
-							   'nfft'        + \
-							   str(n_DFT)    + \
-							   '_novlp'      + \
-							   str(n_overlap)+ \
-							   '_nblks'      + \
-							   str(self._n_blocks))
+		saveDir = os.path.join(
+			self._save_dir,'nfft'+str(self._n_DFT)+'_novlp'+ \
+			str(self._n_overlap)+'_nblks'+str(self._n_blocks))
 		if not os.path.exists(saveDir):
 			os.makedirs(saveDir)
 
@@ -105,7 +70,7 @@ class SPOD_streaming(SPOD_base):
 
 		# obtain first snapshot to determine data size
 		x_new = self._X[0]
-		x_new = np.reshape(x_new,(self._nx,1), order='F')
+		x_new = np.reshape(x_new,(self._nx,1))
 
 		# get number of modes to store
 		self._n_modes = self._n_blocks-1
@@ -113,20 +78,20 @@ class SPOD_streaming(SPOD_base):
 		if 'n_modes_save' in self._params: n_modes_save = self._params['n_modes_save']
 
 		# allocate data arrays
-		X_hat = np.zeros([n_vars*self._nx,self._n_freq], dtype='complex_')
-		X_sum = np.zeros([n_vars*self._nx,self._n_freq,n_blocks_parallel], dtype='complex_')
-		X_SPOD = np.zeros([n_vars*self._nx,self._n_freq,n_modes_save], dtype='complex_')
-		U_hat = np.zeros([n_vars*self._nx,self._n_freq,self._n_modes], dtype='complex_')
+		X_hat = np.zeros([self._nv*self._nx,self._n_freq], dtype='complex_')
+		X_sum = np.zeros([self._nv*self._nx,self._n_freq,n_blocks_parallel], dtype='complex_')
+		X_SPOD = np.zeros([self._nv*self._nx,self._n_freq,n_modes_save], dtype='complex_')
+		U_hat = np.zeros([self._nv*self._nx,self._n_freq,self._n_modes], dtype='complex_')
 		self._eigs = np.zeros([self._n_modes,self._n_freq], dtype='complex_')
-		mu = np.zeros([n_vars*self._nx,1], dtype='complex_')
+		mu = np.zeros([self._nv*self._nx,1], dtype='complex_')
 
 		# DFT matrix
-		Fourier = np.fft.fft(np.identity(n_DFT))
+		Fourier = np.fft.fft(np.identity(self._n_DFT))
 
 		# correct Fourier coefficients for one-sided spectrum
-		if isrealx:
+		if self._isrealx:
 			Fourier[:,1:self._n_freq-1] = 2 * Fourier[:,1:self._n_freq-1]
-			freq_idx = np.arange(0,int(n_DFT/2+1))
+			freq_idx = np.arange(0,int(self._n_DFT/2+1))
 			Fourier = Fourier[:,freq_idx]
 
 		# convergence tests
@@ -145,7 +110,7 @@ class SPOD_streaming(SPOD_base):
 			if ti > 0:
 				try:
 					x_new = self._X[ti]
-					x_new = np.reshape(x_new,(self._nx,1), order='F')
+					x_new = np.reshape(x_new,(self._nx,1))
 				except:
 					print('--> Data stream ended.')
 					break
@@ -158,11 +123,11 @@ class SPOD_streaming(SPOD_base):
 			update = False
 			for block_j in range(0,n_blocks_parallel):
 				if t_idx[block_j] > -1:
-					X_sum[:,:,block_j] = X_sum[:,:,block_j] + window[t_idx[block_j]] \
+					X_sum[:,:,block_j] = X_sum[:,:,block_j] + self._window[t_idx[block_j]] \
 						* Fourier[t_idx[block_j],:] * x_new
 
 				# check if sum is completed, and if so, initiate update
-				if t_idx[block_j] == n_DFT-1:
+				if t_idx[block_j] == self._n_DFT-1:
 					update = True
 					X_hat = X_sum[:,:,block_j].copy()
 					X_sum[:,:,block_j] = 0
@@ -175,11 +140,11 @@ class SPOD_streaming(SPOD_base):
 				block_i = block_i + 1
 
 				# subtract mean contribution to Fourier sum
-				for row_idx in range(0,n_DFT):
-					X_hat = X_hat - (window[row_idx] * Fourier[row_idx,:]) * mu
+				for row_idx in range(0,self._n_DFT):
+					X_hat = X_hat - (self._window[row_idx] * Fourier[row_idx,:]) * mu
 
-				# correct for windowing function and apply 1/n_DFT factor
-				X_hat = winWeight / n_DFT * X_hat
+				# correct for windowing function and apply 1/self._n_DFT factor
+				X_hat = self._winWeight / self._n_DFT * X_hat
 
 				if block_i == 0:
 					# initialize basis with first vector
@@ -235,7 +200,7 @@ class SPOD_streaming(SPOD_base):
 
 				# Convergence
 				for iFreq in range(0,self._n_freq):
-					proj_iFreq = np.matmul((np.squeeze(X_SPOD_prev[:,iFreq,:]) * weights).conj().T, \
+					proj_iFreq = np.matmul((np.squeeze(X_SPOD_prev[:,iFreq,:]) * self._weights).conj().T, \
 										 np.squeeze(X_SPOD[:,iFreq,:]))
 					proj_prev[iFreq,block_i,:] = np.amax(np.abs(proj_iFreq), axis=0)
 				mse_prev[block_i,:,:] = (np.abs(S_hat_prev**2 - self._eigs**2)**2) / (S_hat_prev**2)
@@ -245,7 +210,7 @@ class SPOD_streaming(SPOD_base):
 
 		# save modes
 		self._modes = np.einsum('ijk->jik', X_SPOD)
-		self._modes = np.reshape(self._modes, ((self._n_freq,)+self._xdim+(n_modes_save,)), order='F')
+		self._modes = np.reshape(self._modes,(self._n_freq,)+self._xshape+(self._nv,)+(n_modes_save,))
 		self._eigs = self._eigs.T
 
 		# save results into files

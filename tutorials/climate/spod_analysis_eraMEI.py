@@ -6,57 +6,65 @@
 
 	Written by Dr. Gianmarco Mengaldo, May 2020.
 '''
-import __includes__
-
-# python libraries
 import os
-import h5py
-import shutil
-import numpy as np
+import sys
+import time
+import warnings
+import xarray as xr
+import numpy  as np
 from pathlib import Path
 
-# project libraries
-from spod_solver import SPOD_API
+sys.path.append("../../")
+from library.spod_low_storage import SPOD_low_storage
+from library.spod_low_ram import SPOD_low_ram
+from library.spod_streaming import SPOD_streaming
+import library.utils as spod_utils
+import library.utils as utils
 
 # Current, parent and file paths
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
-# data ingestion and configuration
-file = '/Users/gian/Desktop/SSPOD/examples/jetLES_small.mat'
-with h5py.File(file, 'r') as f:
-	data_arrays = dict()
-	for k, v in f.items():
-		data_arrays[k] = np.array(v)
-dt = data_arrays['dt'][0,0]
-block_dimension = 64 * dt
-X = data_arrays['p'].T
-X_mean = data_arrays['p_mean']
-t = dt * np.arange(0,X.shape[0]); t = t.T
-x1 = data_arrays['r'].T; x1 = x1[:,0]
-x2 = data_arrays['x'].T; x2 = x2[0,:]
+
+
+###############################
+# Inspect and load data		  #
+###############################
+file = '/Users/gian/Desktop/SEOF_reanalysis-master/data/E20C/E20C_MONTHLYMEAN00_1900_2010_MEI.nc'
+ds = xr.open_dataset(file)
+variables = ['sst', 'msl', 'tcc', 'u10', 'v10', 't2m']
+t = np.array(ds['time'])
+x1 = np.array(ds['longitude'])
+x2 = np.array(ds['latitude'])
+n_vars = len(variables)
+nt = 300
+X = np.empty([t.shape[0], x1.shape[0], x2.shape[0], n_vars])
+for i,var in enumerate(variables):
+	X[...,i] = np.einsum('ijk->ikj', np.array(ds[var]))
+	X[...,i] = np.nan_to_num(X[...,i])
 
 # parameters
-overlap_in_percent = 50
-T_approx = 8
+dt = 720 # in hours
+overlap_in_percent = 0
+block_dimension = dt * 12 * 5
+T_approx = 876 # approximate period (in days)
 params = dict()
-params['nt'          ] = len(t)
-params['nx'          ] = 2
-params['nv'          ] = 1
 params['dt'          ] = dt
-params['nt'          ] = t.shape[0]
+params['nt'          ] = nt
+params['xdim'        ] = 3
+params['nv'          ] = n_vars
 params['n_FFT'       ] = np.ceil(block_dimension / dt)
 params['n_freq'      ] = params['n_FFT'] / 2 + 1
 params['n_overlap'   ] = np.ceil(params['n_FFT'] * overlap_in_percent / 100)
 params['savefreqs'   ] = np.arange(0,params['n_freq'])
-params['conf_level'  ] = 0.95
-params['n_vars'      ] = 1
 params['n_modes_save'] = 3
 params['normvar'     ] = False
 params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
-params['weights'     ] = np.ones([len(x1) * len(x2),1]) / np.ones(1)
-print(params['weights'].shape)
+params['conf_level'  ] = 0.95
+params['normalize'   ] = True
+
+
 
 def test_spod_low_storage_blockwise_mean():
 	'''
@@ -67,42 +75,42 @@ def test_spod_low_storage_blockwise_mean():
 	params['mean'] = 'blockwise'
 	params['savefft'] = False
 
-	# SPOD analysis
-	SPOD_analysis_low_storage = SPOD_API(X=X, params=params, approach='spod_low_storage')
-	spod_low_storage = SPOD_analysis_low_storage.fit()
+	# get weights from spod_utils built-in function for geospatial data
+	params['weights'] = spod_utils.geo_weights_trapz_2D(\
+		lat=x2, lon=x1, R=1, n_vars=n_vars)
+	if params['normalize']:
+		params['weights'] = spod_utils.apply_normalization(\
+			X=X, weights=params['weights'], method='variance')
+
+	# Perform SPOD analysis
+	SPOD_analysis = SPOD_low_storage(X=X, params=params, file_handler=False)
+	spod = SPOD_analysis.fit()
 
 	# Test results
 	# ------------
-
-	# Approximate period to look for
 	T_approx = 12.5
-	freq_low_storage_found, freq_idx_low_storage = \
-		spod_low_storage.find_nearest_freq(freq_required=1/T_approx, freq=spod_low_storage.freq)
-	modes_at_freq_low_storage = spod_low_storage.get_modes_at_freq(freq_idx=freq_idx_low_storage)
+	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 
-	# spod_low_storage.plot_eigs()
-	# spod_low_storage.plot_eigs_vs_frequency()
-	# spod_low_storage.plot_eigs_vs_period()
-	# spod_low_storage.plot_2D_modes_at_frequency(freq_required=freq_low_storage_found,
-	# 											freq=spod_low_storage.freq,
-	# 											x1=x1, x2=x2)
-	# spod_low_storage.plot_2D_mode_slice_vs_time(freq_required=freq_low_storage_found,
-	# 											freq=spod_low_storage.freq)
-	# spod_low_storage.plot_mode_tracers(freq_required=freq_low_storage_found,
-	# 								   freq=spod_low_storage.freq,
-	# 								   coords_list=[(10,10), (14,14), (0,1)])
-	# spod_low_storage.plot_2D_data(time_idx=[0,10,20,30,40,50])
-	# spod_low_storage.plot_data_tracers(coords_list=[(10,10), (14,14), (0,1)])
-	spod_low_storage.generate_2D_data_video()
+	spod.plot_eigs()
+	freq = spod.freq*24
+	spod.plot_eigs_vs_frequency(freq=freq)
+	spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
+	spod.plot_2D_data(x1=x1, x2=x2, coastlines=True)
+	# spod.plot_2D_modes_at_frequency(
+	# 	freq_required=freq_found, freq=freq, x1=x1, x2=x2, coastlines=True)
+	# spod.plot_mode_tracers(
+	# 	freq_required=freq_found, freq=freq, coords_list=[(10,10,10),(14,14,14),(0,1,2)])
+
 	tol = 1e-10
-	print(modes_at_freq_low_storage.shape)
-	print(np.abs(modes_at_freq_low_storage[0,1,0,0]))
-	assert((np.abs(modes_at_freq_low_storage[0,1,0,0]) < 0.0004634362811441267 +tol) & \
-		   (np.abs(modes_at_freq_low_storage[0,1,0,0]) > 0.0004634362811441267 -tol))
-	assert((np.abs(modes_at_freq_low_storage[10,3,0,2]) < 0.00015920889387988687+tol) & \
-		   (np.abs(modes_at_freq_low_storage[10,3,0,2]) > 0.00015920889387988687-tol))
-	assert((np.abs(modes_at_freq_low_storage[14,15,0,1]) < 0.00022129956393462585+tol) & \
-		   (np.abs(modes_at_freq_low_storage[14,15,0,1]) > 0.00022129956393462585-tol))
+	assert((np.max(np.abs(modes_at_freq)) < 0.44488508977606755+tol) & \
+		   (np.max(np.abs(modes_at_freq)) > 0.44488508977606755-tol))
+	assert((np.abs(modes_at_freq[  0, 1, 0,0,0]) < 0.1301728782536022 +tol) & \
+		   (np.abs(modes_at_freq[  0, 1, 0,0,0]) > 0.1301728782536022 -tol))
+	assert((np.abs(modes_at_freq[101, 3,10,0,0]) < 0.04965896477122447+tol) & \
+		   (np.abs(modes_at_freq[101, 3,10,0,0]) > 0.04965896477122447-tol))
+	assert((np.abs(modes_at_freq[ 14,50, 3,0,1]) < 0.00200530186308792+tol) & \
+		   (np.abs(modes_at_freq[ 14,50, 3,0,1]) > 0.00200530186308792-tol))
 
 
 
@@ -124,17 +132,32 @@ def test_spod_low_storage_longtime_mean():
 
 	# Approximate period to look for
 	T_approx = 12.5
-	freq_low_storage, freq_idx_low_storage = \
-		spod_low_storage.find_nearest_freq(freq=spod_low_storage.freq, freq_value=1/T_approx)
+	freq_low_storage_found, freq_idx_low_storage = \
+		spod_low_storage.find_nearest_freq(freq_required=1/T_approx, freq=spod_low_storage.freq)
 	modes_at_freq_low_storage = spod_low_storage.get_modes_at_freq(freq_idx=freq_idx_low_storage)
 
+	spod_low_storage.plot_eigs()
+	spod_low_storage.plot_eigs_vs_frequency()
+	spod_low_storage.plot_eigs_vs_period()
+	spod_low_storage.plot_2D_modes_at_frequency(freq_required=freq_low_storage_found,
+												freq=spod_low_storage.freq,
+												x1=x1, x2=x2)
+	# spod_low_storage.plot_2D_mode_slice_vs_time(freq_required=freq_low_storage_found,
+	# 											freq=spod_low_storage.freq)
+	# spod_low_storage.plot_mode_tracers(freq_required=freq_low_storage_found,
+	# 								   freq=spod_low_storage.freq,
+	# 								   coords_list=[(10,10), (14,14), (0,1)])
+	# spod_low_storage.plot_2D_data(time_idx=[0,10,20,30,40,50])
+	# spod_low_storage.plot_data_tracers(coords_list=[(10,10), (14,14), (0,1)])
+	# spod_low_storage.generate_2D_data_video()
+
 	tol = 1e-10
-	assert((np.abs(modes_at_freq_low_storage[0,1,0])   < 0.0002553973055570933 +tol) & \
-		   (np.abs(modes_at_freq_low_storage[0,1,0])   > 0.0002553973055570933 -tol))
-	assert((np.abs(modes_at_freq_low_storage[10,3,2])  < 0.0001436177831495062 +tol) & \
-		   (np.abs(modes_at_freq_low_storage[10,3,2])  > 0.0001436177831495062 -tol))
-	assert((np.abs(modes_at_freq_low_storage[14,15,1]) < 0.00016919013013301339+tol) & \
-		   (np.abs(modes_at_freq_low_storage[14,15,1]) > 0.00016919013013301339-tol))
+	assert((np.abs(modes_at_freq_low_storage[0,1,0,0])   < 0.0002553973055570933 +tol) & \
+		   (np.abs(modes_at_freq_low_storage[0,1,0,0])   > 0.0002553973055570933 -tol))
+	assert((np.abs(modes_at_freq_low_storage[10,3,0,2])  < 0.0001436177831495062 +tol) & \
+		   (np.abs(modes_at_freq_low_storage[10,3,0,2])  > 0.0001436177831495062 -tol))
+	assert((np.abs(modes_at_freq_low_storage[14,15,0,1]) < 0.00016919013013301339+tol) & \
+		   (np.abs(modes_at_freq_low_storage[14,15,0,1]) > 0.00016919013013301339-tol))
 
 
 
@@ -538,7 +561,7 @@ def test_spod_streaming_postprocessing():
 
 if __name__ == "__main__":
 	test_spod_low_storage_blockwise_mean()
-	# test_spod_low_storage_longtime_mean ()
+	test_spod_low_storage_longtime_mean ()
 	# test_spod_low_ram_blockwise_mean    ()
 	# test_spod_low_ram_longtime_mean     ()
 	# test_spod_streaming                 ()
@@ -548,8 +571,8 @@ if __name__ == "__main__":
 	# test_spod_low_ram_postprocessing    ()
 	# test_spod_streaming_postprocessing  ()
 
-	# # clean up results
-	# try:
-	# 	shutil.rmtree('results')
-	# except:
-	# 	print('no results to clean.')
+	# clean up results
+	try:
+		shutil.rmtree('results')
+	except:
+		print('no results to clean.')

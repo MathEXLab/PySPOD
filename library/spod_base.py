@@ -11,6 +11,7 @@ import psutil
 import warnings
 import numpy as np
 import matplotlib as mpl
+import scipy.special as sc
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib.gridspec as gridspec
@@ -22,6 +23,11 @@ from os.path import splitext
 # Import custom Python packages
 import library.postprocessing as post
 
+# Current, parent and file paths
+CWD = os.getcwd()
+CF  = os.path.realpath(__file__)
+CFD = os.path.dirname(CF)
+
 
 BYTE_TO_GB = 9.3132257461548e-10
 
@@ -30,9 +36,95 @@ class SPOD_base(object):
 	'''
 	Spectral Proper Orthogonal Decomposition base class.
 	'''
-	def __init__(self, X, params):
-		self._X = X
+	def __init__(self, X, params, file_handler):
+
+		# store mandatory parameters in class
+		self._nt   = params['nt']	# number of time-frames
+		self._xdim = params['xdim'] # number of spatial dimensions
+		self._nv   = params['nv']	# number of variables
+		self._dt   = params['dt']	# time-step
+
+		# type of data management
+		# - file_handler: read type online
+		# - not file_handler: data is entirely pre-loaded
+		if file_handler:
+			self._X = reader.read_data(X)
+		else:
+			self._X = np.array(X)
+
+		# special case for 1 single variable
+		if self._nv == 1 and (self.X.ndim != self._xdim + 2):
+			self._X = self._X[...,np.newaxis]
+
+		# get data dimensions and store in class
+		self._nx = self._X[0,...,0].size
+		self._dim = self._X.ndim
+		self._shape = self._X.shape
+		self._xdim = self._X[0,...,0].ndim
+		self._xshape = self._X[0,...,0].shape
+
+		# store parameters in class for distribution to children class if required
 		self._params = params
+
+		# Determine whether data is real-valued or complex-valued-valued
+		# to decide on one- or two-sided spectrum. If "opts.isreal" is
+		# not set, determine from data
+		if 'isreal'.lower() in self._params:
+			self._isrealx = self._params['isreal']
+		else:
+			self._isrealx = np.isreal(self._X[0]).all()
+
+		# get default spectral estimation parameters and options
+		self._window, self._weights, \
+		self._n_overlap, self._n_DFT, \
+		self._n_blocks, self._x_mean, \
+		self._mean_type, self._freq, \
+		self._n_freq = self.parse_parameters( \
+				isrealx=self._isrealx,
+				params=self._params
+		)
+
+		# determine correction for FFT window gain
+		self._winWeight = 1 / np.mean(self._window)
+		self._window = self._window.reshape(self._window.shape[0],1)
+
+		# get default for confidence interval
+		if 'conf_level' in self._params:
+			self._conf_level = 0.95
+			self._xi2_upper = 2 * sc.gammaincinv(self._n_blocks, 1 - self._conf_level)
+			self._xi2_lower = 2 * sc.gammaincinv(self._n_blocks,     self._conf_level)
+			self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype='complex_')
+			self._conf_interval = True
+		else:
+			self._eigs_c = []
+			self._conf_interval = False
+
+		# get default for normalization Boolean
+		self._normvar = self._params.get('normvar',False)
+
+		# create folder to save results
+		self._savefft = self._params.get('savefft',False)
+		self._save_dir = self._params.get('savedir',CWD)
+		self._save_dir_blocks = os.path.join(self._save_dir,'nfft'+str(self._n_DFT)+\
+			'_novlp'+str(self._n_overlap)+'_nblks'+str(self._n_blocks))
+		if not os.path.exists(self._save_dir_blocks):
+			os.makedirs(self._save_dir_blocks)
+
+		# compute approx problem size (assuming double)
+		pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
+
+		print('DATA MATRIX DIMENSIONS')
+		print('------------------------------------')
+		print('Problem size          : ', pb_size, 'GB. (double)')
+		print('data matrix dimensions:        ', self._X.shape)
+		print('Make sure that first column of data matrix '
+			  'is time and last column is number of variables. ')
+		print('First column dimension: {} must correspond to '
+			  'number of time snapshots.'.format(self._X.shape[0]))
+		print('Last column dimension: {} must correspond to '
+			  'number of variables.'.format(self._X.shape[-1]))
+		print('------------------------------------')
+
 
 
 
@@ -58,6 +150,16 @@ class SPOD_base(object):
 		:rtype: int
 		'''
 		return self._dim
+
+	@property
+	def shape(self):
+		'''
+		Get the shape of the data matrix X.
+
+		:return: shape of the data matrix X.
+		:rtype: int
+		'''
+		return self._shape
 
 	@property
 	def nt(self):
@@ -92,12 +194,22 @@ class SPOD_base(object):
 	@property
 	def xdim(self):
 		'''
+		Get the number of spatial dimensions of the data matrix X.
+
+		:return: number of spatial dimensions of the data matrix X.
+		:rtype: tuple(int,)
+		'''
+		return self._xdim
+
+	@property
+	def xshape(self):
+		'''
 		Get the spatial shape of the data matrix X.
 
 		:return: spatial shape of the data matrix X.
 		:rtype: tuple(int,)
 		'''
-		return self._xdim
+		return self._xshape
 
 	@property
 	def n_freq(self):
@@ -118,6 +230,16 @@ class SPOD_base(object):
 		:rtype: int
 		'''
 		return self._freq
+
+	@property
+	def dt(self):
+		'''
+		Get the time-step.
+
+		:return: the time-step used by the SPOD algorithm.
+		:rtype: double
+		'''
+		return self._dt
 
 	@property
 	def eigs(self):
@@ -172,10 +294,10 @@ class SPOD_base(object):
 				raise ValueError('Not enough RAM memory to load modes stored, '
 								 'for all frequencies.')
 			else:
-				m = np.zeros((self.n_freq,)+self.xdim[:]+(self._n_modes_saved,),
+				m = np.zeros((self.n_freq,)+self.xshape+(self._nv,)+(self._n_modes_saved,),
 					dtype='complex_')
 				for freq in self._modes.keys():
-					m[int(freq),::] = self._get_mode_from_file(self._modes[freq])
+					m[int(freq),::] = post.get_mode_from_file(self._modes[freq])
 		else:
 			m = self._modes
 		return m
@@ -436,7 +558,6 @@ class SPOD_base(object):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		print(type(self.eigs))
 		post.plot_eigs(
 			self.eigs, title=title, figsize=figsize, show_axes=show_axes,
 			equal_axes=equal_axes, path=self.save_dir, filename=filename)
@@ -453,7 +574,7 @@ class SPOD_base(object):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		if not freq: freq = self.freq
+		if freq is None: freq = self.freq
 		post.plot_eigs_vs_frequency(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			show_axes=show_axes, equal_axes=equal_axes, figsize=figsize,
@@ -471,7 +592,7 @@ class SPOD_base(object):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		if not freq: freq = self.freq
+		if freq is None: freq = self.freq
 		post.plot_eigs_vs_period(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			figsize=figsize, show_axes=show_axes, equal_axes=equal_axes,
@@ -526,6 +647,8 @@ class SPOD_base(object):
 			path=self.save_dir, filename=filename)
 
 	def plot_3D_modes_slice_at_frequency(self,
+								   		 freq_required,
+								   		 freq,
 								         vars_idx=[0],
 								         modes_idx=[0],
 								         x1=None,
@@ -536,6 +659,7 @@ class SPOD_base(object):
 								         fftshift=False,
 								         imaginary=False,
 								         plot_max=False,
+										 coastlines=False,
 								         title='',
 								         xticks=None,
 								         yticks=None,
@@ -546,9 +670,10 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_3D_modes_slice_at_frequency(
-			self.modes, vars_idx=vars_idx, modes_idx=modes_idx,
-			x1=x1, x2=x2, x3=x3, slice_dim=slice_dim, slice_id=slice_id,
-			fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
+			self.modes, freq_required=freq_required, freq=freq,
+			vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
+			x3=x3, slice_dim=slice_dim, slice_id=slice_id, fftshift=fftshift,
+			imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
 			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
 			equal_axes=equal_axes, path=self.save_dir, filename=filename)
 

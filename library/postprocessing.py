@@ -37,9 +37,7 @@ def find_nearest_freq(freq_required, freq):
 	:rtype: double, int
 	'''
 	freq = np.asarray(freq)
-	print('freq  = ', freq)
 	idx = (np.abs(freq - freq_required)).argmin()
-	print('freq_______________idx = ',idx)
 	return freq[idx], idx
 
 
@@ -97,7 +95,7 @@ def get_modes_at_freq(modes, freq_idx):
 	'''
 	# load modes from files if saved in storage
 	if isinstance(modes, dict):
-		m = np.zeros(self.xdim[:]+(modes.shape[-1],))
+		# m = np.zeros(self.xdim[:]+(modes.shape[-1],))
 		m = get_mode_from_file(modes[freq_idx])
 	else:
 		m = modes[freq_idx,...]
@@ -105,7 +103,7 @@ def get_modes_at_freq(modes, freq_idx):
 
 
 
-def _get_mode_from_file(filename):
+def get_mode_from_file(filename):
 	'''
 	Load SPOD modes from file
 
@@ -159,7 +157,6 @@ def plot_eigs(eigs,
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 
-	print(figsize)
 	plt.figure(figsize=figsize)
 	if len(title) > 1:
 		plt.title(title)
@@ -195,7 +192,7 @@ def plot_eigs(eigs,
 	# save or show plots
 	if filename:
 		plt.savefig(os.path.join(path,filename), dpi=200)
-		plt.close(fig)
+		plt.close()
 	else:
 		plt.show()
 
@@ -432,10 +429,6 @@ def plot_2D_modes_at_frequency(modes,
 			if fftshift:
 				mode = np.fft.fftshift(mode, axes=1)
 
-			# mode = mode.T
-			print(mode.shape)
-			print(x1.shape)
-			print(x2.shape)
 			# check dimension axes and data
 			if x1.shape[0] != mode.shape[0] or x2.shape[0] != mode.shape[1]:
 				raise ValueError('Data dimension Z = (N,M); x1 and x2 must '
@@ -636,13 +629,12 @@ def plot_2D_mode_slice_vs_time(modes,
 		if fftshift:
 			tmp = np.fft.fftshift(tmp, axes=1)
 		idx_x1, idx_x2 = np.where(np.abs(tmp) == np.amax(np.abs(tmp)))
-		print(tmp.shape)
 
 		for mode_id in modes_idx:
 
 			# select mode and fft-shift it
 			mode = np.squeeze(modes[:,:,var_id,mode_id])
-			print(mode.shape)
+
 			if fftshift:
 				mode = np.fft.fftshift(mode, axes=1)
 
@@ -738,6 +730,8 @@ def plot_2D_mode_slice_vs_time(modes,
 
 
 def plot_3D_modes_slice_at_frequency(modes,
+									 freq_required,
+									 freq,
 							         vars_idx=[0],
 							         modes_idx=[0],
 							         x1=None,
@@ -748,6 +742,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 							         fftshift=False,
 							         imaginary=False,
 							         plot_max=False,
+									 coastlines=False,
 							         title='',
 							         xticks=None,
 							         yticks=None,
@@ -759,6 +754,8 @@ def plot_3D_modes_slice_at_frequency(modes,
 	Plot SPOD modes for 3D problems.
 
 	:param numpy.ndarray modes: 3D SPOD modes.
+	:param double freq_required: frequency to be plotted.
+	:param numpy.ndarray freq: frequency array.
 	:type int or sequence(int) vars_idx: variables to be plotted.
 		Default, the first variable is plotted.
 	:type int or sequence(int) modes_idx: modes to be plotted.
@@ -775,6 +772,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 	:param bool imaginary: whether to plot imaginary part. Default is False
 	:param bool plot_max: whether to plot a dot at maximum value of the plot.
 		Default is False.
+	:param bool coastlines: whether to overlay coastlines. Default is False.
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
@@ -798,6 +796,11 @@ def plot_3D_modes_slice_at_frequency(modes,
 		modes_idx = [modes_idx]
 	if not isinstance(modes_idx, (list,tuple)):
 		raise TypeError('`modes_idx` must be a list or tuple')
+
+	# get modes at required frequency
+	freq_val, freq_idx = find_nearest_freq(freq_required=freq_required, freq=freq)
+	modes = get_modes_at_freq(modes=modes, freq_idx=freq_idx)
+
 	# if domain dimensions have not been passed, use data dimensions
 	if x1 is None and x2 is None and x3 is None:
 		x1 = np.arange(modes.shape[0])
@@ -810,29 +813,30 @@ def plot_3D_modes_slice_at_frequency(modes,
 
 	# loop over variables and modes
 	for var_id in vars_idx:
-		for mode_id in modes_idx:
 
-			# initialize figure
-			fig = plt.figure(figsize=figsize, frameon=True, constrained_layout=False)
+		for mode_id in modes_idx:
 
 			# extract mode
 			mode_3d = np.squeeze(modes[:,:,:,var_id,mode_id])
-			if slice_dim.lower() == 0:
-				if not slice_id:
-					slice_id = np.max(mode_3d, axis=0)
+
+			if slice_dim == 0:
+				if slice_id is None:
+					slice_id = np.argmax(mode_3d, axis=0)
 				mode = mode_3d[slice_id,:,:]
 				xx = x2
 				xx = x3
-			elif slice_dim.lower() == 1:
-				if not slice_id:
-					slice_id = np.max(mode_3d, axis=1)
+				coastlines = False
+			elif slice_dim == 1:
+				if slice_id is None:
+					slice_id = np.argmax(mode_3d, axis=1)
 				mode = mode_3d[:,slice_id,:]
 				xx = x1
 				yy = x3
-			elif slice_dim.lower() == 2:
-				if not slice_id:
-					slice_id = np.max(mode_3d, axis=2)
-				mode = mode_3d[:,:,slice_id]
+				coastlines = False
+			elif slice_dim == 2:
+				if slice_id is None:
+					slice_id = np.argmax(mode_3d, axis=2)
+				mode = mode_3d[:,:,0]
 				xx = x1
 				yy = x2
 
@@ -841,11 +845,15 @@ def plot_3D_modes_slice_at_frequency(modes,
 				mode = np.fft.fftshift(mode, axes=1)
 
 			# check dimension axes and data
-			if x1.shape[0] != mode.shape[0] or x2.shape[0] != mode.shape[1]:
-				raise ValueError('Data dimension Z = (N,M); x1 and x2 must '
+			if xx.shape[0] != mode.shape[0] or yy.shape[0] != mode.shape[1]:
+				raise ValueError('Data dimension Z = (N,M); xx and yy must '
 								 'have dimension N and M, respectively.')
 			# plot data
 			if imaginary:
+
+				# initialize figure
+				fig = plt.figure(figsize=figsize)
+
 				real_ax = fig.add_subplot(1, 2, 1)
 				real = real_ax.contourf(
 					xx, yy, np.real(mode).T,
@@ -869,10 +877,10 @@ def plot_3D_modes_slice_at_frequency(modes,
 				plt.colorbar(real, cax=real_cax)
 				plt.colorbar(imag, cax=imag_cax)
 				# axis management
-				real_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
-				imag_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-				imag_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
+				real_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
+				real_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
+				imag_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
+				imag_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
 				if xticks:
 					real_ax.set_xticks(xticks)
 					real_ax.set_xticklabels(xticks)
@@ -894,6 +902,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
 			else:
+				plt.figure(figsize=figsize)
 				real_ax = plt.gca()
 				real = real_ax.contourf(
 					xx, yy, np.real(mode).T,
@@ -906,6 +915,13 @@ def plot_3D_modes_slice_at_frequency(modes,
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
+				# overlay coastlines if required
+				if coastlines:
+					from scipy.io import loadmat
+					coast = loadmat('/Users/gian/Desktop/SEOF_reanalysis-master/utils/coast.mat')
+					coastlon = coast['coastlon']
+					coastlat = coast['coastlat']
+					real_ax.plot(coastlon+180, coastlat, 'k-', linewidth=0.5)
 				# axis management
 				if equal_axes:
 					real_ax.set_aspect('equal')
@@ -915,13 +931,13 @@ def plot_3D_modes_slice_at_frequency(modes,
 				if yticks:
 					real_ax.set_yticks(yticks)
 					real_ax.set_yticklabels(yticks)
-				real_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
+				real_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
+				real_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
 				if len(title) > 1:
-					plt.title(title + \
+					real_ax.set_title(title + \
 						', mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
 				else:
-					plt.title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+					real_ax.set_title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
@@ -1100,7 +1116,6 @@ def plot_2D_data(X,
 		x2 = np.arange(X.shape[2])
 
 	# get time index
-	print(time_idx)
 	if isinstance(time_idx, int):
 		time_idx = [time_idx]
 	if not isinstance(time_idx, (list,tuple)):
@@ -1134,7 +1149,7 @@ def plot_2D_data(X,
 				coast = loadmat('/Users/gian/Desktop/SEOF_reanalysis-master/utils/coast.mat')
 				coastlon = coast['coastlon']
 				coastlat = coast['coastlat']
-				plt.plot(np.flip(coastlon), np.flip(coastlat), 'k-', linewidth=1.5)
+				plt.plot(coastlon+180, coastlat, 'k-', linewidth=1.5)
 
 			# plot data
 			contour = plt.contourf(
@@ -1145,7 +1160,7 @@ def plot_2D_data(X,
 
 			# save or show plots
 			if filename:
-				filename = '{0}_time_{1}{2}'.format(basename, idx, ext)
+				filename = '{0}_var{1}_time{2}{3}'.format(basename, var_id, time_id, ext)
 				plt.savefig(os.path.join(path,filename), dpi=200)
 				plt.close(fig)
 			if not filename:
@@ -1188,7 +1203,6 @@ def plot_data_tracers(X,
 	if not isinstance(coords_list, list):
 		raise TypeError('`coords` must be a list')
 	# get idx variables
-	print(vars_idx)
 	if isinstance(vars_idx, int):
 		vars_idx = [vars_idx]
 	if not isinstance(vars_idx, (list,tuple)):
@@ -1322,7 +1336,6 @@ def generate_2D_data_video(X,
 		Writer = animation.writers['ffmpeg']
 		writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 		filename = '{0}_var{1}{2}'.format(basename, i, ext)
-		print(filename)
 		a.save(os.path.join(path,filename), writer=writer)
 		plt.close('all')
 
