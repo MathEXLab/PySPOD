@@ -6,25 +6,21 @@
 
 	Written by Dr. Gianmarco Mengaldo, May 2020.
 '''
-import __includes__
-import pprint
-
 import os
 import sys
 import time
-import warnings
 import xarray as xr
 import numpy  as np
-from scipy import io
 from pathlib import Path
-from datetime import date
-import matplotlib.pyplot as plt
-import pyximport; pyximport.install()
+import scipy.io
+
+sys.path.append("../../")
+sys.path.append("../../library")
 from library.spod_low_storage import SPOD_low_storage
 from library.spod_low_ram     import SPOD_low_ram
-import library.utils as utils
-import scipy.io
-import h5py
+import library.weights as weights
+
+
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -81,9 +77,9 @@ def test_spod_low_storage_blockwise_mean():
 	params['savefft'] = False
 
 	# get weights from utils built-in function for geospatial data
-	params['weights'] = utils.geo_weights_trapz_3D(lat=x2, lon=x1, R=1, z=x3, n_vars=n_vars)
+	params['weights'] = weights.geo_weights_trapz_3D(lat=x2, lon=x1, R=1, z=x3, n_vars=n_vars)
 	# if params['normalize']:
-	# 	params['weights'] = utils.apply_normalization(X=X, weights=params['weights'], method='variance')
+	# 	params['weights'] = weigthing.apply_normalization(X=X, weights=params['weights'], method='variance')
 
 	# Perform SPOD analysis
 	SPOD_analysis = SPOD_low_storage(X=X, params=params, file_handler=False)
@@ -94,16 +90,6 @@ def test_spod_low_storage_blockwise_mean():
 	T_approx = 12.5
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-
-	# spod.plot_eigs()
-	# freq = spod.freq*24
-	# spod.plot_eigs_vs_frequency(freq=freq)
-	# spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
-	# spod.plot_3D_modes_slice_at_frequency(freq_required=freq_found, freq=freq,
-	# 									  x1=x1, x2=x2, x3=x3, slice_dim=2, slice_id=0,
-	# 									  coastlines=True)
-	# spod.plot_mode_tracers(freq_required=freq_found, freq=freq,
-	# 					   coords_list=[(10,10,10),(14,14,14),(0,1,2)])
 
 	tol = 1e-10
 	assert((np.max(np.abs(modes_at_freq)) < 0.44488508977606755+tol) & \
