@@ -356,7 +356,7 @@ class SPOD_base(object):
 								 'have the same spatial dimensions as data.')
 			else:
 				if weights.shape != (self.nx, self.nv):
-					weights = np.reshape(weights, [int(self.nx*self.nv),1], order='F')
+					weights = np.reshape(weights, [int(self.nx*self.nv),1])
 				weights_name = 'user-specified'
 		else:
 			weights = np.ones([int(self.nx*self.nv),1])
