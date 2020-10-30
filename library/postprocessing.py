@@ -1398,7 +1398,7 @@ def generate_2D_data_video(X,
 			frames = [
 				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
 								shading='gouraud',
-								vmin=vmin,vmax=vmax);
+								vmin=vmin,vmax=vmax),
 				 plt.scatter(coast['coastlon'],
 				 			 coast['coastlat'],
 							 marker='.', c='k', s=1)]
