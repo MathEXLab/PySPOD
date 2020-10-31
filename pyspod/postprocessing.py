@@ -860,7 +860,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 					slice_id = np.argmax(mode_3d, axis=0)
 				mode = mode_3d[slice_id,:,:]
 				xx = x2
-				xx = x3
+				yy = x3
 				coastlines = ''
 			elif slice_dim == 1:
 				if slice_id is None:
@@ -872,7 +872,7 @@ def plot_3D_modes_slice_at_frequency(modes,
 			elif slice_dim == 2:
 				if slice_id is None:
 					slice_id = np.argmax(mode_3d, axis=2)
-				mode = mode_3d[:,:,0]
+				mode = mode_3d[:,:,slice_id]
 				xx = x1
 				yy = x2
 
