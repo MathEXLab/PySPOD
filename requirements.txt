@@ -1,0 +1,13 @@
+scipy==1.4.1
+pandas==1.1.1
+tqdm==4.48.2
+numpy==1.18.5
+pyFFTW==0.12.0
+h5py==2.10.0
+basemap==1.2.1
+matplotlib==3.3.2
+ecmwf_api_client==1.5.6
+xarray==0.16.0
+psutil==5.7.2
+library==0.0.0
+netCDF4==1.5.4
