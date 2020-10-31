@@ -28,7 +28,7 @@ BYTE_TO_GB = 9.3132257461548e-10
 # ---------------------------------------------------------------------------
 
 def find_nearest_freq(freq_required, freq):
-	'''
+	"""
 	Get nearest frequency to requested `freq_value`.
 
 	:param double freq_required: requested frequency.
@@ -36,7 +36,7 @@ def find_nearest_freq(freq_required, freq):
 
 	:return: the nearest frequecy to the `freq_value` requested and its id.
 	:rtype: double, int
-	'''
+	"""
 	freq = np.asarray(freq)
 	idx = (np.abs(freq - freq_required)).argmin()
 	return freq[idx], idx
@@ -44,7 +44,7 @@ def find_nearest_freq(freq_required, freq):
 
 
 def find_nearest_coords(coords, x, data_space_dim):
-	'''
+	"""
 	Get nearest data coordinates to requested coordinates `coords`.
 
 	:param np.ndarray coords: coordinate requested.
@@ -53,7 +53,7 @@ def find_nearest_coords(coords, x, data_space_dim):
 
 	:return: the nearest coordinate to the `coords` requested and its id.
 	:rtype: numpy.ndarray, int
-	'''
+	"""
 	coords = np.asarray(coords)
 	if isinstance(x, list):
 		grid = np.array(np.meshgrid(*x))
@@ -76,24 +76,20 @@ def find_nearest_coords(coords, x, data_space_dim):
 
 
 def get_modes_at_freq(modes, freq_idx):
-	'''
-	Get the matrix containing the SPOD modes, stored
-	by
-		[frequencies,
-		 spatial dimensions original data,
-		 number of variables,
-		 number of modes].
+	"""
+	Get the matrix containing the SPOD modes, stored by \
+	[frequencies, spatial dimensions data, no. of variables, no. of modes].
 
-	:param [dict or numpy.ndarray] modes: SPOD modes.
-		If dict, it must contain the path to the files
-		where the modes are stored.
+	:param dict or numpy.ndarray modes: SPOD modes. \
+		If dict, it must contain the path to the files \
+		where the modes are stored. \
 		If numpy.ndarray, it must contain the modes.
-	:param [int] freq_idx: frequency id requested.
+	:param int freq_idx: frequency id requested.
 
-	:return: the [n_dims, n_vars, n_modes]
+	:return: the n_dims, n_vars, n_modes \
 		matrix containing the SPOD modes at requested frequency.
 	:rtype: numpy.ndarray
-	'''
+	"""
 	# load modes from files if saved in storage
 	if isinstance(modes, dict):
 		# m = np.zeros(self.xdim[:]+(modes.shape[-1],))
@@ -105,7 +101,7 @@ def get_modes_at_freq(modes, freq_idx):
 
 
 def get_mode_from_file(filename):
-	'''
+	"""
 	Load SPOD modes from file
 
 	:param str filename: path from where to load SPOD modes.
@@ -114,7 +110,7 @@ def get_mode_from_file(filename):
 		matrix containing the requested SPOD modes from
 		file at a given frequency.
 	:rtype: numpy.ndarray
-	'''
+	"""
 	basename, ext = splitext(filename)
 	if ext.lower() == '.npy':
 		m = np.load(filename)
@@ -142,19 +138,19 @@ def plot_eigs(eigs,
 			  equal_axes=False,
 			  path=CWD,
 			  filename=None):
-	'''
+	"""
 	Plot eigenvalues `eigs`.
 
 	:param ndarray eigs: eigenvalues.
 	:param str title: if specified, title of the plot.
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
 	:param bool show_axes: if True, the axes will be showed. Default is True.
 	:param bool equal_axes: if True, the axes will be equal. Default is False.
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
-	:param str filename: if specified, the plot is saved at `filename`.
+	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	'''
+	"""
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 
@@ -209,7 +205,7 @@ def plot_eigs_vs_frequency(eigs,
 						   figsize=(12,8),
 			  	   		   path=CWD,
 			  			   filename=None):
-	'''
+	"""
 	Plot eigenvalues vs. frequency.
 
 	:param ndarray eigs: eigenvalues.
@@ -219,12 +215,12 @@ def plot_eigs_vs_frequency(eigs,
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
 	:param bool show_axes: if True, the axes will be showed. Default is True.
 	:param bool equal_axes: if True, the axes will be equal. Default is False.
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
-	:param str filename: if specified, the plot is saved at `filename`.
+	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	'''
+	"""
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 	if not isinstance(freq, np.ndarray):
@@ -277,7 +273,7 @@ def plot_eigs_vs_period(eigs,
 						figsize=(12,8),
 						path=CWD,
 						filename=None):
-	'''
+	"""
 	Plot eigenvalues vs. period = 1 / freq.
 
 	:param ndarray eigs: eigenvalues.
@@ -287,12 +283,12 @@ def plot_eigs_vs_period(eigs,
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
 	:param bool show_axes: if True, the axes will be showed. Default is True.
 	:param bool equal_axes: if True, the axes will be equal. Default is False.
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
-	:param str filename: if specified, the plot is saved at `filename`.
+	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	'''
+	"""
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 	if not isinstance(freq, np.ndarray):
@@ -357,37 +353,39 @@ def plot_2D_modes_at_frequency(modes,
 							   equal_axes=False,
 							   path=CWD,
 							   filename=None):
-	'''
+	"""
 	Plot SPOD modes for 2D problems.
 
 	:param numpy.ndarray modes: 2D SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
-	:type int or sequence(int) vars_idx: variables to be plotted.
+	:param int or sequence(int) vars_idx: variables to be plotted. \
 		Default, the first variable is plotted.
-	:type int or sequence(int) modes_idx: modes to be plotted.
+	:param int or sequence(int) modes_idx: modes to be plotted. \
 		Default, the first mode is plotted.
 	:param numpy.ndarray x1: x-axis coordinate.
 	:param numpy.ndarray x2: y-axis coordinate.
-	:param bool fftshift: whether to perform fft-shifting. Default is False.
-	:param bool imaginary: whether to plot imaginary part. Default is False
-	:param bool plot_max: whether to plot a dot at maximum value of the plot.
+	:param bool fftshift: whether to perform fft-shifting. \
 		Default is False.
-	:param str coastlines: whether to overlay coastlines.
-		Options are
-			`regular` (longitude from 0 to 360) and
-			`centred` (longitude from -180 to 180)
+	:param bool imaginary: whether to plot imaginary part. \
+		Default is False
+	:param bool plot_max: whether to plot a dot at maximum \
+		value of the plot. Default is False.
+	:param str coastlines: whether to overlay coastlines. \
+		Options are `regular` (longitude from 0 to 360) \
+		and	`centred` (longitude from -180 to 180) \
 		Default is '' (no coastlines).
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
 	:param bool equal_axes: if True, the axes will be equal. Default is False.
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
-	:param str path: if specified, the plot is saved at `path`. Default is CWD.
-	:param str filename: if specified, the plot is saved at `filename`.
+	:param str path: if specified, the plot is saved at `path`. \
+		Default is CWD.
+	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	'''
+	"""
 	# check dimensions
 	if modes.ndim != 5:
 		raise ValueError('Dimension of the modes is not 2D.')
@@ -494,9 +492,9 @@ def plot_2D_modes_at_frequency(modes,
 					imag_ax.set_aspect('equal')
 				if len(title) > 1:
 					fig.suptitle(title + \
-						', mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-					fig.suptitle('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+					fig.suptitle('mode: {}, variable ID: {}'.format(mode_id, var_id))
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
 			else:
@@ -535,9 +533,9 @@ def plot_2D_modes_at_frequency(modes,
 				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
 				if len(title) > 1:
 					real_ax.set_title(title + \
-						', mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-					real_ax.set_title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+					real_ax.set_title('mode: {}, variable ID: {}'.format(mode_id, var_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
@@ -566,34 +564,41 @@ def plot_2D_mode_slice_vs_time(modes,
 							   equal_axes=False,
 							   path=CWD,
 							   filename=None):
-	'''
+	"""
 	Plot the time evolution of SPOD mode slices for 2D problems.
 
 	:param numpy.ndarray modes: 2D SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
-	:type int or sequence(int) vars_idx: variables to be plotted.
+	:param int or sequence(int) vars_idx: variables to be plotted. \
 		Default, the first variable is plotted.
-	:type int or sequence(int) modes_idx: modes to be plotted.
+	:param int or sequence(int) modes_idx: modes to be plotted. \
 		Default, the first mode is plotted.
 	:param numpy.ndarray x1: x-axis coordinate.
 	:param numpy.ndarray x2: y-axis coordinate.
-	:param bool max_each_mode: whether to use the maximum value of each mode
-		to color plots. Default is False (use maximum of leading mode).
-	:param bool fftshift: whether to perform fft-shifting. Default is False.
-	:param bool imaginary: whether to plot imaginary part. Default is False
-	:param bool plot_max: whether to plot a dot at maximum value of the plot.
+	:param bool max_each_mode: whether to use the maximum value \
+		of each mode to color plots. Default is False (use maximum \
+		of leading mode).
+	:param bool fftshift: whether to perform fft-shifting. \
+		Default is False.
+	:param bool imaginary: whether to plot imaginary part. \
+		Default is False
+	:param bool plot_max: whether to plot a dot at maximum value of the plot. \
 		Default is False.
 	:param str title: if specified, title of the plot. Default is ''.
-	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
-	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
-	:param bool equal_axes: if True, the axes will be equal. Default is False.
-	:param tuple(int,int) figsize: size of the figure (width,height).
-		Default is (12,8).
-	:param str path: if specified, the plot is saved at `path`. Default is CWD.
-	:param str filename: if specified, the plot is saved at `filename`.
+	:param tuple or list xticks: ticks to be set on x-axis. \
 		Default is None.
-	'''
+	:param tuple or list yticks: ticks to be set on y-axis. \
+		Default is None.
+	:param bool equal_axes: if True, the axes will be equal. \
+		Default is False.
+	:param tuple(int,int) figsize: size of the figure (width,height). \
+		Default is (12,8).
+	:param str path: if specified, the plot is saved at `path`. \
+		Default is CWD.
+	:param str filename: if specified, the plot is saved at `filename`. \
+		Default is None.
+	"""
 	# check dimensions
 	if modes.ndim != 5:
 		raise ValueError('Dimension of the modes is not 2D.')
@@ -776,43 +781,44 @@ def plot_3D_modes_slice_at_frequency(modes,
 							         equal_axes=False,
 							         path=CWD,
 							         filename=None):
-	'''
+	"""
 	Plot SPOD modes for 3D problems.
 
 	:param numpy.ndarray modes: 3D SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
-	:type int or sequence(int) vars_idx: variables to be plotted.
-		Default, the first variable is plotted.
-	:type int or sequence(int) modes_idx: modes to be plotted.
-		Default, the first mode is plotted.
+	:param int or sequence(int) vars_idx: variables to \
+		be plotted. Default, the first variable is plotted.
+	:param int or sequence(int) modes_idx: modes to be \
+		plotted. Default, the first mode is plotted.
 	:param numpy.ndarray x1: x-axis coordinate. Default is None.
 	:param numpy.ndarray x2: y-axis coordinate. Default is None.
 	:param numpy.ndarray x3: z-axis coordinate. Default is None.
-	:param int slice_dim: axis to slice. Either 0, 1, or 2.
+	:param int slice_dim: axis to slice. Either 0, 1, or 2. \
 		Default is 0.
-	:param int slice_id: id of the slice to extract along
-		`slice_dim`. Default is None. In this case, the slice_id is selected
+	:param int slice_id: id of the slice to extract along \
+		`slice_dim`. Default is None. In this case, the slice_id is selected \
 		as the one that corresponds to the maximum value along `slice_dim`.
 	:param bool fftshift: whether to perform fft-shifting. Default is False.
 	:param bool imaginary: whether to plot imaginary part. Default is False
-	:param bool plot_max: whether to plot a dot at maximum value of the plot.
+	:param bool plot_max: whether to plot a dot at maximum value of the plot. \
 		Default is False.
-	:param str coastlines: whether to overlay coastlines.
-		Options are
-			`regular` (longitude from 0 to 360) and
-			`centred` (longitude from -180 to 180)
+	:param str coastlines: whether to overlay coastlines. \
+		Options are `regular` (longitude from 0 to 360) \
+		and `centred` (longitude from -180 to 180) \
 		Default is '' (no coastlines).
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple or list xticks: ticks to be set on x-axis. Default is None.
 	:param tuple or list yticks: ticks to be set on y-axis. Default is None.
 	:param bool equal_axes: if True, the axes will be equal. Default is False.
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
-	:param str path: if specified, the plot is saved at `path`. Default is CWD.
-	:param str filename: if specified, the plot is saved at `filename`.
+	:param str path: if specified, the plot is saved at `path`. \
+		Default is CWD.
+	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	'''
+	"""
+
 	# check dimensions
 	if modes.ndim != 6:
 		raise ValueError('Dimension of the modes is not 3D.')
@@ -1003,39 +1009,31 @@ def plot_3D_modes_slice_at_frequency(modes,
 
 
 
-def plot_mode_tracers(modes,
-					  freq_required,
-					  freq,
-					  coords_list,
-					  x=None,
-					  vars_idx=[0],
-					  modes_idx=[0],
-					  fftshift=False,
-					  title='',
-					  figsize=(12,8),
-					  path=CWD,
-					  filename=None):
-	'''
+def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=[0], modes_idx=[0],
+					  fftshift=False, title='', figsize=(12,8), path=CWD, filename=None):
+	"""
 	Plot SPOD mode tracers for nD problems.
 
 	:param numpy.ndarray modes: nD SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
-	:param list(tuple(*),) coords_list: list of tuples containing
-		coordinates to be plotted.
+	:param list(tuple(*),) coords_list: list of tuples \
+		containing coordinates to be plotted.
 	:param numpy.ndarray x: data coordinates. Default is None.
-	:type int or sequence(int) vars_idx: variables to be plotted.
+	:type int or sequence(int) vars_idx: variables to be plotted. \
 		Default, the first variable is plotted.
-	:type int or sequence(int) modes_idx: modes to be plotted.
+	:type int or sequence(int) modes_idx: modes to be plotted. \
 		Default, the first mode is plotted.
-	:param bool fftshift: whether to perform fft-shifting. Default is False.
+	:param bool fftshift: whether to perform fft-shifting. \
+		Default is False.
 	:param str title: if specified, title of the plot. Default is ''.
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
-	:param str path: if specified, the plot is saved at `path`. Default is CWD.
-	:param str filename: if specified, the plot is saved at `filename`.
+	:param str path: if specified, the plot is saved at `path`. \
+		Default is CWD.
+	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	'''
+	"""
 
 	# get idx variables
 	if isinstance(vars_idx, int):
@@ -1123,38 +1121,31 @@ def plot_mode_tracers(modes,
 
 
 
-def plot_2D_data(X,
-				 time_idx=[0],
-				 vars_idx=[0],
-				 x1=None,
-				 x2=None,
-				 title='',
-				 coastlines='',
-				 figsize=(12,8),
-				 path=CWD,
-				 filename=None):
-	'''
+def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
+	title='', coastlines='', figsize=(12,8), path=CWD, filename=None):
+	"""
 	Plot 2D data.
 
-	:param numpy.ndarray X: 2D data to be plotted.
+	:param numpy.ndarray X: 2D data to be plotted. \
 		First dimension must be time. Last dimension must be variable.
-	:param list vars_idx: list of variables
-		to plot. Default, first variable is plotted.
-	:param list time_idx: list of time indices
-		to plot. Default, first time index is plotted.
+	:param list vars_idx: list of variables to plot. Default, \
+		first variable is plotted.
+	:param list time_idx: list of time indices to plot. Default, \
+		first time index is plotted.
 	:param numpy.ndarray x1: x-axis coordinate. Default is None.
 	:param numpy.ndarray x2: y-axis coordinate. Default is None.
 	:param str title: if specified, title of the plot. Default is ''.
-	:param str coastlines: whether to overlay coastlines.
-		Options are
-			`regular` (longitude from 0 to 360) and
-			`centred` (longitude from -180 to 180)
+	:param str coastlines: whether to overlay coastlines. \
+		Options are `regular` (longitude from 0 to 360) \
+		and `centred` (longitude from -180 to 180) \
 		Default is '' (no coastlines).
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
-	:param str path: if specified, the plot is saved at `path`. Default is CWD.
+	:param str path: if specified, the plot is saved at `path`. \
+		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`.
-	'''
+
+	"""
 	# check dimensions
 	if X.ndim != 4:
 		raise ValueError('Dimension of the modes is not 2D.')
@@ -1223,16 +1214,9 @@ def plot_2D_data(X,
 
 
 
-def plot_data_tracers(X,
-					  coords_list,
-					  x=None,
-					  time_limits=[0,10],
-					  vars_idx=[0],
-					  title='',
-					  figsize=(12,8),
-					  path=CWD,
-					  filename=None):
-	'''
+def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
+	vars_idx=[0], title='', figsize=(12,8), path=CWD, filename=None):
+	"""
 	Plot data tracers for nD problems.
 
 	:param numpy.ndarray X: nD data.
@@ -1249,7 +1233,7 @@ def plot_data_tracers(X,
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`.
 		Default is None.
-	'''
+	"""
 
 	# check coord_list has correct shape and type
 	if not coords_list:
@@ -1310,39 +1294,29 @@ def plot_data_tracers(X,
 # Animations
 # ---------------------------------------------------------------------------
 
-def generate_2D_data_video(X,
-				 	       time_limits=[0,10],
-				 	       vars_idx=None,
-					       sampling=1,
-				 	       x1=None,
-				 	       x2=None,
-					       coastlines='',
-					       figsize=(12,8),
-					       path=CWD,
-				 	       filename='data_video.mp4'):
-	'''
+def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1, x1=None,
+	x2=None, coastlines='', figsize=(12,8), path=CWD, filename='data_video.mp4'):
+	"""
 	Make movie of 2D data.
 
-	:param numpy.ndarray X: 2D data to be plotted.
+	:param numpy.ndarray X: 2D data to be plotted. \
 		First dimension must be time. Last dimension must be variable.
-	:param 2-element list time_limits: lower and upper time bounds
-		to be used for video. Default is first 10 timeframes are
-		used.
-	:param int sampling: sample data every `sampling` timeframes.
+	:param 2-element list time_limits: lower and upper time bounds \
+		to be used for video. Default is first 10 timeframes are used.
+	:param int sampling: sample data every `sampling` timeframes. \
 		Default is 1 (use all timeframes).
 	:param numpy.ndarray x1: x-axis coordinate. Default is None.
 	:param numpy.ndarray x2: y-axis coordinate. Default is None.
-	:param str coastlines: whether to overlay coastlines.
-		Options are
-			`regular` (longitude from 0 to 360) and
-			`centred` (longitude from -180 to 180)
+	:param str coastlines: whether to overlay coastlines. \
+		Options are `regular` (longitude from 0 to 360) \
+		and `centred` (longitude from -180 to 180) \
 		Default is '' (no coastlines).
-	:param tuple(int,int) figsize: size of the figure (width,height).
+	:param tuple(int,int) figsize: size of the figure (width,height). \
 		Default is (12,8).
-	:param str path: if specified, the plot is saved at `path`.
+	:param str path: if specified, the plot is saved at `path`. \
 		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`.
-	'''
+	"""
 	# check dimensions
 	if X.ndim != 4:
 		raise ValueError('Dimension of data is not 2D.')
@@ -1357,6 +1331,7 @@ def generate_2D_data_video(X,
 		x2 = np.arange(X.shape[2])
 
 	# time range
+	print('time_limits = ', time_limits)
 	time_range = list(range(time_limits[0],time_limits[-1]))
 	time_range = time_range[0::sampling]
 
