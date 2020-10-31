@@ -33,6 +33,15 @@ MANIFEST
 *.manifest
 *.spec
 
+# netCDF data files
+*.nc
+
+# mat data files
+*.mat
+
+# numpy data files
+*.npy
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
