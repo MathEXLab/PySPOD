@@ -717,7 +717,7 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_data_tracers(
-			self.X, coords_list=coords_list, x=x, time_limits=[0,self.nt],
+			self.X, coords_list=coords_list, x=x, time_limits=[0,self.X.shape[0]],
 			vars_idx=vars_idx, title=title, figsize=figsize, path=self.save_dir,
 			filename=filename)
 

@@ -131,13 +131,8 @@ def get_mode_from_file(filename):
 # plotting methods
 # ---------------------------------------------------------------------------
 
-def plot_eigs(eigs,
-			  title='',
-			  figsize=(12,8),
-			  show_axes=True,
-			  equal_axes=False,
-			  path=CWD,
-			  filename=None):
+def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
+	equal_axes=False,  path=CWD, filename=None):
 	"""
 	Plot eigenvalues `eigs`.
 
@@ -195,16 +190,8 @@ def plot_eigs(eigs,
 
 
 
-def plot_eigs_vs_frequency(eigs,
-			  			   freq,
-			  			   title='',
-						   xticks=None,
-						   yticks=None,
-			  			   show_axes=True,
-			  			   equal_axes=False,
-						   figsize=(12,8),
-			  	   		   path=CWD,
-			  			   filename=None):
+def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
+	show_axes=True, equal_axes=False, figsize=(12,8), path=CWD, filename=None):
 	"""
 	Plot eigenvalues vs. frequency.
 
@@ -263,16 +250,8 @@ def plot_eigs_vs_frequency(eigs,
 
 
 
-def plot_eigs_vs_period(eigs,
-						freq,
-						title='',
-						xticks=None,
-						yticks=None,
-						show_axes=True,
-						equal_axes=False,
-						figsize=(12,8),
-						path=CWD,
-						filename=None):
+def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
+	show_axes=True, equal_axes=False, figsize=(12,8), path=CWD, filename=None):
 	"""
 	Plot eigenvalues vs. period = 1 / freq.
 
@@ -335,24 +314,10 @@ def plot_eigs_vs_period(eigs,
 
 
 
-def plot_2D_modes_at_frequency(modes,
-							   freq_required,
-							   freq,
-							   vars_idx=[0],
-							   modes_idx=[0],
-							   x1=None,
-							   x2=None,
-							   fftshift=False,
-							   imaginary=False,
-							   plot_max=False,
-							   coastlines='',
-							   title='',
-							   xticks=None,
-							   yticks=None,
-							   figsize=(12,8),
-							   equal_axes=False,
-							   path=CWD,
-							   filename=None):
+def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
+	x1=None, x2=None, fftshift=False, imaginary=False, plot_max=False, coastlines='',
+	title='', xticks=None, yticks=None, figsize=(12,8), equal_axes=False, path=CWD,
+	filename=None):
 	"""
 	Plot SPOD modes for 2D problems.
 
@@ -550,20 +515,9 @@ def plot_2D_modes_at_frequency(modes,
 
 
 
-def plot_2D_mode_slice_vs_time(modes,
-							   freq_required,
-							   freq,
-							   vars_idx=[0],
-							   modes_idx=[0],
-							   x1=None,
-							   x2=None,
-							   max_each_mode=False,
-							   fftshift=False,
-							   title='',
-							   figsize=(12,8),
-							   equal_axes=False,
-							   path=CWD,
-							   filename=None):
+def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
+	modes_idx=[0], x1=None, x2=None, max_each_mode=False, fftshift=False,
+	title='', figsize=(12,8), equal_axes=False, path=CWD, filename=None):
 	"""
 	Plot the time evolution of SPOD mode slices for 2D problems.
 
@@ -760,27 +714,10 @@ def plot_2D_mode_slice_vs_time(modes,
 
 
 
-def plot_3D_modes_slice_at_frequency(modes,
-									 freq_required,
-									 freq,
-							         vars_idx=[0],
-							         modes_idx=[0],
-							         x1=None,
-							         x2=None,
-							         x3=None,
-							         slice_dim=0,
-							         slice_id=None,
-							         fftshift=False,
-							         imaginary=False,
-							         plot_max=False,
-									 coastlines='',
-							         title='',
-							         xticks=None,
-							         yticks=None,
-							         figsize=(12,8),
-							         equal_axes=False,
-							         path=CWD,
-							         filename=None):
+def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
+	x1=None, x2=None, x3=None, slice_dim=0, slice_id=None, fftshift=False, imaginary=False,
+	plot_max=False, coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
+	equal_axes=False, path=CWD, filename=None):
 	"""
 	Plot SPOD modes for 3D problems.
 
@@ -947,9 +884,9 @@ def plot_3D_modes_slice_at_frequency(modes,
 					imag_ax.set_aspect('equal')
 				if len(title) > 1:
 	 				fig.suptitle(title + \
-						', mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-	 				fig.suptitle('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+	 				fig.suptitle('mode: {}, variable ID: {}'.format(mode_id, var_id))
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
 			else:
@@ -990,9 +927,9 @@ def plot_3D_modes_slice_at_frequency(modes,
 				real_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
 				if len(title) > 1:
 					real_ax.set_title(title + \
-						', mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-					real_ax.set_title('mode: {}, variable ID: {:06f}'.format(var_id, mode_id))
+					real_ax.set_title('mode: {}, variable ID: {}'.format(mode_id, var_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
@@ -1009,8 +946,8 @@ def plot_3D_modes_slice_at_frequency(modes,
 
 
 
-def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=[0], modes_idx=[0],
-					  fftshift=False, title='', figsize=(12,8), path=CWD, filename=None):
+def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=[0],
+	modes_idx=[0], fftshift=False, title='', figsize=(12,8), path=CWD, filename=None):
 	"""
 	Plot SPOD mode tracers for nD problems.
 
@@ -1104,9 +1041,9 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 								labelpad=30,
 								bbox=dict(facecolor='gray',alpha=0.5))
 				if len(title) > 1:
-					fig.suptitle(title + ', mode tracers at {}'.format(*coords))
+					fig.suptitle(title + ', mode tracers at {}'.format(coords))
 				else:
-					fig.suptitle('mode tracers at {}'.format(*coords))
+					fig.suptitle('mode tracers at {}'.format(coords))
 				cnt = cnt + 1
 			ax.set_xlabel('time')
 
@@ -1250,7 +1187,6 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 	# time range
 	time_range = list(range(time_limits[0],time_limits[-1]))
 
-
 	# split filename
 	if filename:
 		basename, ext = splitext(filename)
@@ -1271,7 +1207,9 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 		# loop over variables
 		for var_id in vars_idx:
 			fig = plt.figure(figsize=figsize)
+
 			x_time = X[(slice(time_limits[0],time_limits[-1]),) + idx_coords + (var_id,)]
+
 			plt.plot(time_range, x_time, 'k-')
 			if len(title) > 1:
 				plt.title(title + ',    data tracers at {}'.format(coords))
@@ -1294,8 +1232,8 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 # Animations
 # ---------------------------------------------------------------------------
 
-def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1, x1=None,
-	x2=None, coastlines='', figsize=(12,8), path=CWD, filename='data_video.mp4'):
+def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
+	x1=None, x2=None, coastlines='', figsize=(12,8), path=CWD, filename='data_video.mp4'):
 	"""
 	Make movie of 2D data.
 
@@ -1331,7 +1269,6 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1, x1=
 		x2 = np.arange(X.shape[2])
 
 	# time range
-	print('time_limits = ', time_limits)
 	time_range = list(range(time_limits[0],time_limits[-1]))
 	time_range = time_range[0::sampling]
 
