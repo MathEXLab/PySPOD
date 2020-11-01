@@ -29,7 +29,7 @@ from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_streaming import SPOD_streaming
 
 # data ingestion and configuration
-file = os.path.join(CFD,'data','fluidmechanic_data.mat')
+file = os.path.join(CFD,'data','fluidmechanics_data.mat')
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
 	for k, v in f.items():

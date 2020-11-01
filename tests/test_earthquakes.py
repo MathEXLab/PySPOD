@@ -29,7 +29,7 @@ from pyspod.spod_streaming import SPOD_streaming
 
 
 # data ingestion and configuration
-file = os.path.join(CFD,'data','earthquake_data.nc')
+file = os.path.join(CFD,'data','earthquakes_data.nc')
 ds = xr.open_dataset(file)
 t = np.array(ds['time'])
 x1 = np.array(ds['x'])
