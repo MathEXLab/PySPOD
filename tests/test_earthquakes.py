@@ -17,11 +17,10 @@ import xarray as xr
 from pathlib import Path
 
 # Current, parent and file paths import sys
-sys.path.append("../")
-sys.path.append("../library")
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
+sys.path.append(os.path.join(CFD,"../"))
 
 # project libraries
 from pyspod.spod_low_ram import SPOD_low_ram
@@ -30,7 +29,7 @@ from pyspod.spod_streaming import SPOD_streaming
 
 
 # data ingestion and configuration
-file = os.path.join(CWD,'data','earthquake_data.nc')
+file = os.path.join(CFD,'data','earthquake_data.nc')
 ds = xr.open_dataset(file)
 t = np.array(ds['time'])
 x1 = np.array(ds['x'])

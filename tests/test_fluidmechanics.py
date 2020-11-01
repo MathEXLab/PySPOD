@@ -17,11 +17,11 @@ import numpy as np
 from pathlib import Path
 
 # Current, parent and file paths import sys
-sys.path.append("../")
-sys.path.append("../library")
+#sys.path.append("../")
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
+sys.path.append(os.path.join(CFD,"../"))
 
 # project libraries
 from pyspod.spod_low_ram import SPOD_low_ram
@@ -29,7 +29,7 @@ from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_streaming import SPOD_streaming
 
 # data ingestion and configuration
-file = os.path.join(CWD,'data','fluidmechanic_data.mat')
+file = os.path.join(CFD,'data','fluidmechanic_data.mat')
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
 	for k, v in f.items():
@@ -46,7 +46,6 @@ x2 = data_arrays['x'].T; x2 = x2[0,:]
 overlap_in_percent = 50
 T_approx = 8
 params = dict()
-params['nt'          ] = len(t)
 params['xdim'        ] = 2
 params['nv'          ] = 1
 params['dt'          ] = dt
@@ -60,8 +59,7 @@ params['n_vars'      ] = 1
 params['n_modes_save'] = 3
 params['normvar'     ] = False
 params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
-params['weights'     ] = np.ones([len(x1) * len(x2),1]) / np.ones(1)
-print(params['weights'].shape)
+params['weights'     ] = np.ones([len(x1)*len(x2)*params['nv'],1])
 
 
 
