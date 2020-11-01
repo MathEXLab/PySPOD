@@ -35,8 +35,8 @@ class SPOD_low_ram(SPOD_base):
 	to the constructor of the `SPOD_low_ram` class, derived
 	from the `SPOD_base` class.
 	"""
-	def __init__(self, X, params, file_handler):
-		super().__init__(X, params, file_handler)
+	def __init__(self, X, params, data_handler, variables):
+		super().__init__(X, params, data_handler, variables)
 
 	def fit(self):
 		"""
@@ -60,16 +60,23 @@ class SPOD_low_ram(SPOD_base):
 
 				# get time index for present block
 				offset = min(iBlk * (self._n_DFT - self._n_overlap) + self._n_DFT, self._nt) - self._n_DFT
-				timeIdx = np.arange(0,self._n_DFT,1) + offset;
-				print('block '+str(iBlk+1)+'/'+str(self._n_blocks)+
-					  ' ('+str(timeIdx[0])+':'+str(timeIdx[-1])+');',
+
+				print('block '+str(iBlk+1)+'/'+str(self._n_blocks)+\
+					  ' ('+str(offset)+':'+str(self._n_DFT+offset)+'); ',
 					  '    Saving to directory: ', self._save_dir_blocks)
 
-				# build present block
-				for ti in timeIdx:
-					x = self._X[ti]
-					x = x.reshape(x.size)
-					Q_blk[ti-offset,:] = np.subtract(x[:], self._x_mean)
+				# # build present block
+				# for ti in timeIdx:
+				# 	x = self._X[ti]
+				# 	x = x.reshape(x.size)
+				# 	Q_blk[ti-offset,:] = np.subtract(x[:], self._x_mean)
+
+				Q_blk = self._data_handler(
+					self._data, t_0=offset,	t_end=self._n_DFT+offset, variables=self._variables)
+				Q_blk = Q_blk.reshape(self._n_DFT, self._nx * self._nv)
+
+				# Subtract longtime or provided mean
+				Q_blk = Q_blk[:] - self._x_mean
 
 				# if block mean is to be subtracted, do it now that all data is collected
 				if self._mean_type.lower() == 'blockwise':

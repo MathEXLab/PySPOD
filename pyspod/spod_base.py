@@ -28,7 +28,7 @@ class SPOD_base(object):
 	'''
 	Spectral Proper Orthogonal Decomposition base class.
 	'''
-	def __init__(self, X, params, file_handler):
+	def __init__(self, data, params, data_handler, variables):
 
 		# store mandatory parameters in class
 		self._nt   = params['nt']	# number of time-frames
@@ -37,26 +37,37 @@ class SPOD_base(object):
 		self._dt   = params['dt']	# time-step
 
 		# type of data management
-		# - file_handler: read type online
-		# - not file_handler: data is entirely pre-loaded
-		if file_handler:
-			self._X = reader.read_data(X)
+		# - data_handler: read type online
+		# - not data_handler: data is entirely pre-loaded
+		self._params = params
+		self._data_handler = data_handler
+		self._variables = variables
+		if data_handler:
+			self._data = data
+			X = data_handler(self._data, t_0=0, t_end=1, variables=variables)
+			if self._nv == 1 and (X.ndim != self._xdim + 2):
+				X = X[...,np.newaxis]
 		else:
-			self._X = np.array(X)
+			def data_handler(data, t_0, t_end, variables):
+				if t_0 == t_end: ti = np.arange(t_0,t_0+1)
+				else           : ti = np.arange(t_0,t_end)
+				d = data[ti,...,:]
+				return d
 
-		# special case for 1 single variable
-		if self._nv == 1 and (self.X.ndim != self._xdim + 2):
-			self._X = self._X[...,np.newaxis]
+			self._data_handler = data_handler
+			self._data = np.array(data)
+			X = self._data_handler(self._data, t_0=0, t_end=0, variables=self._variables)
+			if self._nv == 1 and (self._data.ndim != self._xdim + 2):
+				X = X[...,np.newaxis]
+				self._data = self._data[...,np.newaxis]
+
 
 		# get data dimensions and store in class
-		self._nx = self._X[0,...,0].size
-		self._dim = self._X.ndim
-		self._shape = self._X.shape
-		self._xdim = self._X[0,...,0].ndim
-		self._xshape = self._X[0,...,0].shape
-
-		# store parameters in class for distribution to children class if required
-		self._params = params
+		self._nx = X[0,...,0].size
+		self._dim = X.ndim
+		self._shape = X.shape
+		self._xdim = X[0,...,0].ndim
+		self._xshape = X[0,...,0].shape
 
 		# Determine whether data is real-valued or complex-valued-valued
 		# to decide on one- or two-sided spectrum. If "opts.isreal" is
@@ -64,7 +75,15 @@ class SPOD_base(object):
 		if 'isreal'.lower() in self._params:
 			self._isrealx = self._params['isreal']
 		else:
-			self._isrealx = np.isreal(self._X[0]).all()
+			self._isrealx = np.isreal(X[0]).all()
+
+		print(self._nx)
+		print(self._dim)
+		print(self._shape)
+		print(self._xdim)
+		print(self._xshape)
+
+		# sys.exit(2)
 
 		# get default spectral estimation parameters and options
 		self._window, self._weights, \
@@ -108,15 +127,14 @@ class SPOD_base(object):
 		print('DATA MATRIX DIMENSIONS')
 		print('------------------------------------')
 		print('Problem size          : ', pb_size, 'GB. (double)')
-		print('data matrix dimensions:        ', self._X.shape)
+		print('data matrix dimensions:        ', X.shape)
 		print('Make sure that first column of data matrix '
 			  'is time and last column is number of variables. ')
 		print('First column dimension: {} must correspond to '
-			  'number of time snapshots.'.format(self._X.shape[0]))
+			  'number of time snapshots.'.format(X.shape[0]))
 		print('Last column dimension: {} must correspond to '
-			  'number of variables.'.format(self._X.shape[-1]))
+			  'number of variables.'.format(X.shape[-1]))
 		print('------------------------------------')
-
 
 
 
@@ -136,9 +154,9 @@ class SPOD_base(object):
 	@property
 	def dim(self):
 		'''
-		Get the shape of the data matrix X.
+		Get the shape of the data matrix.
 
-		:return: shape of the data matrix X.
+		:return: shape of the data matrix.
 		:rtype: int
 		'''
 		return self._dim
@@ -146,9 +164,9 @@ class SPOD_base(object):
 	@property
 	def shape(self):
 		'''
-		Get the shape of the data matrix X.
+		Get the shape of the data matrix.
 
-		:return: shape of the data matrix X.
+		:return: shape of the data matrix.
 		:rtype: int
 		'''
 		return self._shape
@@ -156,9 +174,9 @@ class SPOD_base(object):
 	@property
 	def nt(self):
 		'''
-		Get the number of time-steps of the data matrix X.
+		Get the number of time-steps of the data matrix.
 
-		:return: the number of time-steps of the data matrix X.
+		:return: the number of time-steps of the data matrix.
 		:rtype: int
 		'''
 		return self._nt
@@ -166,9 +184,9 @@ class SPOD_base(object):
 	@property
 	def nx(self):
 		'''
-		Get the number of spatial points of the data matrix X.
+		Get the number of spatial points of the data matrix.
 
-		:return: the number of spatial points [dim1:] of the data matrix X.
+		:return: the number of spatial points [dim1:] of the data matrix.
 		:rtype: int
 		'''
 		return self._nx
@@ -176,9 +194,9 @@ class SPOD_base(object):
 	@property
 	def nv(self):
 		'''
-		Get the number of variables of the data matrix X.
+		Get the number of variables of the data matrix.
 
-		:return: the number of variables of the data matrix X.
+		:return: the number of variables of the data matrix.
 		:rtype: int
 		'''
 		return self._nv
@@ -186,9 +204,9 @@ class SPOD_base(object):
 	@property
 	def xdim(self):
 		'''
-		Get the number of spatial dimensions of the data matrix X.
+		Get the number of spatial dimensions of the data matrix.
 
-		:return: number of spatial dimensions of the data matrix X.
+		:return: number of spatial dimensions of the data matrix.
 		:rtype: tuple(int,)
 		'''
 		return self._xdim
@@ -196,9 +214,9 @@ class SPOD_base(object):
 	@property
 	def xshape(self):
 		'''
-		Get the spatial shape of the data matrix X.
+		Get the spatial shape of the data matrix.
 
-		:return: spatial shape of the data matrix X.
+		:return: spatial shape of the data matrix.
 		:rtype: tuple(int,)
 		'''
 		return self._xshape
@@ -232,6 +250,16 @@ class SPOD_base(object):
 		:rtype: double
 		'''
 		return self._dt
+
+	@property
+	def variables(self):
+		'''
+		Get the variable list.
+
+		:return: the variable list used.
+		:rtype: list or strings
+		'''
+		return self._variables
 
 	@property
 	def eigs(self):
@@ -295,14 +323,14 @@ class SPOD_base(object):
 		return m
 
 	@property
-	def X(self):
+	def data(self):
 		'''
 		Get the original input data.
 
 		:return: the matrix that contains the original snapshots.
 		:rtype: numpy.ndarray
 		'''
-		return self._X
+		return self._data
 
 	# ---------------------------------------------------------------------------
 
@@ -379,9 +407,39 @@ class SPOD_base(object):
 		# select type of mean
 		if isinstance(mean_type,str):
 			if mean_type.lower() == 'longtime':
-				x_mean = np.mean(self.X,axis=0)
+
+				# previous way
+				x_mean = np.mean(self.data, axis=0)
+
+				# # split data into n_blocks chunks to maintain data consistency
+				# split_block = self.nt // n_blocks
+				# split_res = self.nt % n_blocks
+				# x_mean_tmp = np.zeros((n_blocks,)+self.xshape+(self.nv,))
+				# for iBlk in range(0,n_blocks):
+				# 	lb = iBlk * split_block
+				# 	ub = lb + split_block
+				# 	print('lb = ', lb)
+				# 	print('ub = ', ub)
+				# 	x_data = self._data_handler(
+				# 		data=self.data,
+				# 		t_0=lb,
+				# 		t_end=ub,
+				# 		variables=self.variables)
+				# 	print('x_data.shape = ', x_data.shape)
+				# 	print(x_data[0:10,0,0])
+				# 	print(x_data[-10:,0,0])
+				# 	# print('x_data.shape = ', x_data.shape)
+				# 	x_mean_tmp[iBlk,...] = np.mean(x_data, axis=0)
+				# 	print('x_mean_tmp.shape = ', x_mean_tmp.shape)
+				# x_data = self._data_handler(
+				# 	data=self.data,
+				# 	t_0=self.nt-split_res,
+				# 	t_end=self.nt,
+				# 	variables=self.variables)
+				# print(x_data.shape)
+				# x_mean_tmp[-1,...] = np.mean(x_data, axis=0)
+				# x_mean = np.mean(x_mean_tmp, axis=0)
 				x_mean = np.reshape(x_mean,(int(self.nx*self.nv)))
-				x_mean = x_mean[:]
 				mean_name = 'longtime'
 			elif mean_type.lower() == 'blockwise':
 				x_mean = 0
@@ -516,7 +574,7 @@ class SPOD_base(object):
 	# abstract methods
 	# ---------------------------------------------------------------------------
 
-	def fit(self, X):
+	def fit(self):
 		'''
 		Abstract method to fit the data matrices.
 		Not implemented, it has to be implemented in subclasses.
@@ -525,7 +583,7 @@ class SPOD_base(object):
 			'Subclass must implement abstract method {}.fit'.format(
 				self.__class__.__name__))
 
-	def predict(self, X):
+	def predict(self):
 		'''
 		Abstract method to predict the next time frames.
 		Not implemented, it has to be implemented in subclasses.
@@ -701,7 +759,7 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_2D_data(
-			self.X, time_idx=time_idx, vars_idx=vars_idx,
+			self.data, time_idx=time_idx, vars_idx=vars_idx,
 			x1=x1, x2=x2, title=title, coastlines=coastlines,
 			figsize=figsize, path=self.save_dir, filename=filename)
 
@@ -717,7 +775,7 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_data_tracers(
-			self.X, coords_list=coords_list, x=x, time_limits=[0,self.X.shape[0]],
+			self.data, coords_list=coords_list, x=x, time_limits=[0,self.nt],
 			vars_idx=vars_idx, title=title, figsize=figsize, path=self.save_dir,
 			filename=filename)
 
@@ -740,6 +798,6 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.generate_2D_data_video(
-			self.X, time_limits=[0,self.nt], vars_idx=vars_idx, sampling=sampling,
+			self.data, time_limits=[0,self.nt], vars_idx=vars_idx, sampling=sampling,
 			x1=x1, x2=x2, coastlines=coastlines, figsize=figsize, path=self.save_dir,
 			filename=filename)

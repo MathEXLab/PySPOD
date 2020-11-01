@@ -34,8 +34,8 @@ class SPOD_streaming(SPOD_base):
 	constructor of the `SPOD_streaming` class, derived from
 	the `SPOD_base` class.
 	"""
-	def __init__(self, X, params, file_handler):
-		super().__init__(X, params, file_handler)
+	def __init__(self, X, params, data_handler, variables):
+		super().__init__(X, params, data_handler, variables)
 
 	def fit(self):
 		"""
@@ -43,8 +43,6 @@ class SPOD_streaming(SPOD_base):
 		streaming algorithm.
 		"""
 		start = time.time()
-
-
 
 		# sqrt of weights
 		sqrtW = np.sqrt(self._weights)
@@ -60,21 +58,14 @@ class SPOD_streaming(SPOD_base):
 		for block_i in range(0,n_blocks_parallel):
 			t_idx[block_i] =  t_idx[block_i] - (block_i) * dn
 
-		# create folder to save results
-		self._save_dir = self._params.get('savedir',CWD)
-		saveDir = os.path.join(
-			self._save_dir,'nfft'+str(self._n_DFT)+'_novlp'+ \
-			str(self._n_overlap)+'_nblks'+str(self._n_blocks))
-		if not os.path.exists(saveDir):
-			os.makedirs(saveDir)
-
 		print(' ')
 		print('Calculating temporal DFT (streaming)')
 		print('------------------------------------')
 
 		# obtain first snapshot to determine data size
-		x_new = self._X[0]
-		x_new = np.reshape(x_new,(self._nx,1))
+		# x_new = self._X[0]
+		x_new = self._data_handler(self._data, t_0=0, t_end=0, variables=self._variables)
+		x_new = np.reshape(x_new,(self._nx*self._nv,1))
 
 		# get number of modes to store
 		self._n_modes = self._n_blocks-1
@@ -113,8 +104,9 @@ class SPOD_streaming(SPOD_base):
 			# Get new snapshot and abort if data stream runs dry
 			if ti > 0:
 				try:
-					x_new = self._X[ti]
-					x_new = np.reshape(x_new,(self._nx,1))
+					x_new = self._data_handler(self._data, t_0=ti, t_end=ti, variables=self._variables)
+					# x_new = self._X[ti]
+					x_new = np.reshape(x_new,(self._nx*self._nv,1))
 				except:
 					print('--> Data stream ended.')
 					break
@@ -218,11 +210,11 @@ class SPOD_streaming(SPOD_base):
 		self._eigs = self._eigs.T
 
 		# save results into files
-		file = os.path.join(saveDir,'spod_energy')
+		file = os.path.join(self._save_dir,'spod_energy')
 		np.savez(file, eigs=self._eigs, f=self._freq)
 		for iFreq in range(0,self._n_freq):
 			Psi = self._modes[iFreq,...]
-			file_psi = os.path.join(saveDir,'modes1to{:04d}_freq{:04d}.npy'.format(n_modes_save,iFreq))
+			file_psi = os.path.join(self._save_dir,'modes1to{:04d}_freq{:04d}.npy'.format(n_modes_save,iFreq))
 			np.save(file_psi, Psi)
 
 		print('Elapsed time: ', time.time() - start, 's.')

@@ -1084,8 +1084,9 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 	"""
 	# check dimensions
+	print(X.shape)
 	if X.ndim != 4:
-		raise ValueError('Dimension of the modes is not 2D.')
+		raise ValueError('Dimension of data is not 2D.')
 	# get idx variables
 	if isinstance(vars_idx, int):
 		vars_idx = [vars_idx]

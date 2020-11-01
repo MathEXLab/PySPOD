@@ -30,14 +30,14 @@ from pyspod.spod_streaming import SPOD_streaming
 
 # data ingestion and configuration
 file = os.path.join(CFD,'data','fluidmechanics_data.mat')
+variables = ['p']
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
 	for k, v in f.items():
 		data_arrays[k] = np.array(v)
 dt = data_arrays['dt'][0,0]
 block_dimension = 64 * dt
-X = data_arrays['p'].T
-X_mean = data_arrays['p_mean']
+X = data_arrays[variables[0]].T
 t = dt * np.arange(0,X.shape[0]); t = t.T
 x1 = data_arrays['r'].T; x1 = x1[:,0]
 x2 = data_arrays['x'].T; x2 = x2[0,:]
@@ -72,7 +72,7 @@ def test_spod_low_storage_blockwise_mean():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results
@@ -120,7 +120,7 @@ def test_spod_low_storage_longtime_mean():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results
@@ -151,7 +151,7 @@ def test_spod_low_ram_blockwise_mean():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_ram(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results
@@ -181,7 +181,7 @@ def test_spod_low_ram_longtime_mean():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_ram(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results
@@ -212,7 +212,7 @@ def test_spod_streaming():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_streaming(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_streaming(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results
@@ -242,7 +242,7 @@ def test_spod_low_storage_savefft():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results 1
@@ -262,7 +262,7 @@ def test_spod_low_storage_savefft():
 
 	# SPOD analysis
 	params['savefft'] = True
-	SPOD_analysis = SPOD_low_storage(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results 2 (after loading blocks from storage)
@@ -297,7 +297,7 @@ def test_spod_low_ram_savefft():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_ram(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results 1
@@ -317,7 +317,7 @@ def test_spod_low_ram_savefft():
 
 	# SPOD analysis
 	params['savefft'] = True
-	SPOD_analysis = SPOD_low_ram(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_ram(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test results 2 (after loading blocks from storage)
@@ -348,7 +348,7 @@ def test_postprocessing():
 	params['savefft'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(X=X, params=params, file_handler=False)
+	SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variables=variables)
 	spod = SPOD_analysis.fit()
 
 	# Test postprocessing and results
