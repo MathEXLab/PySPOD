@@ -1303,6 +1303,7 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	# Generate movie
 	vmin = np.nanmin(X)
 	vmax = np.nanmax(X)
+	vmean = np.nanmean(X)
 	for i in vars_idx:
 		fig = plt.figure()
 
@@ -1311,7 +1312,8 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 			frames = [
 				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
 								shading='gouraud',
-								vmin=vmin,vmax=vmax),
+								vmin=-0.9*vmean,
+								vmax= 0.9*vmean),
 				 plt.scatter(coast['coastlon'],
 				 			 coast['coastlat'],
 							 marker='.', c='k', s=1)]
@@ -1321,7 +1323,8 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 			frames = [
 				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
 								shading='gouraud',
-								vmin=vmin,vmax=vmax)]
+								vmin=-0.9*vmean,
+								vmax= 0.9*vmean)]
 				for state in time_range
 			]
 		a = animation.ArtistAnimation(
