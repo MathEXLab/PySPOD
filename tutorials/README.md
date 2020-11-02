@@ -20,7 +20,7 @@ functionalities of the library and practical application areas.
 
 ### Climate 
 
-#### [Tutorial: 2D Multivariate ENSO Index](Climate/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
+#### [Tutorial: 2D Multivariate ENSO Index](climate/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
 
 This tutorial shows how to download data from an ECMWF reanalysis dataset (ERA20C), 
 and use **PySPOD** to identify spatio-temporal coherent structured in multivariate 
@@ -31,7 +31,7 @@ of the surface wind (V10), sea surface temperature (SST), 2-meter temperature
 (T2M), and, total cloud cover (TCC), on a 2D longitude-latitude grid.  
 
 
-#### [Tutorial: 3D Quasi-Bienniel Oscillation](Climate/ERA20C_QBO_3D/ERA20C_QBO_3D.ipynb)
+#### [Tutorial: 3D Quasi-Bienniel Oscillation](climate/ERA20C_QBO_3D/ERA20C_QBO_3D.ipynb)
 
 This tutorial shows how to download data from an ECMWF reanalysis dataset (ERA20C), 
 and use **PySPOD** to identify spatio-temporal coherent structured in univariate 
@@ -40,7 +40,7 @@ The data is composed by the monthly-averages of the zonal-mean zonal winds
 on a 3D longitude, latitude, pressure-levels grid.
 
 
-#### [Tutorial: 2D ERA5 Mean-Sea Level Pressure](Climate/ERA5_MSLP_2D/ERA5_MSLP_2D.ipynb)
+#### [Tutorial: 2D ERA5 Mean-Sea Level Pressure](climate/ERA5_MSLP_2D/ERA5_MSLP_2D.ipynb)
 
 This tutorial shows how to download data from an ECMWF reanalysis dataset (ERA5), 
 and use **PySPOD** to identify spatio-temporal coherent structured in univariate 
@@ -51,14 +51,14 @@ high-resolution mean-sea level pressure data from the ERA5 dataset.
 
 ### Fluidmechanics 
 
-#### [Tutorial: 2D Jet](Fluidmechanics/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
+#### [Tutorial: 2D Jet](fluidmechanics/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
 
 
 
 
 ### Earthquakes 
 
-#### [Tutorial: 2D Slip Potency](Earthquakes/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
+#### [Tutorial: 2D Slip Potency](earthquakes/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
 
 
 
