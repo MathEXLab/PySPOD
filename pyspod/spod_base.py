@@ -409,36 +409,28 @@ class SPOD_base(object):
 			if mean_type.lower() == 'longtime':
 
 				# previous way
-				x_mean = np.mean(self.data, axis=0)
+				# x_mean = np.mean(self.data, axis=0)
 
-				# # split data into n_blocks chunks to maintain data consistency
-				# split_block = self.nt // n_blocks
-				# split_res = self.nt % n_blocks
-				# x_mean_tmp = np.zeros((n_blocks,)+self.xshape+(self.nv,))
-				# for iBlk in range(0,n_blocks):
-				# 	lb = iBlk * split_block
-				# 	ub = lb + split_block
-				# 	print('lb = ', lb)
-				# 	print('ub = ', ub)
-				# 	x_data = self._data_handler(
-				# 		data=self.data,
-				# 		t_0=lb,
-				# 		t_end=ub,
-				# 		variables=self.variables)
-				# 	print('x_data.shape = ', x_data.shape)
-				# 	print(x_data[0:10,0,0])
-				# 	print(x_data[-10:,0,0])
-				# 	# print('x_data.shape = ', x_data.shape)
-				# 	x_mean_tmp[iBlk,...] = np.mean(x_data, axis=0)
-				# 	print('x_mean_tmp.shape = ', x_mean_tmp.shape)
-				# x_data = self._data_handler(
-				# 	data=self.data,
-				# 	t_0=self.nt-split_res,
-				# 	t_end=self.nt,
-				# 	variables=self.variables)
-				# print(x_data.shape)
-				# x_mean_tmp[-1,...] = np.mean(x_data, axis=0)
-				# x_mean = np.mean(x_mean_tmp, axis=0)
+				# split data into n_blocks chunks to maintain data consistency
+				split_block = self.nt // n_blocks
+				split_res = self.nt % n_blocks
+				x_sum = np.zeros(self.xshape+(self.nv,))
+				for iBlk in range(0,n_blocks):
+					lb = iBlk * split_block
+					ub = lb + split_block
+					x_data = self._data_handler(
+						data=self.data,
+						t_0=lb,
+						t_end=ub,
+						variables=self.variables)
+					x_sum += np.sum(x_data, axis=0)
+				x_data = self._data_handler(
+					data=self.data,
+					t_0=self.nt-split_res,
+					t_end=self.nt,
+					variables=self.variables)
+				x_sum += np.sum(x_data, axis=0)
+				x_mean = x_sum / self.nt
 				x_mean = np.reshape(x_mean,(int(self.nx*self.nv)))
 				mean_name = 'longtime'
 			elif mean_type.lower() == 'blockwise':
