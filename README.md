@@ -119,9 +119,9 @@ To run tests locally:
 
 
 ## How to cite
-If you use this package in your publications please cite the package as follows:
+If you used **PySPOD** in your publications, please cite the package as follows:
 
-Mengaldo G. (2020). PySPOD: Python Spectral Proper Orthogonal Decomposition. Journal of Open Source Software ... 
+**Mengaldo G. (2020). PySPOD: Python Spectral Proper Orthogonal Decomposition. Journal of Open Source Software ...** 
 
 Or if you use LaTeX:
 ```tex
