@@ -17,10 +17,10 @@
     <a href="https://travis-ci.org/mengaldo/PySPOD" target="_blank">
         <img alt="Build Status" src="https://travis-ci.org/mengaldo/PySPOD.svg">
     </a>
-<!--     <a href="https://coveralls.io/github/mathLab/PyDMD" target="_blank">
-        <img alt="Coverage Status" src="https://coveralls.io/repos/github/mathLab/PyDMD/badge.svg">
+<!--     <a href="https://coveralls.io/github/mathLab/PySPOD" target="_blank">
+        <img alt="Coverage Status" src="https://coveralls.io/repos/github/mathLab/PySPOD/badge.svg">
     </a> -->
-<!--     <a href="https://www.codacy.com/app/mathLab/PyDMD?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mathLab/PyDMD&amp;utm_campaign=Badge_Grade" target="_blank">
+<!--     <a href="https://www.codacy.com/app/mathLab/PySPOD?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mathLab/PySPOD&amp;utm_campaign=Badge_Grade" target="_blank">
         <img alt="Codacy Badge" src="https://api.codacy.com/project/badge/Grade/75f02cdeed684c25a273eaffb0d89880">
     </a> -->
 </p>
@@ -62,7 +62,7 @@ To see how to use the **PySPOD** package and its user-friendly interface, you ca
 
 
 ## Dependencies and installation
-**PyDMD** requires requires `numpy`, `scipy`, `matplotlib`, `future`, `sphinx` (for the documentation) and `nose` (for local test). The code is tested for Python 3, while compatibility of Python 2 is not guaranteed anymore. It can be installed using `pip` or directly from the source code.
+**PySPOD** requires requires `numpy`, `scipy`, `matplotlib`, `future`, `sphinx` (for the documentation) and `nose` (for local test). The code is tested for Python 3, while compatibility of Python 2 is not guaranteed anymore. It can be installed using `pip` or directly from the source code.
 
 ### Installing via PIP
 Mac and Linux users can install pre-built binary packages using pip.
