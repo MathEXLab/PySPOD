@@ -36,4 +36,4 @@ c.retrieve(
             '18:00', '21:00',
         ],
     },
-    'ERA5_RA_2019_MSLP_small.nc')
+    'ERA5_RA_2019_MSLP.nc')
