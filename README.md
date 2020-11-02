@@ -30,22 +30,19 @@
 
 ## Table of contents
 * [Description](#description)
-* [Dependencies and installation](#dependencies-and-installation)
+* [Installation and dependencies](#installation-and-dependencies)
 	* [Installing via PIP](#installing-via-pip)
 	* [Installing from source](#installing-from-source)
 * [Documentation](#documentation)
 * [Testing](#testing)
 * [Examples and Tutorials](#examples)
-* [How to cite](#how-to-cite)
-	* [References](#references)
-	* [Recent works with PySPOD](#recent-works-with-spod)
+* [References](#references)
+* [Recent works with PySPOD](#recent-works-with-spod)
 * [Authors and contributors](#authors-and-contributors)
-* [How to contribute](#how-to-contribute)
-	* [Submitting a patch](#submitting-a-patch) 
 * [License](#license)
 
 ## Description
-**PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (Picard & Delville 2000), and goes back to the original work by (Lumley 1967, 1970). The implementation proposed here follows the original contributions by (Towne et al. 2018), (Schmidt & Towne 2019).
+**PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (Picard & Delville 2000), and goes back to the original work by (Lumley 1970). The implementation proposed here follows the original contributions by (Towne et al. 2018), (Schmidt & Towne 2019).
 
 **Spectral Proper Orthgonal Decomposition (SPOD)** has been extensively used in the past few years to identify spatio-temporal coherent pattern in a variety of datasets, mainly in the fluidmechanics and climate communities. In fluidmechanics it was applied to jets (Schmidt et al. 2017), wakes (Colonius & Dabiri 2017), and boundary layers (Tutkun & George 2017), among others, while in weather and climate it was applied to ECMWF reanalysis datasets under the name Spectral Empirical Orthogonal Function, or SEOF, (Schmidt et al. 2019).
 
@@ -56,13 +53,14 @@ This can help identifying relations to multiple variables or understanding the r
 In this package we implement three version of SPOD 
 - SPOD_low_storage: that is intended for large RAM machines or small datasets
 - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
-- SPOD_streaming: that is the algorithm presented in (Schmidt & Towne 2019), and is intended for large datasets.
+- SPOD_streaming: that is the algorithm presented in (Schmidt & Towne 2019), and it is intended for large datasets.
 
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
 
 
 ## Dependencies and installation
-**PySPOD** requires requires `numpy`, `scipy`, `matplotlib`, `future`, `sphinx` (for the documentation) and `nose` (for local test). The code is tested for Python 3, while compatibility of Python 2 is not guaranteed anymore. It can be installed using `pip` or directly from the source code.
+**PySPOD** requires `numpy`, `scipy`, `matplotlib`, `pyfftw`, `future`, `sphinx` (for the documentation). The code is developed and tested for Python 3 only. 
+It can be installed using `pip` or directly from the source code.
 
 ### Installing via PIP
 Mac and Linux users can install pre-built binary packages using pip.
@@ -94,21 +92,25 @@ To uninstall the package you have to rerun the installation and record the insta
 ```
 
 ## Documentation
-**PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation. You can view the documentation online [here](http://mengaldo.github.io/PySPOD/). To build the html version of the docs locally simply:
+**PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation. 
+You can view the documentation online [here](http://mengaldo.github.io/PySPOD/). 
+If you want to build the documentation locally on your computer, you can do so 
+by:
 
 ```bash
 > cd docs
 > make html
 ```
 
-The generated html can be found in `docs/build/html`. Open up the `index.html` you find there to browse.
+This will generate a `docs/build/html` folder, where you can find an `index.html` file. 
+Open it with your browser and explore the documentation locally.
 
 
 ## Testing
+Regression tests are deployed using Travis CI, that is a continuous intergration framework. 
+You can check out the current status of **PySPOD** [here](https://travis-ci.org/mengaldo/PySPOD).
 
-We are using Travis CI for continuous intergration testing. You can check out the current status [here](https://travis-ci.org/mengaldo/PySPOD).
-
-To run tests locally:
+IF you want to run tests locally, you can do so by:
 
 ```bash
 > cd tests/
@@ -116,28 +118,7 @@ To run tests locally:
 ```
 
 
-
-## How to cite
-If you used **PySPOD** in your publications, please cite the package as follows:
-
-**Mengaldo G. (2020). PySPOD: Python Spectral Proper Orthogonal Decomposition. Journal of Open Source Software ...** 
-
-Or if you use LaTeX:
-```tex
-@article{mengaldo2020,
-  Author = {Mengaldo, Gianmarco},
-  Title = {{PySPOD: Python Spectral Proper Orthogonal Decomposition}},
-  Journal = {The Journal of Open Source Software},
-  Volume = {},
-  Number = {},
-  Pages = {},
-  Year = {},
-  Doi = {}
-}
-```
-
-### References
-
+## References
 * (**Lumley 1970**), *Stochastic Tools in Turbulence.*
 [[DOI](https://www.elsevier.com/books/stochastic-tools-in-turbulence/lumey/978-0-12-395772-6?aaref=https%3A%2F%2Fwww.google.com)]
 
@@ -182,10 +163,9 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 * [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
 
 Contact me by email for further information or questions about **PySPOD**, or suggest pull requests. 
-Contributions improving either the code or the documentation are welcome!
+Contributions improving code and documentation, as well as suggestions about new features are more than welcome!
 
 
 
 ## License
-
 See the [LICENSE](LICENSE.rst) file for license rights and limitations (MIT).
