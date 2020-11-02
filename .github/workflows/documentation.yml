@@ -3,11 +3,15 @@
 name: Sphinx documentation
 
 # Controls when the action will run. 
-# Triggers the workflow on any action.
-on: 
+# Trigger the workflow on push or pull request,
+# but only for the main branch
+on:
   push:
-    tags:
-      - "*"
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
