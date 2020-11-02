@@ -18,15 +18,14 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
       # Runs commands to create documentation
       - name: Create Sphinx documentation 
-        pre-build-command: "python -m pip install pip sphinx_rtd_theme numpy scipy future matplotlib -U"
-        docs-folder: "docs/"
+        uses: actions/checkout@v2
+        with:
+          pre-build-command: "python -m pip install pip sphinx_rtd_theme numpy scipy future matplotlib -U"
+          docs-folder: "docs/"
 
-      # Deploy using packages
+      # Deploy documentationa using packages
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
