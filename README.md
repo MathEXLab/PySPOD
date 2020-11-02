@@ -1,10 +1,8 @@
-<!--p align="center">
+<p align="center">
   <a href="http://mengaldo.github.io/PySPOD/" target="_blank" >
     <img alt="Python Spectral Proper Orthogonal Decomposition" src="readme/PySPOD_logo.png" width="200" />
   </a>
-</p-->
-
-![Alt text](readme/PySPOD_logo.png)
+</p>
 
 <p align="center">
 <!--     <a href="https://doi.org/10.21105/joss.00530" target="_blank">
