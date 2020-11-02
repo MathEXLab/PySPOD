@@ -5,25 +5,24 @@
 </p>
 
 <p align="center">
-<!--     <a href="https://doi.org/10.21105/joss.00530" target="_blank">
-        <img alt="JOSS DOI" src="http://joss.theoj.org/papers/10.21105/joss.00530/status.svg">
-    </a> -->
-    <a href="https://github.com/mengaldo/PySPOD/LICENSE" target="_blank">
-        <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
-    </a>
-	<a href="https://badge.fury.io/py/pydmd">
-		<img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version"
-		height="18">
-	</a>
-    <a href="https://travis-ci.org/mengaldo/PySPOD" target="_blank">
-        <img alt="Build Status" src="https://travis-ci.org/mengaldo/PySPOD.svg">
-    </a>
-<!--     <a href="https://coveralls.io/github/mathLab/PySPOD" target="_blank">
-        <img alt="Coverage Status" src="https://coveralls.io/repos/github/mathLab/PySPOD/badge.svg">
-    </a> -->
-<!--     <a href="https://www.codacy.com/app/mathLab/PySPOD?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mathLab/PySPOD&amp;utm_campaign=Badge_Grade" target="_blank">
-        <img alt="Codacy Badge" src="https://api.codacy.com/project/badge/Grade/75f02cdeed684c25a273eaffb0d89880">
-    </a> -->
+<!--    <a href="https://doi.org/" target="_blank">
+    <img alt="JOSS DOI" src="http://joss.theoj.org/">
+  </a> -->
+  <a href="https://github.com/mengaldo/PySPOD/LICENSE" target="_blank">
+    <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
+  </a>
+  <a href="https://badge.fury.io/py/pydmd">
+    <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
+  </a>
+  <a href="https://travis-ci.org/mengaldo/PySPOD" target="_blank">
+    <img alt="Build Status" src="https://travis-ci.org/mengaldo/PySPOD.svg">
+  </a>
+<!--    <a href="https://coveralls.io/github/mathLab/PySPOD" target="_blank">
+    <img alt="Coverage Status" src="https://coveralls.io/repos/github/mathLab/PySPOD/badge.svg">
+  </a> -->
+  <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mengaldo/PySPOD&amp;utm_campaign=Badge_Grade">
+    <img src="https://app.codacy.com/project/badge/Grade/7ac24e711aea47df806ad52ab067e3a6"/>
+  </a>
 </p>
 
 
