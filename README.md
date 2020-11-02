@@ -35,11 +35,13 @@
 	* [Installing from source](#installing-from-source)
 * [Documentation](#documentation)
 * [Testing](#testing)
-* [Examples and Tutorials](#examples)
+* [Tutorials](#tutorials)
 * [References](#references)
-* [Recent works with PySPOD](#recent-works-with-spod)
+* [Recent works with PySPOD](#recent-works-with-pyspod)
 * [Authors and contributors](#authors-and-contributors)
 * [License](#license)
+
+
 
 ## Description
 **PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (Picard & Delville 2000), and goes back to the original work by (Lumley 1970). The implementation proposed here follows the original contributions by (Towne et al. 2018), (Schmidt & Towne 2019).
@@ -58,7 +60,8 @@ In this package we implement three version of SPOD
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
 
 
-## Dependencies and installation
+
+## Installation and dependencies
 **PySPOD** requires `numpy`, `scipy`, `matplotlib`, `pyfftw`, `future`, `sphinx` (for the documentation). The code is developed and tested for Python 3 only. 
 It can be installed using `pip` or directly from the source code.
 
@@ -91,6 +94,7 @@ To uninstall the package you have to rerun the installation and record the insta
 > cat installed_files.txt | xargs rm -rf
 ```
 
+
 ## Documentation
 **PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation. 
 You can view the documentation online [here](http://mengaldo.github.io/PySPOD/). 
@@ -104,6 +108,7 @@ by:
 
 This will generate a `docs/build/html` folder, where you can find an `index.html` file. 
 Open it with your browser and explore the documentation locally.
+
 
 
 ## Testing
@@ -152,7 +157,7 @@ Reynolds numbers.*
 
 
 
-## Recent contributions using **PySPOD**
+## Recent works with **PySPOD**
 Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for a publication and you want it to be advertised here.
 
 
