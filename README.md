@@ -3,9 +3,10 @@
     <img alt="Python Spectral Proper Orthogonal Decomposition" src="readme/PySPOD_logo.png" width="200" />
   </a>
 </p-->
- <p align="center">
+
+<p align="center">
      <img alt="Python Spectral Proper Orthogonal Decomposition" src="readme/PySPOD_logo.png" width="200" />
- </p>
+</p>
 
 <p align="center">
 <!--     <a href="https://doi.org/10.21105/joss.00530" target="_blank">
