@@ -1,0 +1,995 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Welcome to pyspod’s documentation! &mdash; PySPOD 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home" alt="Documentation Home"> PySPOD
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome to pyspod’s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#spod-modules">SPOD modules</a><ul>
+<li><a class="reference internal" href="#module-pyspod.spod_base">SPOD base class</a></li>
+<li><a class="reference internal" href="#module-pyspod.spod_low_storage">SPOD low storage</a></li>
+<li><a class="reference internal" href="#module-pyspod.spod_low_ram">SPOD low ram</a></li>
+<li><a class="reference internal" href="#module-pyspod.spod_streaming">SPOD streaming</a></li>
+<li><a class="reference internal" href="#module-pyspod.weights">Weights</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#postprocessing-module">Postprocessing module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">PySPOD</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Welcome to pyspod’s documentation!</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="welcome-to-pyspod-s-documentation">
+<h1>Welcome to pyspod’s documentation!<a class="headerlink" href="#welcome-to-pyspod-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="spod-modules">
+<h1>SPOD modules<a class="headerlink" href="#spod-modules" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyspod.spod_base">
+<span id="spod-base-class"></span><h2>SPOD base class<a class="headerlink" href="#module-pyspod.spod_base" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Base module for the SPOD:</dt><dd><ul class="simple">
+<li><p><cite>fit</cite> and <cite>predict</cite> methods must be implemented in inherited classes</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt id="pyspod.spod_base.SPOD_base">
+<em class="property">class </em><code class="sig-name descname">SPOD_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">data_handler</span></em>, <em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spectral Proper Orthogonal Decomposition base class.</p>
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.data">
+<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the original input data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the matrix that contains the original snapshots.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.dim">
+<em class="property">property </em><code class="sig-name descname">dim</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the shape of the data matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>shape of the data matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.dt">
+<em class="property">property </em><code class="sig-name descname">dt</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time-step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the time-step used by the SPOD algorithm.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>double</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.eigs">
+<em class="property">property </em><code class="sig-name descname">eigs</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.eigs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the eigenvalues of the SPOD matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the eigenvalues from the eigendecomposition the SPOD matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.find_nearest_coords">
+<code class="sig-name descname">find_nearest_coords</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">coords</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.find_nearest_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.find_nearest_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.find_nearest_freq">
+<code class="sig-name descname">find_nearest_freq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.find_nearest_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.find_nearest_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to fit the data matrices.
+Not implemented, it has to be implemented in subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.freq">
+<em class="property">property </em><code class="sig-name descname">freq</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of modes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of modes computed by the SPOD algorithm.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.generate_2D_data_video">
+<code class="sig-name descname">generate_2D_data_video</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time_limits</span><span class="o">=</span><span class="default_value">[0, 10]</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">sampling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">'data_video.mp4'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.generate_2D_data_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.generate_2D_data_video" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.get_modes_at_freq">
+<code class="sig-name descname">get_modes_at_freq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq_idx</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.get_modes_at_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.get_modes_at_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.modes">
+<em class="property">property </em><code class="sig-name descname">modes</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.modes" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Get the matrix containing the SPOD modes, stored by</dt><dd><p>[frequencies, spatial dimensions original data, number of modes].</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the [n_freq, n_dims, n_modes] matrix containing the SPOD modes.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.n_freq">
+<em class="property">property </em><code class="sig-name descname">n_freq</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.n_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of frequencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of frequencies computed by the SPOD algorithm.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.n_modes">
+<em class="property">property </em><code class="sig-name descname">n_modes</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.n_modes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of modes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of modes computed by the SPOD algorithm.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.n_modes_saved">
+<em class="property">property </em><code class="sig-name descname">n_modes_saved</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.n_modes_saved" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of modes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of modes computed by the SPOD algorithm.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.nt">
+<em class="property">property </em><code class="sig-name descname">nt</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.nt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of time-steps of the data matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of time-steps of the data matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.nv">
+<em class="property">property </em><code class="sig-name descname">nv</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.nv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of variables of the data matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of variables of the data matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.nx">
+<em class="property">property </em><code class="sig-name descname">nx</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.nx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of spatial points of the data matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of spatial points [dim1:] of the data matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_2D_data">
+<code class="sig-name descname">plot_2D_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_2D_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_2D_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_2D_mode_slice_vs_time">
+<code class="sig-name descname">plot_2D_mode_slice_vs_time</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_each_mode</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_2D_mode_slice_vs_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_2D_mode_slice_vs_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_2D_modes_at_frequency">
+<code class="sig-name descname">plot_2D_modes_at_frequency</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">imaginary</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plot_max</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_2D_modes_at_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_2D_modes_at_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_3D_modes_slice_at_frequency">
+<code class="sig-name descname">plot_3D_modes_slice_at_frequency</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x3</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">slice_dim</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">slice_id</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">imaginary</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plot_max</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_3D_modes_slice_at_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_3D_modes_slice_at_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_data_tracers">
+<code class="sig-name descname">plot_data_tracers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords_list</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_limits</span><span class="o">=</span><span class="default_value">[0, 10]</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_data_tracers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_data_tracers" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_eigs">
+<code class="sig-name descname">plot_eigs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">show_axes</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_eigs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_eigs" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_eigs_vs_frequency">
+<code class="sig-name descname">plot_eigs_vs_frequency</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_axes</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_eigs_vs_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_eigs_vs_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_eigs_vs_period">
+<code class="sig-name descname">plot_eigs_vs_period</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_axes</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_eigs_vs_period"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_eigs_vs_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.plot_mode_tracers">
+<code class="sig-name descname">plot_mode_tracers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">coords_list</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.plot_mode_tracers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.plot_mode_tracers" title="Permalink to this definition">¶</a></dt>
+<dd><p>See method implementation in the postprocessing module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_base.html#SPOD_base.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_base.SPOD_base.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method to predict the next time frames.
+Not implemented, it has to be implemented in subclasses.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.save_dir">
+<em class="property">property </em><code class="sig-name descname">save_dir</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.save_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the directory where results are saved.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>path to directory where results are saved.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the shape of the data matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>shape of the data matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.variables">
+<em class="property">property </em><code class="sig-name descname">variables</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the variable list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the variable list used.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list or strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.xdim">
+<em class="property">property </em><code class="sig-name descname">xdim</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.xdim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of spatial dimensions of the data matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>number of spatial dimensions of the data matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>tuple(<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a>,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pyspod.spod_base.SPOD_base.xshape">
+<em class="property">property </em><code class="sig-name descname">xshape</code><a class="headerlink" href="#pyspod.spod_base.SPOD_base.xshape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the spatial shape of the data matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>spatial shape of the data matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>tuple(<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a>,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyspod.spod_low_storage">
+<span id="spod-low-storage"></span><h2>SPOD low storage<a class="headerlink" href="#module-pyspod.spod_low_storage" title="Permalink to this headline">¶</a></h2>
+<p>Derived module from spod_base.py for low storage SPOD.</p>
+<dl class="py class">
+<dt id="pyspod.spod_low_storage.SPOD_low_storage">
+<em class="property">class </em><code class="sig-name descname">SPOD_low_storage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">data_handler</span></em>, <em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_low_storage.html#SPOD_low_storage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_low_storage.SPOD_low_storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that implements the Spectral Proper Orthogonal Decomposition
+to the input data using RAM to reduce the amount of I/O and disk
+storage (for small datasets / large RAM machines).</p>
+<p>The computation is performed on the data <em>X</em> passed to the
+constructor of the <cite>SPOD_low_storage</cite> class, derived from
+the <cite>SPOD_base</cite> class.</p>
+<dl class="py method">
+<dt id="pyspod.spod_low_storage.SPOD_low_storage.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_low_storage.html#SPOD_low_storage.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_low_storage.SPOD_low_storage.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class-specific method to fit the data matrix X using
+the SPOD low storage algorithm.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyspod.spod_low_ram">
+<span id="spod-low-ram"></span><h2>SPOD low ram<a class="headerlink" href="#module-pyspod.spod_low_ram" title="Permalink to this headline">¶</a></h2>
+<p>Derived module from spod_base.py for SPOD low ram.</p>
+<dl class="py class">
+<dt id="pyspod.spod_low_ram.SPOD_low_ram">
+<em class="property">class </em><code class="sig-name descname">SPOD_low_ram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">data_handler</span></em>, <em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_low_ram.html#SPOD_low_ram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_low_ram.SPOD_low_ram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that implements the Spectral Proper Orthogonal Decomposition
+to the input data using disk storage to reduce the amount of RAM
+(for large datasets / small RAM machines).</p>
+<p>The computation is performed on the data <em>X</em> passed
+to the constructor of the <cite>SPOD_low_ram</cite> class, derived
+from the <cite>SPOD_base</cite> class.</p>
+<dl class="py method">
+<dt id="pyspod.spod_low_ram.SPOD_low_ram.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_low_ram.html#SPOD_low_ram.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_low_ram.SPOD_low_ram.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class-specific method to fit the data matrix X using
+the SPOD low ram algorithm.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyspod.spod_streaming">
+<span id="spod-streaming"></span><h2>SPOD streaming<a class="headerlink" href="#module-pyspod.spod_streaming" title="Permalink to this headline">¶</a></h2>
+<p>Derived module from spod_base.py for streaming SPOD.</p>
+<dl class="py class">
+<dt id="pyspod.spod_streaming.SPOD_streaming">
+<em class="property">class </em><code class="sig-name descname">SPOD_streaming</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">data_handler</span></em>, <em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_streaming.html#SPOD_streaming"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_streaming.SPOD_streaming" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that implements the Spectral Proper Orthogonal Decomposition
+to the input data X using a streaming algorithn to reduce the amount
+of I/O and disk storage (for small datasets / large RAM machines).</p>
+<p>The computation is performed on the data <em>X</em> passed to the
+constructor of the <cite>SPOD_streaming</cite> class, derived from
+the <cite>SPOD_base</cite> class.</p>
+<dl class="py method">
+<dt id="pyspod.spod_streaming.SPOD_streaming.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/spod_streaming.html#SPOD_streaming.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.spod_streaming.SPOD_streaming.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class-specific method to fit the data matrix X using the SPOD
+streaming algorithm.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyspod.weights">
+<span id="weights"></span><h2>Weights<a class="headerlink" href="#module-pyspod.weights" title="Permalink to this headline">¶</a></h2>
+<p>Derived module from spodbase.py for classic spod.</p>
+<dl class="py function">
+<dt id="pyspod.weights.geo_weights_trapz_2D">
+<code class="sig-name descname">geo_weights_trapz_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">n_vars</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/weights.html#geo_weights_trapz_2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.weights.geo_weights_trapz_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>2D integration weights for geospatial data via trapezoidal rule</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.weights.geo_weights_trapz_3D">
+<code class="sig-name descname">geo_weights_trapz_3D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">z</span></em>, <em class="sig-param"><span class="n">n_vars</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/weights.html#geo_weights_trapz_3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.weights.geo_weights_trapz_3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D integration weights for geospatial data via trapezoidal rule</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="postprocessing-module">
+<h1>Postprocessing module<a class="headerlink" href="#postprocessing-module" title="Permalink to this headline">¶</a></h1>
+<p>The postprocessing module is intended to provide some limited
+support to post-process the data and results produced by <strong>pyspod</strong>.
+The key routines implemented are</p>
+<span class="target" id="module-pyspod.postprocessing"></span><p>Derived module from spodbase.py for classic spod.</p>
+<dl class="py function">
+<dt id="pyspod.postprocessing.find_nearest_coords">
+<code class="sig-name descname">find_nearest_coords</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">data_space_dim</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#find_nearest_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.find_nearest_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get nearest data coordinates to requested coordinates <cite>coords</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> (<em>np.ndarray</em>) – coordinate requested.</p></li>
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – data coordinates.</p></li>
+<li><p><strong>int</strong> – spatial dimension of the data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the nearest coordinate to the <cite>coords</cite> requested and its id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a>, <a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.find_nearest_freq">
+<code class="sig-name descname">find_nearest_freq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#find_nearest_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.find_nearest_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get nearest frequency to requested <cite>freq_value</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq_required</strong> (<em>double</em>) – requested frequency.</p></li>
+<li><p><strong>freq</strong> (<em>np.ndarray</em>) – array of frequencies.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the nearest frequecy to the <cite>freq_value</cite> requested and its id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>double, <a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.generate_2D_data_video">
+<code class="sig-name descname">generate_2D_data_video</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">time_limits</span><span class="o">=</span><span class="default_value">[0, 10]</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sampling</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">'data_video.mp4'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#generate_2D_data_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.generate_2D_data_video" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make movie of 2D data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – 2D data to be plotted.          First dimension must be time. Last dimension must be variable.</p></li>
+<li><p><strong>list time_limits</strong> (<em>2-element</em>) – lower and upper time bounds          to be used for video. Default is first 10 timeframes are used.</p></li>
+<li><p><strong>sampling</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – sample data every <cite>sampling</cite> timeframes.           Default is 1 (use all timeframes).</p></li>
+<li><p><strong>x1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – x-axis coordinate. Default is None.</p></li>
+<li><p><strong>x2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – y-axis coordinate. Default is None.</p></li>
+<li><p><strong>coastlines</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – whether to overlay coastlines.           Options are <cite>regular</cite> (longitude from 0 to 360)                 and <cite>centred</cite> (longitude from -180 to 180)              Default is ‘’ (no coastlines).</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>.             Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.get_mode_from_file">
+<code class="sig-name descname">get_mode_from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#get_mode_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.get_mode_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load SPOD modes from file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – path from where to load SPOD modes.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the [n_dims, n_vars, n_modes]
+matrix containing the requested SPOD modes from
+file at a given frequency.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.get_modes_at_freq">
+<code class="sig-name descname">get_modes_at_freq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modes</span></em>, <em class="sig-param"><span class="n">freq_idx</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#get_modes_at_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.get_modes_at_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the matrix containing the SPOD modes, stored by     [frequencies, spatial dimensions data, no. of variables, no. of modes].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>or numpy.ndarray modes</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – SPOD modes.                 If dict, it must contain the path to the files          where the modes are stored.             If numpy.ndarray, it must contain the modes.</p></li>
+<li><p><strong>freq_idx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – frequency id requested.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the n_dims, n_vars, n_modes            matrix containing the SPOD modes at requested frequency.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_2D_data">
+<code class="sig-name descname">plot_2D_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">time_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_2D_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_2D_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot 2D data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – 2D data to be plotted.          First dimension must be time. Last dimension must be variable.</p></li>
+<li><p><strong>vars_idx</strong> (<em>list</em>) – list of variables to plot. Default,               first variable is plotted.</p></li>
+<li><p><strong>time_idx</strong> (<em>list</em>) – list of time indices to plot. Default,            first time index is plotted.</p></li>
+<li><p><strong>x1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – x-axis coordinate. Default is None.</p></li>
+<li><p><strong>x2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – y-axis coordinate. Default is None.</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot. Default is ‘’.</p></li>
+<li><p><strong>coastlines</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – whether to overlay coastlines.           Options are <cite>regular</cite> (longitude from 0 to 360)                 and <cite>centred</cite> (longitude from -180 to 180)              Default is ‘’ (no coastlines).</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>.             Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_2D_mode_slice_vs_time">
+<code class="sig-name descname">plot_2D_mode_slice_vs_time</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modes</span></em>, <em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_each_mode</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_2D_mode_slice_vs_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_2D_mode_slice_vs_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the time evolution of SPOD mode slices for 2D problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – 2D SPOD modes.</p></li>
+<li><p><strong>freq_required</strong> (<em>double</em>) – frequency to be plotted.</p></li>
+<li><p><strong>freq</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – frequency array.</p></li>
+<li><p><strong>or sequence</strong><strong>(</strong><strong>int</strong><strong>) </strong><strong>vars_idx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – variables to be plotted.          Default, the first variable is plotted.</p></li>
+<li><p><strong>or sequence</strong><strong>(</strong><strong>int</strong><strong>) </strong><strong>modes_idx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – modes to be plotted.             Default, the first mode is plotted.</p></li>
+<li><p><strong>x1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – x-axis coordinate.</p></li>
+<li><p><strong>x2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – y-axis coordinate.</p></li>
+<li><p><strong>max_each_mode</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to use the maximum value             of each mode to color plots. Default is False (use maximum              of leading mode).</p></li>
+<li><p><strong>fftshift</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to perform fft-shifting.          Default is False.</p></li>
+<li><p><strong>imaginary</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to plot imaginary part.          Default is False</p></li>
+<li><p><strong>plot_max</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to plot a dot at maximum value of the plot.               Default is False.</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot. Default is ‘’.</p></li>
+<li><p><strong>or list xticks</strong> (<em>tuple</em>) – ticks to be set on x-axis.                 Default is None.</p></li>
+<li><p><strong>or list yticks</strong> (<em>tuple</em>) – ticks to be set on y-axis.                 Default is None.</p></li>
+<li><p><strong>equal_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be equal.                Default is False.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>.             Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.             Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_2D_modes_at_frequency">
+<code class="sig-name descname">plot_2D_modes_at_frequency</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modes</span></em>, <em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">imaginary</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plot_max</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_2D_modes_at_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_2D_modes_at_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot SPOD modes for 2D problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – 2D SPOD modes.</p></li>
+<li><p><strong>freq_required</strong> (<em>double</em>) – frequency to be plotted.</p></li>
+<li><p><strong>freq</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – frequency array.</p></li>
+<li><p><strong>or sequence</strong><strong>(</strong><strong>int</strong><strong>) </strong><strong>vars_idx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – variables to be plotted.          Default, the first variable is plotted.</p></li>
+<li><p><strong>or sequence</strong><strong>(</strong><strong>int</strong><strong>) </strong><strong>modes_idx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – modes to be plotted.             Default, the first mode is plotted.</p></li>
+<li><p><strong>x1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – x-axis coordinate.</p></li>
+<li><p><strong>x2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – y-axis coordinate.</p></li>
+<li><p><strong>fftshift</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to perform fft-shifting.          Default is False.</p></li>
+<li><p><strong>imaginary</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to plot imaginary part.          Default is False</p></li>
+<li><p><strong>plot_max</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to plot a dot at maximum          value of the plot. Default is False.</p></li>
+<li><p><strong>coastlines</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – whether to overlay coastlines.           Options are <cite>regular</cite> (longitude from 0 to 360)                 and     <cite>centred</cite> (longitude from -180 to 180)          Default is ‘’ (no coastlines).</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot. Default is ‘’.</p></li>
+<li><p><strong>or list xticks</strong> (<em>tuple</em>) – ticks to be set on x-axis. Default is None.</p></li>
+<li><p><strong>or list yticks</strong> (<em>tuple</em>) – ticks to be set on y-axis. Default is None.</p></li>
+<li><p><strong>equal_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be equal. Default is False.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>.             Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.             Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_3D_modes_slice_at_frequency">
+<code class="sig-name descname">plot_3D_modes_slice_at_frequency</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modes</span></em>, <em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">x1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x3</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">slice_dim</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">slice_id</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">imaginary</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plot_max</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">coastlines</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_3D_modes_slice_at_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_3D_modes_slice_at_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot SPOD modes for 3D problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – 3D SPOD modes.</p></li>
+<li><p><strong>freq_required</strong> (<em>double</em>) – frequency to be plotted.</p></li>
+<li><p><strong>freq</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – frequency array.</p></li>
+<li><p><strong>or sequence</strong><strong>(</strong><strong>int</strong><strong>) </strong><strong>vars_idx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – variables to              be plotted. Default, the first variable is plotted.</p></li>
+<li><p><strong>or sequence</strong><strong>(</strong><strong>int</strong><strong>) </strong><strong>modes_idx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – modes to be              plotted. Default, the first mode is plotted.</p></li>
+<li><p><strong>x1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – x-axis coordinate. Default is None.</p></li>
+<li><p><strong>x2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – y-axis coordinate. Default is None.</p></li>
+<li><p><strong>x3</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – z-axis coordinate. Default is None.</p></li>
+<li><p><strong>slice_dim</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – axis to slice. Either 0, 1, or 2.                 Default is 0.</p></li>
+<li><p><strong>slice_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – id of the slice to extract along           <cite>slice_dim</cite>. Default is None. In this case, the slice_id is selected            as the one that corresponds to the maximum value along <cite>slice_dim</cite>.</p></li>
+<li><p><strong>fftshift</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to perform fft-shifting. Default is False.</p></li>
+<li><p><strong>imaginary</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to plot imaginary part. Default is False</p></li>
+<li><p><strong>plot_max</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to plot a dot at maximum value of the plot.               Default is False.</p></li>
+<li><p><strong>coastlines</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – whether to overlay coastlines.           Options are <cite>regular</cite> (longitude from 0 to 360)                 and <cite>centred</cite> (longitude from -180 to 180)              Default is ‘’ (no coastlines).</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot. Default is ‘’.</p></li>
+<li><p><strong>or list xticks</strong> (<em>tuple</em>) – ticks to be set on x-axis. Default is None.</p></li>
+<li><p><strong>or list yticks</strong> (<em>tuple</em>) – ticks to be set on y-axis. Default is None.</p></li>
+<li><p><strong>equal_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be equal. Default is False.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>.             Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.             Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_data_tracers">
+<code class="sig-name descname">plot_data_tracers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">coords_list</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_limits</span><span class="o">=</span><span class="default_value">[0, 10]</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_data_tracers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_data_tracers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot data tracers for nD problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – nD data.</p></li>
+<li><p><strong>coords_list</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>*</em><em>)</em><em>,</em><em>)</em>) – list of tuples containing
+coordinates to be plotted.</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – data coordinates. Default is None.</p></li>
+<li><p><strong>list time_limits</strong> (<em>2-element</em>) – lower and upper time bounds
+to be plotted. Default is first 10 timeframes are plotted.</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot. Default is ‘’.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).
+Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>. Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.
+Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_eigs">
+<code class="sig-name descname">plot_eigs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">eigs</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">show_axes</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_eigs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_eigs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot eigenvalues <cite>eigs</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eigs</strong> (<em>ndarray</em>) – eigenvalues.</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>show_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be showed. Default is True.</p></li>
+<li><p><strong>equal_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be equal. Default is False.</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>. Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.             Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_eigs_vs_frequency">
+<code class="sig-name descname">plot_eigs_vs_frequency</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">eigs</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_axes</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_eigs_vs_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_eigs_vs_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot eigenvalues vs. frequency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eigs</strong> (<em>ndarray</em>) – eigenvalues.</p></li>
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency vector to be used as the x-axis.</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot.</p></li>
+<li><p><strong>or list xticks</strong> (<em>tuple</em>) – ticks to be set on x-axis. Default is None.</p></li>
+<li><p><strong>or list yticks</strong> (<em>tuple</em>) – ticks to be set on y-axis. Default is None.</p></li>
+<li><p><strong>show_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be showed. Default is True.</p></li>
+<li><p><strong>equal_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be equal. Default is False.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>. Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.             Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_eigs_vs_period">
+<code class="sig-name descname">plot_eigs_vs_period</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">eigs</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">xticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">yticks</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_axes</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">equal_axes</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_eigs_vs_period"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_eigs_vs_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot eigenvalues vs. period = 1 / freq.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eigs</strong> (<em>ndarray</em>) – eigenvalues.</p></li>
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency vector to be used as the x-axis.</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot. Default is ‘’.</p></li>
+<li><p><strong>or list xticks</strong> (<em>tuple</em>) – ticks to be set on x-axis. Default is None.</p></li>
+<li><p><strong>or list yticks</strong> (<em>tuple</em>) – ticks to be set on y-axis. Default is None.</p></li>
+<li><p><strong>show_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be showed. Default is True.</p></li>
+<li><p><strong>equal_axes</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – if True, the axes will be equal. Default is False.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>. Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.             Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyspod.postprocessing.plot_mode_tracers">
+<code class="sig-name descname">plot_mode_tracers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modes</span></em>, <em class="sig-param"><span class="n">freq_required</span></em>, <em class="sig-param"><span class="n">freq</span></em>, <em class="sig-param"><span class="n">coords_list</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vars_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">modes_idx</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">fftshift</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">12, 8</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'/Users/gian/GIT-GM/pyspod/docs/source'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyspod/postprocessing.html#plot_mode_tracers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyspod.postprocessing.plot_mode_tracers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot SPOD mode tracers for nD problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modes</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – nD SPOD modes.</p></li>
+<li><p><strong>freq_required</strong> (<em>double</em>) – frequency to be plotted.</p></li>
+<li><p><strong>freq</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – frequency array.</p></li>
+<li><p><strong>coords_list</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>*</em><em>)</em><em>,</em><em>)</em>) – list of tuples              containing coordinates to be plotted.</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – data coordinates. Default is None.</p></li>
+<li><p><strong>fftshift</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – whether to perform fft-shifting.          Default is False.</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, title of the plot. Default is ‘’.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>,</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>)</em>) – size of the figure (width,height).               Default is (12,8).</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>path</cite>.             Default is CWD.</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – if specified, the plot is saved at <cite>filename</cite>.             Default is None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright Copyright 2020-2025, SIA
+      <span class="lastupdated">
+        Last updated on Nov 02, 2020.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
