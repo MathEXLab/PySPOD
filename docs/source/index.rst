@@ -23,6 +23,8 @@ SPOD modules
 SPOD base class
 ----------------
 
+The SPOD base class is intended to hold functions that are shared by all derived classes. It follows an abstract factory design pattern.
+
 .. automodule:: pyspod.spod_base
 	:members: SPOD_base
 
