@@ -132,7 +132,7 @@ def get_mode_from_file(filename):
 # ---------------------------------------------------------------------------
 
 def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
-	equal_axes=False,  path=CWD, filename=None):
+	equal_axes=False,  path='CWD', filename=None):
 	"""
 	Plot eigenvalues `eigs`.
 
@@ -183,6 +183,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 
 	# save or show plots
 	if filename:
+		if path == 'CWD': path = CWD
 		plt.savefig(os.path.join(path,filename), dpi=200)
 		plt.close()
 	else:
@@ -191,7 +192,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 
 
 def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
-	show_axes=True, equal_axes=False, figsize=(12,8), path=CWD, filename=None):
+	show_axes=True, equal_axes=False, figsize=(12,8), path='CWD', filename=None):
 	"""
 	Plot eigenvalues vs. frequency.
 
@@ -243,6 +244,7 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 
 	# save or show plots
 	if filename:
+		if path == 'CWD': path = CWD
 		plt.savefig(os.path.join(path,filename), dpi=200)
 		plt.close()
 	else:
@@ -251,7 +253,7 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 
 
 def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
-	show_axes=True, equal_axes=False, figsize=(12,8), path=CWD, filename=None):
+	show_axes=True, equal_axes=False, figsize=(12,8), path='CWD', filename=None):
 	"""
 	Plot eigenvalues vs. period = 1 / freq.
 
@@ -307,6 +309,7 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 
 	# save or show plots
 	if filename:
+		if path == 'CWD': path = CWD
 		plt.savefig(os.path.join(path,filename), dpi=200)
 		plt.close()
 	else:
@@ -316,7 +319,7 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 
 def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
 	x1=None, x2=None, fftshift=False, imaginary=False, plot_max=False, coastlines='',
-	title='', xticks=None, yticks=None, figsize=(12,8), equal_axes=False, path=CWD,
+	title='', xticks=None, yticks=None, figsize=(12,8), equal_axes=False, path='CWD',
 	filename=None):
 	"""
 	Plot SPOD modes for 2D problems.
@@ -507,6 +510,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 
 			# save or show plots
 			if filename:
+				if path == 'CWD': path = CWD
 				filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=400)
 				plt.close(fig)
@@ -517,7 +521,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 
 def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 	modes_idx=[0], x1=None, x2=None, max_each_mode=False, fftshift=False,
-	title='', figsize=(12,8), equal_axes=False, path=CWD, filename=None):
+	title='', figsize=(12,8), equal_axes=False, path='CWD', filename=None):
 	"""
 	Plot the time evolution of SPOD mode slices for 2D problems.
 
@@ -706,6 +710,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 
 		# save or show plots
 		if filename:
+			if path == 'CWD': path = CWD
 			filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
 			plt.savefig(os.path.join(path,filename),dpi=400)
 			plt.close()
@@ -717,7 +722,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
 	x1=None, x2=None, x3=None, slice_dim=0, slice_id=None, fftshift=False, imaginary=False,
 	plot_max=False, coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
-	equal_axes=False, path=CWD, filename=None):
+	equal_axes=False, path='CWD', filename=None):
 	"""
 	Plot SPOD modes for 3D problems.
 
@@ -936,6 +941,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 
 			# save or show plots
 			if filename:
+				if path == 'CWD': path = CWD
 				filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=200)
 				plt.close(fig)
@@ -947,7 +953,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 
 
 def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=[0],
-	modes_idx=[0], fftshift=False, title='', figsize=(12,8), path=CWD, filename=None):
+	modes_idx=[0], fftshift=False, title='', figsize=(12,8), path='CWD', filename=None):
 	"""
 	Plot SPOD mode tracers for nD problems.
 
@@ -1049,6 +1055,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 
 			# save or show plots
 			if filename:
+				if path == 'CWD': path = CWD
 				filename = '{0}_coords{1}_var{2}_mode{3}{4}'.format(
 					basename, coords, var_id, mode_id, ext)
 				plt.savefig(os.path.join(path,filename), dpi=200)
@@ -1059,7 +1066,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 
 
 def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
-	title='', coastlines='', figsize=(12,8), path=CWD, filename=None):
+	title='', coastlines='', figsize=(12,8), path='CWD', filename=None):
 	"""
 	Plot 2D data.
 
@@ -1144,6 +1151,7 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 			# save or show plots
 			if filename:
+				if path == 'CWD': path = CWD
 				filename = '{0}_var{1}_time{2}{3}'.format(basename, var_id, time_id, ext)
 				plt.savefig(os.path.join(path,filename), dpi=200)
 				plt.close(fig)
@@ -1153,7 +1161,7 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 
 def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
-	vars_idx=[0], title='', figsize=(12,8), path=CWD, filename=None):
+	vars_idx=[0], title='', figsize=(12,8), path='CWD', filename=None):
 	"""
 	Plot data tracers for nD problems.
 
@@ -1220,6 +1228,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 
 			# save or show plots
 			if filename:
+				if path == 'CWD': path = CWD
 				filename = '{0}_coords{1}_var{2}{3}'.format(basename, coords, var_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=400)
 				plt.close(fig)
@@ -1234,9 +1243,8 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 # ---------------------------------------------------------------------------
 
 def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
-	x1=None, x2=None, coastlines='', figsize=(12,8), path=CWD, filename='data_video.mp4'):
-	"""
-	Make movie of 2D data.
+	x1=None, x2=None, coastlines='', figsize=(12,8), path='CWD', filename='data_video.mp4'):
+	"""Make movie of 2D data.
 
 	:param numpy.ndarray X: 2D data to be plotted. \
 		First dimension must be time. Last dimension must be variable.
@@ -1331,6 +1339,7 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 			fig, frames, interval=70, blit=False, repeat=False)
 		Writer = animation.writers['ffmpeg']
 		writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+		if path == 'CWD': path = CWD
 		filename = '{0}_var{1}{2}'.format(basename, i, ext)
 		a.save(os.path.join(path,filename), writer=writer)
 		plt.close('all')
