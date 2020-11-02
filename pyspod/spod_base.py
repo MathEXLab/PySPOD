@@ -407,10 +407,6 @@ class SPOD_base(object):
 		# select type of mean
 		if isinstance(mean_type,str):
 			if mean_type.lower() == 'longtime':
-
-				# previous way
-				# x_mean = np.mean(self.data, axis=0)
-
 				# split data into n_blocks chunks to maintain data consistency
 				split_block = self.nt // n_blocks
 				split_res = self.nt % n_blocks
@@ -419,15 +415,10 @@ class SPOD_base(object):
 					lb = iBlk * split_block
 					ub = lb + split_block
 					x_data = self._data_handler(
-						data=self.data,
-						t_0=lb,
-						t_end=ub,
-						variables=self.variables)
+						data=self.data, t_0=lb, t_end=ub, variables=self.variables)
 					x_sum += np.sum(x_data, axis=0)
 				x_data = self._data_handler(
-					data=self.data,
-					t_0=self.nt-split_res,
-					t_end=self.nt,
+					data=self.data, t_0=self.nt-split_res, t_end=self.nt,
 					variables=self.variables)
 				x_sum += np.sum(x_data, axis=0)
 				x_mean = x_sum / self.nt
