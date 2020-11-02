@@ -1,6 +1,6 @@
 <p align="center">
   <a href="http://mengaldo.github.io/PySPOD/" target="_blank" >
-    <img alt="Python Spectral Proper Orthogonal Decomposition" src="readme/logo_PySPOD.png" width="200" />
+    <img alt="Python Spectral Proper Orthogonal Decomposition" src="readme/PySPOD_logo.png" width="200" />
   </a>
 </p>
 <p align="center">
