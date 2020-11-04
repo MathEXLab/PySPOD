@@ -25,7 +25,6 @@ REQUIRED = [
     "cdsapi",
     "pyFFTW",
     "h5py",
-    "basemap",
 ]
 EXTRAS = {
     'docs': ['Sphinx==3.2.1', 'sphinx_rtd_theme'],
