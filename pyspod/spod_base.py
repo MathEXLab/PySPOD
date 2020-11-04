@@ -19,9 +19,8 @@ import pyspod.postprocessing as post
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
-
-
 BYTE_TO_GB = 9.3132257461548e-10
+
 
 
 class SPOD_base(object):
@@ -293,16 +292,6 @@ class SPOD_base(object):
 		'''
 		return self._modes
 
-	@property
-	def data(self):
-		'''
-		Get the original input data.
-
-		:return: the matrix that contains the original snapshots.
-		:rtype: numpy.ndarray
-		'''
-		return self._data
-
 	# ---------------------------------------------------------------------------
 
 
@@ -387,10 +376,10 @@ class SPOD_base(object):
 					lb = iBlk * split_block
 					ub = lb + split_block
 					x_data = self._data_handler(
-						data=self.data, t_0=lb, t_end=ub, variables=self.variables)
+						data=self._data, t_0=lb, t_end=ub, variables=self.variables)
 					x_sum += np.sum(x_data, axis=0)
 				x_data = self._data_handler(
-					data=self.data, t_0=self.nt-split_res, t_end=self.nt,
+					data=self._data, t_0=self.nt-split_res, t_end=self.nt,
 					variables=self.variables)
 				x_sum += np.sum(x_data, axis=0)
 				x_mean = x_sum / self.nt
@@ -486,6 +475,22 @@ class SPOD_base(object):
 		else:
 			raise TypeError('Modes must be a dictionary')
 		return m
+
+	def get_data(self, t_0, t_end):
+		'''
+		Get the original input data.
+
+		:return: the matrix that contains the original snapshots.
+		:rtype: numpy.ndarray
+		'''
+		if self._data_handler:
+			X = self._data_handler(
+				data=self._data, t_0=t_0, t_end=t_end, variables=self._variables)
+			if self._nv == 1 and (X.ndim != self._xdim + 2):
+				X = X[...,np.newaxis]
+		else:
+			X = self._data[t_0, t_end]
+		return X
 
 	# ---------------------------------------------------------------------------
 
@@ -728,10 +733,12 @@ class SPOD_base(object):
 		'''
 		See method implementation in the postprocessing module.
 		'''
+		max_time_idx = np.max(time_idx)
 		post.plot_2D_data(
-			self.data, time_idx=time_idx, vars_idx=vars_idx,
-			x1=x1, x2=x2, title=title, coastlines=coastlines,
-			figsize=figsize, path=self.save_dir, filename=filename)
+			X=self.get_data(t_0=0, t_end=max_time_idx+1),
+			time_idx=time_idx, vars_idx=vars_idx, x1=x1, x2=x2,
+			title=title, coastlines=coastlines, figsize=figsize,
+			path=self.save_dir, filename=filename)
 
 	def plot_data_tracers(self,
 						  coords_list,
@@ -745,7 +752,8 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_data_tracers(
-			self.data, coords_list=coords_list, x=x, time_limits=[0,self.nt],
+			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
+			coords_list=coords_list, x=x, time_limits=time_limits,
 			vars_idx=vars_idx, title=title, figsize=figsize, path=self.save_dir,
 			filename=filename)
 
@@ -768,6 +776,7 @@ class SPOD_base(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.generate_2D_data_video(
-			self.data, time_limits=[0,self.nt], vars_idx=vars_idx, sampling=sampling,
+			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
+			time_limits=[0,time_limits[-1]], vars_idx=vars_idx, sampling=sampling,
 			x1=x1, x2=x2, coastlines=coastlines, figsize=figsize, path=self.save_dir,
 			filename=filename)

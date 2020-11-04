@@ -19,7 +19,7 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 
-# Let's create some 2D syntetic data   
+# Let's create some 2D syntetic data
 # and store them into a variable called p
 variables = ['p']
 x1 = np.linspace(0,10,100)
@@ -27,10 +27,11 @@ x2 = np.linspace(0, 5, 50)
 xx1, xx2 = np.meshgrid(x1, x2)
 t = np.linspace(0, 200, 1000)
 s_component = np.sin(xx1 * xx2) + np.cos(xx1)**2 + np.sin(0.1*xx2)
+# s_component = s_component.T
 t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 p = np.empty((t_component.shape[0],)+s_component.shape)
-for i, t_c in enumerate(t_component): 
-	p[i] = s_component * t_c
+for i, t_c in enumerate(t_component):
+    p[i] = s_component * t_c
 
 # Let's take a look at the dimension of our data
 # to make sure it is compatible with pyspod
@@ -65,9 +66,9 @@ spod_ls = SPOD_low_storage(p, params=params, data_handler=False, variables=['p']
 spod_ls.fit()
 
 # Let's plot the data
-spod_ls.plot_data_tracers(coords_list=[(5,2.5)])
 spod_ls.plot_2D_data(time_idx=[1,2])
-spod_ls.generate_2D_data_video(sampling=10)
+spod_ls.plot_data_tracers(coords_list=[(5,2.5)], time_limits=[0,t.shape[0]])
+spod_ls.generate_2D_data_video(sampling=10, time_limits=[0,t.shape[0]])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
@@ -125,4 +126,3 @@ spod_st.plot_2D_modes_at_frequency(
     x2=x1,
     modes_idx=[0,1],
     vars_idx=[0])
-
