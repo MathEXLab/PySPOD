@@ -80,10 +80,7 @@ def get_modes_at_freq(modes, freq_idx):
 	Get the matrix containing the SPOD modes, stored by \
 	[frequencies, spatial dimensions data, no. of variables, no. of modes].
 
-	:param dict or numpy.ndarray modes: SPOD modes. \
-		If dict, it must contain the path to the files \
-		where the modes are stored. \
-		If numpy.ndarray, it must contain the modes.
+	:param dict: path to the files where the SPOD modes are stored.
 	:param int freq_idx: frequency id requested.
 
 	:return: the n_dims, n_vars, n_modes \
@@ -92,10 +89,12 @@ def get_modes_at_freq(modes, freq_idx):
 	"""
 	# load modes from files if saved in storage
 	if isinstance(modes, dict):
-		# m = np.zeros(self.xdim[:]+(modes.shape[-1],))
-		m = get_mode_from_file(modes[freq_idx])
+		filename = modes[freq_idx]
+		m = get_mode_from_file(filename)
 	else:
-		m = modes[freq_idx,...]
+		raise TypeError('modes must be a dict.')
+	# else:
+	# 	m = modes[freq_idx,...]
 	return m
 
 
@@ -354,9 +353,6 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
 	"""
-	# check dimensions
-	if modes.ndim != 5:
-		raise ValueError('Dimension of the modes is not 2D.')
 	# get idx variables
 	if isinstance(vars_idx, int):
 		vars_idx = [vars_idx]
@@ -391,6 +387,10 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 
 			# extract mode
 			mode = np.squeeze(modes[:,:,var_id,mode_id])
+
+			# check dimensions
+			if mode.ndim != 2:
+				raise ValueError('Dimension of the modes is not 2D.')
 
 			# perform fft shift if required
 			if fftshift:
@@ -557,9 +557,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
 	"""
-	# check dimensions
-	if modes.ndim != 5:
-		raise ValueError('Dimension of the modes is not 2D.')
+
 	# get idx variables
 	if isinstance(vars_idx, int):
 		vars_idx = [vars_idx]
@@ -623,6 +621,10 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 
 			# select mode and fft-shift it
 			mode = np.squeeze(modes[:,:,var_id,mode_id])
+
+			# check dimensions
+			if mode.ndim != 2:
+				raise ValueError('Dimension of the modes is not 2D.')
 
 			if fftshift:
 				mode = np.fft.fftshift(mode, axes=1)
@@ -761,9 +763,6 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 		Default is None.
 	"""
 
-	# check dimensions
-	if modes.ndim != 6:
-		raise ValueError('Dimension of the modes is not 3D.')
 	# get idx variables
 	if isinstance(vars_idx, int):
 		vars_idx = [vars_idx]
@@ -796,6 +795,10 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 
 			# extract mode
 			mode_3d = np.squeeze(modes[:,:,:,var_id,mode_id])
+
+			# check dimensions
+			if mode_3d.ndim != 3:
+				raise ValueError('Dimension of the modes is not 3D.')
 
 			if slice_dim == 0:
 				if slice_id is None:
@@ -1091,7 +1094,6 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 	"""
 	# check dimensions
-	print(X.shape)
 	if X.ndim != 4:
 		raise ValueError('Dimension of data is not 2D.')
 	# get idx variables

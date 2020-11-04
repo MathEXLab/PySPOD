@@ -156,9 +156,10 @@ class SPOD_low_ram(SPOD_base):
 			Psi = Psi.reshape(self._xshape+(self._nv,)+(n_modes_save,))
 			file_psi = os.path.join(self._save_dir_blocks,'modes1to{:04d}_freq{:04d}.npy'.format(n_modes_save,iFreq))
 			np.save(file_psi, Psi)
-
 			self._modes[iFreq] = file_psi
 			self._eigs[iFreq,:] = abs(L)
+
+			# get and save confidence interval if required
 			if self._conf_interval:
 				self._eigs_c[iFreq,:,0] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_lower
 				self._eigs_c[iFreq,:,1] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_upper

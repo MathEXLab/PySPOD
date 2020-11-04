@@ -143,8 +143,8 @@ class SPOD_low_storage(SPOD_base):
 		if 'n_modes_save' in self._params: n_modes_save = self._params['n_modes_save']
 		if n_modes_save > self._n_blocks:
 			n_modes_save = self._n_blocks
-		self._eigs = np.empty([self._n_freq,self._n_blocks], dtype='complex_')
-		self._modes = np.empty([self._n_freq,self._nx*self._nv,n_modes_save], dtype='complex_')
+		self._eigs = np.zeros([self._n_freq,self._n_blocks], dtype='complex_')
+		self._modes = dict()
 
 		# keep everything in RAM memory (default)
 		for iFreq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
@@ -167,22 +167,19 @@ class SPOD_low_storage(SPOD_base):
 			# compute spatial modes for given frequency
 			Psi = np.matmul(Q_hat_f, np.matmul(V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
 
-			# store modes and eigenvalues in RAMfor postprocessing
-			self._modes[iFreq,:,:] = Psi[:,0:n_modes_save]
-			self._eigs[iFreq,:] = abs(L)
-
 			# save modes in storage too in case post-processing crashes
 			Psi = Psi[:,0:n_modes_save]
 			Psi = Psi.reshape(self._xshape+(self._nv,)+(n_modes_save,))
 			file_psi = os.path.join(self._save_dir_blocks,
 				'modes1to{:04d}_freq{:04d}.npy'.format(n_modes_save,iFreq))
 			np.save(file_psi, Psi)
+			self._modes[iFreq] = file_psi
+			self._eigs[iFreq,:] = abs(L)
 
 			# get and save confidence interval if required
 			if self._conf_interval:
 				self._eigs_c[iFreq,:,0] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_lower
 				self._eigs_c[iFreq,:,1] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_upper
-		self._modes = np.reshape(self._modes,(self._n_freq,)+self._xshape+(self._nv,)+(n_modes_save,))
 		self._eigs_c_u = self._eigs_c[:,:,0]
 		self._eigs_c_l = self._eigs_c[:,:,1]
 		file = os.path.join(self._save_dir_blocks,'spod_energy')

@@ -77,14 +77,6 @@ class SPOD_base(object):
 		else:
 			self._isrealx = np.isreal(X[0]).all()
 
-		print(self._nx)
-		print(self._dim)
-		print(self._shape)
-		print(self._xdim)
-		print(self._xshape)
-
-		# sys.exit(2)
-
 		# get default spectral estimation parameters and options
 		self._window, self._weights, \
 		self._n_overlap, self._n_DFT, \
@@ -294,33 +286,12 @@ class SPOD_base(object):
 	@property
 	def modes(self):
 		'''
-		Get the matrix containing the SPOD modes, stored by
-			[frequencies, spatial dimensions original data, number of modes].
+		Get the dictionary containing the path to the SPOD modes saved.
 
-		:return: the [n_freq, n_dims, n_modes] matrix containing the SPOD modes.
-		:rtype: numpy.ndarray
+		:return: the dictionary containing the path to the SPOD modes saved.
+		:rtype: dict
 		'''
-		# load modes from files if saved in storage
-		if self._modes is None:
-			raise ValueError('Modes not found. Consider running fit()')
-		elif isinstance(self._modes, dict):
-			gb_memory_modes = self.n_freq * self.nx * self._n_modes_saved * \
-				sys.getsizeof(complex()) * BYTE_TO_GB
-			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
-			gb_sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
-			print('- RAM required for loading all modes ~', gb_memory_modes, 'GB')
-			print('- Available RAM memory               ~', gb_vram_avail  , 'GB')
-			if gb_memory_modes >= gb_vram_avail:
-				raise ValueError('Not enough RAM memory to load modes stored, '
-								 'for all frequencies.')
-			else:
-				m = np.zeros((self.n_freq,)+self.xshape+(self._nv,)+(self._n_modes_saved,),
-					dtype='complex_')
-				for freq in self._modes.keys():
-					m[int(freq),::] = post.get_mode_from_file(self._modes[freq])
-		else:
-			m = self._modes
-		return m
+		return self._modes
 
 	@property
 	def data(self):
@@ -497,7 +468,22 @@ class SPOD_base(object):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		m = post.get_modes_at_freq(self.modes, freq_idx=freq_idx)
+		if self._modes is None:
+			raise ValueError('Modes not found. Consider running fit()')
+		elif isinstance(self._modes, dict):
+			gb_memory_modes = freq_idx * self.nx * self._n_modes_saved * \
+				sys.getsizeof(complex()) * BYTE_TO_GB
+			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
+			gb_sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
+			print('- RAM required for loading all modes ~', gb_memory_modes, 'GB')
+			print('- Available RAM memory               ~', gb_vram_avail  , 'GB')
+			if gb_memory_modes >= gb_vram_avail:
+				raise ValueError('Not enough RAM memory to load modes stored, '
+								 'for all frequencies.')
+			else:
+				m = post.get_mode_from_file(self._modes[freq_idx])
+		else:
+			raise TypeError('Modes must be a dictionary')
 		return m
 
 	# ---------------------------------------------------------------------------
