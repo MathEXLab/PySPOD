@@ -7,3 +7,82 @@ install:
 # command to run tests
 script:
   - pytest -v
+
+
+sudo: true
+dist: trusty
+  
+language: python
+
+service: docker
+
+matrix:
+    include:
+        - os: linux
+          python: 3.8
+          env: TOXENV=py38
+        - os: osx
+          language: generic
+          env: TOXENV=py38
+          
+before_script:
+    - "export DISPLAY=:99.0"
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        sh -e /etc/init.d/xvfb start;
+        sleep 3;
+      fi
+
+before_install:
+    - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        brew update;
+        brew install python;
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+      fi
+    - python --version
+    - chmod +x miniconda.sh
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$HOME/miniconda/lib:$PATH"
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    # Useful for debugging any issues with conda
+    - conda info -a
+    - conda config --add channels conda-forge
+
+install:
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        conda create --yes -n test python=$TRAVIS_PYTHON_VERSION;
+      else
+        conda create --yes -n test python="3.8";
+      fi
+    - source activate test
+    - conda install --yes numpy scipy matplotlib pip 
+    - pip install setuptools
+    - pip install enum34
+    - pip install xarray
+    - pip install psutil
+    - pip install sphinx_rtd_theme
+    - pip install tqdm
+    - pip install Sphinx
+    - pip install ecmwf_api_client
+    - pip install cdsapi
+    - pip install pyFFTW
+    - pip install h5py
+    - pip install basemap
+    - pip install coveralls
+    - pip install coverage
+    - pip install future
+    - python setup.py install
+
+script:
+    - pytest -v
+
+after_success:
+    - coveralls
+
+branches:
+    only:
+        - main
