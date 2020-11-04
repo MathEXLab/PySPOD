@@ -367,11 +367,11 @@ def test_postprocessing():
 									filename='modes.png')
 	spod.plot_mode_tracers(freq_required=freq_found,
 							freq=spod.freq,
-						   	coords_list=[(10,10), (14,14)],
+							coords_list=[(10,10), (14,14)],
 							filename='tracers.png')
 	spod.plot_2D_data(time_idx=[0,10], filename='data.png')
 	spod.plot_data_tracers(coords_list=[(10,10), (14,14)],
-						 	filename='data_tracers.png')
+							filename='data_tracers.png')
 	# spod.generate_2D_data_video(filename='data_movie.mp4')
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 0.0004634362811441267 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 0.0004634362811441267 -tol))
@@ -405,6 +405,10 @@ if __name__ == "__main__":
 
 	# clean up results
 	try:
-		shutil.rmtree('results')
-	except:
-		pass
+	    shutil.rmtree('results')
+	except OSError as e:
+	    print("Error: %s : %s" % ('results', e.strerror))
+	try:
+	    shutil.rmtree('__pycache__')
+	except OSError as e:
+	    print("Error: %s : %s" % ('__pycache__', e.strerror))
