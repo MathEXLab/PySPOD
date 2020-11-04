@@ -41,6 +41,7 @@ MANIFEST
 
 # numpy data files
 *.npy
+*.npz
 
 # Installer logs
 pip-log.txt
