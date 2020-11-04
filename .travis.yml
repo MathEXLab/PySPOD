@@ -18,7 +18,6 @@ install:
     - pip3 install cdsapi
     - pip3 install pyFFTW
     - pip3 install h5py
-    - pip3 install basemap
     - pip3 install coveralls
     - pip3 install coverage
     - pip3 install future
