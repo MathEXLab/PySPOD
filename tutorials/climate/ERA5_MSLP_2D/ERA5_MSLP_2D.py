@@ -66,19 +66,15 @@ params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block ov
 params['mean'        ] = 'blockwise' 						# type of mean to subtract to the data
 params['normalize'   ] = True        						# normalization of weights by data variance
 params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
-params['weights'] = weights.geo_weights_trapz_2D(\
-    lat=x2,
-    lon=x1,
-    R=1,
-    n_vars=params['nv']) # weights
 
 # optional parameters
+params['weights'] = weights.geo_weights_trapz_2D(\
+    lat=x2, lon=x1, R=1, n_vars=params['nv']) 	# weights
 params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
 params['n_modes_save'] = 3      # modes to be saved
 params['normvar'     ] = False  # normalize data by data variance
 params['conf_level'  ] = 0.95   # calculate confidence level
 params['savefft'     ] = True   # save FFT blocks to reuse them in the future (saves time)
-
 
 # Perform SPOD analysis using low storage module
 SPOD_analysis = SPOD_low_ram(X=ds, params=params, data_handler=read_data, variables=variables)
@@ -94,9 +90,9 @@ spod.plot_eigs()
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
 spod.plot_2D_modes_at_frequency(
-	freq_required=freq_found, 
-    freq=freq, 
-    x1=x1, 
-    x2=x2, 
-    modes_idx=[0,1], 
+	freq_required=freq_found,
+    freq=freq,
+    x1=x1,
+    x2=x2,
+    modes_idx=[0,1],
     vars_idx=[0])

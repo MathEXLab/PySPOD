@@ -329,6 +329,7 @@ class SPOD_base(object):
 			else:
 				raise ValueError(window, 'not recognized.')
 		elif not isinstance(window, str):
+			if isinstance(window, int): window = np.array(window)
 			if window.size == 1:
 				n_DFT = window
 				window = SPOD_base._hamming_window(window)
