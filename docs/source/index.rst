@@ -16,6 +16,8 @@ Welcome to PySPOD's documentation!
 
 * **Tutorials** can be found at `PySPOD-Tutorials <https://github.com/mengaldo/PySPOD/tree/main/tutorials>`_
 
+* Please, refer to 
+
 * The package uses `Travis-CI <https://travis-ci.com>`_ for **continuous integration**.
 
 

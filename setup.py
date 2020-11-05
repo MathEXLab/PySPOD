@@ -17,6 +17,7 @@ REQUIRED = [
     "scipy",
     "matplotlib",
     "xarray",
+    "netcdf4",
     "psutil",
     "sphinx_rtd_theme",
     "tqdm",
