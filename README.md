@@ -14,8 +14,8 @@
   <a href="https://badge.fury.io/py/pydmd">
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
   </a>
-  <a href="https://travis-ci.org/mengaldo/PySPOD" target="_blank">
-    <img alt="Build Status" src="https://travis-ci.org/mengaldo/PySPOD.svg">
+  <a href="https://travis-ci.com/mengaldo/PySPOD" target="_blank">
+    <img alt="Build Status" src="https://travis-ci.com/mengaldo/PySPOD.svg">
   </a>
 <!--    <a href="https://coveralls.io/github/mathLab/PySPOD" target="_blank">
     <img alt="Coverage Status" src="https://coveralls.io/repos/github/mathLab/PySPOD/badge.svg">
