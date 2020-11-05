@@ -1,52 +1,120 @@
 language: python
+group: travis_latest
+
+git:
+  depth: 25
+  quiet: true
 
 python:
-  - "3.8"
+    - 3.7
+    - 3.8
 
-os:
-  - linux
-  - osx
-
-sudo: required
-dist: xenial
-
-before_install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:mc3man/trusty-media; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -y ffmpeg; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ffmpeg; fi
-  - ffmpeg -hwaccels
-
-install:
-    - pip3 install numpy 
-    - pip3 install scipy 
-    - pip3 install matplotlib 
-    - pip3 install setuptools
-    - pip3 install enum34
-    - pip3 install xarray
-    - pip3 install netcdf4
-    - pip3 install psutil
-    - pip3 install sphinx_rtd_theme
-    - pip3 install tqdm
-    - pip3 install Sphinx
-    - pip3 install ecmwf_api_client
-    - pip3 install cdsapi
-    - pip3 install pyFFTW
-    - pip3 install h5py
-    - pip3 install coveralls
-    - pip3 install coverage
-    - pip3 install future
-    - pip3 install pytest
-    - pip3 install ffmpeg
-    - python setup.py install
-
-script:
-    - pytest -v
-
-after_success:
-    - coveralls
+matrix:
+  include:
+  - os: linux
+    name: Linux
+    python: 3.9
+    install: 
+        - pip3 install numpy 
+        - pip3 install scipy 
+        - pip3 install matplotlib 
+        - pip3 install setuptools
+        - pip3 install enum34
+        - pip3 install xarray
+        - pip3 install netcdf4
+        - pip3 install psutil
+        - pip3 install sphinx_rtd_theme
+        - pip3 install tqdm
+        - pip3 install Sphinx
+        - pip3 install ecmwf_api_client
+        - pip3 install cdsapi
+        - pip3 install pyFFTW
+        - pip3 install h5py
+        - pip3 install coveralls
+        - pip3 install coverage
+        - pip3 install future
+        - pip3 install pytest
+        - pip3 install ffmpeg
+        - python setup.py install
+    script:
+        - mypy
+        - pytest -v
+    after_success:
+        - coveralls
+  - os: osx
+    name: OSX
+    language: minimal
+    install: 
+        - pip3 install numpy 
+        - pip3 install scipy 
+        - pip3 install matplotlib 
+        - pip3 install setuptools
+        - pip3 install enum34
+        - pip3 install xarray
+        - pip3 install netcdf4
+        - pip3 install psutil
+        - pip3 install sphinx_rtd_theme
+        - pip3 install tqdm
+        - pip3 install Sphinx
+        - pip3 install ecmwf_api_client
+        - pip3 install cdsapi
+        - pip3 install pyFFTW
+        - pip3 install h5py
+        - pip3 install coveralls
+        - pip3 install coverage
+        - pip3 install future
+        - pip3 install pytest
+        - pip3 install ffmpeg
+        - python setup.py install
+    script:
+        - pytest -v
+    after_success:
+        - coveralls
+  - os: windows
+    name: Windows
+    language: minimal
+    before_install:
+    - choco install python3
+    - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+    install:
+        - pip3 install numpy 
+        - pip3 install scipy 
+        - pip3 install matplotlib 
+        - pip3 install setuptools
+        - pip3 install enum34
+        - pip3 install xarray
+        - pip3 install netcdf4
+        - pip3 install psutil
+        - pip3 install sphinx_rtd_theme
+        - pip3 install tqdm
+        - pip3 install Sphinx
+        - pip3 install ecmwf_api_client
+        - pip3 install cdsapi
+        - pip3 install pyFFTW
+        - pip3 install h5py
+        - pip3 install coveralls
+        - pip3 install coverage
+        - pip3 install future
+        - pip3 install pytest
+        - pip3 install ffmpeg
+        - python setup.py install
+    script:
+        - pytest -v
+    after_success:
+        - coveralls
 
 branches:
     only:
         - main
+
+
+
+
+
+
+
+
+
+
+
+
