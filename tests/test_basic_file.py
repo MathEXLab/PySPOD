@@ -86,7 +86,7 @@ params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
 params['n_modes_save'] = 3      # modes to be saved
 params['normvar'     ] = False  # normalize data by data variance
 params['conf_level'  ] = 0.95   # calculate confidence level
-params['savefft'     ] = True   # save FFT blocks to reuse them in the future (saves time)
+params['savefft'     ] = False   # save FFT blocks to reuse them in the future (saves time)
 
 
 
@@ -109,11 +109,11 @@ def test_basic_file_spod_low_storage():
 		bashCmd = ["ffmpeg", " --version"]
 		sbp = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
 		spod_ls.generate_2D_data_video(
-			sampling=20, 
-			time_limits=[0,t.shape[0]], 
+			sampling=20,
+			time_limits=[0,t.shape[0]],
 			filename='video.mp4')
 	except:
-		print('[test_basic_file_spod_low_storage]: ', 
+		print('[test_basic_file_spod_low_storage]: ',
 			  'Skipping video making as `ffmpeg` not present.')
 
 
@@ -174,20 +174,20 @@ def test_basic_file_spod_low_ram():
 		vars_idx=[0],
 		filename='tmp.png')
 	tol = 1e-10
-	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010068515759308167 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010068515759308167 -tol))
-	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012180208154393609 +tol) & \
-		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012180208154393609 -tol))
-	assert((np.abs(modes_at_freq[5,10,0,1]) < 5.117415619566953e-09+tol) & \
-		   (np.abs(modes_at_freq[5,10,0,1]) > 5.117415619566953e-09-tol))
-	assert((np.abs(modes_at_freq[5,10,0,2]) < 6.929706983609628e-09+tol) & \
-		   (np.abs(modes_at_freq[5,10,0,2]) > 6.929706983609628e-09-tol))
-	assert((np.max(np.abs(modes_at_freq))   < 0.029919118328162627 +tol) & \
-		   (np.max(np.abs(modes_at_freq))   > 0.029919118328162627 -tol))
+	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010068515759308162  +tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010068515759308162  -tol))
+	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.01218020815439358   +tol) & \
+		   (np.abs(modes_at_freq[0,0,0,0])  > 0.01218020815439358   -tol))
+	assert((np.abs(modes_at_freq[5,10,0,1]) < 2.7677058004877376e-09+tol) & \
+		   (np.abs(modes_at_freq[5,10,0,1]) > 2.7677058004877376e-09-tol))
+	assert((np.abs(modes_at_freq[5,10,0,2]) < 4.204229641776651e-09 +tol) & \
+		   (np.abs(modes_at_freq[5,10,0,2]) > 4.204229641776651e-09 -tol))
+	assert((np.max(np.abs(modes_at_freq))   < 0.02991911832816271   +tol) & \
+		   (np.max(np.abs(modes_at_freq))   > 0.02991911832816271   -tol))
 
 
 
-@pytest.mark.order3 
+@pytest.mark.order3
 def test_basic_file_spod_streaming():
 	# Finally, we can try the streaming algorithm
 	spod_st = SPOD_streaming(
@@ -233,10 +233,6 @@ def test_basic_file_spod_streaming():
 	    os.remove(os.path.join(CWD,'data.nc'))
 	except OSError as e:
 	    print("Error: %s : %s" % (os.path.join(CWD,'data.nc'), e.strerror))
-	try:
-	    shutil.rmtree(os.path.join(CFD,'__pycache__'))
-	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
 
 
 
@@ -244,8 +240,3 @@ if __name__ == "__main__":
 	test_basic_file_spod_low_storage()
 	test_basic_file_spod_low_ram    ()
 	test_basic_file_spod_streaming  ()
-
-
-
-
-
