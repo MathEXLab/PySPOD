@@ -4,9 +4,9 @@ python:
   - "3.8"
 
 install:
-    - pip3 install numpy 
-    - pip3 install scipy 
-    - pip3 install matplotlib 
+    - pip3 install numpy
+    - pip3 install scipy
+    - pip3 install matplotlib
     - pip3 install setuptools
     - pip3 install enum34
     - pip3 install xarray

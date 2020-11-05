@@ -12,6 +12,7 @@
 import os
 import sys
 import shutil
+import subprocess
 import numpy as np
 import xarray as xr
 from pathlib import Path
@@ -36,8 +37,6 @@ t = np.array(ds['time'])
 x1 = np.array(ds['x'])
 x2 = np.array(ds['z'])
 X = np.array(ds[variables[0]]).T
-
-print(X.shape)
 
 # parameters
 params = dict()
@@ -75,11 +74,6 @@ def test_spod_low_storage_blockwise_mean():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008816145245031309+tol) & \
@@ -110,11 +104,6 @@ def test_spod_low_storage_longtime_mean():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.199535402742477e-05+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.199535402742477e-05-tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0007999776319885041+tol) & \
@@ -175,11 +164,6 @@ def test_spod_low_ram_longtime_mean():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.199535402742477e-05+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.199535402742477e-05-tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0007999776319885041+tol) & \
@@ -211,11 +195,6 @@ def test_spod_streaming():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.43160167126444e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.43160167126444e-05 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008857222375656467+tol) & \
@@ -246,11 +225,6 @@ def test_spod_low_storage_savefft():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008816145245031309+tol) & \
@@ -271,11 +245,6 @@ def test_spod_low_storage_savefft():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008816145245031309+tol) & \
@@ -287,8 +256,11 @@ def test_spod_low_storage_savefft():
 	assert((np.max(np.abs(modes_at_freq))    < 0.28627415402845796  +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
 
-	# Clean
-	shutil.rmtree('results')
+	# clean up results
+	try:
+	    shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 
@@ -311,11 +283,6 @@ def test_spod_low_ram_savefft():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008816145245031309+tol) & \
@@ -336,11 +303,6 @@ def test_spod_low_ram_savefft():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	print(np.abs(modes_at_freq[0,1,0,0]))
-	print(np.abs(modes_at_freq[10,3,0,2]))
-	print(np.abs(modes_at_freq[14,15,0,1]))
-	print(np.min(np.abs(modes_at_freq)))
-	print(np.max(np.abs(modes_at_freq)))
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008816145245031309+tol) & \
@@ -352,8 +314,12 @@ def test_spod_low_ram_savefft():
 	assert((np.max(np.abs(modes_at_freq))    < 0.28627415402845796  +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
 
-	# Clean
-	shutil.rmtree('results')
+	# clean up results
+	try:
+	    shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+
 
 
 def test_postprocessing():
@@ -389,7 +355,17 @@ def test_postprocessing():
 	spod.plot_2D_data(time_idx=[0,10], filename='data.png')
 	spod.plot_data_tracers(coords_list=[(10,10), (14,14)],
 							filename='data_tracers.png')
-	spod.generate_2D_data_video(filename='data_movie.mp4')
+	try:
+		bashCmd = ["ffmpeg", " --version"]
+		sbp = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
+		spod.generate_2D_data_video(
+			sampling=5,
+			time_limits=[0,t.shape[0]],
+			filename='data_movie.mp4')
+	except:
+		print('[test_postprocessing]: ',
+			  'Skipping video making as `ffmpeg` not present.')
+
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008816145245031309+tol) & \
@@ -401,10 +377,15 @@ def test_postprocessing():
 	assert((np.max(np.abs(modes_at_freq))    < 0.28627415402845796  +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
 
-	# Clean
-	shutil.rmtree('results')
-
-
+	# clean up results
+	try:
+	    shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+	try:
+	    shutil.rmtree(os.path.join(CFD,'__pycache__'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
 
 
 
@@ -418,13 +399,3 @@ if __name__ == "__main__":
 	test_spod_low_storage_savefft       ()
 	test_spod_low_ram_savefft           ()
 	test_postprocessing                 ()
-
-	# clean up results
-	try:
-	    shutil.rmtree('results')
-	except OSError as e:
-	    print("Error: %s : %s" % ('results', e.strerror))
-	try:
-	    shutil.rmtree('__pycache__')
-	except OSError as e:
-	    print("Error: %s : %s" % ('__pycache__', e.strerror))

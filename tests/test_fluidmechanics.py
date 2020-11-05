@@ -280,8 +280,11 @@ def test_spod_low_storage_savefft():
 	assert((np.max(np.abs(modes_at_freq))    < 0.10797565399041009   +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.10797565399041009   -tol))
 
-	# Clean
-	shutil.rmtree('results')
+	# clean up results
+	try:
+	    shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 
@@ -335,8 +338,12 @@ def test_spod_low_ram_savefft():
 	assert((np.max(np.abs(modes_at_freq))    < 0.10797565399041009   +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.10797565399041009   -tol))
 
-	# Clean
-	shutil.rmtree('results')
+	# clean up results
+	try:
+	    shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+
 
 
 def test_postprocessing():
@@ -384,8 +391,15 @@ def test_postprocessing():
 	assert((np.max(np.abs(modes_at_freq))    < 0.10797565399041009   +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.10797565399041009   -tol))
 
-	# Clean
-	shutil.rmtree('results')
+	# clean up results
+	try:
+	    shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+	try:
+	    shutil.rmtree(os.path.join(CFD,'__pycache__'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
 
 
 
@@ -402,13 +416,3 @@ if __name__ == "__main__":
 	test_spod_low_storage_savefft       ()
 	test_spod_low_ram_savefft           ()
 	test_postprocessing                 ()
-
-	# clean up results
-	try:
-	    shutil.rmtree('results')
-	except OSError as e:
-	    print("Error: %s : %s" % ('results', e.strerror))
-	try:
-	    shutil.rmtree('__pycache__')
-	except OSError as e:
-	    print("Error: %s : %s" % ('__pycache__', e.strerror))

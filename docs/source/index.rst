@@ -12,11 +12,9 @@ Welcome to PySPOD's documentation!
 
 
 
-* The **GitHub repository** of this package can be found at `PySPOD <https://github.com/mengaldo/PySPOD>`_
+* The **GitHub repository** of this package can be found at `PySPOD <https://github.com/mengaldo/PySPOD>`_ along installation instructions, and how to get started.
 
 * **Tutorials** can be found at `PySPOD-Tutorials <https://github.com/mengaldo/PySPOD/tree/main/tutorials>`_
-
-* Please, refer to 
 
 * The package uses `Travis-CI <https://travis-ci.com>`_ for **continuous integration**.
 

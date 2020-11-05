@@ -1,10 +1,10 @@
 import os
 import sys
 import shutil
-import warnings
+import pytest
+import subprocess
 import xarray as xr
 import numpy  as np
-from pathlib import Path
 
 # Import library specific modules
 sys.path.append("../")
@@ -62,6 +62,8 @@ params['savefft'     ] = True   # save FFT blocks to reuse them in the future (s
 
 
 
+
+@pytest.mark.order1
 def test_basic_spod_low_storage():
 	# Initialize libraries for the low_storage algorithm
 	spod_ls = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])
@@ -70,7 +72,17 @@ def test_basic_spod_low_storage():
 	# Let's plot the data
 	spod_ls.plot_2D_data(time_idx=[1,2], filename='tmp.png')
 	spod_ls.plot_data_tracers(coords_list=[(5,2.5)], time_limits=[0,t.shape[0]], filename='tmp.png')
-	spod_ls.generate_2D_data_video(sampling=10, time_limits=[0,t.shape[0]], filename='video.mp4')
+
+	try:
+		bashCmd = ["ffmpeg", " --version"]
+		sbp = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
+		spod_ls.generate_2D_data_video(
+			sampling=10, 
+			time_limits=[0,t.shape[0]], 
+			filename='video.mp4')
+	except:
+		print('[test_basic_file_spod_low_storage]: ', 
+			  'Skipping video making as `ffmpeg` not present.')
 	
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)
@@ -91,6 +103,7 @@ def test_basic_spod_low_storage():
 	
    
 
+@pytest.mark.order2 
 def test_basic_spod_low_ram(): 
 	# Let's try the low_ram algorithm
 	spod_ram = SPOD_low_ram(p, params=params, data_handler=False, variables=['p'])
@@ -126,6 +139,7 @@ def test_basic_spod_low_ram():
 
 
 
+@pytest.mark.order3
 def test_basic_spod_streaming():
 	# Finally, we can try the streaming algorithm
 	spod_st = SPOD_streaming(p, params=params, data_handler=False, variables=['p'])
@@ -159,6 +173,17 @@ def test_basic_spod_streaming():
 	assert((np.max(np.abs(modes_at_freq))   < 0.029917334301665384 +tol) & \
 		   (np.max(np.abs(modes_at_freq))   > 0.029917334301665384 -tol))
 
+	# clean up results
+	try:
+	    shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+	try:
+	    shutil.rmtree(os.path.join(CFD,'__pycache__'))
+	except OSError as e:
+	    print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
+
+
 
 
 if __name__ == "__main__":
@@ -166,12 +191,4 @@ if __name__ == "__main__":
 	test_basic_spod_low_ram    ()
 	test_basic_spod_streaming  ()
 
-	# clean up results
-	try:
-	    shutil.rmtree('results')
-	except OSError as e:
-	    print("Error: %s : %s" % ('results', e.strerror))
-	try:
-	    shutil.rmtree('__pycache__')
-	except OSError as e:
-	    print("Error: %s : %s" % ('__pycache__', e.strerror))
+
