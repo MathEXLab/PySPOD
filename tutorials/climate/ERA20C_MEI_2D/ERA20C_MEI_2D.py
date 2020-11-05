@@ -78,7 +78,7 @@ SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variabl
 spod = SPOD_analysis.fit()
 
 # Show results
-T_approx = 876 # approximate period (in days)
+T_approx = 900 # approximate period (in days)
 freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 
