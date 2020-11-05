@@ -10,11 +10,21 @@ functionalities of the library and practical application areas.
 
 ### Basic
 
-#### [Tutorial Basic 1](Basic/load_data.ipynb)
+#### [Tutorial: Basic 1](Basic/methods_comparison/methods_comparison.ipynb)
 
-#### [Tutorial Basic 2](Basic/different_approaches.ipynb)
+In this tutorial we give an introduction to the main functionalities 
+of the package, by definining a 2D dataset and analyzing it via the 
+three SPOD algorithms implemented. In this case, we load the entire 
+data in RAM and pass it to the constructor of the SPOD class.
 
-#### [Tutorial Basic 3](Basic/post_processing.ipynb)
+#### [Tutorial: Basic 2](Basic/methods_comparison_file/methods_comparison_file.ipynb)
+
+In this tutorial we give an introduction to the main functionalities 
+of the package, by definining a 2D dataset and analyzing it via the 
+three SPOD algorithms implemented. In contrast to [Tutorial: Basic 1](#tutorial-basic-1), 
+in this tutorial we highlight how one can define a function to read 
+data and pass it to the constructor of the SPOD class, thereby allowing 
+for a reduced use of RAM (for large datasets).
 
 
 
@@ -51,15 +61,19 @@ high-resolution mean-sea level pressure data from the ERA5 dataset.
 
 ### Fluidmechanics 
 
-#### [Tutorial: 2D Jet](fluidmechanics/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
+#### [Tutorial: 2D Jet](fluidmechanics/jet_2D/jet_2D.ipynb)
 
+This tutorial shows a simple 2D application to a turbulent jet, where the variable 
+studied is pressure.
 
 
 
 ### Earthquakes 
 
-#### [Tutorial: 2D Slip Potency](earthquakes/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
+#### [Tutorial: 2D Slip Potency](earthquakes/slip_potency_2D/slip_potency_2D.ipynb)
 
+This tutorial shows a simple 2D application seismic data, where the variable studied 
+is the slip potency.
 
 
 
