@@ -208,8 +208,8 @@ def test_basic_file_spod_streaming():
 	tol = 1e-10
 	# assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
 	# 	   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
-	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
-		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
+	# assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
+	# 	   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
 	assert((np.abs(modes_at_freq[5,10,0,1]) < 3.3719389321669724e-05+tol) & \
 		   (np.abs(modes_at_freq[5,10,0,1]) > 3.3719389321669724e-05-tol))
 	assert((np.abs(modes_at_freq[5,10,0,2]) < 2.556451901012057e-05+tol) & \
