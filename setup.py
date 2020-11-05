@@ -26,6 +26,7 @@ REQUIRED = [
     "cdsapi",
     "pyFFTW",
     "h5py",
+    "ffmpeg",
     "pytest",
 ]
 EXTRAS = {
