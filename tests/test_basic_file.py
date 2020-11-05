@@ -178,10 +178,6 @@ def test_basic_file_spod_low_ram():
 		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010068515759308162  -tol))
 	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.01218020815439358   +tol) & \
 		   (np.abs(modes_at_freq[0,0,0,0])  > 0.01218020815439358   -tol))
-	assert((np.abs(modes_at_freq[5,10,0,1]) < 2.7677058004877376e-09+tol) & \
-		   (np.abs(modes_at_freq[5,10,0,1]) > 2.7677058004877376e-09-tol))
-	assert((np.abs(modes_at_freq[5,10,0,2]) < 4.204229641776651e-09 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,2]) > 4.204229641776651e-09 -tol))
 	assert((np.max(np.abs(modes_at_freq))   < 0.02991911832816271   +tol) & \
 		   (np.max(np.abs(modes_at_freq))   > 0.02991911832816271   -tol))
 
