@@ -44,7 +44,7 @@
 
 
 ## Description
-**PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (picard-&-delville-2000), and goes back to the original work by (lumley-1970). The implementation proposed here follows the original contributions by (towne-et-al.-2018), (schmidt-&-towne-2019).
+**PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (picard-&-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [Towne et al. 2018](#towne-et-al.-2018), [Schmidt & Towne 2019](#schmidt-&-towne-2019).
 
 **Spectral Proper Orthgonal Decomposition (SPOD)** has been extensively used in the past few years to identify spatio-temporal coherent pattern in a variety of datasets, mainly in the fluidmechanics and climate communities. In fluidmechanics it was applied to jets (Schmidt et al. 2017), wakes (Colonius & Dabiri 2017), and boundary layers (Tutkun & George 2017), among others, while in weather and climate it was applied to ECMWF reanalysis datasets under the name Spectral Empirical Orthogonal Function, or SEOF, (Schmidt et al. 2019).
 
@@ -204,43 +204,43 @@ IF you want to run tests locally, you can do so by:
 
 
 ## References
-###### (Lumley 1970) 
+#### (Lumley 1970) 
 *Stochastic Tools in Turbulence.*
 [[DOI](https://www.elsevier.com/books/stochastic-tools-in-turbulence/lumey/978-0-12-395772-6?aaref=https%3A%2F%2Fwww.google.com)]
 
-###### (Picard & Delville 2000) 
+#### (Picard & Delville 2000) 
 *Pressure velocity coupling in a subsonic round jet.*
 [[DOI](https://www.sciencedirect.com/science/article/abs/pii/S0142727X00000217)]
 
-###### (Tutkun & George 2017) 
+#### Tutkun & George 2017
 *Lumley decomposition of turbulent boundary layer at high Reynolds numbers.*
 [[DOI](https://aip.scitation.org/doi/10.1063/1.4974746)]
 
-###### (Schmidt et al. 2017) 
+#### Schmidt et al. 2017 
 *Wavepackets and trapped acoustic modes in a turbulent jet: coherent structure eduction and global stability.*
 [[DOI](https://doi.org/10.1017/jfm.2017.407)]
 
-###### (Araya et al. 2017) 
+#### Araya et al. 2017
 *Transition to bluff-body dynamics in the wake of vertical-axis wind turbines.*
 [[DOI]( https://doi.org/10.1017/jfm.2016.862)]
 
-###### (Taira et al. 2017) 
+#### Taira et al. 2017 
 *Modal analysis of fluid flows: An overview.*
 [[DOI](https://doi.org/10.2514/1.J056060)]
 
-###### (Towne et al. 2018) 
+#### Towne et al. 2018 
 *Spectral proper orthogonal decomposition and its relationship to dynamic mode decomposition and resolvent analysis.*
 [[DOI]( https://doi.org/10.1017/jfm.2018.283)]
 
-###### (Schmidt & Towne 2019) 
+#### Schmidt & Towne 2019
 *An efficient streaming algorithm for spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.1016/j.cpc.2018.11.009)]
 
-###### (Schmidt et al. 2019)
+#### Schmidt et al. 2019
 *Spectral empirical orthogonal function analysis of weather and climate data.*
 [[DOI](https://doi.org/10.1175/MWR-D-18-0337.1)]
 
-###### (Schmidt & Colonius 2020) 
+#### Schmidt & Colonius 2020
 *Guide to spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.2514/1.J058809)]
 
