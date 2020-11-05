@@ -9,7 +9,7 @@ NAME = "pyspod"
 URL = 'https://github.com/mengaldo/PySPOD'
 AUTHOR = "Gianmarco Mengaldo"
 EMAIL = "gianmarco.mengaldo@gmail.com"
-VERSION = "0.1"
+VERSION = "0.2"
 KEYWORDS='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
     "numpy",
