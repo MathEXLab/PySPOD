@@ -1,69 +1,36 @@
 language: python
-group: travis_latest
 
-matrix:
-  include:
-  # - os: linux
-  #   name: Linux
-  #   python: 3.9
-  #   before_install:
-  #       - sudo apt-get -qq update
-  #       - sudo apt-get install libhdf5-serial-dev
-  - os: osx
-    name: OSX
-    python: 3.7
-    language: minimal
-    before_install: brew install ffmpeg
-    install: python setup.py install
-  - os: osx
-    name: OSX-PIPY
-    python: 3.7
-    language: minimal
-    before_install: brew install ffmpeg
-    install: pip install pyspod
-  - os: osx
-    name: OSX-SETUP
-    python: 3.7
-    language: minimal
-    before_install: brew install ffmpeg
-    install: 
-        - pip3 install numpy 
-        - pip3 install scipy 
-        - pip3 install matplotlib 
-        - pip3 install setuptools
-        - pip3 install enum34
-        - pip3 install xarray
-        - pip3 install netcdf4
-        - pip3 install psutil
-        - pip3 install sphinx_rtd_theme
-        - pip3 install tqdm
-        - pip3 install Sphinx
-        - pip3 install ecmwf_api_client
-        - pip3 install cdsapi
-        - pip3 install pyFFTW
-        - pip3 install h5py
-        - pip3 install coveralls
-        - pip3 install coverage
-        - pip3 install future
-        - pip3 install pytest
-        - pip3 install ffmpeg
+python:
+  - "3.8"
+
+install:
+    - pip3 install numpy 
+    - pip3 install scipy 
+    - pip3 install matplotlib 
+    - pip3 install setuptools
+    - pip3 install enum34
+    - pip3 install xarray
+    - pip3 install netcdf4
+    - pip3 install psutil
+    - pip3 install sphinx_rtd_theme
+    - pip3 install tqdm
+    - pip3 install Sphinx
+    - pip3 install ecmwf_api_client
+    - pip3 install cdsapi
+    - pip3 install pyFFTW
+    - pip3 install h5py
+    - pip3 install coveralls
+    - pip3 install coverage
+    - pip3 install future
+    - pip3 install pytest
+    - python setup.py install
 
 script:
     - pytest -v
+
 after_success:
     - coveralls
+
 branches:
     only:
         - main
-
-
-
-
-
-
-
-
-
-
-
-

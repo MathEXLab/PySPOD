@@ -1,16 +1,15 @@
 
 import os
 import sys
-import pyspod
 from setuptools import setup
 from setuptools import Command
 
 # GLOBAL VARIABLES
-NAME = pyspod.__title__
+NAME = "PySPOD"
 URL = 'https://github.com/mengaldo/PySPOD'
-EMAIL = pyspod.__email__
-AUTHOR = pyspod.__author__
-VERSION = pyspod.__version__
+EMAIL = "gianmarco.mengaldo@gmail.com"
+AUTHOR = "Gianmarco Mengaldo"
+VERSION = "0.1"
 KEYWORDS='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
     "numpy",
@@ -55,7 +54,6 @@ class UploadCommand(Command):
 
     @staticmethod
     def status(s):
-        """Prints things in bold."""
         print('\033[1m{0}\033[0m'.format(s))
 
     def initialize_options(self):
