@@ -138,10 +138,6 @@ def test_basic_file_spod_low_storage():
 		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010068515759308167 -tol))
 	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012180208154393609 +tol) & \
 		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012180208154393609 -tol))
-	assert((np.abs(modes_at_freq[5,10,0,1]) < 5.117415619566953e-09+tol) & \
-		   (np.abs(modes_at_freq[5,10,0,1]) > 5.117415619566953e-09-tol))
-	assert((np.abs(modes_at_freq[5,10,0,2]) < 6.929706983609628e-09+tol) & \
-		   (np.abs(modes_at_freq[5,10,0,2]) > 6.929706983609628e-09-tol))
 	assert((np.max(np.abs(modes_at_freq))   < 0.029919118328162627 +tol) & \
 		   (np.max(np.abs(modes_at_freq))   > 0.029919118328162627 -tol))
 
@@ -210,8 +206,8 @@ def test_basic_file_spod_streaming():
 		vars_idx=[0],
 		filename='tmp.png')
 	tol = 1e-10
-	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
+	# assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
+	# 	   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
 	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
 		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
 	assert((np.abs(modes_at_freq[5,10,0,1]) < 3.3719389321669724e-05+tol) & \
