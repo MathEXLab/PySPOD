@@ -100,7 +100,8 @@ To uninstall the package you have to rerun the installation and record the insta
 You can browse the [**Tutorials**](tutorials/README.md) to explore the capabilities 
 and various functionalities of the library. However, if you want to get started 
 quickly, after you installed the library you can simply copy the following script 
-into a file `your_script.py`, and run it via `> python3 your_script.py`.
+into a file `your_script.py`, and run it with Python 3 (e.g. from a terminal window, 
+the run command would look like `> python3 your_script.py`).
 
 ```python
 import xarray as xr
