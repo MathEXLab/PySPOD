@@ -95,6 +95,18 @@ To uninstall the package you have to rerun the installation and record the insta
 ```
 
 
+## Get started with a simple analysis
+**PySPOD** comes with an extensive suite of [**Tutorials**](tutorials/README.md). 
+You can browse the [**Tutorials**](tutorials/README.md) to explore the capabilities 
+and various functionalities of the library. However, if you want to get started 
+quickly, after you installed the library you can simply copy the following script 
+and run it.
+
+```
+
+```
+
+
 ## Documentation
 **PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation. 
 You can view the documentation online [here](http://mengaldo.github.io/PySPOD/). 
