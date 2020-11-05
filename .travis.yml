@@ -23,7 +23,9 @@ install:
     - pip3 install coverage
     - pip3 install future
     - pip3 install pytest
+    - pip3 install ffmpeg
     - python setup.py install
+
 
 script:
     - pytest -v
