@@ -14,8 +14,7 @@ matrix:
     python: 3.7
     language: minimal
     before_install:
-        - sudo brew update
-        - sudo brew install hdf5
+        - brew install hdf5
 
 install: 
     - pip3 install numpy 

@@ -16,8 +16,8 @@ REQUIRED = [
     "numpy",
     "scipy",
     "matplotlib",
+	"netcdf4"
     "xarray",
-    "netcdf4",
     "psutil",
     "sphinx_rtd_theme",
     "tqdm",
@@ -26,7 +26,6 @@ REQUIRED = [
     "cdsapi",
     "pyFFTW",
     "h5py",
-    "ffmpeg",
     "pytest",
 ]
 EXTRAS = {
