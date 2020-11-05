@@ -1,15 +1,16 @@
 
 import os
 import sys
+import pyspod
 from setuptools import setup
 from setuptools import Command
 
 # GLOBAL VARIABLES
-NAME = "PySPOD"
+NAME = pyspod.__title__
 URL = 'https://github.com/mengaldo/PySPOD'
-EMAIL = "gianmarco.mengaldo@gmail.com"
-AUTHOR = "Gianmarco Mengaldo"
-VERSION = "0.1"
+EMAIL = pyspod.__email__
+AUTHOR = pyspod.__author__
+VERSION = pyspod.__version__
 KEYWORDS='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
     "numpy",
@@ -19,9 +20,9 @@ REQUIRED = [
     "netcdf4",
     "h5py",
     "psutil",
+    "sphinx_rtd_theme",
     "tqdm",
     "Sphinx",
-    "sphinx_rtd_theme",
     "ecmwf_api_client",
     "cdsapi",
     "pyFFTW",
@@ -54,6 +55,7 @@ class UploadCommand(Command):
 
     @staticmethod
     def status(s):
+        """Prints things in bold."""
         print('\033[1m{0}\033[0m'.format(s))
 
     def initialize_options(self):
