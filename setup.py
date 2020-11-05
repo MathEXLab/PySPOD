@@ -1,16 +1,15 @@
 
 import os
 import sys
-import pyspod
 from setuptools import setup
 from setuptools import Command
 
 # GLOBAL VARIABLES
-NAME = pyspod.__title__
+NAME = "pyspod"
 URL = 'https://github.com/mengaldo/PySPOD'
-EMAIL = pyspod.__email__
-AUTHOR = pyspod.__author__
-VERSION = pyspod.__version__
+AUTHOR = "Gianmarco Mengaldo"
+EMAIL = "gianmarco.mengaldo@gmail.com"
+VERSION = "0.1"
 KEYWORDS='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
     "numpy",
