@@ -47,6 +47,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
+	'sphinx.ext.autosectionlabel',
 ]
 
 intersphinx_mapping = {'python': ('http://docs.python.org/2', None),
@@ -316,4 +317,3 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-

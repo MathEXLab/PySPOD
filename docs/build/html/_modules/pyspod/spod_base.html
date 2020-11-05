@@ -170,9 +170,8 @@
 <span class="n">CWD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
 <span class="n">CF</span>  <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 <span class="n">CFD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">CF</span><span class="p">)</span>
-
-
 <span class="n">BYTE_TO_GB</span> <span class="o">=</span> <span class="mf">9.3132257461548e-10</span>
+
 
 
 <div class="viewcode-block" id="SPOD_base"><a class="viewcode-back" href="../../index.html#pyspod.spod_base.SPOD_base">[docs]</a><span class="k">class</span> <span class="nc">SPOD_base</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -227,14 +226,6 @@
 			<span class="bp">self</span><span class="o">.</span><span class="n">_isrealx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;isreal&#39;</span><span class="p">]</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">_isrealx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-
-		<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="p">)</span>
-		<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dim</span><span class="p">)</span>
-		<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span>
-		<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xdim</span><span class="p">)</span>
-		<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xshape</span><span class="p">)</span>
-
-		<span class="c1"># sys.exit(2)</span>
 
 		<span class="c1"># get default spectral estimation parameters and options</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weights</span><span class="p">,</span> \
@@ -445,43 +436,12 @@
 	<span class="nd">@property</span>
 	<span class="k">def</span> <span class="nf">modes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Get the matrix containing the SPOD modes, stored by</span>
-<span class="sd">			[frequencies, spatial dimensions original data, number of modes].</span>
+<span class="sd">		Get the dictionary containing the path to the SPOD modes saved.</span>
 
-<span class="sd">		:return: the [n_freq, n_dims, n_modes] matrix containing the SPOD modes.</span>
-<span class="sd">		:rtype: numpy.ndarray</span>
+<span class="sd">		:return: the dictionary containing the path to the SPOD modes saved.</span>
+<span class="sd">		:rtype: dict</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="c1"># load modes from files if saved in storage</span>
-		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Modes not found. Consider running fit()&#39;</span><span class="p">)</span>
-		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modes</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-			<span class="n">gb_memory_modes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_freq</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_modes_saved</span> <span class="o">*</span> \
-				<span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="nb">complex</span><span class="p">())</span> <span class="o">*</span> <span class="n">BYTE_TO_GB</span>
-			<span class="n">gb_vram_avail</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">BYTE_TO_GB</span>
-			<span class="n">gb_sram_avail</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">swap_memory</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">BYTE_TO_GB</span>
-			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;- RAM required for loading all modes ~&#39;</span><span class="p">,</span> <span class="n">gb_memory_modes</span><span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">)</span>
-			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;- Available RAM memory               ~&#39;</span><span class="p">,</span> <span class="n">gb_vram_avail</span>  <span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">)</span>
-			<span class="k">if</span> <span class="n">gb_memory_modes</span> <span class="o">&gt;=</span> <span class="n">gb_vram_avail</span><span class="p">:</span>
-				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not enough RAM memory to load modes stored, &#39;</span>
-								 <span class="s1">&#39;for all frequencies.&#39;</span><span class="p">)</span>
-			<span class="k">else</span><span class="p">:</span>
-				<span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_freq</span><span class="p">,)</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">xshape</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nv</span><span class="p">,)</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_modes_saved</span><span class="p">,),</span>
-					<span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex_&#39;</span><span class="p">)</span>
-				<span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-					<span class="n">m</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="p">),::]</span> <span class="o">=</span> <span class="n">post</span><span class="o">.</span><span class="n">get_mode_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modes</span><span class="p">[</span><span class="n">freq</span><span class="p">])</span>
-		<span class="k">else</span><span class="p">:</span>
-			<span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span>
-		<span class="k">return</span> <span class="n">m</span>
-
-	<span class="nd">@property</span>
-	<span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Get the original input data.</span>
-
-<span class="sd">		:return: the matrix that contains the original snapshots.</span>
-<span class="sd">		:rtype: numpy.ndarray</span>
-<span class="sd">		&#39;&#39;&#39;</span>
-		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span>
 
 	<span class="c1"># ---------------------------------------------------------------------------</span>
 
@@ -509,6 +469,7 @@
 			<span class="k">else</span><span class="p">:</span>
 				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="s1">&#39;not recognized.&#39;</span><span class="p">)</span>
 		<span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="n">window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
 			<span class="k">if</span> <span class="n">window</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
 				<span class="n">n_DFT</span> <span class="o">=</span> <span class="n">window</span>
 				<span class="n">window</span> <span class="o">=</span> <span class="n">SPOD_base</span><span class="o">.</span><span class="n">_hamming_window</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
@@ -558,38 +519,21 @@
 		<span class="c1"># select type of mean</span>
 		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean_type</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
 			<span class="k">if</span> <span class="n">mean_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;longtime&#39;</span><span class="p">:</span>
-
-				<span class="c1"># previous way</span>
-				<span class="n">x_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-				<span class="c1"># # split data into n_blocks chunks to maintain data consistency</span>
-				<span class="c1"># split_block = self.nt // n_blocks</span>
-				<span class="c1"># split_res = self.nt % n_blocks</span>
-				<span class="c1"># x_mean_tmp = np.zeros((n_blocks,)+self.xshape+(self.nv,))</span>
-				<span class="c1"># for iBlk in range(0,n_blocks):</span>
-				<span class="c1"># 	lb = iBlk * split_block</span>
-				<span class="c1"># 	ub = lb + split_block</span>
-				<span class="c1"># 	print(&#39;lb = &#39;, lb)</span>
-				<span class="c1"># 	print(&#39;ub = &#39;, ub)</span>
-				<span class="c1"># 	x_data = self._data_handler(</span>
-				<span class="c1"># 		data=self.data,</span>
-				<span class="c1"># 		t_0=lb,</span>
-				<span class="c1"># 		t_end=ub,</span>
-				<span class="c1"># 		variables=self.variables)</span>
-				<span class="c1"># 	print(&#39;x_data.shape = &#39;, x_data.shape)</span>
-				<span class="c1"># 	print(x_data[0:10,0,0])</span>
-				<span class="c1"># 	print(x_data[-10:,0,0])</span>
-				<span class="c1"># 	# print(&#39;x_data.shape = &#39;, x_data.shape)</span>
-				<span class="c1"># 	x_mean_tmp[iBlk,...] = np.mean(x_data, axis=0)</span>
-				<span class="c1"># 	print(&#39;x_mean_tmp.shape = &#39;, x_mean_tmp.shape)</span>
-				<span class="c1"># x_data = self._data_handler(</span>
-				<span class="c1"># 	data=self.data,</span>
-				<span class="c1"># 	t_0=self.nt-split_res,</span>
-				<span class="c1"># 	t_end=self.nt,</span>
-				<span class="c1"># 	variables=self.variables)</span>
-				<span class="c1"># print(x_data.shape)</span>
-				<span class="c1"># x_mean_tmp[-1,...] = np.mean(x_data, axis=0)</span>
-				<span class="c1"># x_mean = np.mean(x_mean_tmp, axis=0)</span>
+				<span class="c1"># split data into n_blocks chunks to maintain data consistency</span>
+				<span class="n">split_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nt</span> <span class="o">//</span> <span class="n">n_blocks</span>
+				<span class="n">split_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nt</span> <span class="o">%</span> <span class="n">n_blocks</span>
+				<span class="n">x_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xshape</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nv</span><span class="p">,))</span>
+				<span class="k">for</span> <span class="n">iBlk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_blocks</span><span class="p">):</span>
+					<span class="n">lb</span> <span class="o">=</span> <span class="n">iBlk</span> <span class="o">*</span> <span class="n">split_block</span>
+					<span class="n">ub</span> <span class="o">=</span> <span class="n">lb</span> <span class="o">+</span> <span class="n">split_block</span>
+					<span class="n">x_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_handler</span><span class="p">(</span>
+						<span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">t_0</span><span class="o">=</span><span class="n">lb</span><span class="p">,</span> <span class="n">t_end</span><span class="o">=</span><span class="n">ub</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+					<span class="n">x_sum</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+				<span class="n">x_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_handler</span><span class="p">(</span>
+					<span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">t_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="o">-</span><span class="n">split_res</span><span class="p">,</span> <span class="n">t_end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="p">,</span>
+					<span class="n">variables</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+				<span class="n">x_sum</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+				<span class="n">x_mean</span> <span class="o">=</span> <span class="n">x_sum</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nt</span>
 				<span class="n">x_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_mean</span><span class="p">,(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nv</span><span class="p">)))</span>
 				<span class="n">mean_name</span> <span class="o">=</span> <span class="s1">&#39;longtime&#39;</span>
 			<span class="k">elif</span> <span class="n">mean_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;blockwise&#39;</span><span class="p">:</span>
@@ -665,8 +609,39 @@
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="n">m</span> <span class="o">=</span> <span class="n">post</span><span class="o">.</span><span class="n">get_modes_at_freq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modes</span><span class="p">,</span> <span class="n">freq_idx</span><span class="o">=</span><span class="n">freq_idx</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Modes not found. Consider running fit()&#39;</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modes</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+			<span class="n">gb_memory_modes</span> <span class="o">=</span> <span class="n">freq_idx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_modes_saved</span> <span class="o">*</span> \
+				<span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="nb">complex</span><span class="p">())</span> <span class="o">*</span> <span class="n">BYTE_TO_GB</span>
+			<span class="n">gb_vram_avail</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">BYTE_TO_GB</span>
+			<span class="n">gb_sram_avail</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">swap_memory</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">BYTE_TO_GB</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;- RAM required for loading all modes ~&#39;</span><span class="p">,</span> <span class="n">gb_memory_modes</span><span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;- Available RAM memory               ~&#39;</span><span class="p">,</span> <span class="n">gb_vram_avail</span>  <span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">gb_memory_modes</span> <span class="o">&gt;=</span> <span class="n">gb_vram_avail</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not enough RAM memory to load modes stored, &#39;</span>
+								 <span class="s1">&#39;for all frequencies.&#39;</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">m</span> <span class="o">=</span> <span class="n">post</span><span class="o">.</span><span class="n">get_mode_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modes</span><span class="p">[</span><span class="n">freq_idx</span><span class="p">])</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Modes must be a dictionary&#39;</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">m</span></div>
+
+<div class="viewcode-block" id="SPOD_base.get_data"><a class="viewcode-back" href="../../index.html#pyspod.spod_base.SPOD_base.get_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Get the original input data.</span>
+
+<span class="sd">		:return: the matrix that contains the original snapshots.</span>
+<span class="sd">		:rtype: numpy.ndarray</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_handler</span><span class="p">:</span>
+			<span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_handler</span><span class="p">(</span>
+				<span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">t_0</span><span class="o">=</span><span class="n">t_0</span><span class="p">,</span> <span class="n">t_end</span><span class="o">=</span><span class="n">t_end</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_variables</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nv</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xdim</span> <span class="o">+</span> <span class="mi">2</span><span class="p">):</span>
+				<span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">t_0</span><span class="p">,</span> <span class="n">t_end</span><span class="p">]</span>
+		<span class="k">return</span> <span class="n">X</span></div>
 
 	<span class="c1"># ---------------------------------------------------------------------------</span>
 
@@ -909,10 +884,12 @@
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">max_time_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">time_idx</span><span class="p">)</span>
 		<span class="n">post</span><span class="o">.</span><span class="n">plot_2D_data</span><span class="p">(</span>
-			<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">time_idx</span><span class="o">=</span><span class="n">time_idx</span><span class="p">,</span> <span class="n">vars_idx</span><span class="o">=</span><span class="n">vars_idx</span><span class="p">,</span>
-			<span class="n">x1</span><span class="o">=</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="n">x2</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">coastlines</span><span class="o">=</span><span class="n">coastlines</span><span class="p">,</span>
-			<span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
+			<span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">t_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_end</span><span class="o">=</span><span class="n">max_time_idx</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span>
+			<span class="n">time_idx</span><span class="o">=</span><span class="n">time_idx</span><span class="p">,</span> <span class="n">vars_idx</span><span class="o">=</span><span class="n">vars_idx</span><span class="p">,</span> <span class="n">x1</span><span class="o">=</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="n">x2</span><span class="p">,</span>
+			<span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">coastlines</span><span class="o">=</span><span class="n">coastlines</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span>
+			<span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SPOD_base.plot_data_tracers"><a class="viewcode-back" href="../../index.html#pyspod.spod_base.SPOD_base.plot_data_tracers">[docs]</a>	<span class="k">def</span> <span class="nf">plot_data_tracers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
 						  <span class="n">coords_list</span><span class="p">,</span>
@@ -926,7 +903,8 @@
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">post</span><span class="o">.</span><span class="n">plot_data_tracers</span><span class="p">(</span>
-			<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">coords_list</span><span class="o">=</span><span class="n">coords_list</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">time_limits</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="p">],</span>
+			<span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">t_0</span><span class="o">=</span><span class="n">time_limits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_end</span><span class="o">=</span><span class="n">time_limits</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+			<span class="n">coords_list</span><span class="o">=</span><span class="n">coords_list</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">time_limits</span><span class="o">=</span><span class="n">time_limits</span><span class="p">,</span>
 			<span class="n">vars_idx</span><span class="o">=</span><span class="n">vars_idx</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_dir</span><span class="p">,</span>
 			<span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
 
@@ -949,7 +927,8 @@
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">post</span><span class="o">.</span><span class="n">generate_2D_data_video</span><span class="p">(</span>
-			<span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">time_limits</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nt</span><span class="p">],</span> <span class="n">vars_idx</span><span class="o">=</span><span class="n">vars_idx</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="n">sampling</span><span class="p">,</span>
+			<span class="n">X</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">t_0</span><span class="o">=</span><span class="n">time_limits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_end</span><span class="o">=</span><span class="n">time_limits</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+			<span class="n">time_limits</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">time_limits</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">vars_idx</span><span class="o">=</span><span class="n">vars_idx</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="n">sampling</span><span class="p">,</span>
 			<span class="n">x1</span><span class="o">=</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="n">x2</span><span class="p">,</span> <span class="n">coastlines</span><span class="o">=</span><span class="n">coastlines</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_dir</span><span class="p">,</span>
 			<span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div></div>
 </pre></div>
@@ -967,7 +946,7 @@
         
         &copy; Copyright Copyright 2020-2025, SIA
       <span class="lastupdated">
-        Last updated on Nov 02, 2020.
+        Last updated on Nov 05, 2020.
       </span>
 
     </p>

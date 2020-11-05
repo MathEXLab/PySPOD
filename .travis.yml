@@ -21,6 +21,7 @@ install:
     - pip3 install coveralls
     - pip3 install coverage
     - pip3 install future
+    - pip3 install pytest
     - python setup.py install
 
 script:

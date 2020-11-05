@@ -307,9 +307,10 @@
 			<span class="n">Psi</span> <span class="o">=</span> <span class="n">Psi</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xshape</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nv</span><span class="p">,)</span><span class="o">+</span><span class="p">(</span><span class="n">n_modes_save</span><span class="p">,))</span>
 			<span class="n">file_psi</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_dir_blocks</span><span class="p">,</span><span class="s1">&#39;modes1to</span><span class="si">{:04d}</span><span class="s1">_freq</span><span class="si">{:04d}</span><span class="s1">.npy&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_modes_save</span><span class="p">,</span><span class="n">iFreq</span><span class="p">))</span>
 			<span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_psi</span><span class="p">,</span> <span class="n">Psi</span><span class="p">)</span>
-
 			<span class="bp">self</span><span class="o">.</span><span class="n">_modes</span><span class="p">[</span><span class="n">iFreq</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_psi</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="p">[</span><span class="n">iFreq</span><span class="p">,:]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+
+			<span class="c1"># get and save confidence interval if required</span>
 			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf_interval</span><span class="p">:</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">_eigs_c</span><span class="p">[</span><span class="n">iFreq</span><span class="p">,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="p">[</span><span class="n">iFreq</span><span class="p">,:]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_blocks</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xi2_lower</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">_eigs_c</span><span class="p">[</span><span class="n">iFreq</span><span class="p">,:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigs</span><span class="p">[</span><span class="n">iFreq</span><span class="p">,:]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_blocks</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xi2_upper</span>
@@ -347,7 +348,7 @@
         
         &copy; Copyright Copyright 2020-2025, SIA
       <span class="lastupdated">
-        Last updated on Nov 02, 2020.
+        Last updated on Nov 05, 2020.
       </span>
 
     </p>
