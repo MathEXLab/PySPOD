@@ -102,7 +102,7 @@ and various functionalities of the library. However, if you want to get started
 quickly, after you installed the library you can simply copy the following script 
 and run it.
 
-```
+```python
 import xarray as xr
 import numpy  as np
 
