@@ -44,18 +44,18 @@
 
 
 ## Description
-**PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (picard-&-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al-2018), [(Schmidt and Towne 2019)](#schmidt-and-towne-2019).
+**PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (picard-&-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al.-2018), [(Schmidt & Towne 2019)](#schmidt-&-towne-2019).
 
-**Spectral Proper Orthgonal Decomposition (SPOD)** has been extensively used in the past few years to identify spatio-temporal coherent pattern in a variety of datasets, mainly in the fluidmechanics and climate communities. In fluidmechanics it was applied to jets (Schmidt et al. 2017), wakes (Colonius & Dabiri 2017), and boundary layers (Tutkun & George 2017), among others, while in weather and climate it was applied to ECMWF reanalysis datasets under the name Spectral Empirical Orthogonal Function, or SEOF, (Schmidt et al. 2019).
+**Spectral Proper Orthgonal Decomposition (SPOD)** has been extensively used in the past few years to identify spatio-temporal coherent pattern in a variety of datasets, mainly in the fluidmechanics and climate communities. In fluidmechanics it was applied to jets (Schmidt et al. 2017), wakes [(Araya et al. 2017)](#araya-et-al.-2017), and boundary layers [(Tutkun & George 2017)](#tutkun-&-george-2017), among others, while in weather and climate it was applied to ECMWF reanalysis datasets under the name Spectral Empirical Orthogonal Function, or SEOF, [(Schmidt et al. 2019)](#schmidt-et-al.-2019).
 
-The SPOD approach targets statistically stationary problems and involves the decomposition of the cross-spectral density tensor. This means that the SPOD leads to a set of spatial modes that oscillate in time at a single frequency and that optimally capture the variance of an ensemble of stochastic data (Towne et al. 2018). Therefore, given a dataset that is statistically stationary, one is able to capture the optimal spatio-temporal coherent structures that explain the variance in the dataset. 
+The SPOD approach targets statistically stationary problems and involves the decomposition of the cross-spectral density tensor. This means that the SPOD leads to a set of spatial modes that oscillate in time at a single frequency and that optimally capture the variance of an ensemble of stochastic data [(Towne et al. 2018)](#towne-et-al.-2018). Therefore, given a dataset that is statistically stationary, one is able to capture the optimal spatio-temporal coherent structures that explain the variance in the dataset. 
 
-This can help identifying relations to multiple variables or understanding the reduced order behavior of a given phenomenon of interest and represent a powerful tool for the data-driven analysis of nonlinear dynamical systems. The SPOD approach shares some relationships with the dynamic mode decomposition (DMD), and the resolvent analysis,  (Towne et al. 2018), that are also widely used approaches for the data-driven analysis of nonlinear systems. SPOD can be used for both experimental and simulation data, and a general description of its key parameters can be found in (Schmidt & Colonius 2020).  
+This can help identifying relations to multiple variables or understanding the reduced order behavior of a given phenomenon of interest and represent a powerful tool for the data-driven analysis of nonlinear dynamical systems. The SPOD approach shares some relationships with the dynamic mode decomposition (DMD), and the resolvent analysis,  [(Towne et al. 2018)](#Towne-et-al.-2018), that are also widely used approaches for the data-driven analysis of nonlinear systems. SPOD can be used for both experimental and simulation data, and a general description of its key parameters can be found in [(Schmidt & Colonius 2020)](#schmidt-&-colonius-2020).  
 
 In this package we implement three version of SPOD 
 - SPOD_low_storage: that is intended for large RAM machines or small datasets
 - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
-- SPOD_streaming: that is the algorithm presented in (Schmidt & Towne 2019), and it is intended for large datasets.
+- SPOD_streaming: that is the algorithm presented in [(Schmidt & Towne 2019)](schmidt-&-towne-2019), and it is intended for large datasets.
 
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
 
@@ -220,15 +220,15 @@ IF you want to run tests locally, you can do so by:
 *Wavepackets and trapped acoustic modes in a turbulent jet: coherent structure eduction and global stability.*
 [[DOI](https://doi.org/10.1017/jfm.2017.407)]
 
-#### Araya et al. 2017
+#### (Araya et al. 2017)
 *Transition to bluff-body dynamics in the wake of vertical-axis wind turbines.*
 [[DOI]( https://doi.org/10.1017/jfm.2016.862)]
 
-#### Taira et al. 2017 
+#### (Taira et al. 2017) 
 *Modal analysis of fluid flows: An overview.*
 [[DOI](https://doi.org/10.2514/1.J056060)]
 
-#### Towne et al. 2018 
+#### (Towne et al. 2018)
 *Spectral proper orthogonal decomposition and its relationship to dynamic mode decomposition and resolvent analysis.*
 [[DOI]( https://doi.org/10.1017/jfm.2018.283)]
 
@@ -236,11 +236,11 @@ IF you want to run tests locally, you can do so by:
 *An efficient streaming algorithm for spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.1016/j.cpc.2018.11.009)]
 
-#### Schmidt et al. 2019
+#### (Schmidt et al. 2019)
 *Spectral empirical orthogonal function analysis of weather and climate data.*
 [[DOI](https://doi.org/10.1175/MWR-D-18-0337.1)]
 
-#### Schmidt & Colonius 2020
+#### (Schmidt & Colonius 2020)
 *Guide to spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.2514/1.J058809)]
 
