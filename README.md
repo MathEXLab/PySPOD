@@ -51,9 +51,9 @@ This can help identifying relations to multiple variables or understanding the r
 
 In this package we implement three version of SPOD 
 
-    - SPOD_low_storage: that is intended for large RAM machines or small datasets
-    - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
-    - SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019), and it is intended for large datasets.
+  - SPOD_low_storage: that is intended for large RAM machines or small datasets
+  - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
+  - SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019), and it is intended for large datasets.
 
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
 
