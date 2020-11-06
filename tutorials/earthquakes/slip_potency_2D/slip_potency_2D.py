@@ -1,8 +1,5 @@
 import os
 import sys
-import time
-import h5py
-import warnings
 import xarray as xr
 import numpy  as np
 from pathlib import Path
@@ -17,7 +14,7 @@ from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 import pyspod.weights as weights
 
-# Inspect and load data 
+# Inspect and load data
 file = os.path.join(CWD,'../../../tests/data/earthquakes_data.nc')
 print(os.path.abspath(os.path.join(CWD,'../../../tests/data/earthquakes_data.nc')))
 ds = xr.open_dataset(file)
@@ -71,11 +68,11 @@ spod.plot_eigs()
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 0.5, 0.2, 0.1, 0.05, 0.02])
 spod.plot_2D_modes_at_frequency(
-	freq_required=freq_found, 
-	freq=freq, 
-	x1=x1, 
-	x2=x2, 
-	modes_idx=[0,1], 
+	freq_required=freq_found,
+	freq=freq,
+	x1=x1,
+	x2=x2,
+	modes_idx=[0,1],
 	vars_idx=[0])
 spod.plot_2D_data(x1=x1, x2=x2, vars_idx=[0], time_idx=[0,100,200])
 spod.generate_2D_data_video(x1=x1, x2=x2, vars_idx=[0])

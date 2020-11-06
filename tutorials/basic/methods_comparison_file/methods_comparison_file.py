@@ -1,12 +1,8 @@
 import os
 import sys
 import time
-import h5py
-import warnings
 import xarray as xr
 import numpy  as np
-from pathlib import Path
-from scipy.io import savemat
 
 # Import library specific modules
 sys.path.append("../../../")
@@ -57,7 +53,7 @@ def read_data_netCDF(data, t_0, t_end, variables):
     if t_0 == t_end: ti = [t_0]
     else           : ti = np.arange(t_0,t_end)
     X = np.empty([len(ti), x2.shape[0], x1.shape[0], len(variables)])
-    for i,var in enumerate(variables):
+    for _,var in enumerate(variables):
         X = np.array(ds[var].isel(time=ti))
     return X
 x_nc = read_data_netCDF('data.nc', t_0=0, t_end=t.shape[0], variables=variables)

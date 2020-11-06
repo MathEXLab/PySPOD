@@ -25,23 +25,23 @@
   </a>
 </p>
 
-
 **PySPOD**: Python Spectral Proper Orthogonal Decomposition
 
 ## Table of contents
-* [Description](#description)
-* [Installation and dependencies](#installation-and-dependencies)
-	* [Installing via PIP](#installing-via-pip)
-	* [Installing from source](#installing-from-source)
-* [Documentation](#documentation)
-* [Testing](#testing)
-* [Tutorials](#tutorials)
-* [References](#references)
-* [Recent works with PySPOD](#recent-works-with-pyspod)
-* [Authors and contributors](#authors-and-contributors)
-* [License](#license)
 
+  * [Description](#description)
 
+  * [Installation and dependencies](#installation-and-dependencies)
+	 * [Installing via PIP](#installing-via-pip)
+	 * [Installing from source](#installing-from-source)
+
+  * [Documentation](#documentation)
+  * [Testing](#testing)
+  * [Tutorials](#tutorials)
+  * [References](#references)
+  * [Recent works with PySPOD](#recent-works-with-pyspod)
+  * [Authors and contributors](#authors-and-contributors)
+  * [License](#license)
 
 ## Description
 **PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (picard-&-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al-2018), [(Schmidt and Towne 2019)](#schmidt-and-towne-2019).
@@ -53,13 +53,11 @@ The SPOD approach targets statistically stationary problems and involves the dec
 This can help identifying relations to multiple variables or understanding the reduced order behavior of a given phenomenon of interest and represent a powerful tool for the data-driven analysis of nonlinear dynamical systems. The SPOD approach shares some relationships with the dynamic mode decomposition (DMD), and the resolvent analysis,  [(Towne et al. 2018)](#Towne-et-al-2018), that are also widely used approaches for the data-driven analysis of nonlinear systems. SPOD can be used for both experimental and simulation data, and a general description of its key parameters can be found in [(Schmidt and Colonius 2020)](#schmidt-and-colonius-2020).  
 
 In this package we implement three version of SPOD 
-- SPOD_low_storage: that is intended for large RAM machines or small datasets
-- SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
-- SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019), and it is intended for large datasets.
+  - SPOD_low_storage: that is intended for large RAM machines or small datasets
+  - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
+  - SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019), and it is intended for large datasets.
 
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
-
-
 
 ## Installation and dependencies
 **PySPOD** requires `numpy`, `scipy`, `matplotlib`, `pyfftw`, `future`, `sphinx` (for the documentation). The code is developed and tested for Python 3 only. 
@@ -93,7 +91,6 @@ To uninstall the package you have to rerun the installation and record the insta
 > python setup.py install --record installed_files.txt
 > cat installed_files.txt | xargs rm -rf
 ```
-
 
 ## Get started with a simple analysis
 **PySPOD** comes with an extensive suite of [**Tutorials**](tutorials/README.md). 
@@ -173,8 +170,6 @@ spod_ls.plot_2D_modes_at_frequency(
 You can change `SPOD_low_storage` to `SPOD_low_ram` and `SPOD_streaming`, 
 to run the other two SPOD algorithms available.
 
-
-
 ## Documentation
 **PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation. 
 You can view the documentation online [here](http://mengaldo.github.io/PySPOD/). 
@@ -189,8 +184,6 @@ by:
 This will generate a `docs/build/html` folder, where you can find an `index.html` file. 
 Open it with your browser and explore the documentation locally.
 
-
-
 ## Testing
 Regression tests are deployed using Travis CI, that is a continuous intergration framework. 
 You can check out the current status of **PySPOD** [here](https://travis-ci.org/mengaldo/PySPOD).
@@ -202,64 +195,71 @@ IF you want to run tests locally, you can do so by:
 > pytest -v
 ```
 
-
 ## References
+
 #### (Lumley 1970) 
 *Stochastic Tools in Turbulence.*
+
 [[DOI](https://www.elsevier.com/books/stochastic-tools-in-turbulence/lumey/978-0-12-395772-6?aaref=https%3A%2F%2Fwww.google.com)]
 
 #### (Picard and Delville 2000) 
+
 *Pressure velocity coupling in a subsonic round jet.*
 [[DOI](https://www.sciencedirect.com/science/article/abs/pii/S0142727X00000217)]
 
 #### (Tutkun and George 2017)
+
 *Lumley decomposition of turbulent boundary layer at high Reynolds numbers.*
 [[DOI](https://aip.scitation.org/doi/10.1063/1.4974746)]
 
 #### (Schmidt et al 2017) 
+
 *Wavepackets and trapped acoustic modes in a turbulent jet: coherent structure eduction and global stability.*
 [[DOI](https://doi.org/10.1017/jfm.2017.407)]
 
 #### (Araya et al 2017)
+
 *Transition to bluff-body dynamics in the wake of vertical-axis wind turbines.*
 [[DOI]( https://doi.org/10.1017/jfm.2016.862)]
 
 #### (Taira et al 2017) 
+
 *Modal analysis of fluid flows: An overview.*
 [[DOI](https://doi.org/10.2514/1.J056060)]
 
 #### (Towne et al 2018)
+
 *Spectral proper orthogonal decomposition and its relationship to dynamic mode decomposition and resolvent analysis.*
 [[DOI]( https://doi.org/10.1017/jfm.2018.283)]
 
 #### (Schmidt and Towne 2019)
+
 *An efficient streaming algorithm for spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.1016/j.cpc.2018.11.009)]
 
 #### (Schmidt et al 2019)
+
 *Spectral empirical orthogonal function analysis of weather and climate data.*
 [[DOI](https://doi.org/10.1175/MWR-D-18-0337.1)]
 
 #### (Schmidt and Colonius 2020)
+
 *Guide to spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.2514/1.J058809)]
 
-
-
 ## Recent works with **PySPOD**
+
 Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for a publication and you want it to be advertised here.
 
-
-
 ## Authors and contributors
+
 **PySPOD** is currently developed and mantained by
 
-* [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
+  * [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
 
 Contact me by email for further information or questions about **PySPOD**, or suggest pull requests. 
 Contributions improving code and documentation, as well as suggestions about new features are more than welcome!
 
-
-
 ## License
+
 See the [LICENSE](LICENSE.rst) file for license rights and limitations (MIT).

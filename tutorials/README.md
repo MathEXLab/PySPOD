@@ -7,7 +7,6 @@ These are organized in the form of `jupyter-notebooks`, along with their plain
 In particular, we divided the tutorials in such a way that they cover different 
 functionalities of the library and practical application areas.
 
-
 ### Basic
 
 #### [Tutorial: Basic 1](Basic/methods_comparison/methods_comparison.ipynb)
@@ -26,8 +25,6 @@ in this tutorial we highlight how one can define a function to read
 data and pass it to the constructor of the SPOD class, thereby allowing 
 for a reduced use of RAM (for large datasets).
 
-
-
 ### Climate 
 
 #### [Tutorial: 2D Multivariate ENSO Index](climate/ERA20C_MEI_2D/ERA20C_MEI_2D.ipynb)
@@ -40,7 +37,6 @@ pressure (MSL), zonal component of the surface wind (U10), meridional component
 of the surface wind (V10), sea surface temperature (SST), 2-meter temperature 
 (T2M), and, total cloud cover (TCC), on a 2D longitude-latitude grid.  
 
-
 #### [Tutorial: 3D Quasi-Bienniel Oscillation](climate/ERA20C_QBO_3D/ERA20C_QBO_3D.ipynb)
 
 This tutorial shows how to download data from an ECMWF reanalysis dataset (ERA20C), 
@@ -49,15 +45,12 @@ and use **PySPOD** to identify spatio-temporal coherent structured in univariate
 The data is composed by the monthly-averages of the zonal-mean zonal winds 
 on a 3D longitude, latitude, pressure-levels grid.
 
-
 #### [Tutorial: 2D ERA5 Mean-Sea Level Pressure](climate/ERA5_MSLP_2D/ERA5_MSLP_2D.ipynb)
 
 This tutorial shows how to download data from an ECMWF reanalysis dataset (ERA5), 
 and use **PySPOD** to identify spatio-temporal coherent structured in univariate 
 2D data. In particular, we seek to identify spatio-temporal coherent structure in 
 high-resolution mean-sea level pressure data from the ERA5 dataset.
-
-
 
 ### Fluidmechanics 
 
@@ -66,15 +59,9 @@ high-resolution mean-sea level pressure data from the ERA5 dataset.
 This tutorial shows a simple 2D application to a turbulent jet, where the variable 
 studied is pressure.
 
-
-
 ### Earthquakes 
 
 #### [Tutorial: 2D Slip Potency](earthquakes/slip_potency_2D/slip_potency_2D.ipynb)
 
 This tutorial shows a simple 2D application seismic data, where the variable studied 
 is the slip potency.
-
-
-
-

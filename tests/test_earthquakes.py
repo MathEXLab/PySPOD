@@ -357,7 +357,7 @@ def test_postprocessing():
 							filename='data_tracers.png')
 	try:
 		bashCmd = ["ffmpeg", " --version"]
-		sbp = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
+		_ = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
 		spod.generate_2D_data_video(
 			sampling=5,
 			time_limits=[0,t.shape[0]],

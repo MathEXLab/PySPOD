@@ -3,8 +3,6 @@ Derived module from spodbase.py for classic spod.
 """
 
 # import standard python packages
-import os
-import sys
 import numpy as np
 
 

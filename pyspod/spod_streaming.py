@@ -4,16 +4,10 @@ Derived module from spod_base.py for streaming SPOD.
 
 # import standard python packages
 import os
-import sys
 import time
-import scipy.io
 import numpy as np
-from tqdm import tqdm
 from numpy import linalg as la
 import scipy.special as sc
-import warnings
-import shutil
-import psutil
 
 # import PySPOD base class for SSPOD
 from pyspod.spod_base import SPOD_base

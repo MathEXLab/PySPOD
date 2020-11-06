@@ -4,14 +4,12 @@ Derived module from spodbase.py for classic spod.
 
 # import standard python packages
 import os
-import sys
 import numpy as np
 from scipy.io import loadmat
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib.gridspec as gridspec
-from matplotlib import colors as mcolors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rc('figure', max_open_warning = 0)
 from os.path import splitext
@@ -214,7 +212,6 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 		raise TypeError('`freq` must be ndarray type.')
 
 	# plot figure
-	dpi = 200
 	plt.figure(figsize=figsize, frameon=True, constrained_layout=False)
 	ax = plt.gca()
 	ratio = 1. / eigs.shape[1]
@@ -1044,7 +1041,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 					mode = np.fft.fftshift(mode, axes=1)
 				mode_point_phase = mode[idx_coords] * phase.conj()
 				ax = fig.add_subplot(spec[cnt,0])
-				ax_obj = ax.plot(t, np.real(mode_point_phase), 'k-')
+				_ = ax.plot(t, np.real(mode_point_phase), 'k-')
 				ax.set_ylabel('mode {}'.format(mode_id),
 								rotation=0,
 								labelpad=30,
@@ -1296,10 +1293,6 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 		raise ValueError(
 			'Data dimension Z = (N,M); x1 and x2 '
 			'must have dimension N and M, respectively.')
-
-	# get figure size
-	wsize = figsize[0]
-	hsize = figsize[1]
 
 	# overlay coastlines if required
 	cst = False

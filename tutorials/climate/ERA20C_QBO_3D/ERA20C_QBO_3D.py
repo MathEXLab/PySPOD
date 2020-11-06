@@ -1,7 +1,5 @@
 import os
 import sys
-import time
-import warnings
 import xarray as xr
 import numpy  as np
 from pathlib import Path
@@ -16,7 +14,7 @@ import pyspod.weights as weights
 # Current path
 CWD = os.getcwd()
 
-# Inspect and load data 
+# Inspect and load data
 file = os.path.join(CWD,'E20C_MONTHLYMEAN00_1900_2010_U131128_3D.nc')
 ds = xr.open_dataset(file)
 print(ds)
@@ -49,15 +47,15 @@ params['nt'          ] = t.shape[0] # number of time snapshots
 params['xdim'        ] = X[0,...,0].ndim   # number of spatial dimensions (longitude and latitude)
 params['nv'          ] = len(variables)            # number of variables
 params['n_FFT'       ] = np.ceil(12 * 12)          # length of FFT blocks
-params['n_freq'      ] = params['n_FFT'] / 2 + 1  # number of frequencies 
+params['n_freq'      ] = params['n_FFT'] / 2 + 1  # number of frequencies
 params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block overlap region
 params['mean'        ] = 'longtime'  # type of mean to subtract to the data
-params['normalize'   ] = False        # normalization of weights by data variance 
+params['normalize'   ] = False        # normalization of weights by data variance
 params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
 params['weights'] = weights.geo_weights_trapz_3D(\
-    lat=x2, 
-    lon=x1, 
-    R=1, 
+    lat=x2,
+    lon=x1,
+    R=1,
     z=x3,
     n_vars=params['nv']) # weights
 
@@ -83,18 +81,18 @@ spod.plot_eigs()
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 740, 1825])
 spod.plot_3D_modes_slice_at_frequency(
-    freq_required=freq_found, 
-    freq=freq, 
-    x1=x1-180, 
-    x2=x2, 
-    x3=x3, 
+    freq_required=freq_found,
+    freq=freq,
+    x1=x1-180,
+    x2=x2,
+    x3=x3,
     slice_dim=2,
-    slice_id=2, 
+    slice_id=2,
     coastlines='centred', modes_idx=[0,1,2], vars_idx=[0])
 spod.plot_mode_tracers(
-    freq_required=freq_found, 
-    freq=freq, 
-    coords_list=[(100,0,2)], 
+    freq_required=freq_found,
+    freq=freq,
+    coords_list=[(100,0,2)],
     modes_idx=[0,1,2])
 spod.plot_data_tracers(coords_list=[(100,0,2),(200,10,10)])
 

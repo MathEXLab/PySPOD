@@ -292,9 +292,6 @@ def test_spod_low_ram_savefft():
 	'''
 	spod tests on jet data for methodologies.
 	'''
-	'''
-	spod tests on jet data for methodologies.
-	'''
 	# set blockwise mean
 	params['mean'] = 'blockwise'
 	params['savefft'] = False

@@ -3,8 +3,7 @@ import sys
 import shutil
 import pytest
 import subprocess
-import xarray as xr
-import numpy  as np
+import numpy as np
 
 # Import library specific modules
 sys.path.append("../")
@@ -71,7 +70,7 @@ def test_basic_spod_low_storage():
 
 	try:
 		bashCmd = ["ffmpeg", " --version"]
-		sbp = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
+		_ = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
 		spod_ls.generate_2D_data_video(
 			sampling=10,
 			time_limits=[0,t.shape[0]],

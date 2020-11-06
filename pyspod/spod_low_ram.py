@@ -6,7 +6,6 @@ Derived module from spod_base.py for SPOD low ram.
 import os
 import sys
 import time
-import scipy.io
 import numpy as np
 from tqdm import tqdm
 from numpy import linalg as la
@@ -14,7 +13,6 @@ import scipy.special as sc
 from scipy.fft import fft
 import warnings
 import shutil
-import psutil
 
 # Import PySPOD base class for SPOD_low_ram
 from pyspod.spod_base import SPOD_base

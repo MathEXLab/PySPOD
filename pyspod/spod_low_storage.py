@@ -6,7 +6,6 @@ Derived module from spod_base.py for low storage SPOD.
 import os
 import sys
 import time
-import scipy.io
 import numpy as np
 from tqdm import tqdm
 from numpy import linalg as la
@@ -85,7 +84,6 @@ class SPOD_low_storage(SPOD_base):
 			# loop over number of blocks and generate Fourier realizations
 			for iBlk in range(0,self._n_blocks):
 
-				start0 = time.time()
 				# get time index for present block
 				offset = min(iBlk * (self._n_DFT - self._n_overlap) + self._n_DFT, self._nt) - self._n_DFT
 
