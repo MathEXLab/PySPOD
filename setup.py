@@ -10,7 +10,7 @@ NAME = "pyspod"
 URL = 'https://github.com/mengaldo/PySPOD'
 AUTHOR = "Gianmarco Mengaldo"
 EMAIL = "gianmarco.mengaldo@gmail.com"
-VERSION = "0.2"
+VERSION = "0.3"
 KEYWORDS='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
     "numpy",
@@ -116,7 +116,7 @@ setup(
         ('pyspod',['pyspod/plotting_support/coast_centred.mat'])],
     # package_dir={NAME: NAME},
     # package_data={NAME: [
-    #     'pyspod/plotting_support/*.mat', 
+    #     'pyspod/plotting_support/*.mat',
     # ]},
     install_requires=REQUIRED,
     extras_require=EXTRAS,
