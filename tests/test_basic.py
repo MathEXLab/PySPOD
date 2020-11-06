@@ -166,9 +166,9 @@ def test_basic_spod_streaming():
 
 	# clean up results
 	try:
-	    shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 

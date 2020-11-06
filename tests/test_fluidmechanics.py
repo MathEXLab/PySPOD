@@ -282,9 +282,9 @@ def test_spod_low_storage_savefft():
 
 	# clean up results
 	try:
-	    shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 
@@ -337,9 +337,9 @@ def test_spod_low_ram_savefft():
 
 	# clean up results
 	try:
-	    shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 
@@ -390,13 +390,13 @@ def test_postprocessing():
 
 	# clean up results
 	try:
-	    shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 	try:
-	    shutil.rmtree(os.path.join(CFD,'__pycache__'))
+		shutil.rmtree(os.path.join(CFD,'__pycache__'))
 	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
+		print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
 
 
 

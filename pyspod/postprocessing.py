@@ -882,10 +882,10 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 					real_ax.set_aspect('equal')
 					imag_ax.set_aspect('equal')
 				if len(title) > 1:
-	 				fig.suptitle(title + \
+					fig.suptitle(title + \
 						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-	 				fig.suptitle('mode: {}, variable ID: {}'.format(mode_id, var_id))
+					fig.suptitle('mode: {}, variable ID: {}'.format(mode_id, var_id))
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
 			else:
@@ -991,7 +991,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 	# use the data dimensions
 	if not coords_list:
 		print('You must provide coords to `plot_mode_tracers` '
-		      'in the form list(tuple(), tuple(), ...)')
+			  'in the form list(tuple(), tuple(), ...)')
 
 	# check the coord_list is indeed list
 	if not isinstance(coords_list, list):
@@ -1176,7 +1176,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 	# check coord_list has correct shape and type
 	if not coords_list:
 		print('You must provide coords to `plot_mode_tracers` '
-		      'in the form list(tuple(), tuple(), ...)')
+			  'in the form list(tuple(), tuple(), ...)')
 	if not isinstance(coords_list, list):
 		raise TypeError('`coords` must be a list')
 	# get idx variables
@@ -1237,7 +1237,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	x1=None, x2=None, coastlines='', figsize=(12,8), path='CWD', filename='data_video.mp4'):
 	"""
-        Make movie of 2D data.
+		Make movie of 2D data.
 
 	:param numpy.ndarray X: 2D data to be plotted. \
 		First dimension must be time. Last dimension must be variable.
@@ -1308,7 +1308,7 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 								vmin=-0.9*vmean,
 								vmax= 0.9*vmean),
 				 plt.scatter(coast['coastlon'],
-				 			 coast['coastlat'],
+							 coast['coastlat'],
 							 marker='.', c='k', s=1)]
 				for state in time_range
 			]

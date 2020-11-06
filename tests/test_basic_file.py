@@ -218,13 +218,13 @@ def test_basic_file_spod_streaming():
 	# 	   (np.max(np.abs(modes_at_freq))   > 0.029917334301665384 -tol))
 
 	try:
-	    shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 	try:
-	    os.remove(os.path.join(CWD,'data.nc'))
+		os.remove(os.path.join(CWD,'data.nc'))
 	except OSError as e:
-	    print("Error: %s : %s" % (os.path.join(CWD,'data.nc'), e.strerror))
+		print("Error: %s : %s" % (os.path.join(CWD,'data.nc'), e.strerror))
 
 
 
