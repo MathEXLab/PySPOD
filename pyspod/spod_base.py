@@ -528,7 +528,7 @@ class SPOD_base(object):
 			of 2 that satisfy 2^p >= abs(a)
 		'''
 		p = 0
-				v = 0
+		v = 0
 		while v < np.abs(a):
 			v = 2 ** p
 			p += 1
