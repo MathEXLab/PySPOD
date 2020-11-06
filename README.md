@@ -58,14 +58,23 @@ In this package we implement three version of SPOD
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
 
 ## Installation and dependencies
-**PySPOD** requires `numpy`, `scipy`, `matplotlib`, `pyfftw`, `future`, `sphinx` (for the documentation). The code is developed and tested for Python 3 only. 
+**PySPOD** requires the following Python packages: 
+`numpy`, `scipy`, `matplotlib`, `xarray`, `netcdf4`, `h5py`, `psutil`, `tdqm`, `pyfftw`, `future`, `ffmpeg`, `sphinx` (for the documentation). 
+If you want to run the tutorials, you would also need `ecmwf_api_client` and `cdsapi`. 
+
+The code is developed and tested for Python 3 only. 
 It can be installed using `pip` or directly from the source code.
 
+<!-- NOTE: 
+  - to properly install netcdf4, you might need to have a local installation of `hdf5`. 
+  - to be able to use the ffmpeg functionalities of the library (generating video of your data), you need a local installation of `ffmpeg` libraries.
+  -->
+	
 ### Installing via PIP
 Mac and Linux users can install pre-built binary packages using pip.
 To install the package just type: 
 ```bash
-    > pip install --user pyspod 
+    > pip install pyspod 
 ```
 To uninstall the package:
 ```bash
