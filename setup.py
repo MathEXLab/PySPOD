@@ -1,6 +1,6 @@
-
 import os
 import sys
+import shutil
 from setuptools import setup
 from setuptools import Command
 
@@ -9,7 +9,7 @@ NAME = "pyspod"
 URL = 'https://github.com/mengaldo/PySPOD'
 AUTHOR = "Gianmarco Mengaldo"
 EMAIL = "gianmarco.mengaldo@gmail.com"
-VERSION = "0.4"
+VERSION = "0.4.3"
 KEYWORDS='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
 	"numpy",
@@ -66,7 +66,7 @@ class UploadCommand(Command):
 	def run(self):
 		try:
 			self.status('Removing previous builds...')
-			rmtree(os.path.join(CWD, 'dist'))
+			shutil.rmtree(os.path.join(CWD, 'dist'))
 		except OSError:
 			pass
 
@@ -74,8 +74,7 @@ class UploadCommand(Command):
 		os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
 
 		self.status('Uploading the package to PyPI via Twine...')
-		os.system('twine upload dist/*')
-
+		os.system('python3 twine upload dist/*')
 		self.status('Pushing git tags...')
 		os.system('git tag v{0}'.format(VERSION))
 		os.system('git push --tags')
