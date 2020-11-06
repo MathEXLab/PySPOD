@@ -6,6 +6,7 @@ import numpy as np
 from scipy.io import loadmat
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import animation
 mpl.rc('figure', max_open_warning = 0)
 from os.path import splitext
