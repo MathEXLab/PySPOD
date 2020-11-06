@@ -101,7 +101,7 @@ def geo_weights_trapz_3D(lat, lon, R, z, n_vars):
 
 
 def apply_normalization(X, weights, method='variance'):
-		'''Normalization of weights if required.'''
+	'''Normalization of weights if required.'''
 
 	# variable-wise normalization by variance via weight matrix
 	if method.lower() == 'variance':
