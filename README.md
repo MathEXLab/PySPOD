@@ -30,11 +30,9 @@
 ## Table of contents
 
   * [Description](#description)
-
   * [Installation and dependencies](#installation-and-dependencies)
 	 * [Installing via PIP](#installing-via-pip)
 	 * [Installing from source](#installing-from-source)
-
   * [Documentation](#documentation)
   * [Testing](#testing)
   * [Tutorials](#tutorials)
