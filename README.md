@@ -59,7 +59,7 @@ To see how to use the **PySPOD** package and its user-friendly interface, you ca
 
 ## Installation and dependencies
 **PySPOD** requires the following Python packages: 
-`numpy`, `scipy`, `matplotlib`, `xarray`, `netcdf4`, `h5py`, `psutil`, `tdqm`, `pyfftw`, `future`, `ffmpeg`, `sphinx` (for the documentation). 
+`numpy`, `scipy`, `matplotlib`, `xarray`, `netcdf4`, `h5py`, `psutil`, `tdqm`, `future`, `ffmpeg`, `sphinx` (for the documentation). 
 If you want to run the tutorials, you would also need `ecmwf_api_client` and `cdsapi`. 
 
 The code is developed and tested for Python 3 only. 
