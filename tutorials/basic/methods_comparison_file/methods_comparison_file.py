@@ -30,9 +30,7 @@ p = np.empty((t_component.shape[0],)+s_component.shape)
 for i, t_c in enumerate(t_component):
 	p[i] = s_component * t_c
 
-# We now save the data into netCDF format:
-
-# netCDF .nc
+# We now save the data into netCDF format
 ds = xr.Dataset(
         {"p": (("time", "x1", "x2"), p)},
         coords={
@@ -140,8 +138,6 @@ spod_ram.plot_2D_modes_at_frequency(
     x2=x1,
     modes_idx=[0,1],
     vars_idx=[0])
-
-
 
 # Finally, we can try the streaming algorithm
 spod_st = SPOD_streaming(

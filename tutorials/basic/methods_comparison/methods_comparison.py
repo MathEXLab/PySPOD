@@ -9,11 +9,8 @@ from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 import pyspod.weights as weights
 
-# Current, parent and file paths
+# Current working path
 CWD = os.getcwd()
-CF  = os.path.realpath(__file__)
-CFD = os.path.dirname(CF)
-
 
 # Let's create some 2D syntetic data
 # and store them into a variable called p
