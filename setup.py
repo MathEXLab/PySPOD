@@ -3,7 +3,6 @@ import os
 import sys
 from setuptools import setup
 from setuptools import Command
-from setuptools import find_packages
 
 # GLOBAL VARIABLES
 NAME = "pyspod"
@@ -105,8 +104,7 @@ setup(
 	keywords=KEYWORDS,
 	url=URL,
 	license='MIT',
-	# packages=[NAME],
-	packages=find_packages(),
+	packages=[NAME],
 	package_data={'': [
 		'plotting_support/coast.mat',
 		'plotting_support/coast_centred.mat'
