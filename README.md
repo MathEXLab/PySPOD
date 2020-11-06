@@ -35,7 +35,6 @@
     * [Installing from source](#installing-from-source)
   * [Documentation](#documentation)
   * [Testing](#testing)
-  * [Tutorials](#tutorials)
   * [References](#references)
   * [Recent works with PySPOD](#recent-works-with-pyspod)
   * [Authors and contributors](#authors-and-contributors)
@@ -254,7 +253,7 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 
 **PySPOD** is currently developed and mantained by
 
-    * [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
+  * [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
 
 Contact me by email for further information or questions about **PySPOD**, or suggest pull requests. 
 Contributions improving code and documentation, as well as suggestions about new features are more than welcome!
