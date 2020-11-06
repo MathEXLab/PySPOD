@@ -528,7 +528,7 @@ class SPOD_base(object):
 			of 2 that satisfy 2^p >= abs(a)
 		'''
 		p = 0
-                v = 0
+				v = 0
 		while v < np.abs(a):
 			v = 2 ** p
 			p += 1
@@ -589,14 +589,14 @@ class SPOD_base(object):
 			equal_axes=equal_axes, path=self.save_dir, filename=filename)
 
 	def plot_eigs_vs_frequency(self,
-				  			   freq=None,
-				  			   title='',
+							   freq=None,
+							   title='',
 							   xticks=None,
 							   yticks=None,
-				  			   show_axes=True,
-				  			   equal_axes=False,
+							   show_axes=True,
+							   equal_axes=False,
 							   figsize=(12,8),
-				  			   filename=None):
+							   filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -673,25 +673,25 @@ class SPOD_base(object):
 			path=self.save_dir, filename=filename)
 
 	def plot_3D_modes_slice_at_frequency(self,
-								   		 freq_required,
-								   		 freq,
-								         vars_idx=[0],
-								         modes_idx=[0],
-								         x1=None,
-								         x2=None,
-								         x3=None,
-								         slice_dim=0,
-								         slice_id=None,
-								         fftshift=False,
-								         imaginary=False,
-								         plot_max=False,
+										 freq_required,
+										 freq,
+										 vars_idx=[0],
+										 modes_idx=[0],
+										 x1=None,
+										 x2=None,
+										 x3=None,
+										 slice_dim=0,
+										 slice_id=None,
+										 fftshift=False,
+										 imaginary=False,
+										 plot_max=False,
 										 coastlines='',
-								         title='',
-								         xticks=None,
-								         yticks=None,
-								         figsize=(12,8),
-								         equal_axes=False,
-								         filename=None):
+										 title='',
+										 xticks=None,
+										 yticks=None,
+										 figsize=(12,8),
+										 equal_axes=False,
+										 filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -765,14 +765,14 @@ class SPOD_base(object):
 	# Generate animations
 	# ---------------------------------------------------------------------------
 	def generate_2D_data_video(self,
-					 	       time_limits=[0,10],
-					 	       vars_idx=[0],
-						       sampling=1,
-					 	       x1=None,
-					 	       x2=None,
-						       coastlines='',
-						       figsize=(12,8),
-					 	       filename='data_video.mp4'):
+							   time_limits=[0,10],
+							   vars_idx=[0],
+							   sampling=1,
+							   x1=None,
+							   x2=None,
+							   coastlines='',
+							   figsize=(12,8),
+							   filename='data_video.mp4'):
 		'''
 		See method implementation in the postprocessing module.
 		'''
