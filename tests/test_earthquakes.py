@@ -21,9 +21,10 @@ from pathlib import Path
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
-sys.path.append(os.path.join(CFD,"../"))
 
 # project libraries
+sys.path.append(os.path.join(CFD,"../"))
+sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod_low_ram import SPOD_low_ram
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_streaming import SPOD_streaming

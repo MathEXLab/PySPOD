@@ -10,11 +10,6 @@ from numpy import linalg as la
 from scipy.fft import fft
 import psutil
 
-# binding to fftw with interfaces to scipy and numpy
-import pyfftw
-pyfftw.config.NUM_THREADS = 4
-pyfftw.config.PLANNER_EFFORT = 'FFTW_ESTIMATE'
-
 # import PySPOD base class for SPOD_low_storage
 from pyspod.spod_base import SPOD_base
 
@@ -64,11 +59,11 @@ class SPOD_low_storage(SPOD_base):
 		# check if blocks are already saved in memory
 		blocks_present = self._are_blocks_present(
 			self._n_blocks,self._n_freq,self._save_dir_blocks)
-		Q_hat = pyfftw.empty_aligned(
-			[self._n_freq,self._nx*self.nv,self._n_blocks],dtype='complex_')
-		# Q_blk = np.zeros([self._n_DFT,int(self._nx*self._nv)])
-		Q_blk     = pyfftw.empty_aligned([self._n_DFT,int(self._nx*self._nv)], dtype='float64')
-		Q_blk_hat = pyfftw.empty_aligned([self._n_DFT,int(self._nx*self._nv)], dtype='complex_')
+		Q_hat = np.empty(
+			[self._n_freq,self._nx*self.nv,self._n_blocks], dtype='complex_')
+		Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
+		# Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)], dtype='float64')
+		Q_blk_hat = np.empty([self._n_DFT,int(self._nx*self._nv)], dtype='complex_')
 
 		if blocks_present:
 			# load blocks if present

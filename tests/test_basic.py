@@ -5,18 +5,18 @@ import pytest
 import subprocess
 import numpy as np
 
-# Import library specific modules
-sys.path.append("../")
-from pyspod.spod_low_storage import SPOD_low_storage
-from pyspod.spod_low_ram     import SPOD_low_ram
-from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.weights as weights
-
 # Current, parent and file paths
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
+# Import library specific modules
+sys.path.append(os.path.join(CFD,"../"))
+sys.path.append(os.path.join(CFD,"../pyspod"))
+from pyspod.spod_low_storage import SPOD_low_storage
+from pyspod.spod_low_ram     import SPOD_low_ram
+from pyspod.spod_streaming   import SPOD_streaming
+import pyspod.weights as weights
 
 # Let's create some 2D syntetic data
 # and store them into a variable called p
