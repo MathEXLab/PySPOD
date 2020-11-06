@@ -1,6 +1,4 @@
-"""
-Derived module from spodbase.py for classic spod.
-"""
+"""Module implementing weights for standard cases.."""
 
 # import standard python packages
 import numpy as np
@@ -9,7 +7,8 @@ import numpy as np
 
 def geo_weights_trapz_2D(lat, lon, R, n_vars):
 	'''
-	2D integration weights for geospatial data via trapezoidal rule
+	2D integration weights for geospatial
+        data via trapezoidal rule
 	'''
 	n_lat = len(lat)
 	n_lon = len(lon)
@@ -40,7 +39,8 @@ def geo_weights_trapz_2D(lat, lon, R, n_vars):
 
 def geo_weights_trapz_3D(lat, lon, R, z, n_vars):
 	'''
-	3D integration weights for geospatial data via trapezoidal rule
+	3D integration weights for geospatial
+        data via trapezoidal rule
 	'''
 	n_lat = len(lat)
 	n_lon = len(lon)
@@ -101,6 +101,7 @@ def geo_weights_trapz_3D(lat, lon, R, z, n_vars):
 
 
 def apply_normalization(X, weights, method='variance'):
+        '''Normalization of weights if required.'''
 
 	# variable-wise normalization by variance via weight matrix
 	if method.lower() == 'variance':

@@ -29,7 +29,8 @@ class SPOD_streaming(SPOD_base):
 	the `SPOD_base` class.
 	"""
 	def __init__(self, X, params, data_handler, variables):
-		super().__init__(X, params, data_handler, variables)
+                """Constructor of SPOD_streaming."""
+	        super().__init__(X, params, data_handler, variables)
 
 	def fit(self):
 		"""

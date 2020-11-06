@@ -35,7 +35,7 @@ def read_data(data, t_0, t_end, variables):
 	if t_0 == t_end: ti = [t_0]
 	else           : ti = np.arange(t_0,t_end)
 	X = np.empty([len(ti), x2.shape[0], x1.shape[0], len(variables)])
-	for i,var in enumerate(variables):
+	for _,var in enumerate(variables):
 		X = np.array(ds[var].isel(time=ti))
 	return X
 

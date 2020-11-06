@@ -1,6 +1,4 @@
-"""
-Derived module from spodbase.py for classic spod.
-"""
+"""Derived module from spodbase.py for classic spod."""
 
 # import standard python packages
 import os
@@ -9,11 +7,8 @@ from scipy.io import loadmat
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import animation
-import matplotlib.gridspec as gridspec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rc('figure', max_open_warning = 0)
 from os.path import splitext
-import warnings
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -55,7 +50,7 @@ def find_nearest_coords(coords, x, data_space_dim):
 	coords = np.asarray(coords)
 	if isinstance(x, list):
 		grid = np.array(np.meshgrid(*x))
-	elif isinstance(x,np.ndarray) == data:
+	elif isinstance(x,np.ndarray):
 		if x.shape == data_space_dim:
 			grid = x
 	else:
@@ -108,7 +103,7 @@ def get_mode_from_file(filename):
 		file at a given frequency.
 	:rtype: numpy.ndarray
 	"""
-	basename, ext = splitext(filename)
+	_, ext = splitext(filename)
 	if ext.lower() == '.npy':
 		m = np.load(filename)
 	elif ext.lower() == '.mat':
@@ -670,7 +665,6 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 			# axis management
 			ax.set_xlim(np.nanmin(t )*1.05,np.nanmax(t )*1.05)
 			ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
-			xlim = ax.get_xlim()
 			ax_divider = make_axes_locatable(ax)
 			cax = ax_divider.append_axes("bottom", size="5%", pad=0.65)
 			plt.colorbar(ax_obj, cax=cax, orientation="horizontal")
@@ -1243,7 +1237,8 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 
 def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	x1=None, x2=None, coastlines='', figsize=(12,8), path='CWD', filename='data_video.mp4'):
-	"""Make movie of 2D data.
+	"""
+        Make movie of 2D data.
 
 	:param numpy.ndarray X: 2D data to be plotted. \
 		First dimension must be time. Last dimension must be variable.
@@ -1283,10 +1278,6 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	# filename
 	basename, ext = splitext(filename)
 
-	# figure dimensions
-	axes_ratio = (np.nanmax(x2) - np.nanmin(x2)) \
-			   / (np.nanmax(x1) - np.nanmin(x1))
-
 	# check dimension axes and data
 	if x1.shape[0] != X[0,:,:].shape[0] or \
 	   x2.shape[0] != X[0,:,:].shape[1]:
@@ -1304,8 +1295,8 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 		cst = True
 
 	# Generate movie
-	vmin = np.nanmin(X)
-	vmax = np.nanmax(X)
+	#vmin = np.nanmin(X)
+	#vmax = np.nanmax(X)
 	vmean = np.nanmean(X)
 	for i in vars_idx:
 		fig = plt.figure()

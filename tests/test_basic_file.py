@@ -55,7 +55,7 @@ def read_data_netCDF(data, t_0, t_end, variables):
 	if t_0 == t_end: ti = [t_0]
 	else           : ti = np.arange(t_0,t_end)
 	X = np.empty([len(ti), x2.shape[0], x1.shape[0], len(variables)])
-	for i,var in enumerate(variables):
+	for _,var in enumerate(variables):
 		X = np.array(ds[var].isel(time=ti))
 	return X
 x_nc = read_data_netCDF('data.nc', t_0=0, t_end=t.shape[0], variables=variables)
@@ -205,7 +205,7 @@ def test_basic_file_spod_streaming():
 		modes_idx=[0,1],
 		vars_idx=[0],
 		filename='tmp.png')
-	tol = 1e-10
+	# tol = 1e-10
 	# assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
 	# 	   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
 	# assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \

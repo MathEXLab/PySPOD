@@ -1,6 +1,4 @@
-"""
-Derived module from spod_base.py for low storage SPOD.
-"""
+"""Derived module from spod_base.py for low storage SPOD."""
 
 # import standard python packages
 import os

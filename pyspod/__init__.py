@@ -1,6 +1,4 @@
-"""
-PySPOD init
-"""
+"""PySPOD init"""
 __all__ = ['spod_base', 'spod_low_storage', 'spod_low_ram', 'spod_streaming']
 
 from .spod_base        import SPOD_base

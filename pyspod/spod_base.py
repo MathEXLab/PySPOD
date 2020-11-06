@@ -395,7 +395,7 @@ class SPOD_base(object):
 			else:
 				raise ValueError(mean_type, 'not recognized.')
 		elif isinstance(mean_type,np.ndarray):
-			x_mean = kwargs.get('mean')
+			x_mean = mean_type
 			mean_name = 'user-specified'
 		else:
 			raise ValueError(type(mean_type), 'data type not recognized. ',
@@ -528,6 +528,7 @@ class SPOD_base(object):
 			of 2 that satisfy 2^p >= abs(a)
 		'''
 		p = 0
+                v = 0
 		while v < np.abs(a):
 			v = 2 ** p
 			p += 1

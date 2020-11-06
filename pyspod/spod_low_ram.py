@@ -11,7 +11,6 @@ from tqdm import tqdm
 from numpy import linalg as la
 import scipy.special as sc
 from scipy.fft import fft
-import warnings
 import shutil
 
 # Import PySPOD base class for SPOD_low_ram

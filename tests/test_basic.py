@@ -152,7 +152,7 @@ def test_basic_spod_streaming():
 		modes_idx=[0,1],
 		vars_idx=[0],
 		filename='tmp.png')
-	tol = 1e-10
+	# tol = 1e-10
 	# assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
 	# 	   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
 	# assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \

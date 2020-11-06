@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 import xarray as xr
 import numpy  as np
 
