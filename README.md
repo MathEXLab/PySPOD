@@ -29,17 +29,17 @@
 
 ## Table of contents
 
-    * [Description](#description)
-    * [Installation and dependencies](#installation-and-dependencies)
-	    * [Installing via PIP](#installing-via-pip)
-	    * [Installing from source](#installing-from-source)
-    * [Documentation](#documentation)
-    * [Testing](#testing)
-    * [Tutorials](#tutorials)
-    * [References](#references)
-    * [Recent works with PySPOD](#recent-works-with-pyspod)
-    * [Authors and contributors](#authors-and-contributors)
-    * [License](#license)
+  * [Description](#description)
+  * [Installation and dependencies](#installation-and-dependencies)
+    * [Installing via PIP](#installing-via-pip)
+    * [Installing from source](#installing-from-source)
+  * [Documentation](#documentation)
+  * [Testing](#testing)
+  * [Tutorials](#tutorials)
+  * [References](#references)
+  * [Recent works with PySPOD](#recent-works-with-pyspod)
+  * [Authors and contributors](#authors-and-contributors)
+  * [License](#license)
 
 ## Description
 **PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (picard-&-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al-2018), [(Schmidt and Towne 2019)](#schmidt-and-towne-2019).
