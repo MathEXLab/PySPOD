@@ -65,7 +65,7 @@ It can be installed using `pip` or directly from the source code.
 Mac and Linux users can install pre-built binary packages using pip.
 To install the package just type: 
 ```bash
-    > pip install pyspod
+    > pip install --user pyspod 
 ```
 To uninstall the package:
 ```bash
