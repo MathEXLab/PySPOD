@@ -29,17 +29,17 @@
 
 ## Table of contents
 
-  * [Description](#description)
-  * [Installation and dependencies](#installation-and-dependencies)
-	 * [Installing via PIP](#installing-via-pip)
-	 * [Installing from source](#installing-from-source)
-  * [Documentation](#documentation)
-  * [Testing](#testing)
-  * [Tutorials](#tutorials)
-  * [References](#references)
-  * [Recent works with PySPOD](#recent-works-with-pyspod)
-  * [Authors and contributors](#authors-and-contributors)
-  * [License](#license)
+    * [Description](#description)
+    * [Installation and dependencies](#installation-and-dependencies)
+	    * [Installing via PIP](#installing-via-pip)
+	    * [Installing from source](#installing-from-source)
+    * [Documentation](#documentation)
+    * [Testing](#testing)
+    * [Tutorials](#tutorials)
+    * [References](#references)
+    * [Recent works with PySPOD](#recent-works-with-pyspod)
+    * [Authors and contributors](#authors-and-contributors)
+    * [License](#license)
 
 ## Description
 **PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by (picard-&-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al-2018), [(Schmidt and Towne 2019)](#schmidt-and-towne-2019).
@@ -51,9 +51,10 @@ The SPOD approach targets statistically stationary problems and involves the dec
 This can help identifying relations to multiple variables or understanding the reduced order behavior of a given phenomenon of interest and represent a powerful tool for the data-driven analysis of nonlinear dynamical systems. The SPOD approach shares some relationships with the dynamic mode decomposition (DMD), and the resolvent analysis,  [(Towne et al. 2018)](#Towne-et-al-2018), that are also widely used approaches for the data-driven analysis of nonlinear systems. SPOD can be used for both experimental and simulation data, and a general description of its key parameters can be found in [(Schmidt and Colonius 2020)](#schmidt-and-colonius-2020).  
 
 In this package we implement three version of SPOD 
-  - SPOD_low_storage: that is intended for large RAM machines or small datasets
-  - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
-  - SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019), and it is intended for large datasets.
+
+    - SPOD_low_storage: that is intended for large RAM machines or small datasets
+    - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
+    - SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019), and it is intended for large datasets.
 
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
 
