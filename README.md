@@ -66,11 +66,11 @@ It can be installed using `pip` or directly from the source code.
 Mac and Linux users can install pre-built binary packages using pip.
 To install the package just type: 
 ```bash
-> pip install pyspod
+    > pip install pyspod
 ```
 To uninstall the package:
 ```bash
-> pip uninstall pyspod
+    > pip uninstall pyspod
 ```
 
 ### Installing from source
@@ -254,7 +254,7 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 
 **PySPOD** is currently developed and mantained by
 
-  * [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
+    * [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
 
 Contact me by email for further information or questions about **PySPOD**, or suggest pull requests. 
 Contributions improving code and documentation, as well as suggestions about new features are more than welcome!

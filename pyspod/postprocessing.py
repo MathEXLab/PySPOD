@@ -1008,7 +1008,6 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 
 	# get width and height figure
 	wsize = figsize[0]
-	hsize = figsize[1]
 
 	# calculate period and time vector
 	n_points = 100

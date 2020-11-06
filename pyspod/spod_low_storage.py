@@ -8,7 +8,6 @@ import numpy as np
 from tqdm import tqdm
 from numpy import linalg as la
 from scipy.fft import fft
-import warnings
 import psutil
 
 # binding to fftw with interfaces to scipy and numpy
