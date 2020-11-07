@@ -260,7 +260,7 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 
 **PySPOD** is currently developed and mantained by
 
-  * [Gianmarco Mengaldo](mailto:gianmarco.mengaldo@gmail.com).
+  * [G. Mengaldo](mailto:mpegim@nus.edu.sg).
 
 Contact me by email for further information or questions about **PySPOD**, or suggest pull requests. 
 Contributions improving code and documentation, as well as suggestions about new features are more than welcome!
