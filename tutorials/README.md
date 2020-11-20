@@ -52,6 +52,13 @@ and use **PySPOD** to identify spatio-temporal coherent structured in univariate
 2D data. In particular, we seek to identify spatio-temporal coherent structure in 
 high-resolution mean-sea level pressure data from the ERA5 dataset.
 
+#### [Tutorial: 2D NAM Relative Humidity](climate/NAM_2D/NAM_2D.ipynb)
+
+This tutorial explores the NAM dataset provided by NOAA, and in particular, the daily 
+relative humidity reanalysis data for a period of ten years (2008-10-28) to (2018-09-20). 
+While we use the first few years worth of data for a quick assessment, the readers are 
+encouraged to increase the number of snapshots.
+
 ### Fluidmechanics 
 
 #### [Tutorial: 2D Jet](fluidmechanics/jet_2D/jet_2D.ipynb)
