@@ -640,7 +640,8 @@ class SPOD_base(object):
 								   yticks=None,
 								   figsize=(12,8),
 								   equal_axes=False,
-								   filename=None):
+								   filename=None,
+                                   origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -691,7 +692,8 @@ class SPOD_base(object):
 										 yticks=None,
 										 figsize=(12,8),
 										 equal_axes=False,
-										 filename=None):
+										 filename=None,
+                                         origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -730,7 +732,8 @@ class SPOD_base(object):
 					 title='',
 					 coastlines='',
 					 figsize=(12,8),
-					 filename=None):
+					 filename=None,
+                     origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''

@@ -312,7 +312,7 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
 	x1=None, x2=None, fftshift=False, imaginary=False, plot_max=False, coastlines='',
 	title='', xticks=None, yticks=None, figsize=(12,8), equal_axes=False, path='CWD',
-	filename=None):
+	filename=None,origin=None):
 	"""
 	Plot SPOD modes for 2D problems.
 
@@ -400,12 +400,14 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 				real = real_ax.contourf(
 					x1, x2, np.real(mode).T,
 					vmin=-np.abs(mode).max()*1.,
-					vmax= np.abs(mode).max()*1.)
+					vmax= np.abs(mode).max()*1.,
+					origin=origin)
 				imag_ax = fig.add_subplot(1, 2, 2)
 				imag = imag_ax.contourf(
 					x1, x2, np.imag(mode).T,
 					vmin=-np.abs(mode).max()*1.,
-					vmax= np.abs(mode).max()*1.)
+					vmax= np.abs(mode).max()*1.,
+					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
@@ -463,7 +465,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 				real = real_ax.contourf(
 					x1, x2, np.real(mode).T,
 					vmin=-np.abs(mode).max()*1.,
-					vmax= np.abs(mode).max()*1.)
+					vmax= np.abs(mode).max()*1.,
+					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
@@ -716,7 +719,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
 	x1=None, x2=None, x3=None, slice_dim=0, slice_id=None, fftshift=False, imaginary=False,
 	plot_max=False, coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
-	equal_axes=False, path='CWD', filename=None):
+	equal_axes=False, path='CWD', filename=None, origin=None):
 	"""
 	Plot SPOD modes for 3D problems.
 
@@ -831,12 +834,14 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 				real = real_ax.contourf(
 					xx, yy, np.real(mode).T,
 					vmin=-np.abs(mode).max(),
-					vmax= np.abs(mode).max())
+					vmax= np.abs(mode).max(),
+					origin=origin)
 				imag_ax = fig.add_subplot(1, 2, 2)
 				imag = imag_ax.contourf(
 					xx, yy, np.imag(mode).T,
 					vmin=-np.abs(mode).max(),
-					vmax= np.abs(mode).max())
+					vmax= np.abs(mode).max(),
+					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
@@ -895,7 +900,8 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 				real = real_ax.contourf(
 					xx, yy, np.real(mode).T,
 					vmin=-np.abs(mode).max(),
-					vmax= np.abs(mode).max())
+					vmax= np.abs(mode).max(),
+					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
@@ -1060,7 +1066,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 
 
 def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
-	title='', coastlines='', figsize=(12,8), path='CWD', filename=None):
+	title='', coastlines='', figsize=(12,8), path='CWD', filename=None, origin=None):
 	"""
 	Plot 2D data.
 
@@ -1129,7 +1135,8 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 			contour = plt.contourf(
 				x1, x2, x.T,
 				vmin=np.nanmin(x),
-				vmax=np.nanmax(x))
+				vmax=np.nanmax(x),
+				origin=origin)
 			fig.colorbar(contour)
 
 			# overlay coastlines if required
