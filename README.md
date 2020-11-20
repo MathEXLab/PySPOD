@@ -11,7 +11,7 @@
   <a href="https://github.com/mengaldo/PySPOD/LICENSE" target="_blank">
     <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
   </a>
-  <a href="https://badge.fury.io/py/pydmd">
+  <a href="https://badge.fury.io/py/pyspod">
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
   </a>
   <a href="https://travis-ci.com/mengaldo/PySPOD" target="_blank">
