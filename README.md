@@ -260,7 +260,7 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 
 **PySPOD** is currently developed and mantained by
 
-  * [G. Mengaldo](mailto:mpegim@nus.edu.sg).
+  * [G. Mengaldo](mailto:mpegim@nus.edu.sg), NUS.
 
 Current active contributors include:
 
