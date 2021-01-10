@@ -260,14 +260,26 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 
 **PySPOD** is currently developed and mantained by
 
-  * [G. Mengaldo](mailto:mpegim@nus.edu.sg), NUS.
+  * [G. Mengaldo](mailto:mpegim@nus.edu.sg), National University of Singapore.
 
 Current active contributors include:
 
   * [R. Maulik](https://romit-maulik.github.io), Argonne National Laboratory.
   
-Contact me by email for further information or questions about **PySPOD**, or suggest pull requests. 
+## How to contribute
+
 Contributions improving code and documentation, as well as suggestions about new features are more than welcome!
+
+The guidelines to contribute are as follows: 
+1. open a new issue describing the bug you intend to fix or the feature you want to add.
+2. fork the project and open your own branch related to the issue you just opened, and call the branch `fix/name-of-the-issue` if it is a bug fix, or `feature/name-of-the-issue` if you are adding a feature.
+3. ensure to use 4 spaces for formatting the code.
+4. if you add a feature, it should be accompanied by relevant tests to ensure it functions correctly, while the code continue to be developed.
+5. commit your changes with a self-explanatory commit message. 
+6. push your commits and submit a pull request. Please, remember to rebase properly in order to maintain a clean, linear git history.
+
+[Contact me](mailto:mpegim@nus.edu.sg) by email for further information or questions about **PySPOD** or ways on how to contribute. 
+
 
 ## License
 
