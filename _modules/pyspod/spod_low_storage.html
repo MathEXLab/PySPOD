@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyspod.spod_low_storage &mdash; PySPOD 0.1 documentation</title>
+  <title>pyspod.spod_low_storage &mdash; PySPOD 0.4.3 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.1
+                0.4.3
               </div>
             
           
@@ -149,26 +149,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for pyspod.spod_low_storage</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Derived module from spod_base.py for low storage SPOD.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;Derived module from spod_base.py for low storage SPOD.&quot;&quot;&quot;</span>
 
 <span class="c1"># import standard python packages</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">scipy.io</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">la</span>
 <span class="kn">from</span> <span class="nn">scipy.fft</span> <span class="kn">import</span> <span class="n">fft</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">psutil</span>
-
-<span class="c1"># binding to fftw with interfaces to scipy and numpy</span>
-<span class="kn">import</span> <span class="nn">pyfftw</span>
-<span class="n">pyfftw</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">NUM_THREADS</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">pyfftw</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">PLANNER_EFFORT</span> <span class="o">=</span> <span class="s1">&#39;FFTW_ESTIMATE&#39;</span>
 
 <span class="c1"># import PySPOD base class for SPOD_low_storage</span>
 <span class="kn">from</span> <span class="nn">pyspod.spod_base</span> <span class="kn">import</span> <span class="n">SPOD_base</span>
@@ -219,11 +210,11 @@
 		<span class="c1"># check if blocks are already saved in memory</span>
 		<span class="n">blocks_present</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_are_blocks_present</span><span class="p">(</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">_n_blocks</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_dir_blocks</span><span class="p">)</span>
-		<span class="n">Q_hat</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">(</span>
-			<span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_blocks</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex_&#39;</span><span class="p">)</span>
-		<span class="c1"># Q_blk = np.zeros([self._n_DFT,int(self._nx*self._nv)])</span>
-		<span class="n">Q_blk</span>     <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_DFT</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_nv</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
-		<span class="n">Q_blk_hat</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">empty_aligned</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_DFT</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_nv</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex_&#39;</span><span class="p">)</span>
+		<span class="n">Q_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+			<span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_blocks</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex_&#39;</span><span class="p">)</span>
+		<span class="n">Q_blk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_DFT</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_nv</span><span class="p">)])</span>
+		<span class="c1"># Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)], dtype=&#39;float64&#39;)</span>
+		<span class="n">Q_blk_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_DFT</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nx</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_nv</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex_&#39;</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="n">blocks_present</span><span class="p">:</span>
 			<span class="c1"># load blocks if present</span>
@@ -236,7 +227,6 @@
 			<span class="c1"># loop over number of blocks and generate Fourier realizations</span>
 			<span class="k">for</span> <span class="n">iBlk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_blocks</span><span class="p">):</span>
 
-				<span class="n">start0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 				<span class="c1"># get time index for present block</span>
 				<span class="n">offset</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">iBlk</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_DFT</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_overlap</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_DFT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nt</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_DFT</span>
 
@@ -357,9 +347,9 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright Copyright 2020-2025, SIA
+        &copy; Copyright Copyright 2020-2021 PySPOD authors and contributors
       <span class="lastupdated">
-        Last updated on Nov 05, 2020.
+        Last updated on Mar 01, 2021.
       </span>
 
     </p>

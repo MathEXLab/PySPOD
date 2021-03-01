@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyspod.spod_low_ram &mdash; PySPOD 0.1 documentation</title>
+  <title>pyspod.spod_low_ram &mdash; PySPOD 0.4.3 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.1
+                0.4.3
               </div>
             
           
@@ -157,15 +157,12 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">scipy.io</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">la</span>
 <span class="kn">import</span> <span class="nn">scipy.special</span> <span class="k">as</span> <span class="nn">sc</span>
 <span class="kn">from</span> <span class="nn">scipy.fft</span> <span class="kn">import</span> <span class="n">fft</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">psutil</span>
 
 <span class="c1"># Import PySPOD base class for SPOD_low_ram</span>
 <span class="kn">from</span> <span class="nn">pyspod.spod_base</span> <span class="kn">import</span> <span class="n">SPOD_base</span>
@@ -276,7 +273,7 @@
 			<span class="k">if</span> <span class="n">n_modes_save</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
 				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Memory required for storing at least one mode &#39;</span>
 								 <span class="s1">&#39;is equal or larger than available storage memory in your system ...</span><span class="se">\n</span><span class="s1">&#39;</span>
-							 	 <span class="s1">&#39;... aborting computation...&#39;</span><span class="p">)</span>
+								 <span class="s1">&#39;... aborting computation...&#39;</span><span class="p">)</span>
 
 		<span class="c1"># load FFT blocks from hard drive and save modes on hard drive (for large data)</span>
 		<span class="k">for</span> <span class="n">iFreq</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_freq</span><span class="p">),</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;computing frequencies&#39;</span><span class="p">):</span>
@@ -346,9 +343,9 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright Copyright 2020-2025, SIA
+        &copy; Copyright Copyright 2020-2021 PySPOD authors and contributors
       <span class="lastupdated">
-        Last updated on Nov 05, 2020.
+        Last updated on Mar 01, 2021.
       </span>
 
     </p>

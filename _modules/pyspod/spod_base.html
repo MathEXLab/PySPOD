@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyspod.spod_base &mdash; PySPOD 0.1 documentation</title>
+  <title>pyspod.spod_base &mdash; PySPOD 0.4.3 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.1
+                0.4.3
               </div>
             
           
@@ -546,7 +546,7 @@
 			<span class="k">else</span><span class="p">:</span>
 				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">mean_type</span><span class="p">,</span> <span class="s1">&#39;not recognized.&#39;</span><span class="p">)</span>
 		<span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean_type</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-			<span class="n">x_mean</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
+			<span class="n">x_mean</span> <span class="o">=</span> <span class="n">mean_type</span>
 			<span class="n">mean_name</span> <span class="o">=</span> <span class="s1">&#39;user-specified&#39;</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">mean_type</span><span class="p">),</span> <span class="s1">&#39;data type not recognized. &#39;</span><span class="p">,</span>
@@ -679,6 +679,7 @@
 <span class="sd">			of 2 that satisfy 2^p &gt;= abs(a)</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">p</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
 		<span class="k">while</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
 			<span class="n">v</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">p</span>
 			<span class="n">p</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -739,14 +740,14 @@
 			<span class="n">equal_axes</span><span class="o">=</span><span class="n">equal_axes</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SPOD_base.plot_eigs_vs_frequency"><a class="viewcode-back" href="../../index.html#pyspod.spod_base.SPOD_base.plot_eigs_vs_frequency">[docs]</a>	<span class="k">def</span> <span class="nf">plot_eigs_vs_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-				  			   <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-				  			   <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+							   <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+							   <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
 							   <span class="n">xticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 							   <span class="n">yticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-				  			   <span class="n">show_axes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-				  			   <span class="n">equal_axes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+							   <span class="n">show_axes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+							   <span class="n">equal_axes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 							   <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span>
-				  			   <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+							   <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -790,7 +791,8 @@
 								   <span class="n">yticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 								   <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span>
 								   <span class="n">equal_axes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-								   <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+								   <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -823,25 +825,26 @@
 			<span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SPOD_base.plot_3D_modes_slice_at_frequency"><a class="viewcode-back" href="../../index.html#pyspod.spod_base.SPOD_base.plot_3D_modes_slice_at_frequency">[docs]</a>	<span class="k">def</span> <span class="nf">plot_3D_modes_slice_at_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-								   		 <span class="n">freq_required</span><span class="p">,</span>
-								   		 <span class="n">freq</span><span class="p">,</span>
-								         <span class="n">vars_idx</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-								         <span class="n">modes_idx</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-								         <span class="n">x1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-								         <span class="n">x2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-								         <span class="n">x3</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-								         <span class="n">slice_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-								         <span class="n">slice_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-								         <span class="n">fftshift</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-								         <span class="n">imaginary</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-								         <span class="n">plot_max</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+										 <span class="n">freq_required</span><span class="p">,</span>
+										 <span class="n">freq</span><span class="p">,</span>
+										 <span class="n">vars_idx</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+										 <span class="n">modes_idx</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+										 <span class="n">x1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+										 <span class="n">x2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+										 <span class="n">x3</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+										 <span class="n">slice_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+										 <span class="n">slice_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+										 <span class="n">fftshift</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+										 <span class="n">imaginary</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+										 <span class="n">plot_max</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 										 <span class="n">coastlines</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-								         <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-								         <span class="n">xticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-								         <span class="n">yticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-								         <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span>
-								         <span class="n">equal_axes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-								         <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+										 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+										 <span class="n">xticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+										 <span class="n">yticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+										 <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span>
+										 <span class="n">equal_axes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+										 <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -880,7 +883,8 @@
 					 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
 					 <span class="n">coastlines</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
 					 <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span>
-					 <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+					 <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -915,14 +919,14 @@
 	<span class="c1"># Generate animations</span>
 	<span class="c1"># ---------------------------------------------------------------------------</span>
 <div class="viewcode-block" id="SPOD_base.generate_2D_data_video"><a class="viewcode-back" href="../../index.html#pyspod.spod_base.SPOD_base.generate_2D_data_video">[docs]</a>	<span class="k">def</span> <span class="nf">generate_2D_data_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-					 	       <span class="n">time_limits</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span>
-					 	       <span class="n">vars_idx</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-						       <span class="n">sampling</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-					 	       <span class="n">x1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-					 	       <span class="n">x2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-						       <span class="n">coastlines</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-						       <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span>
-					 	       <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;data_video.mp4&#39;</span><span class="p">):</span>
+							   <span class="n">time_limits</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span>
+							   <span class="n">vars_idx</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+							   <span class="n">sampling</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+							   <span class="n">x1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+							   <span class="n">x2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+							   <span class="n">coastlines</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+							   <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span>
+							   <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;data_video.mp4&#39;</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		See method implementation in the postprocessing module.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -944,9 +948,9 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright Copyright 2020-2025, SIA
+        &copy; Copyright Copyright 2020-2021 PySPOD authors and contributors
       <span class="lastupdated">
-        Last updated on Nov 05, 2020.
+        Last updated on Mar 01, 2021.
       </span>
 
     </p>
