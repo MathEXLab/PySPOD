@@ -20,13 +20,13 @@ sys.path.insert(0, os.path.abspath('../../'))
 import pyspod
 
 # -- Project information -----------------------------------------------------
+# General information about the project.
+project = pyspod.__project__
+copyright = pyspod.__copyright__
+author = pyspod.__author__
+version = pyspod.__version__
 
-project = 'pyspod'
-copyright = '2020, Gianmarco Mengaldo'
-author = 'Gianmarco Mengaldo'
 
-# The full version, including alpha/beta/rc tags
-release = '0.0.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -68,11 +68,6 @@ source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
-
-# General information about the project.
-project = u'PySPOD'
-copyright = pyspod.__copyright__
-author = pyspod.__author__
 
 # autoclass
 autoclass_content = 'both'
@@ -172,7 +167,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

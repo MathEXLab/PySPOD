@@ -14,3 +14,14 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(
 	os.path.expanduser(__file__))))
 for P in PACKAGE_PARENTS:
 	sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, P)))
+
+__project__ = 'PySPOD'
+__title__ = "pyspod"
+__author__ = "Gianmarco Mengaldo and Romit Maulik"
+__email__ = 'gianmarco.mengaldo@gmail.com; rmaulik@anl.gov'
+__copyright__ = "Copyright 2020-2021 PySPOD authors and contributors"
+__maintainer__ = __author__
+__status__ = "Stable"
+__license__ = "MIT"
+__version__ = "0.4.3"
+__url__ = "https://github.com/mengaldo/PySPOD"
