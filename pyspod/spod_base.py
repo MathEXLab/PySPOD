@@ -48,18 +48,23 @@ class SPOD_base(object):
 				X = X[...,np.newaxis]
 		else:
 			def data_handler(data, t_0, t_end, variables):
-				if t_0 == t_end: ti = np.arange(t_0,t_0+1)
-				else           : ti = np.arange(t_0,t_end)
-				d = data[ti,...,:]
+				if t_0 > t_end:
+					raise ValueError('`t_0` cannot be greater than `t_end`.')
+				elif t_0 >= self._nt:
+					raise ValueError('`t_0` cannot be greater or equal to time dimension.')
+				elif t_0 == t_end:
+					ti = np.arange(t_0, t_0+1)
+					d = data[[t_0],...,:]
+				else:
+					ti = np.arange(t_0, t_end)
+					d = data[ti,...,:]
 				return d
-
 			self._data_handler = data_handler
 			self._data = np.array(data)
 			X = self._data_handler(self._data, t_0=0, t_end=0, variables=self._variables)
 			if self._nv == 1 and (self._data.ndim != self._xdim + 2):
 				X = X[...,np.newaxis]
 				self._data = self._data[...,np.newaxis]
-
 
 		# get data dimensions and store in class
 		self._nx = X[0,...,0].size

@@ -31,7 +31,7 @@ print('X.shape  = ', X.shape)
 # define required and optional parameters
 params = dict()
 params['dt'          ] = 1
-params['nt'          ] = len(t)
+params['nt'          ] = len(t)-1
 params['xdim'        ] = 2
 params['nv'          ] = len(variables)
 params['n_FFT'       ] = np.ceil(32)
