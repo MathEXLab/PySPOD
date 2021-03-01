@@ -26,7 +26,6 @@ REQUIRED = [
 	"ecmwf_api_client",
 	"cdsapi",
 	"future",
-	"ffmpeg",
 	"pytest",
 ]
 EXTRAS = {
