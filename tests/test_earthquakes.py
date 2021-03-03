@@ -25,9 +25,9 @@ CFD = os.path.dirname(CF)
 # project libraries
 sys.path.append(os.path.join(CFD,"../"))
 sys.path.append(os.path.join(CFD,"../pyspod"))
-from pyspod.spod_low_ram import SPOD_low_ram
+from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_low_storage import SPOD_low_storage
-from pyspod.spod_streaming import SPOD_streaming
+from pyspod.spod_streaming   import SPOD_streaming
 
 
 # data ingestion and configuration

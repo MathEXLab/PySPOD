@@ -139,35 +139,6 @@ def test_basic_file_spod_low_ram():
 	assert((np.max(np.abs(modes_at_freq))   < 0.02991911832816271   +tol) & \
 		   (np.max(np.abs(modes_at_freq))   > 0.02991911832816271   -tol))
 
-
-
-@pytest.mark.order3
-def test_basic_file_spod_streaming():
-	# Finally, we can try the streaming algorithm
-	spod_st = SPOD_streaming(
-		X=os.path.join(CWD,'data.nc'),
-		params=params,
-		data_handler=read_data_netCDF,
-		variables=variables)
-	spod_st.fit()
-
-	# Show results
-	T_approx = 10 # approximate period = 10 days (in days)
-	freq = spod_st.freq
-	freq_found, freq_idx = spod_st.find_nearest_freq(freq_required=1/T_approx, freq=freq)
-	modes_at_freq = spod_st.get_modes_at_freq(freq_idx=freq_idx)
-	tol = 1e-10
-	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
-	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
-		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
-	assert((np.abs(modes_at_freq[5,10,0,1]) < 3.3719389321669724e-05+tol) & \
-		   (np.abs(modes_at_freq[5,10,0,1]) > 3.3719389321669724e-05-tol))
-	assert((np.abs(modes_at_freq[5,10,0,2]) < 2.556451901012057e-05+tol) & \
-		   (np.abs(modes_at_freq[5,10,0,2]) > 2.556451901012057e-05-tol))
-	assert((np.max(np.abs(modes_at_freq))   < 0.029917334301665384 +tol) & \
-		   (np.max(np.abs(modes_at_freq))   > 0.029917334301665384 -tol))
-
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
@@ -176,6 +147,44 @@ def test_basic_file_spod_streaming():
 		os.remove(os.path.join(CWD,'data.nc'))
 	except OSError as e:
 		print("Error: %s : %s" % (os.path.join(CWD,'data.nc'), e.strerror))
+
+
+
+# @pytest.mark.order3
+# def test_basic_file_spod_streaming():
+# 	# Finally, we can try the streaming algorithm
+# 	spod_st = SPOD_streaming(
+# 		X=os.path.join(CWD,'data.nc'),
+# 		params=params,
+# 		data_handler=read_data_netCDF,
+# 		variables=variables)
+# 	spod_st.fit()
+#
+# 	# Show results
+# 	T_approx = 10 # approximate period = 10 days (in days)
+# 	freq = spod_st.freq
+# 	freq_found, freq_idx = spod_st.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+# 	modes_at_freq = spod_st.get_modes_at_freq(freq_idx=freq_idx)
+# 	tol = 1e-10
+# 	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
+# 		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
+# 	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
+# 		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
+# 	assert((np.abs(modes_at_freq[5,10,0,1]) < 3.3719389321669724e-05+tol) & \
+# 		   (np.abs(modes_at_freq[5,10,0,1]) > 3.3719389321669724e-05-tol))
+# 	assert((np.abs(modes_at_freq[5,10,0,2]) < 2.556451901012057e-05+tol) & \
+# 		   (np.abs(modes_at_freq[5,10,0,2]) > 2.556451901012057e-05-tol))
+# 	assert((np.max(np.abs(modes_at_freq))   < 0.029917334301665384 +tol) & \
+# 		   (np.max(np.abs(modes_at_freq))   > 0.029917334301665384 -tol))
+#
+# 	try:
+# 		shutil.rmtree(os.path.join(CWD,'results'))
+# 	except OSError as e:
+# 		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+# 	try:
+# 		os.remove(os.path.join(CWD,'data.nc'))
+# 	except OSError as e:
+# 		print("Error: %s : %s" % (os.path.join(CWD,'data.nc'), e.strerror))
 
 
 
