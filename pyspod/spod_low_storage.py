@@ -13,6 +13,7 @@ import psutil
 # import PySPOD base class for SPOD_low_storage
 from pyspod.spod_base import SPOD_base
 
+
 BYTE_TO_GB = 9.3132257461548e-10
 
 
@@ -20,8 +21,8 @@ BYTE_TO_GB = 9.3132257461548e-10
 class SPOD_low_storage(SPOD_base):
 	"""
 	Class that implements the Spectral Proper Orthogonal Decomposition
-	to the input data using RAM to reduce the amount of I/O and disk
-	storage (for small datasets / large RAM machines).
+	to the input data using RAM to reduce the amount of I/O
+	and disk storage (for small datasets / large RAM machines).
 
 	The computation is performed on the data *X* passed to the
 	constructor of the `SPOD_low_storage` class, derived from
@@ -53,12 +54,10 @@ class SPOD_low_storage(SPOD_base):
 							 'consider running spod_low_ram to avoid system freezing.')
 
 		# check if blocks are already saved in memory
-		blocks_present = self._are_blocks_present(
-			self._n_blocks,self._n_freq,self._save_dir_blocks)
-		Q_hat = np.empty(
-			[self._n_freq,self._nx*self.nv,self._n_blocks], dtype='complex_')
+		blocks_present = self._are_blocks_present(self._n_blocks,self._n_freq,self._save_dir_blocks)
+
 		Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
-		# Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)], dtype='float64')
+		Q_hat = np.empty([self._n_freq,self._nx*self.nv,self._n_blocks], dtype='complex_')
 		Q_blk_hat = np.empty([self._n_DFT,int(self._nx*self._nv)], dtype='complex_')
 
 		if blocks_present:

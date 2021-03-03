@@ -9,11 +9,11 @@ from tqdm import tqdm
 from numpy import linalg as la
 from scipy.fft import fft
 import shutil
+import psutil
 
 # Import PySPOD base class for SPOD_low_ram
 from pyspod.spod_base import SPOD_base
 
-# Current path
 CWD = os.getcwd()
 BYTE_TO_GB = 9.3132257461548e-10
 
@@ -22,8 +22,8 @@ BYTE_TO_GB = 9.3132257461548e-10
 class SPOD_low_ram(SPOD_base):
 	"""
 	Class that implements the Spectral Proper Orthogonal Decomposition
-	to the input data using disk storage to reduce the amount of RAM
-	(for large datasets / small RAM machines).
+	to the input data using disk storage to reduce the amount
+	of RAM (for large datasets / small RAM machines).
 
 	The computation is performed on the data *X* passed
 	to the constructor of the `SPOD_low_ram` class, derived
@@ -43,13 +43,26 @@ class SPOD_low_ram(SPOD_base):
 		print('Calculating temporal DFT (low_ram)')
 		print('------------------------------------')
 
+		# check RAM requirements
+		gb_vram_required = self._n_DFT * self._nx * self._nv \
+			* sys.getsizeof(complex()) * BYTE_TO_GB
+
+		gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
+		print('RAM available = ', gb_vram_avail)
+		print('RAM required  = ', gb_vram_required)
+		if gb_vram_required > 1.5 * gb_vram_avail:
+			raise ValueError('RAM required larger than RAM available... '
+							 'consider running spod_low_ram to avoid system freezing.')
+
 		# check if blocks are already saved in memory
 		blocks_present = self._are_blocks_present(self._n_blocks,self._n_freq,self._save_dir_blocks)
 
 		# loop over number of blocks and generate Fourier realizations,
 		# if blocks are not saved in storage
 		if not blocks_present:
+
 			Q_blk = np.zeros([self._n_DFT,self._nx], dtype='complex_')
+
 			for iBlk in range(0,self._n_blocks):
 
 				# get time index for present block
@@ -58,12 +71,6 @@ class SPOD_low_ram(SPOD_base):
 				print('block '+str(iBlk+1)+'/'+str(self._n_blocks)+\
 					  ' ('+str(offset)+':'+str(self._n_DFT+offset)+'); ',
 					  '    Saving to directory: ', self._save_dir_blocks)
-
-				# # build present block
-				# for ti in timeIdx:
-				# 	x = self._X[ti]
-				# 	x = x.reshape(x.size)
-				# 	Q_blk[ti-offset,:] = np.subtract(x[:], self._x_mean)
 
 				Q_blk = self._data_handler(
 					self._data, t_0=offset,	t_end=self._n_DFT+offset, variables=self._variables)
@@ -99,6 +106,8 @@ class SPOD_low_ram(SPOD_base):
 					Q_blk_hat_fi = Q_blk_hat[iFreq,:]
 					np.save(file, Q_blk_hat_fi)
 		print('------------------------------------')
+
+
 
 		# Loop over all frequencies and calculate SPOD
 		print(' ')
