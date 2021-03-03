@@ -175,12 +175,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 		ax.set_aspect('equal')
 
 	# save or show plots
-	if filename:
-		if path == 'CWD': path = CWD
-		plt.savefig(os.path.join(path,filename), dpi=200)
-		plt.close()
-	else:
-		plt.show()
+	_save_show_plots(filename, path, plt)
 
 
 
@@ -223,24 +218,14 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 	# axes management
 	plt.xlabel('Frequency')
 	plt.ylabel('Eigenvalues')
-	if xticks:
-		ax.set_xticks(xticks)
-		ax.set_xticklabels(xticks)
-	if yticks:
-		ax.set_yticks(yticks)
-		ax.set_yticklabels(yticks)
+	ax, xticks, yticks = _format_axes(ax, xticks, yticks)
 	if  equal_axes:
 		ax.set_aspect('equal')
 	if len(title) > 1:
 		plt.title(title)
 
 	# save or show plots
-	if filename:
-		if path == 'CWD': path = CWD
-		plt.savefig(os.path.join(path,filename), dpi=200)
-		plt.close()
-	else:
-		plt.show()
+	_save_show_plots(filename, path, plt)
 
 
 
@@ -285,12 +270,8 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	ax.grid(True)
 
 	# set limits for axis
-	if xticks:
-		ax.set_xticks(xticks)
-		ax.set_xticklabels(xticks)
-	if yticks:
-		ax.set_yticks(yticks)
-		ax.set_yticklabels(yticks)
+	ax, xticks, yticks = _format_axes(ax, xticks, yticks)
+
 	if  equal_axes:
 		ax.set_aspect('equal')
 	plt.xlabel('Period')
@@ -300,12 +281,7 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	ax.invert_xaxis()
 
 	# save or show plots
-	if filename:
-		if path == 'CWD': path = CWD
-		plt.savefig(os.path.join(path,filename), dpi=200)
-		plt.close()
-	else:
-		plt.show()
+	_save_show_plots(filename, path, plt)
 
 
 
@@ -347,10 +323,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 		Default is None.
 	"""
 	# get idx variables
-	if isinstance(vars_idx, int):
-		vars_idx = [vars_idx]
-	if not isinstance(vars_idx, (list,tuple)):
-		raise TypeError('`vars_idx` must be a list or tuple')
+	vars_idx = _check_vars(vars_idx)
+
 	# get idx modes
 	if isinstance(modes_idx, int):
 		modes_idx = [modes_idx]
@@ -365,10 +339,6 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 	if x1 is None and x2 is None:
 		x1 = np.arange(modes.shape[0])
 		x2 = np.arange(modes.shape[1])
-
-	# split filename
-	if filename:
-		basename, ext = splitext(filename)
 
 	# loop over variables and modes
 	for var_id in vars_idx:
@@ -410,10 +380,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
-					real_ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
-					imag_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
-					imag_ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
+					imag_ax  =_apply_2d_vertical_lines(imag_ax, x1, x2, idx1, idx2)
 				real_divider = make_axes_locatable(real_ax)
 				imag_divider = make_axes_locatable(imag_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
@@ -422,34 +390,14 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 				plt.colorbar(imag, cax=imag_cax)
 
 				# overlay coastlines if required
-				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
+				real_ax = _apply_2d_coastlines(coastlines, real_ax)
+				imag_ax = _apply_2d_coastlines(coastlines, imag_ax)
 
 				# axis management
-				real_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
-				imag_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-				imag_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
-				if xticks:
-					real_ax.set_xticks(xticks)
-					real_ax.set_xticklabels(xticks)
-					imag_ax.set_xticks(xticks)
-					imag_ax.set_xticklabels(xticks)
-				if yticks:
-					real_ax.set_yticks(yticks)
-					real_ax.set_yticklabels(yticks)
-					imag_ax.set_yticks(yticks)
-					imag_ax.set_yticklabels(yticks)
+				real_ax = _set_2d_axes_limits(real_ax, x1, x2)
+				imag_ax = _set_2d_axes_limits(imag_ax, x1, x2)
+				real_ax, xticks, yticks = _format_axes(real_ax, xticks, yticks)
+				imag_ax, xticks, yticks = _format_axes(imag_ax, xticks, yticks)
 				if equal_axes:
 					real_ax.set_aspect('equal')
 					imag_ax.set_aspect('equal')
@@ -469,32 +417,18 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
-					real_ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
+				real_ax = _apply_2d_coastlines(coastlines, real_ax)
 
-				# overlay coastlines if required
-				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
 				# axis management
 				if equal_axes:
 					real_ax.set_aspect('equal')
-				if xticks:
-					real_ax.set_xticks(xticks)
-					real_ax.set_xticklabels(xticks)
-				if yticks:
-					real_ax.set_yticks(yticks)
-					real_ax.set_yticklabels(yticks)
-				real_ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-				real_ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
+
+				real_ax, xticks, yticks = _format_axes(real_ax, xticks, yticks)
+				real_ax = _set_2d_axes_limits(real_ax, x1, x2)
 				if len(title) > 1:
 					real_ax.set_title(title + \
 						', mode: {}, variable ID: {}'.format(mode_id, var_id))
@@ -507,6 +441,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 			# save or show plots
 			if filename:
 				if path == 'CWD': path = CWD
+				basename, ext = splitext(filename)
 				filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=400)
 				plt.close(fig)
@@ -555,10 +490,8 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 	"""
 
 	# get idx variables
-	if isinstance(vars_idx, int):
-		vars_idx = [vars_idx]
-	if not isinstance(vars_idx, (list,tuple)):
-		raise TypeError('`vars_idx` must be a list or tuple')
+	vars_idx = _check_vars(vars_idx)
+
 	# get idx modes
 	if isinstance(modes_idx, int):
 		modes_idx = [modes_idx]
@@ -573,10 +506,6 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 	if x1 is None and x2 is None:
 		x1 = np.arange(modes.shape[0])
 		x2 = np.arange(modes.shape[1])
-
-	# split filename
-	if filename:
-		basename, ext = splitext(filename)
 
 	# calculate period and time vector
 	n_points = 50
@@ -643,8 +572,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 			ax.axhline(x2[idx_x2], xmin=0, xmax=1,color='k',linestyle='--')
 			ax.axvline(x1[idx_x1], ymin=0, ymax=1,color='k',linestyle='--')
 			# axis management
-			ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-			ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
+			ax = _set_2d_axes_limits(ax, x1, x2)
 			ax_divider = make_axes_locatable(ax)
 			cax = ax_divider.append_axes("right", size="5%", pad=0.05)
 			plt.colorbar(ax_obj, cax=cax)
@@ -690,8 +618,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 				vmin=np.nanmin(mode_phase_x1.real),
 				vmax=np.nanmax(mode_phase_x1.real))
 			# axis management
-			ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
-			ax.set_ylim(np.nanmin(t )*1.05,np.nanmax(t )*1.05)
+			ax = _set_2d_axes_limits(ax, x1, x2)
 			ax_divider = make_axes_locatable(ax)
 			cax = ax_divider.append_axes("right", size="2.5%", pad=0.05)
 			plt.colorbar(ax_obj, cax=cax)
@@ -708,6 +635,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 		# save or show plots
 		if filename:
 			if path == 'CWD': path = CWD
+			basename, ext = splitext(filename)
 			filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
 			plt.savefig(os.path.join(path,filename),dpi=400)
 			plt.close()
@@ -759,10 +687,8 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 	"""
 
 	# get idx variables
-	if isinstance(vars_idx, int):
-		vars_idx = [vars_idx]
-	if not isinstance(vars_idx, (list,tuple)):
-		raise TypeError('`vars_idx` must be a list or tuple')
+	vars_idx = _check_vars(vars_idx)
+
 	# get idx modes
 	if isinstance(modes_idx, int):
 		modes_idx = [modes_idx]
@@ -778,10 +704,6 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 		x1 = np.arange(modes.shape[0])
 		x2 = np.arange(modes.shape[1])
 		x3 = np.arange(modes.shape[2])
-
-	# split filename
-	if filename:
-		basename, ext = splitext(filename)
 
 	# loop over variables and modes
 	for var_id in vars_idx:
@@ -844,10 +766,8 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
-					real_ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
-					imag_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
-					imag_ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
+					imag_ax = _apply_2d_vertical_lines(imag_ax, x1, x2, idx1, idx2)
 				real_divider = make_axes_locatable(real_ax)
 				imag_divider = make_axes_locatable(imag_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
@@ -856,34 +776,16 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 				plt.colorbar(imag, cax=imag_cax)
 
 				# overlay coastlines if required
-				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-					imag_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
+				real_ax = _apply_2d_coastlines(coastlines, real_ax)
+				imag_ax = _apply_2d_coastlines(coastlines, imag_ax)
 
 				# axis management
 				real_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
 				real_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
 				imag_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
 				imag_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
-				if xticks:
-					real_ax.set_xticks(xticks)
-					real_ax.set_xticklabels(xticks)
-					imag_ax.set_xticks(xticks)
-					imag_ax.set_xticklabels(xticks)
-				if yticks:
-					real_ax.set_yticks(yticks)
-					real_ax.set_yticklabels(yticks)
-					imag_ax.set_yticks(yticks)
-					imag_ax.set_yticklabels(yticks)
+				real_ax, xticks, yticks = _format_axes(real_ax, xticks, yticks)
+				imag_ax, xticks, yticks = _format_axes(imag_ax, xticks, yticks)
 				if equal_axes:
 					real_ax.set_aspect('equal')
 					imag_ax.set_aspect('equal')
@@ -904,31 +806,18 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
-					real_ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
 
 				# overlay coastlines if required
-				if coastlines.lower() == 'regular':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
-				elif coastlines.lower() == 'centred':
-					coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
-					real_ax.scatter(coast['coastlon'], coast['coastlat'],
-									marker='.', c='k', s=1)
+				real_ax = _apply_2d_coastlines(coastlines, real_ax)
 
 				# axis management
 				if equal_axes:
 					real_ax.set_aspect('equal')
-				if xticks:
-					real_ax.set_xticks(xticks)
-					real_ax.set_xticklabels(xticks)
-				if yticks:
-					real_ax.set_yticks(yticks)
-					real_ax.set_yticklabels(yticks)
+				real_ax, xticks, yticks = _format_axes(real_ax, xticks, yticks)
 				real_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
 				real_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
 				if len(title) > 1:
@@ -943,13 +832,12 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 			# save or show plots
 			if filename:
 				if path == 'CWD': path = CWD
+				basename, ext = splitext(filename)
 				filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=200)
 				plt.close(fig)
 			if not filename:
 				plt.show()
-
-
 
 
 
@@ -980,19 +868,13 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 	"""
 
 	# get idx variables
-	if isinstance(vars_idx, int):
-		vars_idx = [vars_idx]
-	if not isinstance(vars_idx, (list,tuple)):
-		raise TypeError('`vars_idx` must be a list or tuple')
+	vars_idx = _check_vars(vars_idx)
+
 	# get idx modes
 	if isinstance(modes_idx, int):
 		modes_idx = [modes_idx]
 	if not isinstance(modes_idx, (list,tuple)):
 		raise TypeError('`modes_idx` must be a list or tuple')
-
-	# split filename
-	if filename:
-		basename, ext = splitext(filename)
 
 	# if domain dimensions have not been passed as argument,
 	# use the data dimensions
@@ -1056,6 +938,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 			# save or show plots
 			if filename:
 				if path == 'CWD': path = CWD
+				basename, ext = splitext(filename)
 				filename = '{0}_coords{1}_var{2}_mode{3}{4}'.format(
 					basename, coords, var_id, mode_id, ext)
 				plt.savefig(os.path.join(path,filename), dpi=200)
@@ -1093,11 +976,10 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 	# check dimensions
 	if X.ndim != 4:
 		raise ValueError('Dimension of data is not 2D.')
+
 	# get idx variables
-	if isinstance(vars_idx, int):
-		vars_idx = [vars_idx]
-	if not isinstance(vars_idx, (list,tuple)):
-		raise TypeError('`vars_idx` must be a list or tuple')
+	vars_idx = _check_vars(vars_idx)
+
 	# if domain dimensions have not been passed, use data dimensions
 	if x1 is None and x2 is None:
 		x1 = np.arange(X.shape[1])
@@ -1108,10 +990,6 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 		time_idx = [time_idx]
 	if not isinstance(time_idx, (list,tuple)):
 		raise TypeError('`time_idx` must be a list or tuple')
-
-	# split filename
-	if filename:
-		basename, ext = splitext(filename)
 
 	# loop over variables and time indices
 	for var_id in vars_idx:
@@ -1142,16 +1020,15 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 			# overlay coastlines if required
 			if coastlines.lower() == 'regular':
 				coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
-				plt.scatter(coast['coastlon'], coast['coastlat'],
-								marker='.', c='k', s=1)
+				plt.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 			elif coastlines.lower() == 'centred':
 				coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
-				plt.scatter(coast['coastlon'], coast['coastlat'],
-								marker='.', c='k', s=1)
+				plt.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 
 			# save or show plots
 			if filename:
 				if path == 'CWD': path = CWD
+				basename, ext = splitext(filename)
 				filename = '{0}_var{1}_time{2}{3}'.format(basename, var_id, time_id, ext)
 				plt.savefig(os.path.join(path,filename), dpi=200)
 				plt.close(fig)
@@ -1187,18 +1064,12 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 			  'in the form list(tuple(), tuple(), ...)')
 	if not isinstance(coords_list, list):
 		raise TypeError('`coords` must be a list')
+
 	# get idx variables
-	if isinstance(vars_idx, int):
-		vars_idx = [vars_idx]
-	if not isinstance(vars_idx, (list,tuple)):
-		raise TypeError('`vars_idx` must be a list or tuple')
+	vars_idx = _check_vars(vars_idx)
 
 	# time range
 	time_range = list(range(time_limits[0],time_limits[-1]))
-
-	# split filename
-	if filename:
-		basename, ext = splitext(filename)
 
 	# get default coordinates if not provided
 	xdim = X[0,...,0].shape
@@ -1229,6 +1100,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 			# save or show plots
 			if filename:
 				if path == 'CWD': path = CWD
+				basename, ext = splitext(filename)
 				filename = '{0}_coords{1}_var{2}{3}'.format(basename, coords, var_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=400)
 				plt.close(fig)
@@ -1268,11 +1140,10 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	# check dimensions
 	if X.ndim != 4:
 		raise ValueError('Dimension of data is not 2D.')
+
 	# get idx variables
-	if isinstance(vars_idx, int):
-		vars_idx = [vars_idx]
-	if not isinstance(vars_idx, (list,tuple)):
-		raise TypeError('`vars_idx` must be a list or tuple')
+	vars_idx = _check_vars(vars_idx)
+
 	# if domain dimensions have not been passed, use data dimensions
 	if x1 is None and x2 is None:
 		x1 = np.arange(X.shape[1])
@@ -1281,9 +1152,6 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	# time range
 	time_range = list(range(time_limits[0],time_limits[-1]))
 	time_range = time_range[0::sampling]
-
-	# filename
-	basename, ext = splitext(filename)
 
 	# check dimension axes and data
 	if x1.shape[0] != X[0,:,:].shape[0] or \
@@ -1300,6 +1168,9 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	elif coastlines.lower() == 'centred':
 		coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
 		cst = True
+
+	# filename
+	basename, ext = splitext(filename)
 
 	# Generate movie
 	#vmin = np.nanmin(X)
@@ -1336,5 +1207,67 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 		filename = '{0}_var{1}{2}'.format(basename, i, ext)
 		a.save(os.path.join(path,filename), writer=writer)
 		plt.close('all')
+
+# ---------------------------------------------------------------------------
+
+
+
+# Auxiliary plotting functions
+# ---------------------------------------------------------------------------
+
+def _format_axes(ax, xticks, yticks):
+	if xticks:
+		ax.set_xticks(xticks)
+		ax.set_xticklabels(xticks)
+	if yticks:
+		ax.set_yticks(yticks)
+		ax.set_yticklabels(yticks)
+	return ax, xticks, yticks
+
+
+
+def _check_vars(vars_idx):
+	if isinstance(vars_idx, int):
+	  vars_idx = [vars_idx]
+	if not isinstance(vars_idx, (list,tuple)):
+	    raise TypeError('`vars_idx` must be a list or tuple')
+	return vars_idx
+
+
+
+def _save_show_plots(filename, path, plt):
+	# save or show plots
+	if filename:
+	    if path == 'CWD': path = CWD
+	    plt.savefig(os.path.join(path,filename), dpi=200)
+	    plt.close()
+	else:
+	    plt.show()
+
+
+
+def _set_2d_axes_limits(ax, x1, x2):
+	ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
+	ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
+	return ax
+
+
+
+def _apply_2d_coastlines(coastlines, ax):
+	# overlay coastlines if required
+	if coastlines.lower() == 'regular':
+	    coast = loadmat(os.path.join(CFD, 'plotting_support','coast.mat'))
+	    ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
+	elif coastlines.lower() == 'centred':
+	    coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
+	    ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
+	return ax
+
+
+
+def _apply_2d_vertical_lines(ax, x1, x2, idx1, idx2):
+	ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
+	ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
+	return ax
 
 # ---------------------------------------------------------------------------
