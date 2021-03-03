@@ -69,11 +69,11 @@ print('x_nc_ssn.shape = ', x_nc_ssn.shape)
 params = dict()
 
 # -- required parameters
-params['dt'          ] = 1                	# data time-sampling
-params['nt'          ] = t.shape[0]       	# number of time snapshots (we consider all data)
-params['xdim'        ] = 2                	# number of spatial dimensions (longitude and latitude)
-params['nv'          ] = len(variables)     # number of variables
-params['n_FFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
+params['dt'          ] = 1                					# data time-sampling
+params['nt'          ] = t.shape[0]       					# number of time snapshots (we consider all data)
+params['xdim'        ] = 2                					# number of spatial dimensions (longitude and latitude)
+params['nv'          ] = len(variables)     				# number of variables
+params['n_FFT'       ] = 100          						# length of FFT blocks (100 time-snapshots)
 params['n_freq'      ] = params['n_FFT'] / 2 + 1   			# number of frequencies
 params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block overlap region
 params['mean'        ] = 'blockwise' 						# type of mean to subtract to the data
