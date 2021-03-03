@@ -88,21 +88,6 @@ def test_spod_low_storage_blockwise_mean():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-
-	# spod_low_storage.plot_eigs()
-	# spod_low_storage.plot_eigs_vs_frequency()
-	# spod_low_storage.plot_eigs_vs_period()
-	# spod_low_storage.plot_2D_modes_at_frequency(freq_required=freq_low_storage_found,
-	# 											freq=spod_low_storage.freq,
-	# 											x1=x1, x2=x2)
-	# spod_low_storage.plot_2D_mode_slice_vs_time(freq_required=freq_low_storage_found,
-	# 											freq=spod_low_storage.freq)
-	# spod_low_storage.plot_mode_tracers(freq_required=freq_low_storage_found,
-	# 								   freq=spod_low_storage.freq,
-	# 								   coords_list=[(10,10), (14,14), (0,1)])
-	# spod_low_storage.plot_2D_data(time_idx=[0,10,20,30,40,50])
-	# spod_low_storage.plot_data_tracers(coords_list=[(10,10), (14,14), (0,1)])
-	# spod_low_storage.generate_2D_data_video()
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 0.0004634362811441267 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 0.0004634362811441267 -tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.00015920889387988687+tol) & \
@@ -133,7 +118,6 @@ def test_spod_low_storage_longtime_mean():
 	T_approx = 12.5; 	tol = 1e-10
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 0.00025539730555709317+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 0.00025539730555709317-tol))
 	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.00014361778314950604+tol) & \

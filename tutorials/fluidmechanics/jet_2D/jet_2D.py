@@ -12,7 +12,6 @@ sys.path.append(os.path.join(CWD,"../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.weights as weights
 
 # Inspect and load data
 file = os.path.join('../../../tests/data/fluidmechanics_data.mat')

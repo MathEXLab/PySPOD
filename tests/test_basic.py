@@ -68,34 +68,18 @@ def test_basic_spod_low_storage():
 	spod_ls.plot_2D_data(time_idx=[1,2], filename='tmp.png')
 	spod_ls.plot_data_tracers(coords_list=[(5,2.5)], time_limits=[0,t.shape[0]], filename='tmp.png')
 
-	try:
-		bashCmd = ["ffmpeg", " --version"]
-		_ = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
-		spod_ls.generate_2D_data_video(
-			sampling=10,
-			time_limits=[0,t.shape[0]],
-			filename='video.mp4')
-	except:
-		print('[test_basic_file_spod_low_storage]: ',
-			  'Skipping video making as `ffmpeg` not present.')
-
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)
 	freq = spod_ls.freq
 	freq_found, freq_idx = spod_ls.find_nearest_freq(freq_required=1/T_approx, freq=freq)
 	modes_at_freq = spod_ls.get_modes_at_freq(freq_idx=freq_idx)
-	spod_ls.plot_eigs(filename='tmp.png')
-	spod_ls.plot_eigs_vs_frequency(freq=freq, filename='tmp.png')
-	spod_ls.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825], filename='tmp.png')
-	spod_ls.plot_2D_modes_at_frequency(
-		freq_required=freq_found,
-		freq=freq,
-		x1=x2,
-		x2=x1,
-		modes_idx=[0,1],
-		vars_idx=[0],
-		filename='tmp.png')
-
+	tol = 1e-10
+	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.01006851575930816 +tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0]) > 0.01006851575930816 -tol))
+	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.01218020815439361 +tol) & \
+		   (np.abs(modes_at_freq[0,0,0,0])  > 0.01218020815439361 -tol))
+	assert((np.max(np.abs(modes_at_freq))   < 0.02991911832816262 +tol) & \
+		   (np.max(np.abs(modes_at_freq))   > 0.02991911832816262 -tol))
 
 
 @pytest.mark.order2
@@ -109,17 +93,6 @@ def test_basic_spod_low_ram():
 	freq = spod_ram.freq
 	freq_found, freq_idx = spod_ram.find_nearest_freq(freq_required=1/T_approx, freq=freq)
 	modes_at_freq = spod_ram.get_modes_at_freq(freq_idx=freq_idx)
-	spod_ram.plot_eigs(filename='tmp.png')
-	spod_ram.plot_eigs_vs_frequency(freq=freq, filename='tmp.png')
-	spod_ram.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825], filename='tmp.png')
-	spod_ram.plot_2D_modes_at_frequency(
-		freq_required=freq_found,
-		freq=freq,
-		x1=x2,
-		x2=x1,
-		modes_idx=[0,1],
-		vars_idx=[0],
-		filename='tmp.png')
 	tol = 1e-10
 	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010068515759308162  +tol) & \
 		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010068515759308162  -tol))
@@ -141,28 +114,18 @@ def test_basic_spod_streaming():
 	freq = spod_st.freq
 	freq_found, freq_idx = spod_st.find_nearest_freq(freq_required=1/T_approx, freq=freq)
 	modes_at_freq = spod_st.get_modes_at_freq(freq_idx=freq_idx)
-	spod_st.plot_eigs(filename='tmp.png')
-	spod_st.plot_eigs_vs_frequency(freq=freq, filename='tmp.png')
-	spod_st.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825], filename='tmp.png')
-	spod_st.plot_2D_modes_at_frequency(
-		freq_required=freq_found,
-		freq=freq,
-		x1=x2,
-		x2=x1,
-		modes_idx=[0,1],
-		vars_idx=[0],
-		filename='tmp.png')
-	# tol = 1e-10
-	# assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
-	# 	   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
-	# assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
-	# 	   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
-	# assert((np.abs(modes_at_freq[5,10,0,1]) < 3.3719389321669724e-05+tol) & \
-	# 	   (np.abs(modes_at_freq[5,10,0,1]) > 3.3719389321669724e-05-tol))
-	# assert((np.abs(modes_at_freq[5,10,0,2]) < 2.556451901012057e-05+tol) & \
-	# 	   (np.abs(modes_at_freq[5,10,0,2]) > 2.556451901012057e-05-tol))
-	# assert((np.max(np.abs(modes_at_freq))   < 0.029917334301665384 +tol) & \
-	# 	   (np.max(np.abs(modes_at_freq))   > 0.029917334301665384 -tol))
+
+	tol = 1e-10
+	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
+	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
+		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
+	assert((np.abs(modes_at_freq[5,10,0,1]) < 3.3719389321669724e-05+tol) & \
+		   (np.abs(modes_at_freq[5,10,0,1]) > 3.3719389321669724e-05-tol))
+	assert((np.abs(modes_at_freq[5,10,0,2]) < 2.556451901012057e-05+tol) & \
+		   (np.abs(modes_at_freq[5,10,0,2]) > 2.556451901012057e-05-tol))
+	assert((np.max(np.abs(modes_at_freq))   < 0.029917334301665384 +tol) & \
+		   (np.max(np.abs(modes_at_freq))   > 0.029917334301665384 -tol))
 
 	# clean up results
 	try:
