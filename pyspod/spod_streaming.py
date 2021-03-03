@@ -1,22 +1,15 @@
-"""
-Derived module from spod_base.py for streaming SPOD.
-"""
+"""Derived module from spod_base.py for streaming SPOD."""
 
 # import standard python packages
 import os
 import time
 import numpy as np
 from numpy import linalg as la
-import scipy.special as sc
 
 # import PySPOD base class for SSPOD
 from pyspod.spod_base import SPOD_base
 
-# Current, parent and file paths
-CWD = os.getcwd()
-CF  = os.path.realpath(__file__)
-CFD = os.path.dirname(CF)
-BYTE_TO_GB = 9.3132257461548e-10
+
 
 class SPOD_streaming(SPOD_base):
 	"""
@@ -29,8 +22,7 @@ class SPOD_streaming(SPOD_base):
 	the `SPOD_base` class.
 	"""
 	def __init__(self, X, params, data_handler, variables):
-			"""Constructor of SPOD_streaming."""
-			super().__init__(X, params, data_handler, variables)
+		super().__init__(X, params, data_handler, variables)
 
 	def fit(self):
 		"""
@@ -218,30 +210,3 @@ class SPOD_streaming(SPOD_base):
 
 		print('Elapsed time: ', time.time() - start, 's.')
 		return self
-
-	# def predict(self, X):
-	# 	"""Predict the output Y given the input X using the fitted DMD model.
-	#
-	# 	Parameters
-	# 	----------
-	# 	X : numpy array
-	# 		Input data.
-	#
-	# 	Returns
-	# 	-------
-	# 	Y : numpy array
-	# 		Predicted output.
-	# 	"""
-	#
-	# 	# --> Predict using the SVD modes as the basis.
-	# 	if self.exact is False:
-	# 		Y = np.linalg.multi_dot(
-	# 			[self._svd_modes, self._Atilde, self._svd_modes.T.conj(), X]
-	# 		)
-	# 	# --> Predict using the DMD modes as the basis.
-	# 	elif self.exact is True:
-	# 		adjoint_modes = pinv(self._modes)
-	# 		Y = np.linalg.multi_dot(
-	# 			[self._modes, np.diag(self._eigs), adjoint_modes, X]
-	# 		)
-	# 	return Y

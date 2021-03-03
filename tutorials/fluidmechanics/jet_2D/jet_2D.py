@@ -6,16 +6,16 @@ from pathlib import Path
 
 # Paths
 CWD = os.getcwd()
-sys.path.append(os.path.join(CWD,"../../../"))
 
 # Import library specific modules
+sys.path.append(os.path.join(CWD,"../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 import pyspod.weights as weights
 
 # Inspect and load data
-file = os.path.join(CWD,'../../../tests/data/fluidmechanics_data.mat')
+file = os.path.join('../../../tests/data/fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
@@ -38,16 +38,16 @@ params = dict()
 
 # required parameters
 overlap_in_percent = 50
-params['dt'          ] = dt              # data time-sampling
-params['nt'          ] = t.shape[0]      # number of time snapshots
-params['xdim'        ] = 2               # number of spatial dimensions
-params['nv'          ] = len(variables)  # number of variables
-params['n_FFT'       ] = np.ceil(block_dimension / dt)     # length of FFT blocks
-params['n_freq'      ] = params['n_FFT'] / 2 + 1           # number of frequencies
+params['dt'          ] = dt              									 # data time-sampling
+params['nt'          ] = t.shape[0]      									 # number of time snapshots
+params['xdim'        ] = 2               									 # number of spatial dimensions
+params['nv'          ] = len(variables)  									 # number of variables
+params['n_FFT'       ] = np.ceil(block_dimension / dt)     					 # length of FFT blocks
+params['n_freq'      ] = params['n_FFT'] / 2 + 1           					 # number of frequencies
 params['n_overlap'   ] = np.ceil(params['n_FFT'] * overlap_in_percent / 100) # dimension block overlap region
-params['mean'        ] = 'blockwise'  # type of mean to subtract to the data
-params['normalize'   ] = False        # normalization of weights by data variance
-params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
+params['mean'        ] = 'blockwise'  										 # type of mean to subtract to the data
+params['normalize'   ] = False        										 # normalization of weights by data variance
+params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem) 		 # folder where to save results
 params['weights'] = np.ones([x1.shape[0]*x2.shape[0]*params['nv']])
 
 # optional parameters

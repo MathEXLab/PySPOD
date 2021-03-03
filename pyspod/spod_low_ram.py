@@ -1,6 +1,4 @@
-"""
-Derived module from spod_base.py for SPOD low ram.
-"""
+"""Derived module from spod_base.py for SPOD low ram."""
 
 # Import standard Python packages
 import os
@@ -9,18 +7,17 @@ import time
 import numpy as np
 from tqdm import tqdm
 from numpy import linalg as la
-import scipy.special as sc
 from scipy.fft import fft
 import shutil
 
 # Import PySPOD base class for SPOD_low_ram
 from pyspod.spod_base import SPOD_base
 
-# Current, parent and file paths
-CF  = os.path.realpath(__file__)
+# Current path
 CWD = os.getcwd()
-CFD = os.path.dirname(CF)
 BYTE_TO_GB = 9.3132257461548e-10
+
+
 
 class SPOD_low_ram(SPOD_base):
 	"""

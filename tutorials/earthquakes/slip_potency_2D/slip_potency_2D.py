@@ -6,17 +6,17 @@ from pathlib import Path
 
 # Paths
 CWD = os.getcwd()
-sys.path.append(os.path.join(CWD,"../../../"))
 
 # Import library specific modules
+sys.path.append("../../../")
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 import pyspod.weights as weights
 
 # Inspect and load data
-file = os.path.join(CWD,'../../../tests/data/earthquakes_data.nc')
-print(os.path.abspath(os.path.join(CWD,'../../../tests/data/earthquakes_data.nc')))
+file = os.path.join('../../../tests/data/earthquakes_data.nc')
+print(os.path.abspath(os.path.join('../../../tests/data/earthquakes_data.nc')))
 ds = xr.open_dataset(file)
 variables = ['slip_potency']
 t = np.array(ds['time'])
