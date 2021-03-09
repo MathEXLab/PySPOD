@@ -68,6 +68,7 @@ if params['normalize']:
 	params['weights'] = \
         weights.apply_normalization(\
             X=X,
+			n_variables=params['nv']
             weights=params['weights'],
             method='variance')
 

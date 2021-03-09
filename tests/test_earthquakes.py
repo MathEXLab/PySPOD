@@ -320,100 +320,10 @@ def test_spod_low_ram_savefft():
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
 		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
-
-
-
-def test_postprocessing():
-	'''
-	spod tests on jet data for methodologies.
-	'''
-	# set blockwise mean
-	params['mean'] = 'blockwise'
-	params['savefft'] = False
-
-	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
-
-	# Test postprocessing and results
-	T_approx = 12.5; 	tol = 1e-10
-	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
-	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
-	spod.plot_eigs             (filename='eigs.png')
-	spod.plot_eigs_vs_frequency(filename='eigs.png')
-	spod.plot_eigs_vs_period   (filename='eigs.png', xticks=[1, 10, 20], yticks=[1, 2, 10])
-	spod.plot_2D_modes_at_frequency(freq_required=freq_found,
-									freq=spod.freq,
-									x1=x1, x2=x2,
-									filename='modes.png')
-	spod.plot_2D_modes_at_frequency(freq_required=freq_found,
-									freq=spod.freq,
-									x1=None, x2=None,
-									equal_axes=True,
-									filename='modes.png',
-									plot_max=True,
-									coastlines='regular')
-	spod.plot_2D_modes_at_frequency(freq_required=freq_found,
-									freq=spod.freq,
-									x1=None, x2=None,
-									imaginary=True,
-									equal_axes=True,
-									filename='modes.png',
-									plot_max=True,
-									coastlines='centred')
-	spod.plot_2D_mode_slice_vs_time(freq_required=freq_found,
-									freq=spod.freq,
-									filename='modes.png')
-	spod.plot_mode_tracers(freq_required=freq_found,
-							freq=spod.freq,
-							coords_list=[(10,10), (14,14)],
-							filename='tracers.png')
-	spod.plot_2D_data(time_idx=[0,10], filename='data.png')
-	spod.plot_2D_data(time_idx=[0,10], filename='data.png', coastlines='regular')
-	spod.plot_2D_data(time_idx=[0,10], filename='data.png', coastlines='centred')
-	spod.plot_data_tracers(coords_list=[(10,10), (14,14)],
-							filename='data_tracers.png')
-	coords, idx_coords = spod.find_nearest_coords(coords=(10,10), x=[x1,x2])
-	try:
-		bashCmd = ["ffmpeg", " --version"]
-		_ = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
-		spod.generate_2D_data_video(
-			sampling=5,
-			time_limits=[0,t.shape[0]],
-			filename='data_movie.mp4')
-		spod.generate_2D_data_video(
-			sampling=5,
-			time_limits=[0,t.shape[0]],
-			filename='data_movie.mp4', coastlines='regular')
-		spod.generate_2D_data_video(
-			sampling=5,
-			time_limits=[0,t.shape[0]],
-			filename='data_movie.mp4', coastlines='centred')
-	except:
-		print('[test_postprocessing]: ',
-			  'Skipping video making as `ffmpeg` not present.')
-
-	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
-		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
-	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.0008816145245031309+tol) & \
-		   (np.abs(modes_at_freq[10,3,0,2])  > 0.0008816145245031309-tol))
-	assert((np.abs(modes_at_freq[14,15,0,1]) < 0.0018284295461606808+tol) & \
-		   (np.abs(modes_at_freq[14,15,0,1]) > 0.0018284295461606808-tol))
-	assert((np.min(np.abs(modes_at_freq))    < 8.819039169527213e-10+tol) & \
-		   (np.min(np.abs(modes_at_freq))    > 8.819039169527213e-10-tol))
-	assert((np.max(np.abs(modes_at_freq))    < 0.28627415402845796  +tol) & \
-		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
-
-	# clean up results
-	try:
-		shutil.rmtree(os.path.join(CWD,'results'))
-	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 	try:
 		shutil.rmtree(os.path.join(CFD,'__pycache__'))
 	except OSError as e:
 		print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
-
 
 
 
@@ -425,4 +335,3 @@ if __name__ == "__main__":
 	test_spod_streaming                 ()
 	test_spod_low_storage_savefft       ()
 	test_spod_low_ram_savefft           ()
-	test_postprocessing                 ()

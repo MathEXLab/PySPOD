@@ -1,7 +1,6 @@
 import os
 import sys
 import shutil
-import pytest
 import subprocess
 import xarray as xr
 import numpy  as np
@@ -17,7 +16,6 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.weights as weights
 
 # Let's create some 2D syntetic data
 # and store them into a variable called p
@@ -90,8 +88,6 @@ params['savefft'     ] = False   # save FFT blocks to reuse them in the future (
 
 
 
-
-@pytest.mark.order1
 def test_basic_file_spod_low_storage():
 	# Initialize libraries by using data_handler for the low storage algorithm
 	spod_ls = SPOD_low_storage(
@@ -116,7 +112,6 @@ def test_basic_file_spod_low_storage():
 
 
 
-@pytest.mark.order2
 def test_basic_file_spod_low_ram():
 	# Let's try the low_ram algorithm
 	spod_ram = SPOD_low_ram(
@@ -150,45 +145,6 @@ def test_basic_file_spod_low_ram():
 
 
 
-# @pytest.mark.order3
-# def test_basic_file_spod_streaming():
-# 	# Finally, we can try the streaming algorithm
-# 	spod_st = SPOD_streaming(
-# 		X=os.path.join(CWD,'data.nc'),
-# 		params=params,
-# 		data_handler=read_data_netCDF,
-# 		variables=variables)
-# 	spod_st.fit()
-#
-# 	# Show results
-# 	T_approx = 10 # approximate period = 10 days (in days)
-# 	freq = spod_st.freq
-# 	freq_found, freq_idx = spod_st.find_nearest_freq(freq_required=1/T_approx, freq=freq)
-# 	modes_at_freq = spod_st.get_modes_at_freq(freq_idx=freq_idx)
-# 	tol = 1e-10
-# 	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010067915390717594 +tol) & \
-# 		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010067915390717594 -tol))
-# 	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.012179481869151793 +tol) & \
-# 		   (np.abs(modes_at_freq[0,0,0,0])  > 0.012179481869151793 -tol))
-# 	assert((np.abs(modes_at_freq[5,10,0,1]) < 3.3719389321669724e-05+tol) & \
-# 		   (np.abs(modes_at_freq[5,10,0,1]) > 3.3719389321669724e-05-tol))
-# 	assert((np.abs(modes_at_freq[5,10,0,2]) < 2.556451901012057e-05+tol) & \
-# 		   (np.abs(modes_at_freq[5,10,0,2]) > 2.556451901012057e-05-tol))
-# 	assert((np.max(np.abs(modes_at_freq))   < 0.029917334301665384 +tol) & \
-# 		   (np.max(np.abs(modes_at_freq))   > 0.029917334301665384 -tol))
-#
-# 	try:
-# 		shutil.rmtree(os.path.join(CWD,'results'))
-# 	except OSError as e:
-# 		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
-# 	try:
-# 		os.remove(os.path.join(CWD,'data.nc'))
-# 	except OSError as e:
-# 		print("Error: %s : %s" % (os.path.join(CWD,'data.nc'), e.strerror))
-
-
-
 if __name__ == "__main__":
 	test_basic_file_spod_low_storage()
 	test_basic_file_spod_low_ram    ()
-	test_basic_file_spod_streaming  ()

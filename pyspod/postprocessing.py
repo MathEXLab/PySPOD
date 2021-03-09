@@ -49,27 +49,19 @@ def find_nearest_coords(coords, x, data_space_dim):
 	:rtype: numpy.ndarray, int
 	"""
 	coords = np.asarray(coords)
-	print('coords = ', coords)
 	if isinstance(x, list):
-		print('IM IF')
 		grid = np.array(np.meshgrid(*x, indexing='ij'))
 	else:
 		raise TypeError('`x` must be a list.')
 
 	# check dimensions
-	print('grid[0,::].shape = ', grid[0,::].shape)
-	print('data_space_dim = ', data_space_dim)
 	if grid[0,::].shape != data_space_dim:
 		raise ValueError('Dimensions of coordinates `x` does not match data.')
 
-	# print(x.shape)
-	print(grid.shape)
 	idx = tuple()
 	xi  = tuple()
 	for i, coord in enumerate(coords):
 		cnt = len(grid[i,::].shape) - i - 1
-		print(grid[i,::])
-		print(coord)
 		tmp = np.abs(grid[i,::] - coord)
 		tmp_idx = np.unravel_index(np.argmin(tmp), tmp.shape)
 		tuple_idx = (i,) + tmp_idx
@@ -727,7 +719,6 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 			if mode_3d.ndim != 3:
 				raise ValueError('Dimension of the modes is not 3D.')
 
-			print('slice_dim = ', slice_dim)
 			if slice_id is None: slice_id = 0
 			if slice_dim == 0: mode = mode_3d[slice_id,:,:]
 			elif slice_dim == 1: mode = mode_3d[:,slice_id,:]

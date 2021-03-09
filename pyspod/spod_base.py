@@ -326,9 +326,6 @@ class SPOD_base(object):
 				n_DFT = window
 				window = SPOD_base._hamming_window(window)
 				window_name = 'hamming'
-			elif (window.size == (2**SPOD_base._nextpow2(window.size))):
-				n_DFT = window.size
-				window_name = 'user_specified'
 			else:
 				n_DFT = window.size
 				window_name = 'user_specified'
@@ -503,28 +500,6 @@ class SPOD_base(object):
 	# ---------------------------------------------------------------------------
 
 	@staticmethod
-	def _probe_memory(n_blocks, n_freq, saveDir):
-		print('Checking if blocks are already present ...')
-		all_blocks_exist = 0
-		for iBlk in range(0,n_blocks):
-			all_freq_exist = 0
-			for iFreq in range(0,n_freq):
-				file = os.path.join(saveDir,
-					'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
-				if os.path.exists(file):
-					all_freq_exist = all_freq_exist + 1
-			if (all_freq_exist == n_freq):
-				print('block '+str(iBlk+1)+'/'+str(n_blocks)+\
-					' is present in: ', saveDir)
-				all_blocks_exist = all_blocks_exist + 1
-		if all_blocks_exist == n_blocks:
-			print('... all blocks are present - loading from storage.')
-			return True
-		else:
-			print('... blocks are not present - proceeding to compute them.\n')
-			return False
-
-	@staticmethod
 	def _are_blocks_present(n_blocks, n_freq, saveDir):
 		print('Checking if blocks are already present ...')
 		all_blocks_exist = 0
@@ -546,18 +521,18 @@ class SPOD_base(object):
 			print('... blocks are not present - proceeding to compute them.\n')
 			return False
 
-	@staticmethod
-	def _nextpow2(a):
-		'''
-			Returns the exponents for the smallest powers
-			of 2 that satisfy 2^p >= abs(a)
-		'''
-		p = 0
-		v = 0
-		while v < np.abs(a):
-			v = 2 ** p
-			p += 1
-		return p
+	# @staticmethod
+	# def _nextpow2(a):
+	# 	'''
+	# 		Returns the exponents for the smallest powers
+	# 		of 2 that satisfy 2^p >= abs(a)
+	# 	'''
+	# 	p = 0
+	# 	v = 0
+	# 	while v < np.abs(a):
+	# 		v = 2 ** p
+	# 		p += 1
+	# 	return p
 
 	@staticmethod
 	def _hamming_window(N):

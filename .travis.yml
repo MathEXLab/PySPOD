@@ -28,7 +28,7 @@ install:
 
 
 script:
-    - pytest -v
+    - coverage run -m pytest -v tests/
 
 after_success:
     - coveralls

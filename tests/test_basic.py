@@ -1,7 +1,6 @@
 import os
 import sys
 import shutil
-import pytest
 import subprocess
 import numpy as np
 
@@ -16,7 +15,6 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.weights as weights
 
 # Let's create some 2D syntetic data
 # and store them into a variable called p
@@ -106,7 +104,36 @@ def test_basic_spod_low_ram():
 		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
+def test_basic_spod_low_ram_default():
+
+	params['n_FFT'] = 'default'
+
+	# Let's try the low_ram algorithm
+	spod_ram = SPOD_low_ram(p, params=params, data_handler=False, variables=['p'])
+	spod_ram.fit()
+
+	# Show results
+	T_approx = 10 # approximate period = 10 days (in days)
+	freq = spod_ram.freq
+	freq_found, freq_idx = spod_ram.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+	modes_at_freq = spod_ram.get_modes_at_freq(freq_idx=freq_idx)
+	tol = 1e-10
+	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.010068515759308162  +tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0]) > 0.010068515759308162  -tol))
+	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.01218020815439358   +tol) & \
+		   (np.abs(modes_at_freq[0,0,0,0])  > 0.01218020815439358   -tol))
+	assert((np.max(np.abs(modes_at_freq))   < 0.02991911832816271   +tol) & \
+		   (np.max(np.abs(modes_at_freq))   > 0.02991911832816271   -tol))
+
+	# clean up results
+	try:
+		shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+
+
 
 if __name__ == "__main__":
 	test_basic_spod_low_storage()
-	test_basic_spod_low_ram    ()
+	test_basic_spod_low_ram()
+	test_basic_spod_low_ram_default()

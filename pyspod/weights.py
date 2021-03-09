@@ -69,7 +69,7 @@ def geo_weights_trapz_3D(lat, lon, R, z, n_vars):
 
 
 
-def apply_normalization(X, weights, method='variance'):
+def apply_normalization(X, weights, n_variables, method='variance'):
 	'''Normalization of weights if required.'''
 
 	# variable-wise normalization by variance via weight matrix
@@ -77,8 +77,6 @@ def apply_normalization(X, weights, method='variance'):
 		print('')
 		print('Normalization by variance')
 		print('-------------------------')
-		n_variables = X.shape[-1]
-		print(n_variables)
 		axis = tuple(np.arange(0,X[...,0].ndim))
 		for i in range(0,n_variables):
 			sigma2 = np.nanvar(X[...,i], axis=axis)
