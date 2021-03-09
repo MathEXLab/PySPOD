@@ -450,11 +450,11 @@ class SPOD_base(object):
 		nearest_freq, idx = post.find_nearest_freq(freq_required=freq_required, freq=freq)
 		return nearest_freq, idx
 
-	def find_nearest_coords(self, x, coords):
+	def find_nearest_coords(self, coords, x):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		xi, idx = post.find_nearest_coords(coords=coords, x=x, data_space_dim=self.xdim)
+		xi, idx = post.find_nearest_coords(coords=coords, x=x, data_space_dim=self.xshape)
 		return xi, idx
 
 	def get_modes_at_freq(self, freq_idx):
@@ -501,6 +501,28 @@ class SPOD_base(object):
 
 	# static methods
 	# ---------------------------------------------------------------------------
+
+	@staticmethod
+	def _probe_memory(n_blocks, n_freq, saveDir):
+		print('Checking if blocks are already present ...')
+		all_blocks_exist = 0
+		for iBlk in range(0,n_blocks):
+			all_freq_exist = 0
+			for iFreq in range(0,n_freq):
+				file = os.path.join(saveDir,
+					'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
+				if os.path.exists(file):
+					all_freq_exist = all_freq_exist + 1
+			if (all_freq_exist == n_freq):
+				print('block '+str(iBlk+1)+'/'+str(n_blocks)+\
+					' is present in: ', saveDir)
+				all_blocks_exist = all_blocks_exist + 1
+		if all_blocks_exist == n_blocks:
+			print('... all blocks are present - loading from storage.')
+			return True
+		else:
+			print('... blocks are not present - proceeding to compute them.\n')
+			return False
 
 	@staticmethod
 	def _are_blocks_present(n_blocks, n_freq, saveDir):

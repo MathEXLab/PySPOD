@@ -69,37 +69,6 @@ def geo_weights_trapz_3D(lat, lon, R, z, n_vars):
 
 
 
-# def polar_weights_trapz(r, z):
-# 	'''
-# 	3D Integration weight matrix using trapezoidal rule
-# 	'''
-# 	# rings
-# 	nothetar = len(r)
-# 	print('nothetar')
-# 	weight_thetar = np.zeros([nothetar,1])
-#
-# 	# weight_thetar(1) = pi*((r(2))/2)^2;
-# 	# polar singularity treatment removes node at r = 0
-# 	weight_thetar[1] = np.pi * (r[0] + (r[1] - r[0]) / 2)**2
-# 	for i in range(1,nothetar-1):
-# 	    weight_thetar[i] = np.pi * (r[i] + (r[i+1] - r[i]) / 2)**2 - \
-# 						   np.pi * (r[i] - (r[i] - r[i-1]) / 2)**2
-# 	weight_thetar[nothetar] = np.pi * r[-1]**2 - np.pi * (r[-1] - (r[-1] - r[-2]) / 2)**2
-#
-# 	# dz
-# 	noz = len(z)
-# 	weight_z = np.zeros([noz,1])
-# 	weight_z[0] = (z[1] - z[0]) / 2
-# 	for i in range(1,noz-1):
-# 	    weight_z[i] = (z[i]-z[i-1]) / 2 + (z[i+1] - z[i]) / 2
-#
-# 	weight_z[noz] = (z[noz] - z[noz-1]) / 2
-# 	weight_rz = np.matmul(weight_thetar, weight_z.conj().T)
-#
-# 	return weight_rz
-
-
-
 def apply_normalization(X, weights, method='variance'):
 	'''Normalization of weights if required.'''
 

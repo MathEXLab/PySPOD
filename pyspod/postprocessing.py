@@ -42,24 +42,34 @@ def find_nearest_coords(coords, x, data_space_dim):
 	Get nearest data coordinates to requested coordinates `coords`.
 
 	:param np.ndarray coords: coordinate requested.
-	:param np.ndarray x: data coordinates.
+	:param list x: data coordinates.
 	:param int: spatial dimension of the data.
 
 	:return: the nearest coordinate to the `coords` requested and its id.
 	:rtype: numpy.ndarray, int
 	"""
 	coords = np.asarray(coords)
+	print('coords = ', coords)
 	if isinstance(x, list):
-		grid = np.array(np.meshgrid(*x))
-	elif isinstance(x,np.ndarray):
-		if x.shape == data_space_dim:
-			grid = x
+		print('IM IF')
+		grid = np.array(np.meshgrid(*x, indexing='ij'))
 	else:
+		raise TypeError('`x` must be a list.')
+
+	# check dimensions
+	print('grid[0,::].shape = ', grid[0,::].shape)
+	print('data_space_dim = ', data_space_dim)
+	if grid[0,::].shape != data_space_dim:
 		raise ValueError('Dimensions of coordinates `x` does not match data.')
+
+	# print(x.shape)
+	print(grid.shape)
 	idx = tuple()
 	xi  = tuple()
-	for i,coord in enumerate(coords):
+	for i, coord in enumerate(coords):
 		cnt = len(grid[i,::].shape) - i - 1
+		print(grid[i,::])
+		print(coord)
 		tmp = np.abs(grid[i,::] - coord)
 		tmp_idx = np.unravel_index(np.argmin(tmp), tmp.shape)
 		tuple_idx = (i,) + tmp_idx
@@ -107,10 +117,10 @@ def get_mode_from_file(filename):
 	_, ext = splitext(filename)
 	if ext.lower() == '.npy':
 		m = np.load(filename)
-	elif ext.lower() == '.mat':
-		pass
-	elif ext.lower() == 'nc':
-		pass
+	# elif ext.lower() == '.mat':
+	# 	pass
+	# elif ext.lower() == 'nc':
+	# 	pass
 	else:
 		raise ValueError(ext, 'file extension not recognized.')
 	return m
@@ -380,8 +390,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
-					imag_ax  =_apply_2d_vertical_lines(imag_ax, x1, x2, idx1, idx2)
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
+					imag_ax  =_apply_2d_vertical_lines(imag_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
 				imag_divider = make_axes_locatable(imag_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
@@ -417,7 +427,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
@@ -717,35 +727,25 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 			if mode_3d.ndim != 3:
 				raise ValueError('Dimension of the modes is not 3D.')
 
-			if slice_dim == 0:
-				if slice_id is None:
-					slice_id = np.argmax(mode_3d, axis=0)
-				mode = mode_3d[slice_id,:,:]
-				xx = x2
-				yy = x3
-				coastlines = ''
-			elif slice_dim == 1:
-				if slice_id is None:
-					slice_id = np.argmax(mode_3d, axis=1)
-				mode = mode_3d[:,slice_id,:]
-				xx = x1
-				yy = x3
-				coastlines = ''
-			elif slice_dim == 2:
-				if slice_id is None:
-					slice_id = np.argmax(mode_3d, axis=2)
-				mode = mode_3d[:,:,slice_id]
-				xx = x1
-				yy = x2
+			print('slice_dim = ', slice_dim)
+			if slice_id is None: slice_id = 0
+			if slice_dim == 0: mode = mode_3d[slice_id,:,:]
+			elif slice_dim == 1: mode = mode_3d[:,slice_id,:]
+			elif slice_dim == 2: mode = mode_3d[:,:,slice_id]
+			# coord 1
+			if mode.shape[0] == x1.shape[0]: xx = x1; flag1 = 'x1'
+			elif mode.shape[0] == x2.shape[0]: xx = x2; flag1 = 'x2'
+			elif mode.shape[0] == x3.shape[0]: xx = x3; flag1 = 'x3'
+			# coord 2
+			if (mode.shape[1] == x1.shape[0]) and (flag1 != 'x1'): yy = x1; flag2 = 'x1'
+			elif (mode.shape[1] == x2.shape[0]) and (flag1 != 'x2'): yy = x2; flag2 = 'x2'
+			elif (mode.shape[1] == x3.shape[0]) and (flag1 != 'x3'): yy = x3; flag2 = 'x3'
+			coastlines = ''
 
 			# perform fft shift if required
 			if fftshift:
 				mode = np.fft.fftshift(mode, axes=1)
 
-			# check dimension axes and data
-			if xx.shape[0] != mode.shape[0] or yy.shape[0] != mode.shape[1]:
-				raise ValueError('Data dimension Z = (N,M); xx and yy must '
-								 'have dimension N and M, respectively.')
 			# plot data
 			if imaginary:
 
@@ -766,8 +766,8 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
-					imag_ax = _apply_2d_vertical_lines(imag_ax, x1, x2, idx1, idx2)
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
+					imag_ax = _apply_2d_vertical_lines(imag_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
 				imag_divider = make_axes_locatable(imag_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
@@ -789,6 +789,8 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 				if equal_axes:
 					real_ax.set_aspect('equal')
 					imag_ax.set_aspect('equal')
+				real_ax.set_xlabel(flag1); imag_ax.set_xlabel(flag1)
+				real_ax.set_ylabel(flag2); imag_ax.set_ylabel(flag2)
 				if len(title) > 1:
 					fig.suptitle(title + \
 						', mode: {}, variable ID: {}'.format(mode_id, var_id))
@@ -796,6 +798,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 					fig.suptitle('mode: {}, variable ID: {}'.format(mode_id, var_id))
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
+
 			else:
 				fig = plt.figure(figsize=figsize)
 				real_ax = plt.gca()
@@ -806,7 +809,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 					origin=origin)
 				if plot_max:
 					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx1, idx2)
+					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
@@ -820,11 +823,13 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 				real_ax, xticks, yticks = _format_axes(real_ax, xticks, yticks)
 				real_ax.set_xlim(np.nanmin(xx)*1.05,np.nanmax(xx)*1.05)
 				real_ax.set_ylim(np.nanmin(yy)*1.05,np.nanmax(yy)*1.05)
+				real_ax.set_xlabel(flag1)
+				real_ax.set_ylabel(flag2)
 				if len(title) > 1:
 					real_ax.set_title(title + \
-						', mode: {}, variable ID: {}'.format(mode_id, var_id))
+						', slice mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-					real_ax.set_title('mode: {}, variable ID: {}'.format(mode_id, var_id))
+					real_ax.set_title('slice mode: {}, variable ID: {}'.format(mode_id, var_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
@@ -893,7 +898,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 
 	# get default coordinates if not provided
 	if x is None:
-		x = [np.arange(xdim[i]) for i in range(0,len(xdim))]
+		x = [np.arange(xdim[i]) for i in range(0, len(xdim))]
 
 	# get width and height figure
 	wsize = figsize[0]
@@ -1266,8 +1271,8 @@ def _apply_2d_coastlines(coastlines, ax):
 
 
 def _apply_2d_vertical_lines(ax, x1, x2, idx1, idx2):
-	ax.axhline(x1[idx_x1], xmin=0, xmax=1,color='k',linestyle='--')
-	ax.axvline(x2[idx_x2], ymin=0, ymax=1,color='k',linestyle='--')
+	ax.axhline(x1[idx1], xmin=0, xmax=1,color='k',linestyle='--')
+	ax.axvline(x2[idx2], ymin=0, ymax=1,color='k',linestyle='--')
 	return ax
 
 # ---------------------------------------------------------------------------

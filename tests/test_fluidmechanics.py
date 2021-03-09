@@ -351,6 +351,11 @@ def test_postprocessing():
 									freq=spod.freq,
 									x1=x1, x2=x2,
 									filename='modes.png')
+	spod.plot_2D_modes_at_frequency(freq_required=freq_found,
+									freq=spod.freq,
+									x1=x1, x2=x2,
+									imaginary=True,
+									filename='modes.png')
 	spod.plot_2D_mode_slice_vs_time(freq_required=freq_found,
 									freq=spod.freq,
 									filename='modes.png')
