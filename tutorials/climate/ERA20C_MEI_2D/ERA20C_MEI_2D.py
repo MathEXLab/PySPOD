@@ -67,13 +67,13 @@ params['savefft'     ] = False  # save FFT blocks to reuse them in the future (s
 if params['normalize']:
 	params['weights'] = \
         weights.apply_normalization(\
-            X=X,
+            data=X,
 			n_variables=params['nv']
             weights=params['weights'],
             method='variance')
 
 # Perform SPOD analysis using low storage module
-SPOD_analysis = SPOD_low_storage(X=X, params=params, data_handler=False, variables=variables)
+SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
 spod = SPOD_analysis.fit()
 
 # Show results

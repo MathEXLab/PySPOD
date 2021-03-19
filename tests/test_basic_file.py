@@ -91,7 +91,7 @@ params['savefft'     ] = False   # save FFT blocks to reuse them in the future (
 def test_basic_file_spod_low_storage():
 	# Initialize libraries by using data_handler for the low storage algorithm
 	spod_ls = SPOD_low_storage(
-		X=os.path.join(CWD,'data.nc'),
+		data=os.path.join(CWD,'data.nc'),
 		params=params,
 		data_handler=read_data_netCDF,
 		variables=variables)
@@ -115,7 +115,7 @@ def test_basic_file_spod_low_storage():
 def test_basic_file_spod_low_ram():
 	# Let's try the low_ram algorithm
 	spod_ram = SPOD_low_ram(
-		X=os.path.join(CWD,'data.nc'),
+		data=os.path.join(CWD,'data.nc'),
 		params=params,
 		data_handler=read_data_netCDF,
 		variables=variables)

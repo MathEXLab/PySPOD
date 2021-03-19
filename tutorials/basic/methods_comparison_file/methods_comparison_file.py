@@ -85,7 +85,7 @@ params['savefft'     ] = True   # save FFT blocks to reuse them in the future (s
 
 # Initialize libraries by using data_handler for the low storage algorithm
 spod_ls = SPOD_low_storage(
-    X=os.path.join(CWD,'data.nc'),
+    data=os.path.join(CWD,'data.nc'),
     params=params,
     data_handler=read_data_netCDF,
     variables=variables)
@@ -116,7 +116,7 @@ spod_ls.plot_2D_modes_at_frequency(
 
 # Let's try the low_ram algorithm
 spod_ram = SPOD_low_ram(
-    X=os.path.join(CWD,'data.nc'),
+    data=os.path.join(CWD,'data.nc'),
     params=params,
     data_handler=read_data_netCDF,
     variables=variables)
@@ -140,7 +140,7 @@ spod_ram.plot_2D_modes_at_frequency(
 
 # Finally, we can try the streaming algorithm
 spod_st = SPOD_streaming(
-    X=os.path.join(CWD,'data.nc'),
+    data=os.path.join(CWD,'data.nc'),
     params=params,
     data_handler=read_data_netCDF,
     variables=variables)

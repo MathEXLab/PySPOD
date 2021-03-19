@@ -76,7 +76,7 @@ params['conf_level'  ] = 0.95   # calculate confidence level
 params['savefft'     ] = True   # save FFT blocks to reuse them in the future (saves time)
 
 # Perform SPOD analysis using low storage module
-SPOD_analysis = SPOD_low_ram(X=ds, params=params, data_handler=read_data, variables=variables)
+SPOD_analysis = SPOD_low_ram(data=ds, params=params, data_handler=read_data, variables=variables)
 spod = SPOD_analysis.fit()
 
 

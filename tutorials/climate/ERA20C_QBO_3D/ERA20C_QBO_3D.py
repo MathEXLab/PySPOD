@@ -68,7 +68,7 @@ params['savefft'     ] = False  # save FFT blocks to reuse them in the future (s
 
 
 # Perform SPOD analysis using low storage module
-SPOD_analysis = SPOD_low_ram(X=X, params=params, data_handler=False, variables=variables)
+SPOD_analysis = SPOD_low_ram(data=X, params=params, data_handler=False, variables=variables)
 spod = SPOD_analysis.fit()
 
 # Show results
@@ -95,4 +95,3 @@ spod.plot_mode_tracers(
     coords_list=[(100,0,2)],
     modes_idx=[0,1,2])
 spod.plot_data_tracers(coords_list=[(100,0,2),(200,10,10)])
-

@@ -57,7 +57,7 @@ params['conf_level'  ] = 0.95   # calculate confidence level
 params['savefft'     ] = False  # save FFT blocks to reuse them in the future (saves time)
 
 # Perform SPOD analysis using low storage module
-SPOD_analysis = SPOD_streaming(X=X, params=params, data_handler=False, variables=variables)
+SPOD_analysis = SPOD_streaming(data=X, params=params, data_handler=False, variables=variables)
 spod = SPOD_analysis.fit()
 
 # Show results
