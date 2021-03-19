@@ -296,7 +296,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'pyspod', u'pydmd Documentation',
+  (master_doc, 'pyspod', u'pyspod Documentation',
    author, 'pyspod', 'One line description of project.',
    'Miscellaneous'),
 ]

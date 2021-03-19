@@ -7,8 +7,10 @@ import time
 import numpy as np
 from tqdm import tqdm
 from numpy import linalg as la
+from memory_profiler import profile
 from scipy.fft import fft
 import psutil
+
 
 # import PySPOD base class for SPOD_low_storage
 from pyspod.spod_base import SPOD_base
@@ -31,6 +33,7 @@ class SPOD_low_storage(SPOD_base):
 	def __init__(self, X, params, data_handler, variables):
 		super().__init__(X, params, data_handler, variables)
 
+	@profile
 	def fit(self):
 		"""
 		Class-specific method to fit the data matrix X using
