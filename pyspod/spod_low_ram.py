@@ -29,8 +29,6 @@ class SPOD_low_ram(SPOD_base):
 	to the constructor of the `SPOD_low_ram` class, derived
 	from the `SPOD_base` class.
 	"""
-	def __init__(self, X, params, data_handler, variables):
-		super().__init__(X, params, data_handler, variables)
 
 	def fit(self):
 		"""

@@ -29,8 +29,6 @@ class SPOD_low_storage(SPOD_base):
 	constructor of the `SPOD_low_storage` class, derived from
 	the `SPOD_base` class.
 	"""
-	def __init__(self, X, params, data_handler, variables):
-		super().__init__(X, params, data_handler, variables)
 
 	def fit(self):
 		"""
