@@ -43,9 +43,8 @@ that is intended when we have enough RAM to perform a given
 a analysis and it is generally faster, requiring a small 
 amount of I/O operations, the `SPOD_low_ram` require extensive 
 I/O operations but allows to run analyses when RAM is not 
-sufficient, and the `SPOD_streaming` is similar to the `SPOD_low_ram`
-algorithm, in that it requires less RAM (but it is generally 
-slower). 
+sufficient, and the `SPOD_streaming` is a streaming version 
+SPOD (generally slower). 
 
 `SPOD_low_storage` and `SPOD_low_ram` implements the algorithms 
 that were proposed in `(Schmidt et al. 2019) <https://doi.org/10.1175/MWR-D-18-0337.1>`_. 
