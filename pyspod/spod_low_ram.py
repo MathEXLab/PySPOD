@@ -87,7 +87,8 @@ class SPOD_low_ram(SPOD_base):
 								 '... aborting computation...')
 
 		# if too much memory is required, this is modified above
-		self._n_modes_save = n_modes_save
+		if gb_memory_modes >= 0.99 * gb_memory_avail:
+			self._n_modes_save = n_modes_save
 
 		# load FFT blocks from hard drive and save modes on hard drive (for large data)
 		for iFreq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
