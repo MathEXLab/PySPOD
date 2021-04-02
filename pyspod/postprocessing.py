@@ -544,6 +544,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 			tmp = np.fft.fftshift(tmp, axes=1)
 		idx_x1, idx_x2 = np.where(np.abs(tmp) == np.amax(np.abs(tmp)))
 
+		# loop over modes
 		for mode_id in modes_idx:
 
 			# select mode and fft-shift it
