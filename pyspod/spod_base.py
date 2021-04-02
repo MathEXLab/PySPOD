@@ -11,6 +11,8 @@ import psutil
 import warnings
 import numpy as np
 import scipy.special as sc
+from numpy import linalg as la
+from scipy.fft import fft
 
 # Import custom Python packages
 import pyspod.postprocessing as post
@@ -276,14 +278,14 @@ class SPOD_base(object):
 		return self._n_modes
 
 	@property
-	def n_modes_saved(self):
+	def n_modes_save(self):
 		'''
 		Get the number of modes.
 
 		:return: the number of modes computed by the SPOD algorithm.
 		:rtype: int
 		'''
-		return self._n_modes_saved
+		return self._n_modes_save
 
 	@property
 	def modes(self):
@@ -412,6 +414,11 @@ class SPOD_base(object):
 				freq[(n_DFT+1)/2+1:] = freq[(n_DFT+1)/2+1:] - (1 / dt)
 		n_freq = len(freq)
 
+		n_modes_save = n_blocks
+		if 'n_modes_save' in self._params: n_modes_save = self._params['n_modes_save']
+		if n_modes_save > n_blocks: n_modes_save = n_blocks
+		self._n_modes_save = n_modes_save
+
 		# display parameter summary
 		print('')
 		print('SPOD parameters')
@@ -429,6 +436,90 @@ class SPOD_base(object):
 		print('------------------------------------')
 		print('')
 		return window, weights, n_overlap, n_DFT, n_blocks, x_mean, mean_name, freq, n_freq
+
+	# ---------------------------------------------------------------------------
+
+
+	# Common methods
+	# ---------------------------------------------------------------------------
+
+	def compute_blocks(self, iBlk):
+
+		# get time index for present block
+		offset = min(iBlk * (self._n_DFT - self._n_overlap) + self._n_DFT, self._nt) - self._n_DFT
+
+		# Get data
+		Q_blk = self._data_handler(
+			self._data, t_0=offset,	t_end=self._n_DFT+offset, variables=self._variables)
+		Q_blk = Q_blk.reshape(self._n_DFT, self._nx * self._nv)
+
+		# Subtract longtime or provided mean
+		Q_blk = Q_blk[:] - self._x_mean
+
+		# if block mean is to be subtracted, do it now that all data is collected
+		if self._mean_type.lower() == 'blockwise':
+			Q_blk = Q_blk - np.mean(Q_blk, axis=0)
+
+		# normalize by pointwise variance
+		if self._normvar:
+			Q_var = np.sum((Q_blk - np.mean(Q_blk,axis=0))**2, axis=0) / (self._n_DFT-1)
+			# address division-by-0 problem with NaNs
+			Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
+			Q_blk = Q_blk / Q_var
+
+		# window and Fourier transform block
+		self._window = self._window.reshape(self._window.shape[0],1)
+		Q_blk = Q_blk * self._window
+		Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
+		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
+
+		# correct Fourier coefficients for one-sided spectrum
+		if self._isrealx:
+			Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
+
+		return Q_blk_hat, offset
+
+
+
+	def compute_standard_spod(self, Q_hat_f, iFreq):
+
+		# compute inner product in frequency space, for given frequency
+		M = np.matmul(Q_hat_f.conj().T, (Q_hat_f * self._weights))  / self._n_blocks
+
+		# extract eigenvalues and eigenvectors
+		L,V = la.eig(M)
+		L = np.real_if_close(L, tol=1000000)
+
+		# reorder eigenvalues and eigenvectors
+		idx = np.argsort(L)[::-1]
+		L = L[idx]
+		V = V[:,idx]
+
+		# compute spatial modes for given frequency
+		Psi = np.matmul(Q_hat_f, np.matmul(V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
+
+		# save modes in storage too in case post-processing crashes
+		Psi = Psi[:,0:self._n_modes_save]
+		Psi = Psi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
+		file_psi = os.path.join(self._save_dir_blocks,
+			'modes1to{:04d}_freq{:04d}.npy'.format(self._n_modes_save,iFreq))
+		np.save(file_psi, Psi)
+		self._modes[iFreq] = file_psi
+		self._eigs[iFreq,:] = abs(L)
+
+		# get and save confidence interval if required
+		if self._conf_interval:
+			self._eigs_c[iFreq,:,0] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_lower
+			self._eigs_c[iFreq,:,1] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_upper
+
+
+
+	def store_and_save(self):
+		self._eigs_c_u = self._eigs_c[:,:,0]
+		self._eigs_c_l = self._eigs_c[:,:,1]
+		file = os.path.join(self._save_dir_blocks,'spod_energy')
+		np.savez(file, eigs=self._eigs, eigs_c_u=self._eigs_c_u, eigs_c_l=self._eigs_c_l, f=self._freq)
+		self._n_modes = self._eigs.shape[-1]
 
 	# ---------------------------------------------------------------------------
 
@@ -461,7 +552,7 @@ class SPOD_base(object):
 		if self._modes is None:
 			raise ValueError('Modes not found. Consider running fit()')
 		elif isinstance(self._modes, dict):
-			gb_memory_modes = freq_idx * self.nx * self._n_modes_saved * \
+			gb_memory_modes = freq_idx * self.nx * self._n_modes_save * \
 				sys.getsizeof(complex()) * BYTE_TO_GB
 			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
 			gb_sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
