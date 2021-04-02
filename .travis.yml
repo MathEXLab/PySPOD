@@ -28,7 +28,8 @@ install:
 
 
 script:
-    - coverage run -m pytest -v tests/
+    - coverage run --source ./pyspod -m pytest -v tests/
+    - coverage report
 
 after_success:
     - coveralls
