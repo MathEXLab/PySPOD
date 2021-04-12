@@ -19,8 +19,8 @@ for P in PACKAGE_PARENTS:
 
 __project__ = 'PySPOD'
 __title__ = "pyspod"
-__author__ = "Gianmarco Mengaldo and Romit Maulik"
-__email__ = 'gianmarco.mengaldo@gmail.com; rmaulik@anl.gov'
+__author__ = "Gianmarco Mengaldo, Romit Maulik"
+__email__ = 'gianmarco.mengaldo@gmail.com, rmaulik@anl.gov'
 __copyright__ = "Copyright 2020-2021 PySPOD authors and contributors"
 __maintainer__ = __author__
 __status__ = "Stable"

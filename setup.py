@@ -39,7 +39,7 @@ DESCR = (
 	" (Schmidt et al. 2018), (Schmidt et al. 2019).\n"
 	"\n"
 	"PySPOD comes with a set of tutorials spanning weather and climate, seismic and "
-	" fluidmechanics applicaitons, and it can be used for both canonical problems "
+	" fluid mechanics applications, and it can be used for both canonical problems "
 	" as well as large datasets. \n"
 )
 CWD = os.path.abspath(os.path.dirname(__file__))
