@@ -25,5 +25,5 @@ __copyright__ = "Copyright 2020-2021 PySPOD authors and contributors"
 __maintainer__ = __author__
 __status__ = "Stable"
 __license__ = "MIT"
-__version__ = "0.4.3"
+__version__ = "0.5.0"
 __url__ = "https://github.com/mengaldo/PySPOD"
