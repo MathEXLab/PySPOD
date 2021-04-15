@@ -58,16 +58,16 @@ derived from a standard (space-time) POD problem for stationary data and
 leads to modes that are (i) time harmonic and oscillate at a single frequency, 
 (ii) are coherent in both time and space, (iii) optimally represent the space-time
 statistical variability of the underlying stationary random processes, and 
-(iv) are both spatially and space-time orthogonal (see also [@schmidt2020]). 
+(iv) are both spatially and space-time orthogonal [@schmidt2020]. 
 We note that the `PySPOD` implements the Python counterpart of the Matlab 
-code in [@schmidt-code], with the addition of the streaming algorithm outlined 
-in [@schmidt2019b]. We also acknowledge that there exist other two Python 
-packages implementing SPOD. The first, [@spod-code-jburrows], is also a 
-Python counterpart of the Matlab code in [@schmidt-code]. However, our 
+code [@schmidt-code], with the addition of the streaming algorithm outlined 
+by @schmidt2019b. We also acknowledge that there exist other two Python 
+packages implementing SPOD. The first, by @spod-code-jburrows, is also a 
+Python counterpart of the Matlab code of @schmidt-code. However, our 
 implementation provides extensive post-processing capabilities, testing, 
 and tutorial. It also adds the streaming version [@schmidt2019b], that 
-is not present in [@spod-code-jburrows]. Similar differences exist between 
-`PySPOD` and the Python package presented in [@spod-code-loiseau].
+is not present in @spod-code-jburrows. Similar differences exist between 
+`PySPOD` and the Python package presented in @spod-code-loiseau.
 
 # Capabilities 
 
@@ -93,7 +93,7 @@ science, including weather and climate, fluid mechanics, seismology, among other
 It can be used as a production code, for the analysis of large datasets, as well 
 as for experimenting on smaller problems. Users can be students and experts alike.
 For an overview of the guidelines one should follow when using SPOD, the reader 
-can refer to [@schmidt2020].
+can refer to @schmidt2020.
 
 In \autoref{fig:MEI}, we show the application of this package to identify 
 the Multivariate ENSO Index from ECMWF reanalysis datasets (E20C in particular), 
@@ -105,7 +105,7 @@ modes of the meridional component of the surface wind (left), and of the mean
 seal-level pressure (right). It is possible to appreciate a possible coupling 
 between ENSO and the vortices over West Antarctica (that in turn could affect 
 the height of the ice shelves [@paolo2018]). For more detail regarding this 
-simulation, the interested reader can refer to [@schmidt2019a].
+simulation, the interested reader can refer to @schmidt2019a.
 
 ![Identification of the Multivariate ENSO Index (MEI) from ECMWF reanalysis data.\label{fig:MEI}](../readme/MEI.png)
 
