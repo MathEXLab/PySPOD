@@ -384,7 +384,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					vmax= np.abs(mode).max()*1.,
 					origin=origin)
 				if plot_max:
-					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
+					idx_x2,idx_x1 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
 					imag_ax  =_apply_2d_vertical_lines(imag_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
@@ -421,7 +421,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					vmax= np.abs(mode).max()*1.,
 					origin=origin)
 				if plot_max:
-					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
+					idx_x2,idx_x1 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
 					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
 				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
