@@ -4,17 +4,19 @@ import h5py
 import numpy as np
 from pathlib import Path
 
-# Paths
+# Current, parent and file paths
 CWD = os.getcwd()
+CF  = os.path.realpath(__file__)
+CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append(os.path.join(CWD,"../../../"))
+sys.path.append(os.path.join(CFD, "../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 
 # Inspect and load data
-file = os.path.join('../../../tests/data/fluidmechanics_data.mat')
+file = os.path.join(CFD, '../../../tests/data/fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
@@ -35,26 +37,24 @@ print('X.shape  = ', X.shape)
 # define required and optional parameters
 params = dict()
 
-# required parameters
-overlap_in_percent = 50
-params['dt'          ] = dt              									 # data time-sampling
-params['nt'          ] = t.shape[0]      									 # number of time snapshots
-params['xdim'        ] = 2               									 # number of spatial dimensions
-params['nv'          ] = len(variables)  									 # number of variables
-params['n_FFT'       ] = np.ceil(block_dimension / dt)     					 # length of FFT blocks
-params['n_freq'      ] = params['n_FFT'] / 2 + 1           					 # number of frequencies
-params['n_overlap'   ] = np.ceil(params['n_FFT'] * overlap_in_percent / 100) # dimension block overlap region
-params['mean'        ] = 'blockwise'  										 # type of mean to subtract to the data
-params['normalize'   ] = False        										 # normalization of weights by data variance
-params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem) 		 # folder where to save results
-params['weights'] = np.ones([x1.shape[0]*x2.shape[0]*params['nv']])
+# -- required parameters
+params['time_step'   ] = dt             # data time-sampling
+params['n_snapshots' ] = t.shape[0]     # number of time snapshots (we consider all data)
+params['n_space_dims'] = 2              # number of spatial dimensions (longitude and latitude)
+params['n_variables' ] = len(variables) # number of variables
+params['n_DFT'       ] = np.ceil(block_dimension / dt) # length of FFT blocks (100 time-snapshots)
 
-# optional parameters
-params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
-params['n_modes_save'] = 3      # modes to be saved
-params['normvar'     ] = False  # normalize data by data variance
-params['conf_level'  ] = 0.95   # calculate confidence level
-params['savefft'     ] = False  # save FFT blocks to reuse them in the future (saves time)
+# -- optional parameters
+params['overlap'          ] = 50 			# dimension block overlap region
+params['mean_type'        ] = 'blockwise' 	# type of mean to subtract to the data
+params['normalize_weights'] = False        	# normalization of weights by data variance
+params['normalize_data'   ] = False   		# normalize data by data variance
+params['n_modes_save'     ] = 3      		# modes to be saved
+params['conf_level'       ] = 0.95   		# calculate confidence level
+params['reuse_blocks'     ] = False 		# whether to reuse blocks if present
+params['savefft'          ] = False   		# save FFT blocks to reuse them in the future (saves time)
+params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
+
 
 # Perform SPOD analysis using low storage module
 SPOD_analysis = SPOD_streaming(data=X, params=params, data_handler=False, variables=variables)

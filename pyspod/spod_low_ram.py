@@ -40,7 +40,10 @@ class SPOD_low_ram(SPOD_base):
 		print('------------------------------------')
 
 		# check if blocks are already saved in memory
-		blocks_present = self._are_blocks_present(self._n_blocks,self._n_freq,self._save_dir_blocks)
+		blocks_present = False
+		if self._reuse_blocks:
+			blocks_present = self._are_blocks_present(\
+				self._n_blocks, self._n_freq, self._save_dir_blocks)
 
 		# loop over number of blocks and generate Fourier realizations,
 		# if blocks are not saved in storage
@@ -57,8 +60,9 @@ class SPOD_low_ram(SPOD_base):
 					  '    Saving to directory: ', self._save_dir_blocks)
 
 				# save FFT blocks in storage memory
-				for iFreq in range(0,self._n_freq):
-					file = os.path.join(self._save_dir_blocks,'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
+				for iFreq in range(0, self._n_freq):
+					file = os.path.join(self._save_dir_blocks,
+						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk, iFreq))
 					Q_blk_hat_fi = Q_blk_hat[iFreq,:]
 					np.save(file, Q_blk_hat_fi)
 
@@ -70,21 +74,24 @@ class SPOD_low_ram(SPOD_base):
 		print(' ')
 		print('Calculating SPOD (low_ram)')
 		print('------------------------------------')
-		self._eigs = np.zeros([self._n_freq,self._n_blocks], dtype='complex_')
+		self._eigs = np.zeros([self._n_freq, self._n_blocks], dtype='complex_')
 		self._modes = dict()
 
-		gb_memory_modes = self._n_freq * self._nx * self._n_modes_save * sys.getsizeof(complex()) * BYTE_TO_GB
+		gb_memory_modes = self._n_freq * self._nx * \
+			self._n_modes_save * sys.getsizeof(complex()) * BYTE_TO_GB
 		gb_memory_avail = shutil.disk_usage(CWD)[2] * BYTE_TO_GB
 		print('- Memory required for storing modes ~', gb_memory_modes , 'GB')
 		print('- Available storage memory          ~', gb_memory_avail , 'GB')
 		while gb_memory_modes >= 0.99 * gb_memory_avail:
 			print('Not enough storage memory to save all modes... halving modes to save.')
 			n_modes_save = np.floor(self._n_modes_save / 2)
-			gb_memory_modes = self._n_freq * self._nx * self._n_modes_save * sys.getsizeof(complex()) * BYTE_TO_GB
+			gb_memory_modes = self._n_freq * self._nx * \
+				self._n_modes_save * sys.getsizeof(complex()) * BYTE_TO_GB
 			if self._n_modes_save == 0:
-				raise ValueError('Memory required for storing at least one mode '
-								 'is equal or larger than available storage memory in your system ...\n'
-								 '... aborting computation...')
+				raise ValueError(
+					'Memory required for storing at least one mode '
+					'is equal or larger than available storage memory in your system ...\n'
+					'... aborting computation...')
 
 		# if too much memory is required, this is modified above
 		if gb_memory_modes >= 0.99 * gb_memory_avail:
@@ -96,7 +103,8 @@ class SPOD_low_ram(SPOD_base):
 			# load FFT data from previously saved file
 			Q_hat_f = np.zeros([self._nx,self._n_blocks], dtype='complex_')
 			for iBlk in range(0,self._n_blocks):
-				file = os.path.join(self._save_dir_blocks,'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
+				file = os.path.join(self._save_dir_blocks,
+					'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
 				Q_hat_f[:,iBlk] = np.load(file)
 
 			# compute standard spod
@@ -109,7 +117,8 @@ class SPOD_low_ram(SPOD_base):
 		if self._savefft == False:
 			for iBlk in range(0,self._n_blocks):
 				for iFreq in range(0,self._n_freq):
-					file = os.path.join(self._save_dir_blocks,'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
+					file = os.path.join(self._save_dir_blocks,
+						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
 					os.remove(file)
 		print('------------------------------------')
 		print(' ')

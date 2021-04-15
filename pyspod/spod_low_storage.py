@@ -47,11 +47,15 @@ class SPOD_low_storage(SPOD_base):
 		print('RAM available = ', gb_vram_avail)
 		print('RAM required  = ', gb_vram_required)
 		if gb_vram_required > 1.5 * gb_vram_avail:
-			raise ValueError('RAM required larger than RAM available... '
-							 'consider running spod_low_ram to avoid system freezing.')
+			raise ValueError(
+				'RAM required larger than RAM available... '
+				'consider running spod_low_ram to avoid system freezing.')
 
 		# check if blocks are already saved in memory
-		blocks_present = self._are_blocks_present(self._n_blocks,self._n_freq,self._save_dir_blocks)
+		blocks_present = False
+		if self._reuse_blocks:
+			blocks_present = self._are_blocks_present(
+				self._n_blocks,self._n_freq,self._save_dir_blocks)
 
 		Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
 		Q_hat = np.empty([self._n_freq,self._nx*self.nv,self._n_blocks], dtype='complex_')

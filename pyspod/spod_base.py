@@ -11,10 +11,12 @@ import psutil
 import warnings
 import numpy as np
 import scipy.special as sc
-from numpy import linalg as la
 from scipy.fft import fft
+from numpy import linalg as la
+
 
 # Import custom Python packages
+import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
 
 # Current file path
@@ -27,18 +29,29 @@ class SPOD_base(object):
 	'''
 	Spectral Proper Orthogonal Decomposition base class.
 	'''
-	def __init__(self, data, params, data_handler, variables):
+	def __init__(self, data, params, data_handler, variables, weights=None):
 
 		# store mandatory parameters in class
-		self._nt   = params['nt']	# number of time-frames
-		self._xdim = params['xdim'] # number of spatial dimensions
-		self._nv   = params['nv']	# number of variables
-		self._dt   = params['dt']	# time-step
+		self._dt           		= params['time_step'   ]	# time-step of the data
+		self._nt           		= params['n_snapshots' ]	# number of time-frames
+		self._xdim         		= params['n_space_dims'] 	# number of spatial dimensions
+		self._nv           		= params['n_variables' ]	# number of variables
+		self._n_DFT        		= int(params['n_DFT'   ])	# number of DFT (per block)
+
+		# store optional parameters in class
+		self._overlap      		= params.get('overlap', 0)			  	 # percentage overlap
+		self._mean_type    		= params.get('mean_type', 'longtime')	 # type of mean
+		self._normalize_weights = params.get('normalize_weights', False) # normalize weights if required
+		self._normalize_data 	= params.get('normalize_data', False)    # normalize data by variance if required
+		self._n_modes_save      = params.get('n_modes_save', 1e10)       # default is all (large number)
+		self._conf_level		= params.get('conf_level', 0.95) 	     # what confidence level to use fo eigs
+		self._reuse_blocks 		= params.get('reuse_blocks', False)      # reuse blocks if present
+		self._savefft           = params.get('savefft', False) 		     # save fft block if required
+		self._save_dir          = params.get('savedir', os.path.join(CWD, 'results')) # where to save data
 
 		# type of data management
 		# - data_handler: read type online
 		# - not data_handler: data is entirely pre-loaded
-		self._params = params
 		self._data_handler = data_handler
 		self._variables = variables
 		if data_handler:
@@ -67,70 +80,113 @@ class SPOD_base(object):
 				self._data = self._data[...,np.newaxis]
 
 		# get data dimensions and store in class
-		self._nx = X[0,...,0].size
-		self._dim = X.ndim
-		self._shape = X.shape
-		self._xdim = X[0,...,0].ndim
+		self._nx     = X[0,...,0].size
+		self._dim    = X.ndim
+		self._shape  = X.shape
+		self._xdim   = X[0,...,0].ndim
 		self._xshape = X[0,...,0].shape
 
-		# Determine whether data is real-valued or complex-valued-valued
-		# to decide on one- or two-sided spectrum. If "opts.isreal" is
-		# not set, determine from data
-		if 'isreal'.lower() in self._params:
-			self._isrealx = self._params['isreal']
+		# check weights
+		if isinstance(weights, dict):
+			self._weights = weights['weights']
+			print('self._weights = ', self._weights)
+
+			self._weights_name = weights['weights_name']
+			if np.size(self._weights) != int(self.nx * self.nv):
+				raise ValueError(
+					'parameter ``weights`` must have the '
+					'same size as flattened data spatial '
+					'dimensions, that is: ', int(self.nx * self.nv))
 		else:
-			self._isrealx = np.isreal(X[0]).all()
+			print(self._xshape)
+			print(self.nv)
+			self._weights = np.ones(self._xshape+(self._nv,))
+			self._weights_name = 'uniform'
+			warnings.warn(
+				'Parameter `weights` not equal to an `numpy.ndarray`.'
+				'Using default uniform weighting')
+
+		# normalize weigths if required
+		if self._normalize_weights:
+			self._weights = utils_weights.apply_normalization(
+				data=self._data,
+				weights=self._weights,
+				n_variables=self._nv,
+				method='variance')
+
+		# flatten weights to number of spatial point
+		try:
+			self._weights = np.reshape(
+				self._weights, [int(self._nx*self._nv), 1])
+		except:
+			raise ValurError(
+				'parameter ``weights`` must be cast into '
+				'1d array with dimension equal to flattened '
+				'spatial dimension of data.')
+
+		# Determine whether data is real-valued or complex-valued-valued
+		# to decide on one- or two-sided spectrum from data
+		self._isrealx = np.isreal(X[0]).all()
 
 		# get default spectral estimation parameters and options
-		self._window, self._weights, \
-		self._n_overlap, self._n_DFT, \
-		self._n_blocks, self._x_mean, \
-		self._mean_type, self._freq, \
-		self._n_freq = self.parse_parameters( \
-				isrealx=self._isrealx,
-				params=self._params
-		)
+		# define default spectral estimation parameters
+		if isinstance(self._n_DFT, int):
+			self._window = SPOD_base._hamming_window(self._n_DFT)
+			self._window_name = 'hamming'
+		else:
+			self._n_DFT = int(2**(np.floor(np.log2(self.nt / 10))))
+			self._window = SPOD_base._hamming_window(self._n_DFT)
+			self._window_name = 'hamming'
+			warnings.warn(
+				'Parameter `n_DFT` not equal to an integer.'
+				'Using default `n_DFT` = ', self._n_DFT)
+
+		# define block overlap
+		self._n_overlap = int(np.ceil(self._n_DFT * self._overlap / 100))
+		if self._n_overlap > self._n_DFT - 1:
+			raise ValueError('Overlap is too large.')
+
+		# define number of blocks
+		self._n_blocks = \
+			int(np.floor((self.nt - self._n_overlap) \
+			/ (self._n_DFT - self._n_overlap)))
+
+		# set number of modes to save
+		if self._n_modes_save > self._n_blocks:
+			self._n_modes_save = self._n_blocks
+
+		# test feasibility
+		if (self._n_DFT < 4) or (self._n_blocks < 2):
+			raise ValueError(
+				'Spectral estimation parameters not meaningful.')
+
+		# apply mean
+		self.select_mean()
+
+		# get frequency axis
+		self.get_freq_axis()
 
 		# determine correction for FFT window gain
 		self._winWeight = 1 / np.mean(self._window)
-		self._window = self._window.reshape(self._window.shape[0],1)
+		self._window = self._window.reshape(self._window.shape[0], 1)
 
 		# get default for confidence interval
-		if 'conf_level' in self._params:
-			self._conf_level = 0.95
-			self._xi2_upper = 2 * sc.gammaincinv(self._n_blocks, 1 - self._conf_level)
-			self._xi2_lower = 2 * sc.gammaincinv(self._n_blocks,     self._conf_level)
-			self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype='complex_')
-			self._conf_interval = True
-		else:
-			self._eigs_c = []
-			self._conf_interval = False
-
-		# get default for normalization Boolean
-		self._normvar = self._params.get('normvar',False)
+		self._xi2_upper = 2 * sc.gammaincinv(self._n_blocks, 1 - self._conf_level)
+		self._xi2_lower = 2 * sc.gammaincinv(self._n_blocks,     self._conf_level)
+		self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype='complex_')
 
 		# create folder to save results
-		self._savefft = self._params.get('savefft',False)
-		self._save_dir = self._params.get('savedir',CWD)
-		self._save_dir_blocks = os.path.join(self._save_dir,'nfft'+str(self._n_DFT)+\
-			'_novlp'+str(self._n_overlap)+'_nblks'+str(self._n_blocks))
+		self._save_dir_blocks = os.path.join(self._save_dir, \
+			'nfft'+str(self._n_DFT)+'_novlp'+str(self._n_overlap) \
+			+'_nblks'+str(self._n_blocks))
 		if not os.path.exists(self._save_dir_blocks):
 			os.makedirs(self._save_dir_blocks)
 
 		# compute approx problem size (assuming double)
-		pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
+		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
 
-		print('DATA MATRIX DIMENSIONS')
-		print('------------------------------------')
-		print('Problem size          : ', pb_size, 'GB. (double)')
-		print('data matrix dimensions:        ', X.shape)
-		print('Make sure that first column of data matrix '
-			  'is time and last column is number of variables. ')
-		print('First column dimension: {} must correspond to '
-			  'number of time snapshots.'.format(X.shape[0]))
-		print('Last column dimension: {} must correspond to '
-			  'number of variables.'.format(X.shape[-1]))
-		print('------------------------------------')
+		# print parameters to the screen
+		self.print_parameters()
 
 
 
@@ -150,9 +206,9 @@ class SPOD_base(object):
 	@property
 	def dim(self):
 		'''
-		Get the shape of the data matrix.
+		Get the number of dimensions of the data matrix.
 
-		:return: shape of the data matrix.
+		:return: number of dimensions of the data matrix.
 		:rtype: int
 		'''
 		return self._dim
@@ -301,168 +357,102 @@ class SPOD_base(object):
 
 
 
-	# parser
-	# ---------------------------------------------------------------------------
-
-	def parse_parameters(self, isrealx, params):
-
-		window    = params['n_FFT']
-		weights   = params.get('weights', None)
-		n_overlap = params['n_overlap']
-		dt        = params['dt']
-		mean_type = params['mean']
-
-		# determine default spectral estimation parameters:
-		# - window size, and
-		# - window type
-		if isinstance(window, str):
-			if window.lower() == 'default':
-				n_DFT = 2**(np.floor(np.log2(self.nt/10)))
-				window = SPOD_base._hamming_window(n_DFT)
-				window_name = 'hamming'
-			else:
-				raise ValueError(window, 'not recognized.')
-		elif not isinstance(window, str):
-			if isinstance(window, int): window = np.array(window)
-			if window.size == 1:
-				n_DFT = window
-				window = SPOD_base._hamming_window(window)
-				window_name = 'hamming'
-			else:
-				n_DFT = window.size
-				window_name = 'user_specified'
-
-		# inner product weights
-		if isinstance(weights, np.ndarray):
-			if np.size(weights) != int(self.nx * self.nv):
-				raise ValueError('parameter ``weights`` must '
-								 'have the same spatial dimensions as data.')
-			else:
-				if weights.shape != (self.nx, self.nv):
-					weights = np.reshape(weights, [int(self.nx*self.nv),1])
-				weights_name = 'user-specified'
-		else:
-			weights = np.ones([int(self.nx*self.nv),1])
-			weights_name = 'uniform'
-
-		# block overlap
-		if isinstance(n_overlap, str):
-			if n_overlap.lower() == 'default':
-				n_overlap = np.floor(n_DFT/2)
-			else:
-				raise ValueError(n_overlap, 'not recognized.')
-		elif not isinstance(n_overlap, str):
-			if n_overlap > n_DFT-1:
-				raise ValueError('Overlap is too large')
-
-		# number of blocks
-		n_blocks = np.floor((self.nt - n_overlap) / (n_DFT - n_overlap));
-
-		# test feasibility
-		if (n_DFT < 4) or (n_blocks < 2):
-			raise ValueError('Spectral estimation parameters not meaningful.')
-
-		# cast relevant parameters into integers
-		n_DFT = int(n_DFT)
-		n_overlap = int(n_overlap)
-		n_blocks = int(n_blocks)
-
-		# select type of mean
-		if isinstance(mean_type,str):
-			if mean_type.lower() == 'longtime':
-				# split data into n_blocks chunks to maintain data consistency
-				split_block = self.nt // n_blocks
-				split_res = self.nt % n_blocks
-				x_sum = np.zeros(self.xshape+(self.nv,))
-				for iBlk in range(0,n_blocks):
-					lb = iBlk * split_block
-					ub = lb + split_block
-					x_data = self._data_handler(
-						data=self._data, t_0=lb, t_end=ub, variables=self.variables)
-					x_sum += np.sum(x_data, axis=0)
-				x_data = self._data_handler(
-					data=self._data, t_0=self.nt-split_res, t_end=self.nt,
-					variables=self.variables)
-				x_sum += np.sum(x_data, axis=0)
-				x_mean = x_sum / self.nt
-				x_mean = np.reshape(x_mean,(int(self.nx*self.nv)))
-				mean_name = 'longtime'
-			elif mean_type.lower() == 'blockwise':
-				x_mean = 0
-				mean_name = 'blockwise'
-			elif mean_type.lower() == '0':
-				x_mean = 0
-				mean_name = 'zero'
-				warnings.warn('No mean subtracted. Consider providing longtime mean.')
-			else:
-				raise ValueError(mean_type, 'not recognized.')
-		elif isinstance(mean_type,np.ndarray):
-			x_mean = mean_type
-			mean_name = 'user-specified'
-		else:
-			raise ValueError(type(mean_type), 'data type not recognized. ',
-							 'parameter ``mean`` can either be a str or a numpy.ndarray')
-
-		# obtain frequency axis
-		freq = np.arange(0,n_DFT,1) / dt / n_DFT
-		if isrealx:
-			freq = np.arange(0,np.ceil(n_DFT/2)+1,1) / n_DFT / dt
-		else:
-			if (n_DFT % 2 == 0):
-				freq[int(n_DFT/2)+1:] = freq[int(n_DFT/2)+1:] - (1 / dt)
-			else:
-				freq[(n_DFT+1)/2+1:] = freq[(n_DFT+1)/2+1:] - (1 / dt)
-		n_freq = len(freq)
-
-		n_modes_save = n_blocks
-		if 'n_modes_save' in self._params: n_modes_save = self._params['n_modes_save']
-		if n_modes_save > n_blocks: n_modes_save = n_blocks
-		self._n_modes_save = n_modes_save
-
-		# display parameter summary
-		print('')
-		print('SPOD parameters')
-		print('------------------------------------')
-		if isrealx: print('Spectrum type             : one-sided (real-valued signal)')
-		else      : print('Spectrum type             : two-sided (complex-valued signal)')
-		print('No. of snaphots per block : ', n_DFT)
-		print('Block overlap             : ', n_overlap)
-		print('No. of blocks             : ', n_blocks)
-		print('Windowing fct. (time)     : ', window_name)
-		print('Weighting fct. (space)    : ', weights_name)
-		print('Mean                      : ', mean_name)
-		print('Time-step                 : ', dt)
-		print('Number of Frequencies     : ', n_freq)
-		print('------------------------------------')
-		print('')
-		return window, weights, n_overlap, n_DFT, n_blocks, x_mean, mean_name, freq, n_freq
-
-	# ---------------------------------------------------------------------------
-
-
 	# Common methods
 	# ---------------------------------------------------------------------------
 
+	def select_mean(self):
+		"""Select mean."""
+		if self._mean_type.lower() == 'longtime':
+			self._x_mean = self.longtime_mean()
+			self._mean_name = 'longtime'
+		elif self._mean_type.lower() == 'blockwise':
+			self._x_mean = 0
+			self._mean_name = 'blockwise'
+		elif self._mean_type.lower() == 'zero':
+			self._x_mean = 0
+			self._mean_name = 'zero'
+			warnings.warn(
+				'No mean subtracted. '
+				'Consider providing longtime mean.')
+		else:
+			raise ValueError(self._mean_type, 'not recognized.')
+
+
+
+	def longtime_mean(self):
+		"""Get longtime mean."""
+		split_block = self.nt // self._n_blocks
+		split_res = self.nt % self._n_blocks
+		x_sum = np.zeros(self.xshape+(self.nv,))
+		for iBlk in range(0, self._n_blocks):
+			lb = iBlk * split_block
+			ub = lb + split_block
+			x_data = self._data_handler(
+				data=self._data,
+				t_0=lb,
+				t_end=ub,
+				variables=self.variables)
+			x_sum += np.sum(x_data, axis=0)
+		if split_res > 0:
+			x_data = self._data_handler(
+				data=self._data,
+				t_0=self.nt-split_res,
+				t_end=self.nt,
+				variables=self.variables)
+			x_sum += np.sum(x_data, axis=0)
+		x_mean = x_sum / self.nt
+		x_mean = np.reshape(x_mean, (int(self.nx*self.nv)))
+		return x_mean
+
+
+
+	def get_freq_axis(self):
+		"""Obtain frequency axis."""
+		self._freq = np.arange(0, self._n_DFT, 1) \
+			/ self._dt / self._n_DFT
+		if self._isrealx:
+			self._freq = np.arange(
+				0, np.ceil(self._n_DFT/2)+1, 1) \
+				/ self._n_DFT / self._dt
+		else:
+			if (n_DFT % 2 == 0):
+				self._freq[int(n_DFT/2)+1:] = \
+					freq[int(self._n_DFT/2)+1:] \
+					- 1 / self._dt
+			else:
+				self._freq[(n_DFT+1)/2+1:] = \
+					freq[(self._n_DFT+1)/2+1:] \
+					- 1 / self._dt
+		self._n_freq = len(self._freq)
+
+
+
 	def compute_blocks(self, iBlk):
+		"""Compute FFT blocks."""
 
 		# get time index for present block
-		offset = min(iBlk * (self._n_DFT - self._n_overlap) + self._n_DFT, self._nt) - self._n_DFT
+		offset = min(iBlk * (self._n_DFT - self._n_overlap) \
+			+ self._n_DFT, self._nt) - self._n_DFT
 
 		# Get data
 		Q_blk = self._data_handler(
-			self._data, t_0=offset,	t_end=self._n_DFT+offset, variables=self._variables)
+			self._data,
+			t_0=offset,
+			t_end=self._n_DFT+offset,
+			variables=self._variables)
 		Q_blk = Q_blk.reshape(self._n_DFT, self._nx * self._nv)
 
 		# Subtract longtime or provided mean
 		Q_blk = Q_blk[:] - self._x_mean
 
-		# if block mean is to be subtracted, do it now that all data is collected
+		# if block mean is to be subtracted,
+		# do it now that all data is collected
 		if self._mean_type.lower() == 'blockwise':
 			Q_blk = Q_blk - np.mean(Q_blk, axis=0)
 
 		# normalize by pointwise variance
-		if self._normvar:
-			Q_var = np.sum((Q_blk - np.mean(Q_blk,axis=0))**2, axis=0) / (self._n_DFT-1)
+		if self._normalize_data:
+			Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_DFT-1)
 			# address division-by-0 problem with NaNs
 			Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
 			Q_blk = Q_blk / Q_var
@@ -482,6 +472,7 @@ class SPOD_base(object):
 
 
 	def compute_standard_spod(self, Q_hat_f, iFreq):
+		"""Compute standard SPOD."""
 
 		# compute inner product in frequency space, for given frequency
 		M = np.matmul(Q_hat_f.conj().T, (Q_hat_f * self._weights))  / self._n_blocks
@@ -496,30 +487,72 @@ class SPOD_base(object):
 		V = V[:,idx]
 
 		# compute spatial modes for given frequency
-		Psi = np.matmul(Q_hat_f, np.matmul(V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
+		Psi = np.matmul(Q_hat_f, np.matmul(\
+			V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
 
 		# save modes in storage too in case post-processing crashes
 		Psi = Psi[:,0:self._n_modes_save]
 		Psi = Psi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
 		file_psi = os.path.join(self._save_dir_blocks,
-			'modes1to{:04d}_freq{:04d}.npy'.format(self._n_modes_save,iFreq))
+			'modes1to{:04d}_freq{:04d}.npy'.format(self._n_modes_save, iFreq))
 		np.save(file_psi, Psi)
 		self._modes[iFreq] = file_psi
 		self._eigs[iFreq,:] = abs(L)
 
-		# get and save confidence interval if required
-		if self._conf_interval:
-			self._eigs_c[iFreq,:,0] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_lower
-			self._eigs_c[iFreq,:,1] = self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_upper
+		# get and save confidence interval
+		self._eigs_c[iFreq,:,0] = \
+			self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_lower
+		self._eigs_c[iFreq,:,1] = \
+			self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_upper
 
 
 
 	def store_and_save(self):
+		"""Store and save results."""
+
 		self._eigs_c_u = self._eigs_c[:,:,0]
 		self._eigs_c_l = self._eigs_c[:,:,1]
-		file = os.path.join(self._save_dir_blocks,'spod_energy')
-		np.savez(file, eigs=self._eigs, eigs_c_u=self._eigs_c_u, eigs_c_l=self._eigs_c_l, f=self._freq)
+		file = os.path.join(self._save_dir_blocks, 'spod_energy')
+		np.savez(file,
+			eigs=self._eigs,
+			eigs_c_u=self._eigs_c_u,
+			eigs_c_l=self._eigs_c_l,
+			f=self._freq)
 		self._n_modes = self._eigs.shape[-1]
+
+
+
+	def print_parameters(self):
+
+		# display parameter summary
+		print('')
+		print('SPOD parameters')
+		print('------------------------------------')
+		print('Problem size               : ', self._pb_size, 'GB. (double)')
+		print('No. of snapshots per block : ', self._n_DFT)
+		print('Block overlap              : ', self._n_overlap)
+		print('No. of blocks              : ', self._n_blocks)
+		print('Windowing fct. (time)      : ', self._window_name)
+		print('Weighting fct. (space)     : ', self._weights_name)
+		print('Mean                       : ', self._mean_name)
+		print('Number of frequencies      : ', self._n_freq)
+		print('Time-step                  : ', self._dt)
+		print('Time snapshots             : ', self._nt)
+		print('Space dimensions           : ', self._xdim)
+		print('Number of variables        : ', self._nv)
+		print('Normalization weights      : ', self._normalize_weights)
+		print('Normalization data         : ', self._normalize_data)
+		print('Number of modes to be saved: ', self._n_modes_save)
+		print('Confidence level for eigs  : ', self._conf_level)
+		print('Results to be saved in     : ', self._save_dir)
+		print('Save FFT blocks            : ', self._savefft)
+		print('Reuse FFT blocks           : ', self._reuse_blocks)
+		if self._isrealx: print('Spectrum type             : ',
+			'one-sided (real-valued signal)')
+		else            : print('Spectrum type             : ',
+			'two-sided (complex-valued signal)')
+		print('------------------------------------')
+		print('')
 
 	# ---------------------------------------------------------------------------
 

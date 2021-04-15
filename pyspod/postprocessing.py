@@ -297,10 +297,10 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 	:param numpy.ndarray modes: 2D SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
-	:param int or sequence(int) vars_idx: variables to be plotted. \
-		Default, the first variable is plotted.
-	:param int or sequence(int) modes_idx: modes to be plotted. \
-		Default, the first mode is plotted.
+	:param int or sequence(int) vars_idx: variables to \
+		be plotted. Default, the first variable is plotted.
+	:param int or sequence(int) modes_idx: modes to
+		be plotted. Default, the first mode is plotted.
 	:param numpy.ndarray x1: x-axis coordinate.
 	:param numpy.ndarray x2: y-axis coordinate.
 	:param bool fftshift: whether to perform fft-shifting. \

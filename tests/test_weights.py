@@ -15,7 +15,7 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.weights as weights
+import pyspod.utils_weights as utils_weights
 
 
 
@@ -29,7 +29,6 @@ def test_weights_2D():
 	xx1, xx2 = np.meshgrid(x1, x2)
 	t = np.linspace(0, 200, 1000)
 	s_component = np.sin(xx1 * xx2) + np.cos(xx1)**2 + np.sin(0.1*xx2)
-	# s_component = s_component.T
 	t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 	p = np.empty((t_component.shape[0],)+s_component.shape)
 	for i, t_c in enumerate(t_component):
@@ -39,52 +38,44 @@ def test_weights_2D():
 	params = dict()
 
 	# -- required parameters
-	params['dt'          ] = 1                	# data time-sampling
-	params['nt'          ] = t.shape[0]       	# number of time snapshots (we consider all data)
-	params['xdim'        ] = 2                	# number of spatial dimensions (longitude and latitude)
-	params['nv'          ] = len(variables)     # number of variables
-	params['n_FFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
-	params['n_freq'      ] = params['n_FFT'] / 2 + 1   			# number of frequencies
-	params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block overlap region
-	params['mean'        ] = 'blockwise' 						# type of mean to subtract to the data
-	params['normalize'   ] = True        						# normalization of weights by data variance
-	params['savedir'     ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
+	params['time_step'   ] = 1              # data time-sampling
+	params['n_snapshots' ] = t.shape[0]     # number of time snapshots (we consider all data)
+	params['n_space_dims'] = 2              # number of spatial dimensions (longitude and latitude)
+	params['n_variables' ] = len(variables) # number of variables
+	params['n_DFT'       ] = 100          	# length of FFT blocks (100 time-snapshots)
 
 	# -- optional parameters
-	params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
-	params['n_modes_save'] = 3      # modes to be saved
-	params['normvar'     ] = False  # normalize data by data variance
-	params['conf_level'  ] = 0.95   # calculate confidence level
-	params['savefft'     ] = False   # save FFT blocks to reuse them in the future (saves time)
-	params['weights'] = weights.geo_weights_trapz_2D(lat=x2, lon=x1, R=1, n_vars=params['nv'])
+	params['mean_type'        ] = 'blockwise' 	# type of mean to subtract to the data
+	params['overlap'          ] = 0 		    # dimension block overlap region
+	params['normalize_weights'] = True    		# normalization of weights by data variance
+	params['normalize_data'   ] = False   		# normalize data by data variance
+	params['n_modes_save'     ] = 3       		# modes to be saved
+	params['conf_level'       ] = 0.95    		# calculate confidence level
+	params['reuse_blocks'     ] = True 	  		# whether to reuse blocks if present
+	params['savefft'          ] = False   		# save FFT blocks to reuse them in the future (saves time)
+	params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
 
-	print(p.shape)
-
-	# normalize data if required
-	if params['normalize']:
-		params['weights'] = \
-	        weights.apply_normalization(
-				data=p,
-				weights=params['weights'],
-				n_variables=params['nv'],
-				method='variance')
+	# Set weights
+	weights = utils_weights.geo_trapz_2D(
+		x1_dim=x2.shape[0], x2_dim=x1.shape[0],
+		n_vars=len(variables), R=1)
 
 	# Initialize libraries for the low_storage algorithm
-	spod_ls = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])
-	spod_ls.fit()
+	spod = SPOD_low_storage(p, weights=weights, params=params, data_handler=False, variables=['p'])
+	spod.fit()
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)
-	freq = spod_ls.freq
-	freq_found, freq_idx = spod_ls.find_nearest_freq(freq_required=1/T_approx, freq=freq)
-	modes_at_freq = spod_ls.get_modes_at_freq(freq_idx=freq_idx)
+	freq = spod.freq
+	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 	tol = 1e-10
-	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.15812414887564405 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,0]) > 0.15812414887564405 -tol))
-	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.1912878813107214 +tol) & \
-		   (np.abs(modes_at_freq[0,0,0,0])  > 0.1912878813107214 -tol))
-	assert((np.max(np.abs(modes_at_freq))   < 0.46987413376959064 +tol) & \
-		   (np.max(np.abs(modes_at_freq))   > 0.46987413376959064 -tol))
+	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.16561370950286067 +tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0]) > 0.16561370950286067 -tol))
+	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.20034824428826495 +tol) & \
+		   (np.abs(modes_at_freq[0,0,0,0])  > 0.20034824428826495 -tol))
+	assert((np.max(np.abs(modes_at_freq))   < 0.4921297527692911 +tol) & \
+		   (np.max(np.abs(modes_at_freq))   > 0.4921297527692911 -tol))
 
 
 
@@ -108,29 +99,43 @@ def test_weights_3D():
 	params = dict()
 
 	# -- required parameters
-	params['dt'          ] = 1                	# data time-sampling
-	params['nt'          ] = t.shape[0]       	# number of time snapshots (we consider all data)
-	params['xdim'        ] = 3                	# number of spatial dimensions (longitude and latitude)
-	params['nv'          ] = len(variables)     # number of variables
-	params['n_FFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
-	params['n_freq'      ] = params['n_FFT'] / 2 + 1   			# number of frequencies
-	params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block overlap region
-	params['mean'        ] = 'blockwise' 						# type of mean to subtract to the data
-	params['normalize'   ] = False        						# normalization of weights by data variance
-	params['savedir'     ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
+	params['time_step'   ] = 1              # data time-sampling
+	params['n_snapshots' ] = t.shape[0]     # number of time snapshots (we consider all data)
+	params['n_space_dims'] = 3              # number of spatial dimensions (longitude and latitude)
+	params['n_variables' ] = len(variables) # number of variables
+	params['n_DFT'       ] = 100          	# length of FFT blocks (100 time-snapshots)
 
 	# -- optional parameters
-	params['weights']      = None # if set to None, no weighting (if not specified, Default is None)
-	params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
-	params['n_modes_save'] = 3      # modes to be saved
-	params['normvar'     ] = False  # normalize data by data variance
-	params['conf_level'  ] = 0.95   # calculate confidence level
-	params['savefft'     ] = False   # save FFT blocks to reuse them in the future (saves time)
-	params['weights'] = weights.geo_weights_trapz_3D(lat=x2, lon=x1, R=1, z=x3, n_vars=params['nv'])
+	params['mean_type'        ] = 'blockwise' 	# type of mean to subtract to the data
+	params['overlap'          ] = 0 		    # dimension block overlap region
+	params['normalize_weights'] = True    		# normalization of weights by data variance
+	params['reuse_blocks'     ] = True 	  		# whether to reuse blocks if present
+	params['n_modes_save'     ] = 3       		# modes to be saved
+	params['normalize_data'   ] = False   		# normalize data by data variance
+	params['conf_level'       ] = 0.95    		# calculate confidence level
+	params['savefft'          ] = False   		# save FFT blocks to reuse them in the future (saves time)
+	params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
+
 
 	# Initialize libraries for the low_storage algorithm
-	spod = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])
+	weights = utils_weights.geo_trapz_3D(
+		x1_dim=x2.shape[0], x2_dim=x1.shape[0], x3_dim=x3.shape[0],
+		n_vars=len(variables), R=1)
+	spod = SPOD_low_storage(p, params=params, weights=weights, data_handler=False, variables=['p'])
 	spod.fit()
+
+	# Show results
+	T_approx = 10 # approximate period = 10 days (in days)
+	freq = spod.freq
+	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
+	tol = 1e-10
+	assert((np.abs(modes_at_freq[5,10,0,0,0]) < 0.022101297947330137 +tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0,0]) > 0.022101297947330137 -tol))
+	assert((np.abs(modes_at_freq[0,0,0,0,0])  < 0.06571474607757034  +tol) & \
+		   (np.abs(modes_at_freq[0,0,0,0,0])  > 0.06571474607757034  -tol))
+	assert((np.max(np.abs(modes_at_freq))     < 0.20732174099017797  +tol) & \
+		   (np.max(np.abs(modes_at_freq))     > 0.20732174099017797  -tol))
 
 
 

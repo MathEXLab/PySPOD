@@ -33,25 +33,26 @@ def test_postprocessing_2D():
 
 	# parameters
 	params = dict()
-	params['nt'          ] = len(t)
-	params['xdim'        ] = 2
-	params['nv'          ] = 1
-	params['dt'          ] = 1
-	params['nt'          ] = t.shape[0]
-	params['n_FFT'       ] = np.ceil(32)
-	params['n_freq'      ] = params['n_FFT'] / 2 + 1
-	params['n_overlap'   ] = np.ceil(params['n_FFT'] * 50 / 100)
-	params['savefreqs'   ] = np.arange(0,params['n_freq'])
-	params['conf_level'  ] = 0.95
-	params['n_vars'      ] = 1
-	params['n_modes_save'] = 3
-	params['normvar'     ] = False
-	params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
-	params['weights'     ] = np.ones([len(x1) * len(x2) * params['nv'],1])
 
-	# set blockwise mean
-	params['mean'] = 'blockwise'
-	params['savefft'] = False
+	# -- required parameters
+	params['time_step'   ] = 1 					# data time-sampling
+	params['n_snapshots' ] = t.shape[0] 		# number of time snapshots (we consider all data)
+	params['n_space_dims'] = 2 					# number of spatial dimensions (longitude and latitude)
+	params['n_variables' ] = 1 					# number of variables
+	params['n_DFT'       ] = np.ceil(32) 		# length of FFT blocks (100 time-snapshots)
+
+	# -- optional parameters
+	params['overlap'          ] = 50			# dimension in percentage (1 to 100) of block overlap
+	params['mean_type'        ] = 'blockwise' 	# type of mean to subtract to the data
+	params['normalize_weights'] = False       	# normalization of weights by data variance
+	params['normalize_data'   ] = False  		# normalize data by data variance
+	params['n_modes_save'     ] = 3      		# modes to be saved
+	params['conf_level'       ] = 0.95   		# calculate confidence level
+	params['reuse_blocks'     ] = False 		# whether to reuse blocks if present
+	params['savefft'          ] = False  		# save FFT blocks to reuse them in the future (saves time)
+	params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem)
+
+
 
 	# SPOD analysis
 	SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
@@ -158,24 +159,22 @@ def test_postprocessing_3D():
 	params = dict()
 
 	# -- required parameters
-	params['dt'          ] = 1                	# data time-sampling
-	params['nt'          ] = t.shape[0]       	# number of time snapshots (we consider all data)
-	params['xdim'        ] = 3                	# number of spatial dimensions (longitude and latitude)
-	params['nv'          ] = len(variables)     # number of variables
-	params['n_FFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
-	params['n_freq'      ] = params['n_FFT'] / 2 + 1   			# number of frequencies
-	params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block overlap region
-	params['mean'        ] = 'blockwise' 						# type of mean to subtract to the data
-	params['normalize'   ] = False        						# normalization of weights by data variance
-	params['savedir'     ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
+	params['time_step'   ] = 1 			# data time-sampling
+	params['n_snapshots' ] = t.shape[0] # number of time snapshots (we consider all data)
+	params['n_space_dims'] = 3 			# number of spatial dimensions (longitude and latitude)
+	params['n_variables' ] = 1 			# number of variables
+	params['n_DFT'       ] = 100 		# length of FFT blocks (100 time-snapshots)
 
 	# -- optional parameters
-	params['weights']      = None # if set to None, no weighting (if not specified, Default is None)
-	params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
-	params['n_modes_save'] = 3      # modes to be saved
-	params['normvar'     ] = False  # normalize data by data variance
-	params['conf_level'  ] = 0.95   # calculate confidence level
-	params['savefft'     ] = False   # save FFT blocks to reuse them in the future (saves time)
+	params['overlap'          ] = 0			    # dimension in percentage (1 to 100) of block overlap
+	params['mean_type'        ] = 'blockwise' 	# type of mean to subtract to the data
+	params['normalize_weights'] = False       	# normalization of weights by data variance
+	params['normalize_data'   ] = False  		# normalize data by data variance
+	params['n_modes_save'     ] = 3      		# modes to be saved
+	params['conf_level'       ] = 0.95   		# calculate confidence level
+	params['reuse_blocks'     ] = False 	    # whether to reuse blocks if present
+	params['savefft'          ] = False  		# save FFT blocks to reuse them in the future (saves time)
+	params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test')
 
 	# Initialize libraries for the low_storage algorithm
 	spod = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])

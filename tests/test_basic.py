@@ -15,6 +15,7 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
+import utils_io
 
 # Let's create some 2D syntetic data
 # and store them into a variable called p
@@ -30,28 +31,30 @@ p = np.empty((t_component.shape[0],)+s_component.shape)
 for i, t_c in enumerate(t_component):
 	p[i] = s_component * t_c
 
+# params = utils.parse_config_file()
+# print(p)
+
+
 # Let's define the required parameters into a dictionary
 params = dict()
 
 # -- required parameters
-params['dt'          ] = 1                	# data time-sampling
-params['nt'          ] = t.shape[0]       	# number of time snapshots (we consider all data)
-params['xdim'        ] = 2                	# number of spatial dimensions (longitude and latitude)
-params['nv'          ] = len(variables)     # number of variables
-params['n_FFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
-params['n_freq'      ] = params['n_FFT'] / 2 + 1   			# number of frequencies
-params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block overlap region
-params['mean'        ] = 'blockwise' 						# type of mean to subtract to the data
-params['normalize'   ] = False        						# normalization of weights by data variance
-params['savedir'     ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
+params['time_step'   ] = 1                	# data time-sampling
+params['n_snapshots' ] = t.shape[0]       	# number of time snapshots (we consider all data)
+params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
+params['n_variables' ] = len(variables)     # number of variables
+params['n_DFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
 
 # -- optional parameters
-params['weights']      = None # if set to None, no weighting (if not specified, Default is None)
-params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
-params['n_modes_save'] = 3      # modes to be saved
-params['normvar'     ] = False  # normalize data by data variance
-params['conf_level'  ] = 0.95   # calculate confidence level
-params['savefft'     ] = False   # save FFT blocks to reuse them in the future (saves time)
+params['overlap'          ] = 0 			# dimension block overlap region
+params['mean_type'        ] = 'blockwise' 	# type of mean to subtract to the data
+params['normalize_weights'] = False        	# normalization of weights by data variance
+params['normalize_data'   ] = False   		# normalize data by data variance
+params['n_modes_save'     ] = 3      		# modes to be saved
+params['conf_level'       ] = 0.95   		# calculate confidence level
+params['reuse_blocks'     ] = True 			# whether to reuse blocks if present
+params['savefft'          ] = False   		# save FFT blocks to reuse them in the future (saves time)
+params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
 
 
 

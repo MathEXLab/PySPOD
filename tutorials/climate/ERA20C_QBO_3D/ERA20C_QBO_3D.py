@@ -4,18 +4,23 @@ import xarray as xr
 import numpy  as np
 from pathlib import Path
 
+# Current, parent and file paths
+CWD = os.getcwd()
+CF  = os.path.realpath(__file__)
+CFD = os.path.dirname(CF)
+
 # Import library specific modules
-sys.path.append("../../../")
+sys.path.append(os.path.join(CFD, "../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.weights as weights
+import pyspod.utils_weights as utils_weights
 
 # Current path
 CWD = os.getcwd()
 
 # Inspect and load data
-file = os.path.join(CWD,'E20C_MONTHLYMEAN00_1900_2010_U131128_3D.nc')
+file = os.path.join(CFD, 'E20C_MONTHLYMEAN00_1900_2010_U131128_3D.nc')
 ds = xr.open_dataset(file)
 print(ds)
 
@@ -41,34 +46,38 @@ print('shape of data matrix X: ', X.shape)
 # define required and optional parameters
 params = dict()
 
-# required parameters
-params['dt'          ] = 744 # data time-sampling
-params['nt'          ] = t.shape[0] # number of time snapshots
-params['xdim'        ] = X[0,...,0].ndim   # number of spatial dimensions (longitude and latitude)
-params['nv'          ] = len(variables)            # number of variables
-params['n_FFT'       ] = np.ceil(12 * 12)          # length of FFT blocks
-params['n_freq'      ] = params['n_FFT'] / 2 + 1  # number of frequencies
-params['n_overlap'   ] = np.ceil(params['n_FFT'] * 0 / 100) # dimension block overlap region
-params['mean'        ] = 'longtime'  # type of mean to subtract to the data
-params['normalize'   ] = False        # normalization of weights by data variance
-params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
-params['weights'] = weights.geo_weights_trapz_3D(\
-    lat=x2,
-    lon=x1,
-    R=1,
-    z=x3,
-    n_vars=params['nv']) # weights
+# -- required parameters
+params['time_step'   ] = 744                # data time-sampling
+params['n_snapshots' ] = t.shape[0]       	# number of time snapshots (we consider all data)
+params['n_space_dims'] = X[0,...,0].ndim    # number of spatial dimensions (longitude and latitude)
+params['n_variables' ] = len(variables)     # number of variables
+params['n_DFT'       ] = np.ceil(12 * 12)   # length of FFT blocks (100 time-snapshots)
 
-# optional parameters
-params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
-params['n_modes_save'] = 5      # modes to be saved
-params['normvar'     ] = False  # normalize data by data variance
-params['conf_level'  ] = 0.95   # calculate confidence level
-params['savefft'     ] = False  # save FFT blocks to reuse them in the future (saves time)
+# -- optional parameters
+params['overlap'          ] = 0 			# dimension block overlap region
+params['mean_type'        ] = 'longtime' 	# type of mean to subtract to the data
+params['normalize_weights'] = False        	# normalization of weights by data variance
+params['normalize_data'   ] = False   		# normalize data by data variance
+params['n_modes_save'     ] = 5      		# modes to be saved
+params['conf_level'       ] = 0.95   		# calculate confidence level
+params['reuse_blocks'     ] = False 		# whether to reuse blocks if present
+params['savefft'          ] = False   		# save FFT blocks to reuse them in the future (saves time)
+params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
 
+# Set weights
+weights = utils_weights.geo_trapz_3D(
+	x1_dim=x2.shape[0], x2_dim=x1.shape[0], x3_dim=x3.shape[0],
+	n_vars=len(variables), R=1)
 
 # Perform SPOD analysis using low storage module
-SPOD_analysis = SPOD_low_ram(data=X, params=params, data_handler=False, variables=variables)
+SPOD_analysis = SPOD_low_ram(
+	data=X,
+	params=params,
+	data_handler=False,
+	variables=variables,
+	weights=weights)
+
+# Fit SPOD
 spod = SPOD_analysis.fit()
 
 # Show results

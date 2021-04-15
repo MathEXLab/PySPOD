@@ -4,18 +4,20 @@ import xarray as xr
 import numpy  as np
 from pathlib import Path
 
-# Paths
+# Current, parent and file paths
 CWD = os.getcwd()
+CF  = os.path.realpath(__file__)
+CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append("../../../")
+sys.path.append(os.path.join(CFD, "../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 
 # Inspect and load data
-file = os.path.join('../../../tests/data/earthquakes_data.nc')
-print(os.path.abspath(os.path.join('../../../tests/data/earthquakes_data.nc')))
+file = os.path.join(CFD, '../../../tests/data/earthquakes_data.nc')
+print(os.path.abspath(os.path.join(CFD, '../../../tests/data/earthquakes_data.nc')))
 ds = xr.open_dataset(file)
 variables = ['slip_potency']
 t = np.array(ds['time'])
@@ -29,29 +31,24 @@ print('X.shape  = ', X.shape)
 
 # define required and optional parameters
 params = dict()
-params['dt'          ] = 1
-params['nt'          ] = len(t)-1
-params['xdim'        ] = 2
-params['nv'          ] = len(variables)
-params['n_FFT'       ] = np.ceil(32)
-params['n_freq'      ] = params['n_FFT'] / 2 + 1
-params['n_overlap'   ] = np.ceil(params['n_FFT'] * 10 / 100)
-params['savefreqs'   ] = np.arange(0,params['n_freq'])
-params['conf_level'  ] = 0.95
-params['n_vars'      ] = 1
-params['n_modes_save'] = 6
-params['normvar'     ] = False
-params['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
-params['weights'     ] = np.ones([len(x1) * len(x2) * params['nv'],1])
-params['mean'        ] = 'longtime'
 
+# -- required parameters
+params['time_step'   ] = 1                	# data time-sampling
+params['n_snapshots' ] = len(t)-1       	# number of time snapshots (we consider all data)
+params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
+params['n_variables' ] = len(variables)     # number of variables
+params['n_DFT'       ] = np.ceil(32)          		# length of FFT blocks (100 time-snapshots)
 
-# optional parameters
-params['savefreqs'   ] = np.arange(0,params['n_freq']) # frequencies to be saved
-params['n_modes_save'] = 3      # modes to be saved
-params['normvar'     ] = False  # normalize data by data variance
-params['conf_level'  ] = 0.95   # calculate confidence level
-params['savefft'     ] = False  # save FFT blocks to reuse them in the future (saves time)
+# -- optional parameters
+params['overlap'          ] = 10 			# dimension block overlap region
+params['mean_type'        ] = 'longtime' 	# type of mean to subtract to the data
+params['normalize_weights'] = True        	# normalization of weights by data variance
+params['normalize_data'   ] = False   		# normalize data by data variance
+params['n_modes_save'     ] = 3      		# modes to be saved
+params['conf_level'       ] = 0.95   		# calculate confidence level
+params['reuse_blocks'     ] = False 		# whether to reuse blocks if present
+params['savefft'          ] = False   		# save FFT blocks to reuse them in the future (saves time)
+params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
 
 # Perform SPOD analysis using low storage module
 SPOD_analysis = SPOD_streaming(data=X, params=params, data_handler=False, variables=variables)

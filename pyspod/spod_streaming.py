@@ -52,18 +52,13 @@ class SPOD_streaming(SPOD_base):
 		x_new = self._data_handler(self._data, t_0=0, t_end=0, variables=self._variables)
 		x_new = np.reshape(x_new,(self._nx*self._nv,1))
 
-		# get number of modes to store
-		self._n_modes = self._n_blocks-1
-		self._n_modes_saved = self._n_modes
-		if 'n_modes_save' in self._params: self._n_modes_saved = self._params['n_modes_save']
-
 		# allocate data arrays
 		X_hat = np.zeros([self._nv*self._nx,self._n_freq], dtype='complex_')
 		X_sum = np.zeros([self._nv*self._nx,self._n_freq,n_blocks_parallel], dtype='complex_')
-		X_SPOD = np.zeros([self._nv*self._nx,self._n_freq,self._n_modes_saved], dtype='complex_')
-		U_hat = np.zeros([self._nv*self._nx,self._n_freq,self._n_modes], dtype='complex_')
+		X_SPOD = np.zeros([self._nv*self._nx,self._n_freq,self._n_modes_save], dtype='complex_')
+		U_hat = np.zeros([self._nv*self._nx,self._n_freq,self._n_modes_save], dtype='complex_')
 		mu = np.zeros([self._nv*self._nx,1], dtype='complex_')
-		self._eigs = np.zeros([self._n_modes,self._n_freq], dtype='complex_')
+		self._eigs = np.zeros([self._n_modes_save,self._n_freq], dtype='complex_')
 		self._modes = dict()
 
 		# DFT matrix
@@ -76,14 +71,14 @@ class SPOD_streaming(SPOD_base):
 			Fourier = Fourier[:,freq_idx]
 
 		# convergence tests
-		mse_prev = np.empty([int(1e3),self._n_modes,self._n_freq], dtype='complex_') * np.nan
-		proj_prev = np.empty([self._n_freq,int(1e3),self._n_modes], dtype='complex_') * np.nan
-		S_hat_prev = np.zeros([self._n_modes,self._n_freq], dtype='complex_')
+		mse_prev = np.empty([int(1e3),self._n_modes_save,self._n_freq], dtype='complex_') * np.nan
+		proj_prev = np.empty([self._n_freq,int(1e3),self._n_modes_save], dtype='complex_') * np.nan
+		S_hat_prev = np.zeros([self._n_modes_save,self._n_freq], dtype='complex_')
 
 		# initialize counters
 		block_i = 0
 		ti = -1
-		z = np.zeros([1,self._n_modes])
+		z = np.zeros([1,self._n_modes_save])
 		while True:
 			ti = ti + 1
 
@@ -171,8 +166,8 @@ class SPOD_streaming(SPOD_base):
 						U = np.dot(U_tmp, Up)
 
 						# best rank-k approximation, eqn. (37)
-						U_hat[:,iFreq,:] = U[:,0:self._n_modes]
-						self._eigs[:,iFreq] = Sp[0:self._n_modes]
+						U_hat[:,iFreq,:] = U[:,0:self._n_modes_save]
+						self._eigs[:,iFreq] = Sp[0:self._n_modes_save]
 
 					# reset Fourier sum
 					X_hat[:,:] = 0
@@ -188,11 +183,11 @@ class SPOD_streaming(SPOD_base):
 				mse_prev[block_i,:,:] = (np.abs(S_hat_prev**2 - self._eigs**2)**2) / (S_hat_prev**2)
 
 		# rescale such that <U_i,U_j>_E = U_i^H*W*U_j = delta_ij
-		X_SPOD = U_hat[:,:,0:self._n_modes_saved] *  (1 / sqrtW[:,:,np.newaxis])
+		X_SPOD = U_hat[:,:,0:self._n_modes_save] *  (1 / sqrtW[:,:,np.newaxis])
 
 		# shuffle and reshape
 		X_SPOD = np.einsum('ijk->jik', X_SPOD)
-		X_SPOD = np.reshape(X_SPOD, (self._n_freq,)+self._xshape+(self._nv,)+(self._n_modes_saved,))
+		X_SPOD = np.reshape(X_SPOD, (self._n_freq,)+self._xshape+(self._nv,)+(self._n_modes_save,))
 
 		# save eigenvalues
 		self._eigs = self._eigs.T
@@ -202,7 +197,7 @@ class SPOD_streaming(SPOD_base):
 		np.savez(file, eigs=self._eigs, f=self._freq)
 		for iFreq in range(0,self._n_freq):
 			Psi = X_SPOD[iFreq,...]
-			file_psi = os.path.join(self._save_dir,'modes1to{:04d}_freq{:04d}.npy'.format(self._n_modes_saved,iFreq))
+			file_psi = os.path.join(self._save_dir,'modes1to{:04d}_freq{:04d}.npy'.format(self._n_modes_save,iFreq))
 			np.save(file_psi, Psi)
 			self._modes[iFreq] = file_psi
 
