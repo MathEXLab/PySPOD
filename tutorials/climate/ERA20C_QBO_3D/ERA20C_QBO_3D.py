@@ -97,7 +97,9 @@ spod.plot_3D_modes_slice_at_frequency(
     x3=x3,
     slice_dim=2,
     slice_id=2,
-    coastlines='centred', modes_idx=[0,1,2], vars_idx=[0])
+    coastlines='centred',
+	modes_idx=[0,1,2],
+	vars_idx=[0])
 spod.plot_mode_tracers(
     freq_required=freq_found,
     freq=freq,

@@ -69,11 +69,11 @@ params['n_DFT'       ] = np.ceil(24 * 30)          		# length of FFT blocks (100
 # -- optional parameters
 params['overlap'          ] = 0 			# dimension block overlap region
 params['mean_type'        ] = 'blockwise' 	# type of mean to subtract to the data
-params['normalize_weights'] = True        	# normalization of weights by data variance
+params['normalize_weights'] = False        	# normalization of weights by data variance
 params['normalize_data'   ] = False   		# normalize data by data variance
 params['n_modes_save'     ] = 3      		# modes to be saved
 params['conf_level'       ] = 0.95   		# calculate confidence level
-params['reuse_blocks'     ] = False 		# whether to reuse blocks if present
+params['reuse_blocks'     ] = True 		    # whether to reuse blocks if present
 params['savefft'          ] = True   		# save FFT blocks to reuse them in the future (saves time)
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
 
@@ -105,7 +105,8 @@ spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
 spod.plot_2D_modes_at_frequency(
 	freq_required=freq_found,
     freq=freq,
-    x1=x1,
+    x1=x1-180,
     x2=x2,
+	coastlines='centred',
     modes_idx=[0,1],
     vars_idx=[0])

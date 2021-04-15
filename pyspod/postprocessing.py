@@ -362,21 +362,24 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 				mode = np.fft.fftshift(mode, axes=1)
 
 			# check dimension axes and data
-			if x1.shape[0] != mode.shape[0] or x2.shape[0] != mode.shape[1]:
-				raise ValueError('Data dimension Z = (N,M); x1 and x2 must '
-								 'have dimension N and M, respectively.')
+			size_coords = x1.shape[0] * x2.shape[0]
+			if size_coords != mode.size:
+				raise ValueError('Mode dimension does not match coordinates dimensions.')
+
+			if x1.shape[0] != mode.shape[1] or x2.shape[0] != mode.shape[0]:
+				mode = mode.T
 
 			# plot data
 			if imaginary:
 				real_ax = fig.add_subplot(1, 2, 1)
 				real = real_ax.contourf(
-					x1, x2, np.real(mode).T,
+					x1, x2, np.real(mode),
 					vmin=-np.abs(mode).max()*1.,
 					vmax= np.abs(mode).max()*1.,
 					origin=origin)
 				imag_ax = fig.add_subplot(1, 2, 2)
 				imag = imag_ax.contourf(
-					x1, x2, np.imag(mode).T,
+					x1, x2, np.imag(mode),
 					vmin=-np.abs(mode).max()*1.,
 					vmax= np.abs(mode).max()*1.,
 					origin=origin)
@@ -413,7 +416,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 			else:
 				real_ax = plt.gca()
 				real = real_ax.contourf(
-					x1, x2, np.real(mode).T,
+					x1, x2, np.real(mode),
 					vmin=-np.abs(mode).max()*1.,
 					vmax= np.abs(mode).max()*1.,
 					origin=origin)
@@ -732,7 +735,6 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 			if (mode.shape[1] == x1.shape[0]) and (flag1 != 'x1'): yy = x1; flag2 = 'x1'
 			elif (mode.shape[1] == x2.shape[0]) and (flag1 != 'x2'): yy = x2; flag2 = 'x2'
 			elif (mode.shape[1] == x3.shape[0]) and (flag1 != 'x3'): yy = x3; flag2 = 'x3'
-			coastlines = ''
 
 			# perform fft shift if required
 			if fftshift:
@@ -1002,13 +1004,16 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 			x = np.real(X[time_id,...,var_id])
 
 			# check dimension axes and data
-			if x1.shape[0] != x.shape[0] or x2.shape[0] != x.shape[1]:
-				raise ValueError('Data dimension Z = (N,M); x1 and x2 must '
-								 'have dimension N and M, respectively.')
+			size_coords = x1.shape[0] * x2.shape[0]
+			if size_coords != x.size:
+				raise ValueError('Data dimension does not match coordinates dimensions.')
+
+			if x1.shape[0] != x.shape[1] or x2.shape[0] != x.shape[0]:
+				x = x.T
 
 			# plot data
 			contour = plt.contourf(
-				x1, x2, x.T,
+				x1, x2, x,
 				vmin=np.nanmin(x),
 				vmax=np.nanmax(x),
 				origin=origin)
@@ -1151,11 +1156,16 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	time_range = time_range[0::sampling]
 
 	# check dimension axes and data
-	if x1.shape[0] != X[0,:,:].shape[0] or \
-	   x2.shape[0] != X[0,:,:].shape[1]:
-		raise ValueError(
-			'Data dimension Z = (N,M); x1 and x2 '
-			'must have dimension N and M, respectively.')
+	print(x1.shape)
+	print(x2.shape)
+	print(X.shape)
+	size_coords = x1.shape[0] * x2.shape[0]
+	if size_coords != X[0,...,0].size:
+		raise ValueError('Data dimension does not match coordinates dimensions.')
+
+	no_transpose = False
+	if x1.shape[0] != X.shape[1] or x2.shape[0] != X.shape[0]:
+		no_transpose = True
 
 	# overlay coastlines if required
 	cst = False
@@ -1178,24 +1188,46 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 
 		# generate movie
 		if cst:
-			frames = [
-				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
-								shading='gouraud',
-								vmin=-0.9*vmean,
-								vmax= 0.9*vmean),
-				 plt.scatter(coast['coastlon'],
-							 coast['coastlat'],
-							 marker='.', c='k', s=1)]
-				for state in time_range
-			]
+			if no_transpose:
+				frames = [
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
+									shading='gouraud',
+									vmin=-0.9*vmean,
+									vmax= 0.9*vmean),
+					 plt.scatter(coast['coastlon'],
+								 coast['coastlat'],
+								 marker='.', c='k', s=1)]
+					for state in time_range
+				]
+			else:
+				frames = [
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
+									shading='gouraud',
+									vmin=-0.9*vmean,
+									vmax= 0.9*vmean),
+					 plt.scatter(coast['coastlon'],
+								 coast['coastlat'],
+								 marker='.', c='k', s=1)]
+					for state in time_range
+				]
 		else:
-			frames = [
-				[plt.pcolormesh(x1, x2, np.real(X[state,...,i]).T,
-								shading='gouraud',
-								vmin=-0.9*vmean,
-								vmax= 0.9*vmean)]
-				for state in time_range
-			]
+			if no_transpose:
+				frames = [
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
+									shading='gouraud',
+									vmin=-0.9*vmean,
+									vmax= 0.9*vmean)]
+					for state in time_range
+				]
+			else:
+				frames = [
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
+									shading='gouraud',
+									vmin=-0.9*vmean,
+									vmax= 0.9*vmean)]
+					for state in time_range
+				]
+
 		a = animation.ArtistAnimation(
 			fig, frames, interval=70, blit=False, repeat=False)
 		Writer = animation.writers['ffmpeg']

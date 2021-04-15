@@ -89,8 +89,6 @@ class SPOD_base(object):
 		# check weights
 		if isinstance(weights, dict):
 			self._weights = weights['weights']
-			print('self._weights = ', self._weights)
-
 			self._weights_name = weights['weights_name']
 			if np.size(self._weights) != int(self.nx * self.nv):
 				raise ValueError(
@@ -98,8 +96,6 @@ class SPOD_base(object):
 					'same size as flattened data spatial '
 					'dimensions, that is: ', int(self.nx * self.nv))
 		else:
-			print(self._xshape)
-			print(self.nv)
 			self._weights = np.ones(self._xshape+(self._nv,))
 			self._weights_name = 'uniform'
 			warnings.warn(
