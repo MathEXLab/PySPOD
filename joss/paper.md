@@ -7,10 +7,10 @@ tags:
   - data-driven dynamics
   - data mining
 authors:
-  - name: Mengaldo G.
+  - name: Gianmarco Mengaldo
     orcid: 0000-0002-0157-5477
     affiliation: "1" # (Multiple affiliations must be quoted)
-  - name: Maulik R.
+  - name: Romit Maulik
     affiliation: "2" # (Multiple affiliations must be quoted)
 affiliations:
  - name: Department of Mechanical Engineering, National University of Singapore (SG)
@@ -41,17 +41,17 @@ help anticipate scenarios that would not otherwise be predictable.
 Within this context, dynamical systems theory, complemented with recent 
 developments in machine learning and data mining tools, is achieving tremendous 
 advances in our ability to acquire actionable information from complex 
-data. Singular-value decomposition based techniques, in particular, are a 
-promising area that is gaining popularity, due to their links to reduced 
-order modeling and dynamical systems. Also, these techniques can be used in 
-the context of machine learning as additional inputs to the learning 
+data. Singular-value decomposition based techniques, in particular, are 
+a promising area that is gaining popularity, due to their links to reduced 
+order modeling and dynamical systems. Also, these techniques can be 
+used in the context of machine learning as additional inputs to the learning 
 architecture, thereby augmenting the dataset and possibly helping in 
 the interpretability of the results. 
 
 Several variants of singular-value decomposition (SVD) based techniques 
 have been proposed in the literature, this library provides efficient 
 implementations of the spectral proper orthogonal decomposition 
-(SPOD) [@lumley1970], [@towne2017]. SPOD is also referred to as spectral 
+(SPOD) [@lumley1970; @towne2017]. SPOD is also referred to as spectral 
 empirical orthogonal function (SEOF) in the weather and climate community 
 [@schmidt2019a]. SPOD differs from other SVD-based techniques as it is 
 derived from a standard (space-time) POD problem for stationary data and 
@@ -72,8 +72,8 @@ is not present in [@spod-code-jburrows]. Similar differences exist between
 # Capabilities 
 
 `PySPOD` is a modular Python package that implements three different 
-variants of SPOD, (i) a low storage [@towne2017,@schmidt2019a], 
-(ii) a low RAM [@towne2017,@schmidt2019a], and (iii) a streaming version 
+variants of SPOD, (i) a low storage [@towne2017; @schmidt2019a], 
+(ii) a low RAM [@towne2017; @schmidt2019a], and (iii) a streaming version 
 [@schmidt2019b]. The three versions differ in terms of I/O and RAM requirements. 
 The low storage version allows faster computations, and it is intended for small 
 datasets, or high RAM machines. The low RAM version can handle 
@@ -112,7 +112,8 @@ simulation, the interested reader can refer to [@schmidt2019a].
 
 
 # Acknowledgements
-G. Mengaldo wants to thank Oliver T. Schmidt for fruitful discussions. We also thank the reviewers who helped substantially improve the software package. 
+G. Mengaldo wants to thank Oliver T. Schmidt for fruitful discussions. 
+We also thank the reviewers who helped substantially improve the software package. 
 
 
 
