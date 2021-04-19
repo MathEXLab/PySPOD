@@ -5,9 +5,10 @@
 </p>
 
 <p align="center">
-<!--    <a href="https://doi.org/" target="_blank">
-    <img alt="JOSS DOI" src="http://joss.theoj.org/">
-  </a> -->
+  <a href="https://doi.org/10.21105/joss.02862" target="_blank">
+    <img alt="JOSS Paper" src="https://joss.theoj.org/papers/10.21105/joss.02862/status.svg">
+  </a>
+	[![DOI](https://joss.theoj.org/papers/10.21105/joss.02862/status.svg)](https://doi.org/10.21105/joss.02862)
 
   <a href="https://github.com/mengaldo/PySPOD/LICENSE" target="_blank">
     <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
