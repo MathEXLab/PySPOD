@@ -300,6 +300,16 @@ class SPOD_base(object):
 		return self._dt
 
 	@property
+	def n_DFT(self):
+		'''
+		Get the number of DFT per block.
+
+		:return: the number of DFT per block.
+		:rtype: int
+		'''
+		return self._n_DFT
+
+	@property
 	def variables(self):
 		'''
 		Get the variable list.
@@ -318,6 +328,16 @@ class SPOD_base(object):
 		:rtype: numpy.ndarray
 		'''
 		return self._eigs
+
+	@property
+	def n_blocks(self):
+		'''
+		Get the number of blocks used.
+
+		:return: the number of blocks used by the SPOD algorithms.
+		:rtype: int
+		'''
+		return self._n_blocks
 
 	@property
 	def n_modes(self):
@@ -349,6 +369,35 @@ class SPOD_base(object):
 		'''
 		return self._modes
 
+	@property
+	def weights(self):
+		'''
+		Get the weights used to compute the inner product.
+
+		:return: weight matrix used to compute the inner product.
+		:rtype: np.ndarray
+		'''
+		return self._weights
+
+	@property
+	def coeffs(self):
+		'''
+		Get the dictionary containing the path to the SPOD coefficients saved.
+
+		:return: the dictionary containing the path to the SPOD coefficients saved.
+		:rtype: dict
+		'''
+		return self._coeffs
+
+	@property
+	def dynamics(self):
+		'''
+		Get the dictionary containing the path to the SPOD dynamics saved.
+
+		:return: the dictionary containing the path to the SPOD dynamics saved.
+		:rtype: dict
+		'''
+		pass
 	# ---------------------------------------------------------------------------
 
 
