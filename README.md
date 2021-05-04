@@ -146,7 +146,7 @@ params = dict()
 # -- required parameters
 params['time_step'   ] = 1              # data time-sampling
 params['n_snapshots' ] = t.shape[0]     # number of time snapshots (we consider all data)
-params['n_space_dims'] = 2              # number of spatial dimensions (longitude and latitude)
+params['n_space_dims'] = 2              # number of spatial dimensions 
 params['n_variables' ] = 1 		# number of variables
 params['n_DFT'       ] = 100          	# length of FFT blocks (100 time-snapshots)
 
