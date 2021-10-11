@@ -3,6 +3,7 @@
 # import standard python packages
 import os
 import numpy as np
+# from numba import jit
 from scipy.io import loadmat
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -16,6 +17,28 @@ CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
+# useful methods
+# ---------------------------------------------------------------------------
+#@jit(parallel=True, fastmath=True)
+def oblique_projection(Phi_tilde, W_phi, W, Q, svd=True):
+	if svd: 
+		PhiTWPhi = Phi_tilde.conj().T @ (W_phi * Phi_tilde)
+		PhiTWQ = Phi_tilde.conj().T @ (W * Q)
+		u, l, v = np.linalg.svd(PhiTWPhi)
+		l_inv = np.zeros([len(l), len(l)], dtype='complex_')
+		for i in range(len(l)):
+			if (l[i] > 1e-10):
+				l_inv[i,i] = 1 / l[i]
+		PhiTWPhi_inv = (v.conj().T @ l_inv) @ u.conj().T
+		coeffs = PhiTWPhi_inv @ PhiTWQ
+	else:
+		PhiTWPhi = Phi_tilde.conj().T @ (W_phi * Phi_tilde)
+		PhiTWQ = Phi_tilde.conj().T @ (W * Q)
+		tmp1_inv = np.linalg.pinv(PhiTWPhi)
+		coeffs = tmp1_inv @ PhiTWQ
+	return coeffs
+
+# ---------------------------------------------------------------------------
 
 
 # getters
@@ -71,6 +94,28 @@ def find_nearest_coords(coords, x, data_space_dim):
 
 
 
+def get_Q_hat_at_freq(Q_hat, block_idx, freq_idx):
+	"""
+	Get the matrix containing the block data matrices.
+
+	:param dict: path to the files where the SPOD modes are stored.
+	:param int freq_idx: frequency id requested.
+
+	:return: the block data matrices at requested frequency.
+	:rtype: numpy.ndarray
+	"""
+	# load modes from files if saved in storage
+	if isinstance(Q_hat, dict):
+		filename = Q_hat[block_idx][freq_idx]
+		qf = get_data_from_file(filename)
+	else:
+		raise TypeError('modes must be a dict.')
+	# else:
+	# 	qf = Q_hat[freq_idx,...]
+	return qf
+
+
+
 def get_modes_at_freq(modes, freq_idx):
 	"""
 	Get the matrix containing the SPOD modes, stored by \
@@ -86,7 +131,7 @@ def get_modes_at_freq(modes, freq_idx):
 	# load modes from files if saved in storage
 	if isinstance(modes, dict):
 		filename = modes[freq_idx]
-		m = get_mode_from_file(filename)
+		m = get_data_from_file(filename)
 	else:
 		raise TypeError('modes must be a dict.')
 	# else:
@@ -95,15 +140,13 @@ def get_modes_at_freq(modes, freq_idx):
 
 
 
-def get_mode_from_file(filename):
+def get_data_from_file(filename):
 	"""
-	Load SPOD modes from file
+	Load data from file
 
-	:param str filename: path from where to load SPOD modes.
+	:param str filename: path from where to load data.
 
-	:return: the [n_dims, n_vars, n_modes]
-		matrix containing the requested SPOD modes from
-		file at a given frequency.
+	:return: the requested data stored in `filename`
 	:rtype: numpy.ndarray
 	"""
 	_, ext = splitext(filename)
@@ -118,7 +161,6 @@ def get_mode_from_file(filename):
 	return m
 
 # ---------------------------------------------------------------------------
-
 
 
 
@@ -257,6 +299,8 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	# compute time vector
 	with np.errstate(divide='ignore'):
 		xx = 1. / freq
+	
+	csfont = {'fontname':'Times New Roman'}
 
 	# plot figure
 	plt.figure(figsize=figsize, frameon=True, constrained_layout=False)
@@ -270,17 +314,23 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	ax.set_xscale('log')
 	ax.set_yscale('log')
 	ax.grid(True)
+	ax.tick_params(labelsize=22)
+	plt.tight_layout(pad=5.0)
 
 	# set limits for axis
 	ax, xticks, yticks = _format_axes(ax, xticks, yticks)
 
-	if  equal_axes:
-		ax.set_aspect('equal')
-	plt.xlabel('Period')
-	plt.ylabel('Eigenvalues')
-	if len(title) > 1:
-		plt.title(title)
-	ax.invert_xaxis()
+	# if  equal_axes:
+	# 	ax.set_aspect('equal')
+	# tick.label.set_fontsize(60)
+
+	plt.xlabel('Period',  fontsize=26,**csfont)
+	plt.ylabel('Eigenvalues', fontsize=26,**csfont)
+
+
+	# if len(title) > 1:
+	# 	plt.title(title)
+	# ax.invert_xaxis()
 
 	# save or show plots
 	_save_show_plots(filename, path, plt)
@@ -1109,6 +1159,103 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 			if not filename:
 				plt.show()
 
+
+def generate_2D_subplot(var1, title1, var2=None, title2=None, var3=None, 
+	title3=None, N_round=6, path='CWD', filename=None):
+	'''
+	Generate two 2D subplots in the same figure
+	'''
+
+	csfont = {'fontname':'Times New Roman'}
+	multiplier = 10 ** N_round
+	maxVal = np.ceil(np.max(var1.real) * multiplier) / multiplier      # round up the maximum
+	minVal = np.floor(np.min(var1.real) * multiplier) / multiplier    # round down the minimum
+	ticks_range = np.linspace(minVal, maxVal, num=5)
+	nSubplots = 1
+	if var2 is not None:
+		nSubplots = 2
+	if var3 is not None:
+		nSubplots = 3
+
+	if nSubplots == 1:
+		fig, (ax1) = plt.subplots(1, 1, sharex=True, sharey=True)
+	if nSubplots == 2:
+		fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
+	if nSubplots == 3:
+		fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=True)
+
+	fig.set_size_inches(10, 8/3*nSubplots)
+	plt.set_cmap('coolwarm')
+	fig.tight_layout(pad=5.0)
+
+	cax1 = ax1.contourf(var1[:,:], levels=np.linspace(minVal, maxVal, 9))
+	ax1.tick_params(labelsize=11)
+	cb1=plt.colorbar(cax1, ax=ax1, ticks=ticks_range, aspect=10)
+	cb1.ax.tick_params(labelsize=12) #Set the font size of the color scale scale.
+	ax1.set_title(title1, fontsize=18,**csfont)
+	ax1.set_xlabel('x', fontsize=16,**csfont)
+	ax1.set_ylabel('y',fontsize=16,**csfont)
+
+	if (nSubplots == 2) or (nSubplots == 3):
+		ax2.tick_params(labelsize=11)
+		cax2 = ax2.contourf(var2, levels=np.linspace(minVal, maxVal, 9))
+		cb2=plt.colorbar(cax2, ax=ax2, ticks=ticks_range, aspect=10)
+		cb2.ax.tick_params(labelsize=12) #Set the font size of the color scale scale.
+		ax2.set_title(title2, fontsize=18, **csfont)
+		ax2.set_xlabel('x', fontsize=16, **csfont)
+		ax2.set_ylabel('y',fontsize=16,**csfont)
+
+	if nSubplots == 3:
+		ax3.tick_params(labelsize=11)
+		cax3 = ax3.contourf(var3, levels=np.linspace(minVal, maxVal, 9))
+		cb3=plt.colorbar(cax3, ax=ax3, ticks=ticks_range, aspect=10)
+		cb3.ax.tick_params(labelsize=12) #Set the font size of the color scale scale.
+		ax3.set_title(title3, fontsize=18, **csfont)
+		ax3.set_xlabel('x', fontsize=16, **csfont)
+		ax3.set_ylabel('y',fontsize=16, **csfont)
+
+	if filename:
+		if path == 'CWD': 
+			path = CWD
+			plt.savefig(os.path.join(path,filename), dpi=300)
+			plt.close(fig)
+	if not filename:
+		plt.show()
+
+
+def plot_compareTimeSeries(serie1, serie2, label1='', label2='', legendLocation='upper left', filename=None):
+	ax = plt.gca()
+	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)	
+	plt.plot(serie1, color = 'black')
+	plt.plot(serie2, color='gray')
+	# plt.title('model loss')
+	plt.tight_layout(pad=3.)
+	plt.ylabel('Coefficient value', fontsize=20)
+	plt.xlabel('Index', fontsize=20)
+	plt.legend([label1, label2], loc=legendLocation, fontsize=18)
+
+	if filename:
+		if path == 'CWD': path = CWD
+		basename, ext = splitext(filename)
+		filename = '{0}_coords{1}_var{2}{3}'.format(basename, coords, var_id, ext)
+		plt.savefig(os.path.join(path,filename),dpi=400)
+		plt.close(fig)
+	if not filename:
+		plt.show()
+
+
+def plot_trainingHistories(loss, val_loss):
+	ax = plt.gca()
+	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)	
+	plt.plot(loss, color='black')
+	plt.plot(val_loss, color = 'gray')
+	# plt.title('model loss')
+	plt.tight_layout(pad=3.)
+	plt.ylabel('loss', fontsize=20)
+	plt.xlabel('epoch', fontsize=20)
+	plt.legend(['train', 'validation'], loc='upper right', fontsize=18)
+	plt.show()
+
 # ---------------------------------------------------------------------------
 
 
@@ -1298,5 +1445,27 @@ def _apply_2d_vertical_lines(ax, x1, x2, idx1, idx2):
 	ax.axhline(x1[idx1], xmin=0, xmax=1,color='k',linestyle='--')
 	ax.axvline(x2[idx2], ymin=0, ymax=1,color='k',linestyle='--')
 	return ax
+
+# ---------------------------------------------------------------------------
+
+
+
+
+# Compute useful quantities
+# ---------------------------------------------------------------------------
+
+def compute_energy_spectrum(u):
+    # transform to Fourier space
+    array_hat = np.real(np.fft.fft(u))
+    # normalizing data
+    array_new = np.copy(array_hat / float(nx))
+    # energy spectrum
+    espec = 0.5 * np.absolute(array_new)**2
+    # angle averaging
+    eplot = np.zeros(nx // 2, dtype='double')
+    for i in range(1, nx // 2):
+        eplot[i] = 0.5 * (espec[i] + espec[nx - i])
+
+    return eplot
 
 # ---------------------------------------------------------------------------

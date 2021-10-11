@@ -9,10 +9,12 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+.DS_Store
 build/
 develop-eggs/
 dist/
 downloads/
+results/
 eggs/
 .eggs/
 lib/
@@ -22,6 +24,7 @@ sdist/
 var/
 wheels/
 share/python-wheels/
+*results/
 *.egg-info/
 .installed.cfg
 *.egg

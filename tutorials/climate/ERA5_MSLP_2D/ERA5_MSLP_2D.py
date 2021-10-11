@@ -11,7 +11,7 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append(os.path.join(CFD, "../../../"))
+sys.path.insert(0, os.path.join(CFD, "../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
@@ -48,6 +48,7 @@ def read_data(data, t_0, t_end, variables):
 # (we select all the variables present) and load the in RAM
 s = time.time()
 variables = ['msl']
+nt =  t.shape[0]
 X = read_data(data=ds, t_0=0, t_end=0, variables=variables)
 # for i,var in enumerate(variables):
 #     X[...,i] = np.array(ds[var])
@@ -61,7 +62,6 @@ params = dict()
 
 # -- required parameters
 params['time_step'   ] = 6                	# data time-sampling
-params['n_snapshots' ] = t.shape[0]       	# number of time snapshots (we consider all data)
 params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
 params['n_DFT'       ] = np.ceil(24 * 30)          		# length of FFT blocks (100 time-snapshots)
@@ -84,14 +84,13 @@ weights = utils_weights.geo_trapz_2D(
 
 # Perform SPOD analysis using low storage module
 SPOD_analysis = SPOD_low_ram(
-	data=ds,
 	params=params,
 	data_handler=read_data,
 	variables=variables,
 	weights=weights)
 
 # Fit SPOD
-spod = SPOD_analysis.fit()
+spod = SPOD_analysis.fit(data=ds, nt=nt)
 
 
 # Show results

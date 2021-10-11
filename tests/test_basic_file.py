@@ -24,6 +24,7 @@ x1 = np.linspace(0,10,100)
 x2 = np.linspace(0, 5, 50)
 xx1, xx2 = np.meshgrid(x1, x2)
 t = np.linspace(0, 200, 1000)
+nt = t.shape[0]
 s_component = np.sin(xx1 * xx2) + np.cos(xx1)**2 + np.sin(0.1*xx2)
 t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 p = np.empty((t_component.shape[0],)+s_component.shape)
@@ -62,7 +63,6 @@ params = dict()
 
 # -- required parameters
 params['time_step'   ] = 1                	# data time-sampling
-params['n_snapshots' ] = t.shape[0]       	# number of time snapshots (we consider all data)
 params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
 params['n_DFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
@@ -82,13 +82,12 @@ params['savedir'     	  ] = os.path.join(CWD, 'results', 'simple_test') # folder
 def test_basic_file_spod_low_storage():
 	# Initialize libraries by using data_handler for the low storage algorithm
 	spod_ls = SPOD_low_storage(
-		data=os.path.join(CWD,'data.nc'),
 		params=params,
 		data_handler=read_data_netCDF,
 		variables=variables)
 
 	# fit spod
-	spod_ls.fit()
+	spod_ls.fit(data=os.path.join(CWD,'data.nc'), nt=nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)
@@ -108,11 +107,10 @@ def test_basic_file_spod_low_storage():
 def test_basic_file_spod_low_ram():
 	# Let's try the low_ram algorithm
 	spod_ram = SPOD_low_ram(
-		data=os.path.join(CWD,'data.nc'),
 		params=params,
 		data_handler=read_data_netCDF,
 		variables=variables)
-	spod_ram.fit()
+	spod_ram.fit(data=os.path.join(CWD,'data.nc'), nt=nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)

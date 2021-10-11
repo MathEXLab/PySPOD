@@ -28,12 +28,18 @@ class SPOD_low_ram(SPOD_base):
 	from the `SPOD_base` class.
 	"""
 
-	def fit(self):
+	def fit(self, data, nt):
 		"""
 		Class-specific method to fit the data matrix X using
 		the SPOD low ram algorithm.
 		"""
 		start = time.time()
+
+		print(' ')
+		print('Initialize data')
+		print('------------------------------------')
+		self.initialize_fit(data, nt)
+		print('------------------------------------')
 
 		print(' ')
 		print('Calculating temporal DFT (low_ram)')
@@ -47,8 +53,8 @@ class SPOD_low_ram(SPOD_base):
 
 		# loop over number of blocks and generate Fourier realizations,
 		# if blocks are not saved in storage
+		self._Q_hat_f = dict()
 		if not blocks_present:
-			Q_blk = np.zeros([self._n_DFT,self._nx], dtype='complex_')
 			for iBlk in range(0,self._n_blocks):
 
 				# compute block
@@ -60,11 +66,13 @@ class SPOD_low_ram(SPOD_base):
 					  '    Saving to directory: ', self._save_dir_blocks)
 
 				# save FFT blocks in storage memory
+				self._Q_hat_f[str(iBlk)] = dict()
 				for iFreq in range(0, self._n_freq):
 					file = os.path.join(self._save_dir_blocks,
 						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk, iFreq))
 					Q_blk_hat_fi = Q_blk_hat[iFreq,:]
 					np.save(file, Q_blk_hat_fi)
+					self._Q_hat_f[str(iBlk),str(iFreq)] = file
 
 		print('------------------------------------')
 
@@ -99,7 +107,6 @@ class SPOD_low_ram(SPOD_base):
 
 		# load FFT blocks from hard drive and save modes on hard drive (for large data)
 		for iFreq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
-
 			# load FFT data from previously saved file
 			Q_hat_f = np.zeros([self._nx,self._n_blocks], dtype='complex_')
 			for iBlk in range(0,self._n_blocks):
@@ -113,13 +120,6 @@ class SPOD_low_ram(SPOD_base):
 		# store and save results
 		self.store_and_save()
 
-		# delete FFT blocks from memory if saving not required
-		if self._savefft == False:
-			for iBlk in range(0,self._n_blocks):
-				for iFreq in range(0,self._n_freq):
-					file = os.path.join(self._save_dir_blocks,
-						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
-					os.remove(file)
 		print('------------------------------------')
 		print(' ')
 		print('Results saved in folder ', self._save_dir_blocks)

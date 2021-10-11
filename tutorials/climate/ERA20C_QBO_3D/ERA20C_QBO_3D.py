@@ -10,7 +10,7 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append(os.path.join(CFD, "../../../"))
+sys.path.insert(0, os.path.join(CFD, "../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
@@ -29,6 +29,7 @@ t = np.array(ds['time'])
 x1 = np.array(ds['longitude'])
 x2 = np.array(ds['latitude'])
 x3 = np.array(ds['level'])
+nt = t.shape[0]
 print('shape of t (time): ', t.shape)
 print('shape of x1 (longitude): ', x1.shape)
 print('shape of x2 (latitude) : ', x2.shape)
@@ -48,7 +49,6 @@ params = dict()
 
 # -- required parameters
 params['time_step'   ] = 744                # data time-sampling
-params['n_snapshots' ] = t.shape[0]       	# number of time snapshots (we consider all data)
 params['n_space_dims'] = X[0,...,0].ndim    # number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
 params['n_DFT'       ] = np.ceil(12 * 12)   # length of FFT blocks (100 time-snapshots)
@@ -71,14 +71,13 @@ weights = utils_weights.geo_trapz_3D(
 
 # Perform SPOD analysis using low storage module
 SPOD_analysis = SPOD_low_ram(
-	data=X,
 	params=params,
 	data_handler=False,
 	variables=variables,
 	weights=weights)
 
 # Fit SPOD
-spod = SPOD_analysis.fit()
+spod = SPOD_analysis.fit(data=X, nt=nt)
 
 # Show results
 T_approx = 744 # approximate period (in days)

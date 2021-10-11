@@ -42,13 +42,13 @@ X = data_arrays[variables[0]].T
 t = dt * np.arange(0,X.shape[0]); t = t.T
 x1 = data_arrays['r'].T; x1 = x1[:,0]
 x2 = data_arrays['x'].T; x2 = x2[0,:]
+nt = t.shape[0]
 
 # parameters
 params = dict()
 
 # -- required parameters
 params['time_step'   ] = dt 			# data time-sampling
-params['n_snapshots' ] = t.shape[0]		# number of time snapshots (we consider all data)
 params['n_space_dims'] = 2				# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = 1				# number of variables
 params['n_DFT'       ] = np.ceil(block_dimension / dt) # length of FFT blocks
@@ -60,8 +60,6 @@ params['normalize_weights'] = False	 # normalization of weights by data variance
 params['normalize_data'   ] = False  # normalize data by data variance
 params['n_modes_save'     ] = 3      # modes to be saved
 params['conf_level'       ] = 0.95   # calculate confidence level
-params['reuse_blocks'     ] = True 	 # whether to reuse blocks if present
-params['savefft'          ] = False  # save FFT blocks to reuse them in the future (saves time)
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem)
 
 
@@ -72,11 +70,11 @@ def test_spod_low_storage_blockwise_mean():
 	'''
 	# set blockwise mean
 	params['mean_type'] = 'blockwise'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
 	# ------------
@@ -105,11 +103,11 @@ def test_spod_low_storage_longtime_mean():
 
 	# set blockwise mean
 	params['mean_type'] = 'longtime'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
 	T_approx = 12.5; 	tol = 1e-10
@@ -135,11 +133,11 @@ def test_spod_low_ram_blockwise_mean():
 
 	# set blockwise mean
 	params['mean_type'] = 'blockwise'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
 	T_approx = 12.5; 	tol = 1e-10
@@ -165,11 +163,11 @@ def test_spod_low_ram_longtime_mean():
 
 	# set longtime mean
 	params['mean_type'] = 'longtime'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
 	T_approx = 12.5; 	tol = 1e-10
@@ -196,11 +194,11 @@ def test_spod_streaming():
 
 	# set longtime mean
 	params['mean_type'] = 'longtime'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_streaming(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_streaming(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
 	T_approx = 12.5; 	tol = 1e-10
@@ -231,11 +229,11 @@ def test_spod_low_storage_savefft():
 	'''
 	# set blockwise mean
 	params['mean_type'] = 'blockwise'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 1
 	T_approx = 12.5; 	tol = 1e-10
@@ -253,9 +251,9 @@ def test_spod_low_storage_savefft():
 		   (np.max(np.abs(modes_at_freq))    > 0.10797565399041009   -tol))
 
 	# SPOD analysis
-	params['savefft'] = True
-	SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	params['reuse_blocks'] = True
+	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 2 (after loading blocks from storage)
 	T_approx = 12.5; 	tol = 1e-10
@@ -286,11 +284,11 @@ def test_spod_low_ram_savefft():
 	'''
 	# set blockwise mean
 	params['mean_type'] = 'blockwise'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 1
 	T_approx = 12.5; 	tol = 1e-10
@@ -308,9 +306,9 @@ def test_spod_low_ram_savefft():
 		   (np.max(np.abs(modes_at_freq))    > 0.10797565399041009   -tol))
 
 	# SPOD analysis
-	params['savefft'] = True
-	SPOD_analysis = SPOD_low_ram(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	params['reuse_blocks'] = True
+	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 2 (after loading blocks from storage)
 	T_approx = 12.5; 	tol = 1e-10
@@ -341,11 +339,11 @@ def test_postprocessing():
 	'''
 	# set blockwise mean
 	params['mean_type'] = 'blockwise'
-	params['savefft'] = False
+	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test postprocessing and results
 	T_approx = 12.5; 	tol = 1e-10
@@ -394,7 +392,6 @@ def test_postprocessing():
 
 
 if __name__ == "__main__":
-
 	test_spod_low_storage_blockwise_mean()
 	test_spod_low_storage_longtime_mean ()
 	test_spod_low_ram_blockwise_mean    ()

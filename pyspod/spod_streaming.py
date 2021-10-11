@@ -22,13 +22,19 @@ class SPOD_streaming(SPOD_base):
 	the `SPOD_base` class.
 	"""
 
-	def fit(self):
+	def fit(self, data, nt):
 		"""
 		Class-specific method to fit the data matrix X using the SPOD
 		streaming algorithm.
 		"""
 		start = time.time()
 
+		print(' ')
+		print('Initialize data')
+		print('------------------------------------')
+		self.initialize_fit(data, nt)
+		print('------------------------------------')
+		
 		# sqrt of weights
 		sqrtW = np.sqrt(self._weights)
 

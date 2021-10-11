@@ -22,7 +22,7 @@ import warnings
 CWD = os.getcwd()
 
 # Import library specific modules
-sys.path.append("../../../")
+sys.path.insert(0, "../../../")
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
@@ -35,7 +35,7 @@ print('shape of x2 (longitude) : ', snapshots.shape[2])
 lat = np.arange(snapshots.shape[1])
 lon = np.arange(snapshots.shape[2])
 variables = ['RH']
-
+nt = snapshots.shape[0]
 # define required and optional parameters
 params = dict()
 
@@ -64,14 +64,13 @@ weights = utils_weights.geo_trapz_2D(
 
 # Perform SPOD analysis using low storage module
 SPOD_analysis = SPOD_low_storage(
-	data=snapshots,
 	params=params,
 	data_handler=False,
 	variables=variables,
 	weights=weights)
 
 # Fit SPOD
-spod = SPOD_analysis.fit()
+spod = SPOD_analysis.fit(data=snapshots,nt=nt)
 
 # Show results
 T_approx = 30 # approximate period = 30 days (1 month)

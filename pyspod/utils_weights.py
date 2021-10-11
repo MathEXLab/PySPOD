@@ -104,9 +104,6 @@ def custom(**kwargs):
 	pass
 
 
-
-
-
 def apply_normalization(data, weights, n_variables, method='variance'):
 	'''Normalization of weights if required.'''
 
