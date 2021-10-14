@@ -11,6 +11,7 @@ import psutil
 import warnings
 import numpy as np
 import scipy.special as sc
+import scipy as scipy
 from scipy.fft import fft
 from numpy import linalg as la
 from tqdm import tqdm
@@ -288,10 +289,8 @@ class POD_base(base):
 
 		# eigendecomposition
 		Q = np.matmul(np.transpose(data), data * self._weights)
-		w, v = np.linalg.eig(Q)
+		w, v = scipy.linalg.eig(Q)
 
-		print(data.shape)
-		print(self._weights.shape)
 		# bases
 		phi = np.real(np.matmul(data, v))
 		t = np.arange(nt)
