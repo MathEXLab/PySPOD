@@ -22,7 +22,7 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.insert(0, os.path.join(CFD,"../../../"))
+sys.path.insert(0, os.path.join(CFD,"../../../../"))
 
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
@@ -32,7 +32,7 @@ import pyspod.utils_weights as utils_weights
 import pyspod.utils as utils  
 
 # data ingestion
-file = os.path.join(CFD,'../data','fluidmechanics_data.mat')
+file = os.path.join(CFD,'../../../../tests/data','fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
