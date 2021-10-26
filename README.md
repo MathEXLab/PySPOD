@@ -266,7 +266,7 @@ IF you want to run tests locally, you can do so by:
 
 Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for a publication and you want it to be advertised here.
 
-- Neural-Network learning of SPOD latent space: https://arxiv.org/abs/2110.09218
+- A. Lario, R. Maulik, G. Rozza, G. Mengaldo, [Neural-Network learning of SPOD latent space](https://arxiv.org/abs/2110.09218)
 
 ## Authors and contributors
 
