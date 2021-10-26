@@ -266,15 +266,18 @@ IF you want to run tests locally, you can do so by:
 
 Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for a publication and you want it to be advertised here.
 
+- Neural-Network learning of SPOD latent space: https://arxiv.org/abs/2110.09218
+
 ## Authors and contributors
 
 **PySPOD** is currently developed and mantained by
 
-  * [G. Mengaldo](mailto:mpegim@nus.edu.sg), National University of Singapore.
+  * [G. Mengaldo](mailto:mpegim@nus.edu.sg), National University of Singapore (Singapore).
 
 Current active contributors include:
 
-  * [R. Maulik](https://romit-maulik.github.io), Argonne National Laboratory.
+  * [R. Maulik](https://romit-maulik.github.io), Argonne National Laboratory (US).
+  * [A. Lario](https://www.math.sissa.it/users/andrea-lario), SISSA (Italy)
   
 ## How to contribute
 
