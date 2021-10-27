@@ -604,6 +604,66 @@ class SPOD_base(base):
 		return dict_return
 
 
+	def transform_freq(self, data, nt, svd=True, T_lb=None, T_ub=None):
+
+		# compute coeffs
+		coeffs = self.compute_coeffs_freq(
+			data=data, 
+			nt=nt, 
+			svd=svd, 
+			T_lb=T_lb, 
+			T_ub=T_ub)
+
+		# reconstruct data
+		# reconstructed_data = self.reconstruct_data(
+		# 	coeffs=coeffs, 
+		# 	phi_tilde=phi_tilde,
+		# 	time_mean=time_mean, 
+		# 	T_lb=T_lb, 
+		# 	T_ub=T_ub)
+		
+		# return data
+		dict_return = {
+			'coeffs': coeffs
+			# 'phi_tilde': phi_tilde,
+			# 'time_mean': time_mean,
+			# 'reconstructed_data': reconstructed_data
+		}
+		return dict_return
+
+
+	def compute_coeffs_freq(self, data, nt, svd=True, T_lb=None, T_ub=None):
+		'''
+		Reconstruct coefficients in the frequency space.
+		'''
+
+		# self._coeff = dict()
+		# initialize variables
+		if (T_lb is None) or (T_ub is None):
+			self._freq_idx_lb = 0
+			self._freq_idx_ub = self._n_freq - 1
+			self._freq_found_lb = self._freq[self._freq_idx_lb]
+			self._freq_found_ub = self._freq[self._freq_idx_ub]
+		else:
+			self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
+				freq_required=1/T_ub, freq=self._freq)
+			self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
+				freq_required=1/T_lb, freq=self._freq)
+		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
+
+		Acoeff = np.zeros([self._n_freq_r, self._n_modes_save, self._n_blocks], dtype='complex_')
+		for block_idx in range(self._n_blocks):
+			for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+				Q_hat = self.get_Q_hat_at_freq(block_idx, iFreq)
+				modes = self.get_modes_at_freq(iFreq)
+				m_conj = np.squeeze(modes.conj().T)
+				w = np.squeeze(self.weights)
+				m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
+				Acoeff[iFreq, :, block_idx] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat)
+
+		return Acoeff
+
+
 	def compute_coeffs(self, data, nt, svd=True, T_lb=None, T_ub=None):
 		'''
 		Compute coefficients through oblique projection.
