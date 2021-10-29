@@ -1310,9 +1310,9 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	if size_coords != X[0,...,0].size:
 		raise ValueError('Data dimension does not match coordinates dimensions.')
 
-	no_transpose = False
+	transpose = False
 	if x1.shape[0] != X.shape[1] or x2.shape[0] != X.shape[0]:
-		no_transpose = True
+		transpose = True
 
 	# overlay coastlines if required
 	cst = False
@@ -1335,9 +1335,9 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 
 		# generate movie
 		if cst:
-			if no_transpose:
+			if transpose:
 				frames = [
-					[plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
 									shading='gouraud',
 									vmin=-0.9*vmean,
 									vmax= 0.9*vmean),
@@ -1348,7 +1348,7 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 				]
 			else:
 				frames = [
-					[plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
 									shading='gouraud',
 									vmin=-0.9*vmean,
 									vmax= 0.9*vmean),
@@ -1358,9 +1358,9 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 					for state in time_range
 				]
 		else:
-			if no_transpose:
+			if transpose:
 				frames = [
-					[plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
 									shading='gouraud',
 									vmin=-0.9*vmean,
 									vmax= 0.9*vmean)]
@@ -1368,7 +1368,7 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 				]
 			else:
 				frames = [
-					[plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
+					[plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
 									shading='gouraud',
 									vmin=-0.9*vmean,
 									vmax= 0.9*vmean)]

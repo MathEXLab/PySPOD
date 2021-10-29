@@ -26,11 +26,6 @@ x2 = np.array(ds['z'])
 X = np.array(ds[variables[0]]).T
 nt = t.shape[0]
 
-print('t.shape  = ', t.shape)
-print('x1.shape = ', x1.shape)
-print('x2.shape = ', x2.shape)
-print('X.shape  = ', X.shape)
-
 # define required and optional parameters
 params = dict()
 

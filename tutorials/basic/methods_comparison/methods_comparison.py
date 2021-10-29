@@ -22,8 +22,7 @@ x1 = np.linspace(0,10,100)
 x2 = np.linspace(0, 5, 50)
 xx1, xx2 = np.meshgrid(x1, x2)
 t = np.linspace(0, 200, 1000)
-s_component = np.sin(xx1 * xx2) + np.cos(xx1)**2 + np.sin(0.1*xx2)
-# s_component = s_component.T
+s_component = np.sin(xx1 * xx2)  + np.cos(xx1)**2 + np.sin(0.1*xx2)
 t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 p = np.empty((t_component.shape[0],)+s_component.shape)
 for i, t_c in enumerate(t_component):
