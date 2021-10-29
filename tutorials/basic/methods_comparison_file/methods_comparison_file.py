@@ -85,14 +85,6 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 
 # Initialize libraries by using data_handler for the low storage algorithm
-# spod_ls = SPOD_low_storage(
-#     data=os.path.join(CWD,'data.nc'),
-#     params=params,
-#     data_handler=read_data_netCDF,
-#     variables=variables)
-# spod_ls.fit()
-
-# Perform SPOD analysis using low storage module
 spod_ls = SPOD_streaming(params=params, data_handler=read_data_netCDF, variables=variables)
 spod = spod_ls.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 
