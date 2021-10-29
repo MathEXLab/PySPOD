@@ -1303,9 +1303,6 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	time_range = time_range[0::sampling]
 
 	# check dimension axes and data
-	print(x1.shape)
-	print(x2.shape)
-	print(X.shape)
 	size_coords = x1.shape[0] * x2.shape[0]
 	if size_coords != X[0,...,0].size:
 		raise ValueError('Data dimension does not match coordinates dimensions.')
