@@ -70,7 +70,7 @@ SPOD_analysis = SPOD_low_storage(
 	weights=weights)
 
 # Fit SPOD
-spod = SPOD_analysis.fit(data=snapshots,nt=nt)
+spod = SPOD_analysis.fit(data=snapshots, nt=nt)
 
 # Show results
 T_approx = 30 # approximate period = 30 days (1 month)
@@ -86,6 +86,6 @@ spod.plot_2D_modes_at_frequency(
 	modes_idx=[0,1,2], vars_idx=[0],
 	origin='lower')
 spod.plot_2D_data(
-	x1=lon, x2=lat, vars_idx=[0],
+	x1=lat, x2=lon, vars_idx=[0],
 	time_idx=[0,100,200],origin='lower')
-spod.generate_2D_data_video(x1=lon, x2=lat, vars_idx=[0])
+spod.generate_2D_data_video(x1=lat, x2=lon, vars_idx=[0])
