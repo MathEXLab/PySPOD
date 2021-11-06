@@ -60,7 +60,8 @@ params['n_variables'     ] = 1							# number of variables
 params['n_DFT'           ] = np.ceil(block_dimension / dt) # length of FFT blocks
 # -- optional parameters
 params['overlap'          ] = 96					# dimension in percentage (1 to 100) of block overlap
-params['mean_type'        ] = 'blockwise' # type of mean to subtract to the data
+# params['mean_type'        ] = 'blockwise' # type of mean to subtract to the data
+params['mean_type'        ] = 'longtime' # type of mean to subtract to the data
 params['normalize_weights'] = False	 			# normalization of weights by data variance
 params['normalize_data'   ] = False  			# normalize data by data variance
 params['n_modes_save'     ] = 8  		# modes to be saved
@@ -71,7 +72,7 @@ params['reuse_blocks'] = False
 params_emulation = dict()
 
 params_emulation['network'     ] = 'lstm' 						# type of network
-params_emulation['epochs'      ] = 100 						# number of epochs
+params_emulation['epochs'      ] = 5 						# number of epochs
 params_emulation['batch_size'  ] = 32							# batch size
 params_emulation['n_seq_in'    ] = 40							# dimension of input sequence 
 params_emulation['n_seq_out'   ] = 1                          # number of steps to predict
@@ -102,8 +103,24 @@ def jet_emulationSPOD():
 
 	# transform
 	coeffs_train = spod.transform_freq(X_train, nt=nt_train, T_lb=None, T_ub=None)
-	coeffs_test  = spod.transform_freq(X_test , nt=nt_test, T_lb=None, T_ub=None)
+	# coeffs_test  = spod.transform_freq(X_test , nt=nt_test, T_lb=None, T_ub=None)
+	# coeffs_test  = spod.transform_freq_testData(X_test , nt=nt_test, T_lb=None, T_ub=None)
+	coeffs_test  = spod.transform_freq(X_test, nt=nt_test, T_lb=None, T_ub=None)
+	# coeffs_test2  = spod.transform_freq_testData(X, nt=1000, T_lb=None, T_ub=None)
 
+	q_rec=spod.reconstruct_data_freq(coeffs_train['coeffs'][:,:,99], coeffs_train['phi_tilde'], coeffs_train['time_mean'])
+	mean =np.reshape(spod._x_mean,[20,88])
+	q_cmpr = X[199,:,:]# - mean 
+	spod.generate_2D_subplot(
+		title1='True 1', 
+		title2='2', 
+		title3='3',
+		var1=q_rec[0,:,:, 0], 
+		var2=q_rec[1,:,:, 0],
+		var3=q_rec[3,:,:, 0],
+		N_round=2, path='CWD', filename=None
+	)
+	quit()
 	# initialization of variables and structures
 	n_modes = params['n_modes_save'] 
 	n_freq = spod._n_freq_r
@@ -113,11 +130,11 @@ def jet_emulationSPOD():
 	# Reorganize the array from 3D to 2D
 	coeffs_train_2D = np.zeros([n_feature, coeffs_train['coeffs'].shape[2]], dtype='complex')
 	coeffs_test_2D = np.zeros([n_feature, coeffs_test['coeffs'].shape[2]], dtype='complex')
+
 	for i in range(n_freq):
 		coeffs_train_2D[(i*n_modes):((i*n_modes)+n_modes),:] = coeffs_train['coeffs'][i,:,:] 
 		coeffs_test_2D[(i*n_modes):((i*n_modes)+n_modes),:] = coeffs_test['coeffs'][i,:,:] 
-	print(coeffs_test_2D.shape)
-	quit()
+
 	# Init structures
 	data_train = np.zeros([n_freq,coeffs_train_2D.shape[1]],dtype='complex')
 	data_test = np.zeros([n_freq,coeffs_test_2D.shape[1]],dtype='complex')
@@ -162,6 +179,7 @@ def jet_emulationSPOD():
 	spod.plot_compareTimeSeries(serie1=coeffs[0,:].real, serie2=coeffs_test_2D[0,:].real, label1="Prediction", label2="Testing")
 
 	quit()
+
 	# reconstruct solutions
 	# phi_tilde = coeffs_train['phi_tilde']
 	# time_mean = coeffs_train['time_mean']

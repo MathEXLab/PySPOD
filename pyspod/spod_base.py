@@ -12,6 +12,8 @@ import warnings
 import numpy as np
 import scipy.special as sc
 from scipy.fft import fft
+import scipy
+
 from numpy import linalg as la
 from tqdm import tqdm
 
@@ -99,8 +101,10 @@ class SPOD_base(base):
 
 		# Determine whether data is real-valued or complex-valued-valued
 		# to decide on one- or two-sided spectrum from data
+		#orig
 		self._isrealx = np.isreal(X[0]).all()
-
+		#self._isrealx = False
+		
 		# check weights
 		if isinstance(self._weights_tmp, dict):
 			self._weights = self._weights_tmp['weights']
@@ -479,25 +483,43 @@ class SPOD_base(base):
 		return x_mean
 
 
+	# def get_freq_axis(self):
+	# 	"""Obtain frequency axis."""
+	# 	self._freq = np.arange(0, self._n_DFT, 1) \
+	# 		/ self._dt / self._n_DFT
+	# 	if self._isrealx:
+	# 		self._freq = np.arange(
+	# 			0, np.ceil(self._n_DFT/2)+1, 1) \
+	# 			/ self._n_DFT / self._dt
+	# 	else:
+	# 		if (self._n_DFT % 2 == 0):
+	# 			self._freq[int(self._n_DFT/2)+1:] = \
+	# 				self._freq[int(self._n_DFT/2)+1:] \
+	# 				- 1 / self._dt
+	# 		else:
+	# 			self._freq[(n_DFT+1)/2+1:] = \
+	# 				self._freq[(self._n_DFT+1)/2+1:] \
+	# 				- 1 / self._dt
+	# 	self._n_freq = len(self._freq)
+
 	def get_freq_axis(self):
 		"""Obtain frequency axis."""
 		self._freq = np.arange(0, self._n_DFT, 1) \
 			/ self._dt / self._n_DFT
 		if self._isrealx:
-			self._freq = np.arange(
-				0, np.ceil(self._n_DFT/2)+1, 1) \
-				/ self._n_DFT / self._dt
+			self._freq[int(self._n_DFT):] = \
+					self._freq[int(self._n_DFT):] \
+					- 1 / self._dt
 		else:
-			if (n_DFT % 2 == 0):
-				self._freq[int(n_DFT/2)+1:] = \
-					freq[int(self._n_DFT/2)+1:] \
+			if (self._n_DFT % 2 == 0):
+				self._freq[int(self._n_DFT):] = \
+					self._freq[int(self._n_DFT):] \
 					- 1 / self._dt
 			else:
 				self._freq[(n_DFT+1)/2+1:] = \
-					freq[(self._n_DFT+1)/2+1:] \
+					self._freq[(self._n_DFT+1)/2+1:] \
 					- 1 / self._dt
 		self._n_freq = len(self._freq)
-
 
 	def compute_blocks(self, iBlk):
 		"""Compute FFT blocks."""
@@ -533,6 +555,7 @@ class SPOD_base(base):
 		self._window = self._window.reshape(self._window.shape[0],1)
 		Q_blk = Q_blk * self._window
 		Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
+
 		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
 
 		# correct Fourier coefficients for one-sided spectrum
@@ -604,40 +627,87 @@ class SPOD_base(base):
 		return dict_return
 
 
-	def transform_freq(self, data, nt, svd=True, T_lb=None, T_ub=None):
+	def transform_freq(self, data, nt, T_lb=None, T_ub=None):
 
-		# compute coeffs
-		coeffs = self.compute_coeffs_freq(
+		coeffs, phi_tilde, time_mean = self.compute_coeffs_freq(
 			data=data, 
 			nt=nt, 
-			svd=svd, 
 			T_lb=T_lb, 
 			T_ub=T_ub)
-
-		# reconstruct data
-		# reconstructed_data = self.reconstruct_data(
-		# 	coeffs=coeffs, 
-		# 	phi_tilde=phi_tilde,
-		# 	time_mean=time_mean, 
-		# 	T_lb=T_lb, 
-		# 	T_ub=T_ub)
 		
 		# return data
 		dict_return = {
-			'coeffs': coeffs
-			# 'phi_tilde': phi_tilde,
-			# 'time_mean': time_mean,
+			'coeffs': coeffs,
+			'phi_tilde': phi_tilde,
+			'time_mean': time_mean
 			# 'reconstructed_data': reconstructed_data
 		}
 		return dict_return
 
 
-	def compute_coeffs_freq(self, data, nt, svd=True, T_lb=None, T_ub=None):
-		'''
-		Reconstruct coefficients in the frequency space.
-		'''
+	def compute_coeffs_freq(self, data, nt, T_lb, T_ub):
+		"""Compute FFT blocks."""
 
-		# self._coeff = dict()
+		# Init variables
+		data = np.reshape(data, [nt, self._nx*self._nv])
+		n_blk = int(np.floor((nt - self._n_overlap) \
+			/ (self._n_DFT - self._n_overlap)))
+
+		# Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
+		Q_hat = np.empty([self._n_DFT,self._nx*self.nv, n_blk], dtype='complex_')
+
+		# Compute blocks and FFT
+		# for iBlk in range(n_blk):
+		for iBlk in range(n_blk):
+			# get time index for present block
+			offset = min(iBlk * (self._n_DFT - self._n_overlap) \
+				+ self._n_DFT, nt) - self._n_DFT
+
+			# Get data
+			Q_blk = data[offset:self._n_DFT+offset,:]
+
+			# Subtract mean
+			if self._mean_type.lower() == 'blockwise':
+				Q_blk = Q_blk - np.mean(Q_blk, axis=0)
+				time_mean=np.mean(Q_blk, axis=0)
+			else:
+				Q_blk = Q_blk[:] - self._x_mean
+				time_mean = self._x_mean
+
+			# normalize by pointwise variance
+			if self._normalize_data:
+				Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_DFT-1)
+				# address division-by-0 problem with NaNs
+				Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
+				Q_blk = Q_blk / Q_var
+
+			# window and Fourier transform block
+			self._window = self._window.reshape(self._window.shape[0],1)
+			Q_blk = Q_blk * self._window
+			Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
+
+			if self._isrealx:
+				Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
+
+			print('block '+str(iBlk+1)+'/'+str(n_blk)+\
+				  ' ('+str(offset)+':'+str(self._n_DFT+offset)+')')
+			Q_hat[:,:,iBlk] = Q_blk_hat
+
+			# CHECK inverse reconstruction via IFFT
+			# if self._isrealx:
+			# 	Q_blk_hat[1:-1,:] =  Q_blk_hat[1:-1,:]/2
+			# Q_blk = Q_blk/self._window
+			# Q_blk_rec = (self._n_DFT/self._winWeight)*scipy.fft.ifft(Q_blk_hat, axis=0)
+			# Q_blk_rec = Q_blk_rec/self._window 
+			# q_rec =  np.reshape(Q_blk_rec[5,:], [self._xshape[0], self._xshape[1]])
+			# q_blk = np.reshape(Q_blk[5,:], [self._xshape[0], self._xshape[1]])
+			# self.generate_2D_subplot(
+			# 	title1='1', title2='2', 
+			# 	var1=q_blk, var2=q_rec,
+			# 	N_round=2, path='CWD', filename=None
+			# 	)
+			# quit()
+
 		# initialize variables
 		if (T_lb is None) or (T_ub is None):
 			self._freq_idx_lb = 0
@@ -651,17 +721,80 @@ class SPOD_base(base):
 				freq_required=1/T_lb, freq=self._freq)
 		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
 
-		Acoeff = np.zeros([self._n_freq_r, self._n_modes_save, self._n_blocks], dtype='complex_')
-		for block_idx in range(self._n_blocks):
-			for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-				Q_hat = self.get_Q_hat_at_freq(block_idx, iFreq)
-				modes = self.get_modes_at_freq(iFreq)
-				m_conj = np.squeeze(modes.conj().T)
-				w = np.squeeze(self.weights)
-				m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
-				Acoeff[iFreq, :, block_idx] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat)
+		# compute coefficients
+		Acoeff = np.zeros([self._n_freq_r, self._n_modes_save, n_blk], dtype='complex_')
+		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+			modes = self.get_modes_at_freq(iFreq)
+			m_conj = np.squeeze(modes.conj().T)
+			w = np.squeeze(self.weights)
+			m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
+			# for block_idx in range(n_blk):
+			Q_hat2 = Q_hat[iFreq, :, :]
+			# Acoeff[iFreq, :, :] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat2)
+			# TODO add w
+			Acoeff[iFreq, :, :] = np.matmul(m_conj2, Q_hat2)
 
-		return Acoeff
+		phi_tilde = np.zeros([self._n_freq_r, self._nx*self._nv, self._n_modes_save], dtype='complex_')
+		# reshape and save modes
+		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+			modes = self.get_modes_at_freq(iFreq)
+			modes = np.squeeze(modes)
+			modes = np.reshape(modes, [self._nx*self._nv, self._n_modes_save])
+			phi_tilde[iFreq,:,:] = modes
+
+		return Acoeff, phi_tilde, time_mean
+
+
+	def reconstruct_data_freq(self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
+	# 	'''	def reconstruct_data_freq(self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
+	# 	'''
+	# 	Reconstruct original data.
+	# 	'''
+		Q_hat_reconstructed = np.zeros([self._n_freq_r, self._nv*self._nx], dtype='complex_')
+
+		for l in range(self._n_freq_r):
+			for i in range(self._n_modes_save):
+				Q_hat_reconstructed[l, :] += coeffs[l,i]*phi_tilde[l,:,i]
+		if self._isrealx:
+			Q_hat_reconstructed[1:-1,:] = Q_hat_reconstructed[1:-1,:]/2
+		Q_blk = (self._n_DFT/self._winWeight) * scipy.fft.ifft(Q_hat_reconstructed, axis=0)
+		Q_blk = Q_blk /self._window
+		for i in range(self._n_freq_r):
+			Q_blk[i,:] = Q_blk[i,:] + time_mean
+		Q_reconstructed = np.reshape(Q_blk[:,:],[self._n_DFT,self._xshape[0], self._xshape[1], self._nv])
+
+		return Q_reconstructed
+
+
+	# def compute_coeffs_freq(self, data, nt, svd=True, T_lb=None, T_ub=None):
+	# 	'''
+	# 	Reconstruct coefficients in the frequency space.
+	# 	'''
+
+	# 	# self._coeff = dict()
+	# 	# initialize variables
+	# 	if (T_lb is None) or (T_ub is None):
+	# 		self._freq_idx_lb = 0
+	# 		self._freq_idx_ub = self._n_freq - 1
+	# 		self._freq_found_lb = self._freq[self._freq_idx_lb]
+	# 		self._freq_found_ub = self._freq[self._freq_idx_ub]
+	# 	else:
+	# 		self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
+	# 			freq_required=1/T_ub, freq=self._freq)
+	# 		self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
+	# 			freq_required=1/T_lb, freq=self._freq)
+	# 	self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
+
+	# 	Acoeff = np.zeros([self._n_freq_r, self._n_modes_save, self._n_blocks], dtype='complex_')
+	# 	for block_idx in range(self._n_blocks):
+	# 		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+	# 			Q_hat = self.get_Q_hat_at_freq(block_idx, iFreq)
+	# 			modes = self.get_modes_at_freq(iFreq)
+	# 			m_conj = np.squeeze(modes.conj().T)
+	# 			w = np.squeeze(self.weights)
+	# 			m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
+	# 			Acoeff[iFreq, :, block_idx] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat)
+	# 	return Acoeff
 
 
 	def compute_coeffs(self, data, nt, svd=True, T_lb=None, T_ub=None):
