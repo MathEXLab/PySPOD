@@ -687,7 +687,7 @@ class SPOD_base(base):
 			Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
 
 			if self._isrealx:
-				Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
+			 	Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
 
 			print('block '+str(iBlk+1)+'/'+str(n_blk)+\
 				  ' ('+str(offset)+':'+str(self._n_DFT+offset)+')')
@@ -723,24 +723,29 @@ class SPOD_base(base):
 
 		# compute coefficients
 		Acoeff = np.zeros([self._n_freq_r, self._n_modes_save, n_blk], dtype='complex_')
-		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-			modes = self.get_modes_at_freq(iFreq)
-			m_conj = np.squeeze(modes.conj().T)
-			w = np.squeeze(self.weights)
-			m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
-			# for block_idx in range(n_blk):
-			Q_hat2 = Q_hat[iFreq, :, :]
-			# Acoeff[iFreq, :, :] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat2)
-			# TODO add w
-			Acoeff[iFreq, :, :] = np.matmul(m_conj2, Q_hat2)
-
 		phi_tilde = np.zeros([self._n_freq_r, self._nx*self._nv, self._n_modes_save], dtype='complex_')
-		# reshape and save modes
+
 		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
 			modes = self.get_modes_at_freq(iFreq)
 			modes = np.squeeze(modes)
 			modes = np.reshape(modes, [self._nx*self._nv, self._n_modes_save])
+			m_conj = modes.conj().T
+			w = np.squeeze(self.weights)
+			# m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
+			# for block_idx in range(n_blk):
+			Q_hat2 = Q_hat[iFreq, :, :]
+			# Acoeff[iFreq, :, :] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat2)
+			# TODO add w
+			Acoeff[iFreq, :, :] = np.matmul(m_conj, Q_hat2)
 			phi_tilde[iFreq,:,:] = modes
+
+		# reshape and save modes
+		# for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+		# 	modes = self.get_modes_at_freq(iFreq)
+		# 	modes = np.squeeze(modes)
+		# 	modes = np.reshape(modes, [self._nx*self._nv, self._n_modes_save])
+		# 	phi_tilde[iFreq,:,:] = modes
+
 
 		return Acoeff, phi_tilde, time_mean
 
