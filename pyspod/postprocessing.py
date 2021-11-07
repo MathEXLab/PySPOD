@@ -1160,15 +1160,16 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 				plt.show()
 
 
-def generate_2D_subplot(var1, title1, var2=None, title2=None, var3=None, 
-	title3=None, N_round=6, path='CWD', filename=None):
+def generate_2D_subplot(
+	var1, title1, var2=None, title2=None, var3=None, title3=None, 
+	N_round=6, path='CWD', filename=None):
 	'''
 	Generate two 2D subplots in the same figure
 	'''
 
 	csfont = {'fontname':'Times New Roman'}
 	multiplier = 10 ** N_round
-	maxVal = np.ceil(np.max(var1.real) * multiplier) / multiplier      # round up the maximum
+	maxVal = np.ceil(np.max(var1.real) * multiplier) / multiplier     # round up the maximum
 	minVal = np.floor(np.min(var1.real) * multiplier) / multiplier    # round down the minimum
 	ticks_range = np.linspace(minVal, maxVal, num=5)
 	nSubplots = 1

@@ -54,30 +54,30 @@ testingDataRatio = (1-trainingDataRatio)
 params = dict()
 
 # -- required parameters
-params['time_step'   	   ] = dt 						# data time-sampling
-params['n_space_dims'    ] = 2							# number of spatial dimensions (longitude and latitude)
-params['n_variables'     ] = 1							# number of variables
+params['time_step'   	 ] = dt # data time-sampling
+params['n_space_dims'    ] = 2	# number of spatial dimensions (longitude and latitude)
+params['n_variables'     ] = 1	# number of variables
 params['n_DFT'           ] = np.ceil(block_dimension / dt) # length of FFT blocks
 # -- optional parameters
-params['overlap'          ] = 96					# dimension in percentage (1 to 100) of block overlap
+params['overlap'          ] = 90		 # dimension in percentage (1 to 100) of block overlap
 # params['mean_type'        ] = 'blockwise' # type of mean to subtract to the data
 params['mean_type'        ] = 'longtime' # type of mean to subtract to the data
-params['normalize_weights'] = False	 			# normalization of weights by data variance
-params['normalize_data'   ] = False  			# normalize data by data variance
-params['n_modes_save'     ] = 8  		# modes to be saved
-params['conf_level'       ] = 0.95   			# calculate confidence level
+params['normalize_weights'] = False	 	 # normalization of weights by data variance
+params['normalize_data'   ] = False  	 # normalize data by data variance
+params['n_modes_save'     ] = 50  		 # modes to be saved
+params['conf_level'       ] = 0.95   	 # calculate confidence level
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem)
 params['reuse_blocks'] = False
 
 params_emulation = dict()
 
-params_emulation['network'     ] = 'lstm' 						# type of network
-params_emulation['epochs'      ] = 5 						# number of epochs
-params_emulation['batch_size'  ] = 32							# batch size
-params_emulation['n_seq_in'    ] = 40							# dimension of input sequence 
-params_emulation['n_seq_out'   ] = 1                          # number of steps to predict
-params_emulation['n_neurons'   ] = 25                          # number of neurons
-params_emulation['dropout'   ] = 0.15                          # dropout
+params_emulation['network'     ] = 'lstm' 	# type of network
+params_emulation['epochs'      ] = 5 		# number of epochs
+params_emulation['batch_size'  ] = 32		# batch size
+params_emulation['n_seq_in'    ] = 40		# dimension of input sequence 
+params_emulation['n_seq_out'   ] = 1        # number of steps to predict
+params_emulation['n_neurons'   ] = 25       # number of neurons
+params_emulation['dropout'     ] = 0.15     # dropout
 params_emulation['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
 
 
@@ -87,9 +87,9 @@ def jet_emulationSPOD():
 	'''
 	#  training and testing database definition
 	nt_train = int(trainingDataRatio * nt)
-	X_train = X[:nt_train,:,:]
-	nt_test = nt - nt_train
-	X_test  = X[nt_train:,:,:]
+	X_train  = X[:nt_train,:,:]
+	nt_test  = nt - nt_train
+	X_test   = X[nt_train:,:,:]
 
 	# SPOD analysis
 	SPOD_analysis = SPOD_low_storage(
@@ -108,19 +108,32 @@ def jet_emulationSPOD():
 	coeffs_test  = spod.transform_freq(X_test, nt=nt_test, T_lb=None, T_ub=None)
 	# coeffs_test2  = spod.transform_freq_testData(X, nt=1000, T_lb=None, T_ub=None)
 
-	q_rec=spod.reconstruct_data_freq(coeffs_train['coeffs'][:,:,99], coeffs_train['phi_tilde'], coeffs_train['time_mean'])
-	mean =np.reshape(spod._x_mean,[20,88])
-	q_cmpr = X[199,:,:]# - mean 
+	print('coeffs_train.shape = ', coeffs_train['coeffs'].shape)
+	id_block = 2
+	time_idx = 10
+	q_rec = spod.reconstruct_data_freq(
+		coeffs_train['coeffs'][:,:,id_block], 
+		coeffs_train['phi_tilde'], 
+		coeffs_train['time_mean']
+	)
+	print('q_rec.shape = ', q_rec.shape)
+	time_offset_lb = spod.get_time_offset_lb
+	time_offset_ub = spod.get_time_offset_ub
+	offset = time_offset_lb[id_block]
+	print('offset = ', offset)
+	mean = np.reshape(spod._x_mean,[20,88])
+	q_cmpr = X[offset+time_idx,:,:]# - mean 
 	spod.generate_2D_subplot(
-		title1='True 1', 
-		title2='2', 
-		title3='3',
-		var1=q_rec[0,:,:, 0], 
-		var2=q_rec[1,:,:, 0],
-		var3=q_rec[3,:,:, 0],
+		title1='True', 
+		title2='Reconstructed', 
+		# title3='3',
+		var1=q_cmpr, 
+		var2=q_rec[time_idx,:,:, 0],
+		# var3=q_rec[1,:,:, 0],
 		N_round=2, path='CWD', filename=None
 	)
 	quit()
+
 	# initialization of variables and structures
 	n_modes = params['n_modes_save'] 
 	n_freq = spod._n_freq_r

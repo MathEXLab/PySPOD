@@ -404,6 +404,27 @@ class SPOD_base(base):
 		'''
 		return self._weights
 
+	@property
+	def get_time_offset_lb(self):
+		'''
+		Returns the dictionary with the time idx lower bound for all blocks.
+
+		:return: dictionary with the time idx lower bound for all blocks.
+		:rtype: dict
+		'''
+		return self._get_time_offset_lb
+
+	@property
+	def get_time_offset_ub(self):
+		'''
+		Returns the dictionary with the time idx upper bound for all blocks.
+
+		:return: dictionary with the time idx upper bound for all blocks.
+		:rtype: dict
+		'''
+		return self._get_time_offset_ub
+
+
 	# @property
 	# def Phi_tilde(self):
 	# 	'''
@@ -657,11 +678,15 @@ class SPOD_base(base):
 		Q_hat = np.empty([self._n_DFT,self._nx*self.nv, n_blk], dtype='complex_')
 
 		# Compute blocks and FFT
-		# for iBlk in range(n_blk):
+		self._get_time_offset_lb = dict()
+		self._get_time_offset_ub = dict()
 		for iBlk in range(n_blk):
 			# get time index for present block
 			offset = min(iBlk * (self._n_DFT - self._n_overlap) \
 				+ self._n_DFT, nt) - self._n_DFT
+
+			self._get_time_offset_lb[iBlk] = offset
+			self._get_time_offset_ub[iBlk] = self._n_DFT + offset
 
 			# Get data
 			Q_blk = data[offset:self._n_DFT+offset,:]
@@ -751,22 +776,26 @@ class SPOD_base(base):
 
 
 	def reconstruct_data_freq(self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
-	# 	'''	def reconstruct_data_freq(self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
-	# 	'''
-	# 	Reconstruct original data.
-	# 	'''
+		'''
+		Reconstruct original data.
+		'''
 		Q_hat_reconstructed = np.zeros([self._n_freq_r, self._nv*self._nx], dtype='complex_')
 
 		for l in range(self._n_freq_r):
 			for i in range(self._n_modes_save):
-				Q_hat_reconstructed[l, :] += coeffs[l,i]*phi_tilde[l,:,i]
+				Q_hat_reconstructed[l, :] += coeffs[l,i] * phi_tilde[l,:,i]
 		if self._isrealx:
-			Q_hat_reconstructed[1:-1,:] = Q_hat_reconstructed[1:-1,:]/2
-		Q_blk = (self._n_DFT/self._winWeight) * scipy.fft.ifft(Q_hat_reconstructed, axis=0)
-		Q_blk = Q_blk /self._window
+			Q_hat_reconstructed[1:-1,:] = Q_hat_reconstructed[1:-1,:] / 2
+
+		# # window and Fourier transform block
+		# self._window = self._window.reshape(self._window.shape[0],1)
+		# Q_blk = Q_blk * self._window
+		# Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
+		Q_hat_reconstructed = (self._n_DFT / self._winWeight) * Q_hat_reconstructed
+		Q_blk = scipy.fft.ifft(Q_hat_reconstructed, axis=0) / self._window
 		for i in range(self._n_freq_r):
 			Q_blk[i,:] = Q_blk[i,:] + time_mean
-		Q_reconstructed = np.reshape(Q_blk[:,:],[self._n_DFT,self._xshape[0], self._xshape[1], self._nv])
+		Q_reconstructed = np.reshape(Q_blk[:,:], [self._n_DFT,self._xshape[0], self._xshape[1], self._nv])
 
 		return Q_reconstructed
 
@@ -1124,7 +1153,14 @@ class SPOD_base(base):
 						r = r.T
 				title_rec = 'Reconstructed, time idx = '+str(time_id)
 				title_true = 'True, time idx = '+str(time_id)
-				self.generate_2D_subplot(var1=x, var2=r, title1=title_true, title2=title_rec, N_round=2, path='CWD', filename=None)
+				self.generate_2D_subplot(
+					var1=x, 
+					var2=r, 
+					title1=title_true, 
+					title2=title_rec, 
+					N_round=2, 
+					path='CWD', 
+					filename=None)
 
 
 	def plot_eigs(self,
