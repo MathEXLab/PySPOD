@@ -59,7 +59,7 @@ params['n_space_dims'    ] = 2	# number of spatial dimensions (longitude and lat
 params['n_variables'     ] = 1	# number of variables
 params['n_DFT'           ] = np.ceil(block_dimension / dt) # length of FFT blocks
 # -- optional parameters
-params['overlap'          ] = 90		 # dimension in percentage (1 to 100) of block overlap
+params['overlap'          ] = 98		 # dimension in percentage (1 to 100) of block overlap
 # params['mean_type'        ] = 'blockwise' # type of mean to subtract to the data
 params['mean_type'        ] = 'longtime' # type of mean to subtract to the data
 params['normalize_weights'] = False	 	 # normalization of weights by data variance
