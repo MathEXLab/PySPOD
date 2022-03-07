@@ -12,7 +12,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.models import load_model, Model, Sequential
 from tensorflow.keras import optimizers, models, regularizers
-from keras.layers import Dropout
+from tensorflow.keras.layers import Dropout
 
 # set seeds
 from numpy.random import seed
@@ -184,7 +184,10 @@ class Emulation():
 		)
 
 		if plotHistory == True:
-			post.plot_trainingHistories(self.train_history.history['loss'], self.train_history.history['val_loss'])
+			post.plot_trainingHistories(
+				self.train_history.history['loss'], 
+				self.train_history.history['val_loss']
+			)
 
 		# repeat for imaginary components
 		if not np.isreal(data_train).all():

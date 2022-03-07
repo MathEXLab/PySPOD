@@ -56,7 +56,7 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 
 # Initialize libraries for the low_storage algorithm
-spod_ls = SPOD_streaming(params=params, data_handler=False, variables=['p'])
+spod_ls = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
 spod_ls.fit(data=p, nt=t.shape[0])
 
 # Let's plot the data

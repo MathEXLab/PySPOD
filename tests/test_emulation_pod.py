@@ -32,7 +32,7 @@ import pyspod.utils_weights as utils_weights
 import pyspod.utils as utils  
 
 # data ingestion
-file = os.path.join(CFD,'./data','fluidmechanics_data.mat')
+file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
@@ -53,24 +53,24 @@ testingDataRatio = (1-trainingDataRatio)
 params = dict()
 
 # -- required parameters
-params['time_step'   	 ] = dt 						# data time-sampling
-params['n_space_dims'    ] = 2							# number of spatial dimensions (longitude and latitude)
-params['n_variables'     ] = 1							# number of variables
+params['time_step'   	 ] = dt # data time-sampling
+params['n_space_dims'    ] = 2	# number of spatial dimensions (longitude and latitude)
+params['n_variables'     ] = 1	# number of variables
 # -- optional parameters
-params['normalize_weights'] = False	 			# normalization of weights by data variance
-params['normalize_data'   ] = False  			# normalize data by data variance
-params['n_modes_save'     ] = 8  		# modes to be saved
+params['normalize_weights'] = False	 # normalization of weights by data variance
+params['normalize_data'   ] = False  # normalize data by data variance
+params['n_modes_save'     ] = 8  	 # modes to be saved
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem)
 
 params_emulation = dict()
 
-params_emulation['network'     ] = 'lstm' 						# type of network
-params_emulation['epochs'      ] = 10 						# number of epochs
-params_emulation['batch_size'  ] = 32							# batch size
-params_emulation['n_seq_in'    ] = 60							# dimension of input sequence 
-params_emulation['n_seq_out'   ] = 1                          # number of steps to predict
-params_emulation['n_neurons'   ] = 1                          # number of neurons
-params_emulation['dropout'   ] = 0.15                          # dropout
+params_emulation['network'     ] = 'lstm' 	# type of network
+params_emulation['epochs'      ] = 10 		# number of epochs
+params_emulation['batch_size'  ] = 32		# batch size
+params_emulation['n_seq_in'    ] = 60		# dimension of input sequence 
+params_emulation['n_seq_out'   ] = 1        # number of steps to predict
+params_emulation['n_neurons'   ] = 1        # number of neurons
+params_emulation['dropout'   ] = 0.15       # dropout
 params_emulation['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
 
 
@@ -113,7 +113,7 @@ def jet_emulation_pod():
 	coeffs_tmp = np.zeros([n_modes,              coeffs_test           .shape[1]], dtype='double')
 
 	# LSTM
-	pod_emulation = emulation(params_emulation)
+	pod_emulation = Emulation(params_emulation)
 	
 	# initialization of the network
 	pod_emulation.model_initialize(data=data_train)
@@ -158,13 +158,6 @@ def jet_emulation_pod():
 			time_mean=coeffs_train['time_mean']
 	)
 
-	print(*emulation_rec[0,1,0])
-	print(*emulation_rec[100,1,0])
-	print(*emulation_rec[150,1,0])
-	print(*emulation_rec[100,10,5])
-	print(*emulation_rec[50,7,20])
-	print(*emulation_rec[60,8,9])
-
 	tol = 1e-10
 	assert((np.abs(emulation_rec[0,1,0])    < 4.467653954357804 +tol) & \
 		   (np.abs(emulation_rec[0,1,0])    > 4.467653954357804 -tol))
@@ -179,29 +172,6 @@ def jet_emulation_pod():
 	assert((np.abs(emulation_rec[60,8,9])   < 4.463653302190512 +tol) & \
 		   (np.abs(emulation_rec[60,8,9])   > 4.463653302190512 -tol))
 
-
-	# errors
-	# pod.printErrors(field_test=X_test, field_proj=proj_rec, field_emul=emulation_rec, n_snaps = 100, n_offset = 100)
-
-	# routines for visualization
-	#pod.plot_eigs()
-	# pod.plot_compareTimeSeries(
-	# 			  serie1= coeffs_test[0,:],
-	# 			  serie2= coeffs[0,:],
-	# 			  label1='test',
-	# 			  label2='lstm',
-	# 			  legendLocation = 'upper left',
-	# 			  filename=None)
-
-	# pod.generate_2D_subplot(
-	# 	title1='True solution', 
-	# 	title2='Projection-based solution', 
-	# 	title3='LSTM-based solution',
-	# 	var1=X_test[100,:,:], 
-	# 	var2=proj_rec[100,:,:,0], 
-	# 	var3=emulation_rec[100,:,:,0], 
-	# 	N_round=2, path='CWD', filename=None
-	# )
 
 
 if __name__ == "__main__":
