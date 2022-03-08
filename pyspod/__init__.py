@@ -21,10 +21,10 @@ for P in PACKAGE_PARENTS:
 __project__ = 'PySPOD'
 __title__ = "pyspod"
 __author__ = "Gianmarco Mengaldo, Romit Maulik, Andrea Lario"
-__email__ = 'gianmarco.mengaldo@gmail.com, rmaulik@anl.gov'
+__email__ = 'mpegim@nus.edu.sg, rmaulik@anl.gov', alario@sissa.it
 __copyright__ = "Copyright 2020-2022 PySPOD authors and contributors"
 __maintainer__ = __author__
 __status__ = "Stable"
 __license__ = "MIT"
-__version__ = "0.5.0"
+__version__ = "1.0.0"
 __url__ = "https://github.com/mengaldo/PySPOD"
