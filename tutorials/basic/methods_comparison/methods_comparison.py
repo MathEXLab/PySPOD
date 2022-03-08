@@ -22,8 +22,7 @@ x1 = np.linspace(0,10,100)
 x2 = np.linspace(0, 5, 50)
 xx1, xx2 = np.meshgrid(x1, x2)
 t = np.linspace(0, 200, 1000)
-s_component = np.sin(xx1 * xx2) + np.cos(xx1)**2 + np.sin(0.1*xx2)
-# s_component = s_component.T
+s_component = np.sin(xx1 * xx2)  + np.cos(xx1)**2 + np.sin(0.1*xx2)
 t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 p = np.empty((t_component.shape[0],)+s_component.shape)
 for i, t_c in enumerate(t_component):
@@ -57,8 +56,8 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 
 # Initialize libraries for the low_storage algorithm
-spod_ls = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])
-spod_ls.fit()
+spod_ls = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
+spod_ls.fit(data=p, nt=t.shape[0])
 
 # Let's plot the data
 spod_ls.plot_2D_data(time_idx=[1,2])
@@ -83,8 +82,8 @@ spod_ls.plot_2D_modes_at_frequency(
 
 
 # Let's try the low_ram algorithm
-spod_ram = SPOD_low_ram(p, params=params, data_handler=False, variables=['p'])
-spod_ram.fit()
+spod_ram = SPOD_low_ram(params=params, data_handler=False, variables=['p'])
+spod_ram.fit(data=p, nt=t.shape[0])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
@@ -103,8 +102,8 @@ spod_ram.plot_2D_modes_at_frequency(
     vars_idx=[0])
 
 # Finally, we can try the streaming algorithm
-spod_st = SPOD_streaming(p, params=params, data_handler=False, variables=['p'])
-spod_st.fit()
+spod_st = SPOD_streaming(params=params, data_handler=False, variables=['p'])
+spod_st.fit(data=p, nt=t.shape[0])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)

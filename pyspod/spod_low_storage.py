@@ -28,12 +28,18 @@ class SPOD_low_storage(SPOD_base):
 	the `SPOD_base` class.
 	"""
 
-	def fit(self):
+	def fit(self, data, nt):
 		"""
 		Class-specific method to fit the data matrix X using
 		the SPOD low storage algorithm.
 		"""
 		start = time.time()
+
+		print(' ')
+		print('Initialize data')
+		print('------------------------------------')
+		self.initialize_fit(data, nt)
+		print('------------------------------------')
 
 		print(' ')
 		print('Calculating temporal DFT (low_storage)')
@@ -60,14 +66,16 @@ class SPOD_low_storage(SPOD_base):
 		Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
 		Q_hat = np.empty([self._n_freq,self._nx*self.nv,self._n_blocks], dtype='complex_')
 		Q_blk_hat = np.empty([self._n_DFT,int(self._nx*self._nv)], dtype='complex_')
-
+		self._Q_hat_f = dict()
 		if blocks_present:
 			# load blocks if present
-			for iFreq in range(0,self._n_freq):
-				for iBlk in range(0,self._n_blocks):
+			for iBlk in tqdm(range(0, self._n_blocks), desc='loading blocks'):
+				self._Q_hat_f[str(iBlk)] = dict()
+				for iFreq in range(0, self._n_freq):
 					file = os.path.join(self._save_dir_blocks,\
-						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
+						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk, iFreq))
 					Q_hat[iFreq,:,iBlk] = np.load(file)
+					self._Q_hat_f[str(iBlk)][str(iFreq)] = file
 		else:
 			# loop over number of blocks and generate Fourier realizations
 			# if blocks are not saved in storage
@@ -81,12 +89,13 @@ class SPOD_low_storage(SPOD_base):
 					  ' ('+str(offset)+':'+str(self._n_DFT+offset)+')')
 
 				# save FFT blocks in storage memory if required
-				if self._savefft:
-					for iFreq in range(0,self._n_freq):
-						file = os.path.join(self._save_dir_blocks,
-							'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
-						Q_blk_hat_fi = Q_blk_hat[iFreq,:]
-						np.save(file, Q_blk_hat_fi)
+				self._Q_hat_f[str(iBlk)] = dict()
+				for iFreq in range(0,self._n_freq):
+					file = os.path.join(self._save_dir_blocks,
+						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
+					Q_blk_hat_fi = Q_blk_hat[iFreq,:]
+					np.save(file, Q_blk_hat_fi)
+					self._Q_hat_f[str(iBlk)][str(iFreq)] = file
 
 				# store FFT blocks in RAM
 				Q_hat[:,:,iBlk] = Q_blk_hat

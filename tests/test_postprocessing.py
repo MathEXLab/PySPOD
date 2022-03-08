@@ -30,13 +30,13 @@ def test_postprocessing_2D():
 	x1 = np.array(ds['x'])
 	x2 = np.array(ds['z'])
 	X = np.array(ds[variables[0]]).T
+	nt = t.shape[0] 
 
 	# parameters
 	params = dict()
 
 	# -- required parameters
 	params['time_step'   ] = 1 					# data time-sampling
-	params['n_snapshots' ] = t.shape[0] 		# number of time snapshots (we consider all data)
 	params['n_space_dims'] = 2 					# number of spatial dimensions (longitude and latitude)
 	params['n_variables' ] = 1 					# number of variables
 	params['n_DFT'       ] = np.ceil(32) 		# length of FFT blocks (100 time-snapshots)
@@ -55,8 +55,8 @@ def test_postprocessing_2D():
 
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(data=X, params=params, data_handler=False, variables=variables)
-	spod = SPOD_analysis.fit()
+	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test postprocessing and results
 	T_approx = 12.5; 	tol = 1e-10
@@ -154,7 +154,8 @@ def test_postprocessing_3D():
 	p = np.empty((t_component.shape[0],)+s_component.shape)
 	for i, t_c in enumerate(t_component):
 		p[i] = s_component * t_c
-
+	nt = t.shape[0] 
+	
 	# Let's define the required parameters into a dictionary
 	params = dict()
 
@@ -177,8 +178,8 @@ def test_postprocessing_3D():
 	params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test')
 
 	# Initialize libraries for the low_storage algorithm
-	spod = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])
-	spod.fit()
+	spod = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
+	spod.fit(data=p, nt=nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)

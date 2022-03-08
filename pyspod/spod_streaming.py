@@ -22,13 +22,19 @@ class SPOD_streaming(SPOD_base):
 	the `SPOD_base` class.
 	"""
 
-	def fit(self):
+	def fit(self, data, nt):
 		"""
 		Class-specific method to fit the data matrix X using the SPOD
 		streaming algorithm.
 		"""
 		start = time.time()
 
+		print(' ')
+		print('Initialize data')
+		print('------------------------------------')
+		self.initialize_fit(data, nt)
+		print('------------------------------------')
+		
 		# sqrt of weights
 		sqrtW = np.sqrt(self._weights)
 
@@ -39,7 +45,7 @@ class SPOD_streaming(SPOD_base):
 		n_blocks_parallel = int(np.ceil(self._n_DFT/dn))
 
 		# sliding, relative time index for each block
-		t_idx = np.zeros([n_blocks_parallel,1],dtype=int)
+		t_idx = np.zeros([n_blocks_parallel,1], dtype=int)
 		for block_i in range(0,n_blocks_parallel):
 			t_idx[block_i] =  t_idx[block_i] - (block_i) * dn
 
@@ -64,10 +70,10 @@ class SPOD_streaming(SPOD_base):
 		# DFT matrix
 		Fourier = np.fft.fft(np.identity(self._n_DFT))
 
-		# correct Fourier coefficients for one-sided spectrum
 		if self._isrealx:
 			Fourier[:,1:self._n_freq-1] = 2 * Fourier[:,1:self._n_freq-1]
-			freq_idx = np.arange(0,int(self._n_DFT/2+1))
+			# freq_idx = np.arange(0, int(self._n_DFT/2+1))
+			freq_idx = np.arange(0, int(self._n_DFT), 1)
 			Fourier = Fourier[:,freq_idx]
 
 		# convergence tests

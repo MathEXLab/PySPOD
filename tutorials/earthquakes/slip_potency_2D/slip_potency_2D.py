@@ -10,7 +10,7 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append(os.path.join(CFD, "../../../"))
+sys.path.insert(0, os.path.join(CFD, "../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
@@ -24,10 +24,7 @@ t = np.array(ds['time'])
 x1 = np.array(ds['x'])
 x2 = np.array(ds['z'])
 X = np.array(ds[variables[0]]).T
-print('t.shape  = ', t.shape)
-print('x1.shape = ', x1.shape)
-print('x2.shape = ', x2.shape)
-print('X.shape  = ', X.shape)
+nt = t.shape[0]
 
 # define required and optional parameters
 params = dict()
@@ -51,8 +48,8 @@ params['savefft'          ] = False   		# save FFT blocks to reuse them in the f
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
 
 # Perform SPOD analysis using low storage module
-SPOD_analysis = SPOD_streaming(data=X, params=params, data_handler=False, variables=variables)
-spod = SPOD_analysis.fit()
+SPOD_analysis = SPOD_streaming(params=params, data_handler=False, variables=variables)
+spod = SPOD_analysis.fit(data=X, nt=nt)
 
 # Show results
 T_approx = 10 # approximate period

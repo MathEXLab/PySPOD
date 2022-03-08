@@ -24,13 +24,13 @@ x1 = np.linspace(0,10,100)
 x2 = np.linspace(0, 5, 50)
 xx1, xx2 = np.meshgrid(x1, x2)
 t = np.linspace(0, 200, 1000)
+nt = t.shape[0]
 s_component = np.sin(xx1 * xx2) + np.cos(xx1)**2 + np.sin(0.1*xx2)
 # s_component = s_component.T
 t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 p = np.empty((t_component.shape[0],)+s_component.shape)
 for i, t_c in enumerate(t_component):
 	p[i] = s_component * t_c
-
 # params = utils.parse_config_file()
 # print(p)
 
@@ -40,7 +40,6 @@ params = dict()
 
 # -- required parameters
 params['time_step'   ] = 1                	# data time-sampling
-params['n_snapshots' ] = t.shape[0]       	# number of time snapshots (we consider all data)
 params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
 params['n_DFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
@@ -52,7 +51,7 @@ params['normalize_weights'] = False        	# normalization of weights by data v
 params['normalize_data'   ] = False   		# normalize data by data variance
 params['n_modes_save'     ] = 3      		# modes to be saved
 params['conf_level'       ] = 0.95   		# calculate confidence level
-params['reuse_blocks'     ] = True 			# whether to reuse blocks if present
+params['reuse_blocks'     ] = False 		# whether to reuse blocks if present
 params['savefft'          ] = False   		# save FFT blocks to reuse them in the future (saves time)
 params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # folder where to save results
 
@@ -60,8 +59,8 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 def test_basic_spod_low_storage():
 	# Initialize libraries for the low_storage algorithm
-	spod_ls = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])
-	spod_ls.fit()
+	spod_ls = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
+	spod_ls.fit(p, nt)
 
 	# Let's plot the data
 	spod_ls.plot_2D_data(time_idx=[1,2], filename='tmp.png')
@@ -84,8 +83,8 @@ def test_basic_spod_low_storage():
 
 def test_basic_spod_low_ram():
 	# Let's try the low_ram algorithm
-	spod_ram = SPOD_low_ram(p, params=params, data_handler=False, variables=['p'])
-	spod_ram.fit()
+	spod_ram = SPOD_low_ram(params=params, data_handler=False, variables=['p'])
+	spod_ram.fit(p, nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)
@@ -112,8 +111,8 @@ def test_basic_spod_low_ram_default():
 	params['n_FFT'] = 'default'
 
 	# Let's try the low_ram algorithm
-	spod_ram = SPOD_low_ram(p, params=params, data_handler=False, variables=['p'])
-	spod_ram.fit()
+	spod_ram = SPOD_low_ram(params=params, data_handler=False, variables=['p']	)
+	spod_ram.fit(p, nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)

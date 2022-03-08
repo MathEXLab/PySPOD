@@ -85,12 +85,8 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 
 # Initialize libraries by using data_handler for the low storage algorithm
-spod_ls = SPOD_low_storage(
-    data=os.path.join(CWD,'data.nc'),
-    params=params,
-    data_handler=read_data_netCDF,
-    variables=variables)
-spod_ls.fit()
+spod_ls = SPOD_streaming(params=params, data_handler=read_data_netCDF, variables=variables)
+spod = spod_ls.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 
 # Let's plot the data
 spod_ls.plot_2D_data(time_idx=[1,2])
@@ -113,15 +109,9 @@ spod_ls.plot_2D_modes_at_frequency(
     modes_idx=[0,1],
     vars_idx=[0])
 
-
-
 # Let's try the low_ram algorithm
-spod_ram = SPOD_low_ram(
-    data=os.path.join(CWD,'data.nc'),
-    params=params,
-    data_handler=read_data_netCDF,
-    variables=variables)
-spod_ram.fit()
+spod_ram = SPOD_low_ram(params=params, data_handler=read_data_netCDF, variables=variables)
+spod_ram.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
@@ -140,12 +130,8 @@ spod_ram.plot_2D_modes_at_frequency(
     vars_idx=[0])
 
 # Finally, we can try the streaming algorithm
-spod_st = SPOD_streaming(
-    data=os.path.join(CWD,'data.nc'),
-    params=params,
-    data_handler=read_data_netCDF,
-    variables=variables)
-spod_st.fit()
+spod_st = SPOD_streaming(params=params, data_handler=read_data_netCDF, variables=variables)
+spod_st.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)

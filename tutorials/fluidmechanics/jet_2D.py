@@ -10,13 +10,13 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append(os.path.join(CFD, "../../../"))
+sys.path.insert(0, os.path.join(CFD, "../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 
 # Inspect and load data
-file = os.path.join(CFD, '../../../tests/data/fluidmechanics_data.mat')
+file = os.path.join(CFD, '../../tests/data/fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
@@ -28,6 +28,7 @@ x1 = data_arrays['r'].T; x1 = x1[:,0]
 x2 = data_arrays['x'].T; x2 = x2[0,:]
 X = data_arrays[variables[0]].T
 t = dt * np.arange(0,X.shape[0]); t = t.T
+nt = t.shape[0]
 
 print('t.shape  = ', t.shape)
 print('x1.shape = ', x1.shape)
@@ -39,7 +40,6 @@ params = dict()
 
 # -- required parameters
 params['time_step'   ] = dt             # data time-sampling
-params['n_snapshots' ] = t.shape[0]     # number of time snapshots (we consider all data)
 params['n_space_dims'] = 2              # number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables) # number of variables
 params['n_DFT'       ] = np.ceil(block_dimension / dt) # length of FFT blocks (100 time-snapshots)
@@ -57,8 +57,8 @@ params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # fo
 
 
 # Perform SPOD analysis using low storage module
-SPOD_analysis = SPOD_streaming(data=X, params=params, data_handler=False, variables=variables)
-spod = SPOD_analysis.fit()
+SPOD_analysis = SPOD_streaming(params=params, data_handler=False, variables=variables)
+spod = SPOD_analysis.fit(data=X, nt=nt)
 
 # Show results
 T_approx = 12.5 # approximate period
