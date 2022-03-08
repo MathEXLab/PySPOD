@@ -22,17 +22,17 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.insert(0, os.path.join(CFD,"../../../../"))
+sys.path.insert(0, os.path.join(CFD, "../"))
 
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-from pyspod.emulation   import Emulation
+from pyspod.emulation        import Emulation
 import pyspod.utils_weights as utils_weights
 import pyspod.utils as utils  
 
 # data ingestion
-file = os.path.join(CFD,'../../../../tests/data','fluidmechanics_data.mat')
+file = os.path.join(CFD, '../tests/data/fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
 	data_arrays = dict()
@@ -47,62 +47,63 @@ nt = t.shape[0]
 x1 = data_arrays['r'].T; x1 = x1[:,0]
 x2 = data_arrays['x'].T; x2 = x2[0,:]
 
-trainingDataRatio = 0.8 # ratio between training data number and total number of snapshots
-testingDataRatio = (1-trainingDataRatio)
+# ratio between training data number and total number of snapshots
+trainingDataRatio = 0.95 
+testingDataRatio  = (1 - trainingDataRatio)
 
 # parameters
 params = dict()
 
 # -- required parameters
-params['time_step'   	   ] = dt 						# data time-sampling
-params['n_space_dims'    ] = 2							# number of spatial dimensions (longitude and latitude)
-params['n_variables'     ] = 1							# number of variables
+params['time_step'   	 ] = dt # data time-sampling
+params['n_space_dims'    ] = 2	# number of spatial dimensions (longitude and latitude)
+params['n_variables'     ] = 1	# number of variables
 params['n_DFT'           ] = np.ceil(block_dimension / dt) # length of FFT blocks
 # -- optional parameters
-params['overlap'          ] = 50					# dimension in percentage (1 to 100) of block overlap
+params['overlap'          ] = 50		  # dimension in percentage (1 to 100) of block overlap
 params['mean_type'        ] = 'blockwise' # type of mean to subtract to the data
-params['normalize_weights'] = False	 			# normalization of weights by data variance
-params['normalize_data'   ] = False  			# normalize data by data variance
-params['n_modes_save'     ] = 8  		# modes to be saved
-params['conf_level'       ] = 0.95   			# calculate confidence level
+params['normalize_weights'] = False	 	  # normalization of weights by data variance
+params['normalize_data'   ] = False  	  # normalize data by data variance
+params['n_modes_save'     ] = 3  		  # modes to be saved
+params['conf_level'       ] = 0.95   	  # calculate confidence level
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem)
 params['reuse_blocks'] = False
 
 params_emulation = dict()
 
-params_emulation['network'     ] = 'lstm' 						# type of network
-params_emulation['epochs'      ] = 10 						# number of epochs
-params_emulation['batch_size'  ] = 32							# batch size
-params_emulation['n_seq_in'    ] = 60							# dimension of input sequence 
-params_emulation['n_seq_out'   ] = 1                          # number of steps to predict
-params_emulation['n_neurons'   ] = 1                          # number of neurons
-params_emulation['dropout'   ] = 0.15                          # dropout
-params_emulation['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
+params_emulation['network'   ] = 'lstm' # type of network
+params_emulation['epochs'    ] = 3  	# number of epochs
+params_emulation['batch_size'] = 32	    # batch size
+params_emulation['n_seq_in'  ] = 30	    # dimension of input sequence 
+params_emulation['n_seq_out' ] = 1      # number of steps to predict
+params_emulation['n_neurons' ] = 1      # number of neurons
+params_emulation['dropout'   ] = 0.15   # dropout
+params_emulation['savedir'   ] = os.path.join(CWD, 'results', Path(file).stem)
 
 
-def jet_emulationSPOD():
+def test_emulation_spod():
 	'''
 	spod tests on jet data for methodologies.
 	'''
 	#  training and testing database definition
 	nt_train = int(trainingDataRatio * nt)
-	X_train = X[:nt_train,:,:]
-	nt_test = nt - nt_train
-	X_test  = X[nt_train:,:,:]
+	X_train  = X[:nt_train,:,:]
+	nt_test  = nt - nt_train
+	X_test   = X[nt_train:,:,:]
 
 	# SPOD analysis
 	SPOD_analysis = SPOD_low_storage(
 		params=params, 
 		data_handler=False, 
 		variables=variables
-		)
+	)
 
 	# fit 
 	spod = SPOD_analysis.fit(X_train, nt=nt_train)
 
 	# transform
 	coeffs_train = spod.transform(X_train, nt=nt_train, T_lb=None, T_ub=None)
-	coeffs_test  = spod.transform(X_test , nt=nt_test, T_lb=None, T_ub=None)
+	coeffs_test  = spod.transform(X_test , nt=nt_test , T_lb=None, T_ub=None)
 
 	# initialization of variables and structures
 	n_modes = params['n_modes_save'] 
@@ -166,28 +167,28 @@ def jet_emulationSPOD():
 		)
 
 	# errors
-	spod.printErrors(field_test=X_test, field_proj=proj_rec, field_emul=emulation_rec, n_snaps = 100, n_offset = 100)
+	spod.printErrors(
+		field_test=X_test, 
+		field_proj=proj_rec, 
+		field_emul=emulation_rec, 
+		n_snaps=10, n_offset=10
+	)
 
-	# routines for visualization
-	#spod.plot_eigs()
-	#spod.plot_eigs_vs_frequency()
-	# spod.plot_eigs_vs_period()
-	
-	#T_approx = 12.5
-	#freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
-	# spod.plot_2D_modes_at_frequency(freq=spod.freq, freq_required=freq_found, modes_idx=[0,1,2])
-	# spod.plot_compareTimeSeries(serie1=coeffs[0,:].real, serie2=coeffs_test['coeffs'][0,:].real, label1="Prediction", label2="Testing")
+	tol = 1e-10
+	assert((np.abs(proj_rec[0,0,0,0])  < 4.467528967599164 + tol) & \
+		   (np.abs(proj_rec[0,0,0,0])  > 4.467528967599164 - tol))
+	assert((np.abs(proj_rec[10,0,0,0]) < 4.465600418067508 + tol) & \
+		   (np.abs(proj_rec[10,0,0,0]) > 4.465600418067508 - tol))
+	assert((np.abs(proj_rec[15,5,12,0])< 4.457098452307361 + tol) & \
+		   (np.abs(proj_rec[15,5,12,0])> 4.457098452307361 - tol))
+	assert((np.abs(emulation_rec[0,0,0,0])  < 4.467528967599164 + tol) & \
+		   (np.abs(emulation_rec[0,0,0,0])  > 4.467528967599164 - tol))
+	assert((np.abs(emulation_rec[10,0,0,0]) < 4.465600418067508 + tol) & \
+		   (np.abs(emulation_rec[10,0,0,0]) > 4.465600418067508 - tol))
+	assert((np.abs(emulation_rec[15,5,12,0])< 4.457098452307361 + tol) & \
+		   (np.abs(emulation_rec[15,5,12,0])> 4.457098452307361 - tol))
 
-	# spod.generate_2D_subplot(
-	# 	title1='True solution', 
-	# 	title2='Projection-based solution', 
-	# 	title3='LSTM-based solution',
-	# 	var1=X_test[100,:,:], 
-	# 	var2=proj_rec[100,:,:,0], 
-	# 	var3=emulation_rec[100,:,:,0], 
-	# 	N_round=2, path='CWD', filename=None
-	# )
 
 
 if __name__ == "__main__":
-	jet_emulationSPOD()
+	test_emulation_spod()

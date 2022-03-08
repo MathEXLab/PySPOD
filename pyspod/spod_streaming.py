@@ -44,8 +44,6 @@ class SPOD_streaming(SPOD_base):
 		# number of blocks being updated in parallel if segments overlap
 		n_blocks_parallel = int(np.ceil(self._n_DFT/dn))
 
-		print('n_blocks_parallel = ', n_blocks_parallel)
-
 		# sliding, relative time index for each block
 		t_idx = np.zeros([n_blocks_parallel,1], dtype=int)
 		for block_i in range(0,n_blocks_parallel):

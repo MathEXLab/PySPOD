@@ -74,7 +74,7 @@ params_emulation['dropout'   ] = 0.15       # dropout
 params_emulation['savedir'     ] = os.path.join(CWD, 'results', Path(file).stem)
 
 
-def jet_emulation_pod():
+def test_emulation_pod():
 	'''
 	spod tests on jet data for methodologies.
 	'''
@@ -175,4 +175,4 @@ def jet_emulation_pod():
 
 
 if __name__ == "__main__":
-	jet_emulation_pod()
+	test_emulation_pod()

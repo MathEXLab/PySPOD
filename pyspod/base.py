@@ -89,6 +89,7 @@ class base(object):
 		print('Avg Linf error lstm prediction vs true solution:',  Linf_LvsT_tot/n_snaps)
 
 
+
 	#-----------------------------------------------------------------------
 	# Plotting methods
 

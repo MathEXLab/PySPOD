@@ -894,7 +894,6 @@ class SPOD_base(base):
 		'''
 		Reconstruct original data through oblique projection.
 		'''
-		print('coeffs.shape = ', coeffs.shape)
 		nt = coeffs.shape[1]
 		Q_reconstructed = np.matmul(phi_tilde, coeffs)
 		Q_reconstructed = Q_reconstructed + time_mean[...,None]

@@ -1224,7 +1224,9 @@ def generate_2D_subplot(
 		plt.show()
 
 
-def plot_compareTimeSeries(serie1, serie2, label1='', label2='', legendLocation='upper left', filename=None):
+def plot_compareTimeSeries(
+	serie1, serie2, label1='', label2='', 
+	legendLocation='upper left', filename=None):
 	ax = plt.gca()
 	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)	
 	plt.plot(serie1, color = 'black')
