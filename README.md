@@ -71,11 +71,11 @@ To see how to use the **PySPOD** package and its user-friendly interface, you ca
 
 We also implement the emulation of the **SPOD latent space** (i.e., time coefficients) with the aid of a **long-short term memory (LSTM) neural network** - see [Tutorial: 2D Jet emulation SPOD](fluidmechanics/jet_2D_emulation_SPOD_time.ipynb). The SPOD emulation is also compared against **POD emulation** - see [Tutorial: 2D Jet emulation POD](fluidmechanics/jet_2D_emulation_POD.ipynb). For more details you can refer to the following preprint: 
 
-"[**Neural-network learning of SPOD latent dynamics**](https://arxiv.org/abs/2110.09218)", by A. Lario, R. Maulik, O.T. Schmidt, G. Rozza, and G. Mengaldo
+  - [**Neural-network learning of SPOD latent dynamics**](https://arxiv.org/abs/2110.09218), by A. Lario, R. Maulik, O.T. Schmidt, G. Rozza, and G. Mengaldo
 
 ## Installation and dependencies
 **PySPOD** requires the following Python packages: 
-`numpy`, `scipy`, `matplotlib`, `xarray`, `netcdf4`, `h5py`, `psutil`, `tdqm`, `future`, `ffmpeg`, `sphinx` (for the documentation). 
+`numpy`, `scipy`, `tensorflow`, `matplotlib`, `xarray`, `netcdf4`, `opt_einsum`, `psutil`, `tdqm`, `future`, `ffmpeg`, `sphinx` (for the documentation). 
 Some of the *Climate tutorials*, additionally need `ecmwf_api_client` and `cdsapi`. 
 
 The code is developed and tested for Python 3 only. 
@@ -142,6 +142,7 @@ x1 = np.linspace(0,10,100)
 x2 = np.linspace(0, 5, 50) 
 xx1, xx2 = np.meshgrid(x1, x2)
 t = np.linspace(0, 200, 1000)
+nt = t.shape[0]
 
 # -- define 2D syntetic data
 s_component = np.sin(xx1 * xx2) + np.cos(xx1)**2 + np.sin(0.1*xx2)
@@ -155,11 +156,11 @@ for i, t_c in enumerate(t_component):
 params = dict()
 
 # -- required parameters
-params['time_step'   ] = 1              # data time-sampling
-params['n_snapshots' ] = t.shape[0]     # number of time snapshots (we consider all data)
-params['n_space_dims'] = 2              # number of spatial dimensions 
-params['n_variables' ] = 1 		# number of variables
-params['n_DFT'       ] = 100          	# length of FFT blocks (100 time-snapshots)
+params['time_step'   ] = 1      # data time-sampling
+params['n_snapshots' ] = nt     # number of time snapshots (we consider all data)
+params['n_space_dims'] = 2      # number of spatial dimensions 
+params['n_variables' ] = 1 	# number of variables
+params['n_DFT'       ] = 100    # length of FFT blocks (100 time-snapshots)
 
 # -- optional parameters
 params['overlap'          ] = 0           # dimension block overlap region
@@ -174,10 +175,10 @@ params['savedir'          ] = os.path.join('results', 'simple_test') # folder wh
 
 
 # Initialize libraries for the low_storage algorithm
-spod = SPOD_low_storage(p, params=params, data_handler=False, variables=['p'])
+spod = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
 
 # and run the analysis
-spod.fit()
+spod.fit(p, nt)
 
 
 # Let's plot the data
