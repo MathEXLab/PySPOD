@@ -62,6 +62,8 @@ In this package we implement three version of SPOD
 
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
 
+We also implement the emulation of the SPOD latent space (i.e., time coefficients) with the aid of a long-short term memory (LSTM) neural network - see [Tutorial: 2D Jet emulation SPOD](fluidmechanics/jet_2D_emulation_SPOD_time.ipynb). The SPOD emulation is also compared against POD emulation - see [Tutorial: 2D Jet emulation POD](fluidmechanics/jet_2D_emulation_POD.ipynb). For more details you can refer to the following preprint: "Neural-network learning of SPOD latent dynamics", by A. Lario, R. Maulik, O.T. Schmidt, G. Rozza, and G. Mengaldo
+
 ## Installation and dependencies
 **PySPOD** requires the following Python packages: 
 `numpy`, `scipy`, `matplotlib`, `xarray`, `netcdf4`, `h5py`, `psutil`, `tdqm`, `future`, `ffmpeg`, `sphinx` (for the documentation). 
