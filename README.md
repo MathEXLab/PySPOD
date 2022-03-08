@@ -30,11 +30,13 @@
   </a>
 </p>
 
-**PySPOD**: Python Spectral Proper Orthogonal Decomposition
+**PySPOD**: Python Spectral Proper Orthogonal Decomposition + **latent space emulation**
 
 ## Table of contents
 
   * [Description](#description)
+    * [SPOD method](#spod-method)
+    * [SPOD emulation](#spod-emulation)
   * [Installation and dependencies](#installation-and-dependencies)
     * [Installing via PIP](#installing-via-pip)
     * [Installing from source](#installing-from-source)
@@ -46,6 +48,9 @@
   * [License](#license)
 
 ## Description
+
+### SPOD method
+
 **PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by [(Picard and Delville 2000)](#picard-and-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al-2018), [(Schmidt and Towne 2019)](#schmidt-and-towne-2019).
 
 **Spectral Proper Orthgonal Decomposition (SPOD)** has been extensively used in the past few years to identify spatio-temporal coherent patterns in a variety of datasets, mainly in the fluidmechanics and climate communities. In fluidmechanics it was applied to jets [(Schmidt et al. 2017)](#schmidt-et-al-2017), wakes [(Araya et al. 2017)](#araya-et-al-2017), and boundary layers [(Tutkun and George 2017)](#tutkun-and-george-2017), among others, while in weather and climate it was applied to ECMWF reanalysis datasets under the name Spectral Empirical Orthogonal Function, or SEOF, [(Schmidt et al. 2019)](#schmidt-et-al-2019).
@@ -61,6 +66,8 @@ In this package we implement three version of SPOD
   - SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
 
 To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
+
+### SPOD emulation
 
 We also implement the emulation of the SPOD latent space (i.e., time coefficients) with the aid of a long-short term memory (LSTM) neural network - see [Tutorial: 2D Jet emulation SPOD](fluidmechanics/jet_2D_emulation_SPOD_time.ipynb). The SPOD emulation is also compared against POD emulation - see [Tutorial: 2D Jet emulation POD](fluidmechanics/jet_2D_emulation_POD.ipynb). For more details you can refer to the following preprint: "Neural-network learning of SPOD latent dynamics", by A. Lario, R. Maulik, O.T. Schmidt, G. Rozza, and G. Mengaldo
 
