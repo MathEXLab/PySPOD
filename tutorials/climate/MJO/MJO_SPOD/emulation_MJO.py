@@ -61,7 +61,8 @@ params = {
 	'n_modes_save'     : 1,
 	'conf_level'       : 0.95,
 	'reuse_blocks'     : False,
-	'savedir'          : os.path.join(CWD, 'results', Path(file).stem)
+	'savedir'          : os.path.join(CWD, 'results', Path(file).stem),
+	'fullspectrum' : True
 }
 
 params_emulation = dict()

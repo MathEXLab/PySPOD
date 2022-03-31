@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.join(CFD, "../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-from pyspod.emulation        import Emulation
+from pyspod.emulation      import Emulation
 import pyspod.utils_weights as utils_weights
 import pyspod.utils as utils  
 
@@ -67,6 +67,7 @@ params['n_modes_save'     ] = 8  		  # modes to be saved
 params['conf_level'       ] = 0.95   	  # calculate confidence level
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem)
 params['reuse_blocks'] = False
+params['fullspectrum'] = False
 
 params_emulation = dict()
 
@@ -178,15 +179,15 @@ def jet_emulationSPOD():
 	# spod.plot_2D_modes_at_frequency(freq=spod.freq, freq_required=freq_found, modes_idx=[0,1,2])
 	# spod.plot_compareTimeSeries(serie1=coeffs[0,:].real, serie2=coeffs_test['coeffs'][0,:].real, label1="Prediction", label2="Testing")
 
-	# spod.generate_2D_subplot(
-	# 	title1='True solution', 
-	# 	title2='Projection-based solution', 
-	# 	title3='LSTM-based solution',
-	# 	var1=X_test[100,:,:], 
-	# 	var2=proj_rec[100,:,:,0], 
-	# 	var3=emulation_rec[100,:,:,0], 
-	# 	N_round=2, path='CWD', filename=None
-	# )
+	#spod.generate_2D_subplot(
+		#title1='True solution', 
+		#title2='Projection-based solution', 
+		#title3='LSTM-based solution',
+		#var1=X_test[100,:,:], 
+		#var2=proj_rec[100,:,:,0], 
+		#var3=emulation_rec[100,:,:,0], 
+		#N_round=2, path='CWD', filename=None
+	#)
 
 
 if __name__ == "__main__":
