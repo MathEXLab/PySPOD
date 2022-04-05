@@ -46,6 +46,7 @@ class SPOD_base(base):
 		self._conf_level		= params.get('conf_level', 0.95) 	     # what confidence level to use fo eigs
 		self._reuse_blocks 		= params.get('reuse_blocks', False)      # reuse blocks if present
 		self._savefft           = params.get('savefft', False) 		     # save fft block if required
+		self._fullspectrum      		= params.get('fullspectrum', False)			  	 # consider all the frequencies, if false a single-sided spectrum is considered
 
 		# get default spectral estimation parameters and options
 		# define default spectral estimation parameters
@@ -504,43 +505,26 @@ class SPOD_base(base):
 		return x_mean
 
 
-	# def get_freq_axis(self):
-	# 	"""Obtain frequency axis."""
-	# 	self._freq = np.arange(0, self._n_DFT, 1) \
-	# 		/ self._dt / self._n_DFT
-	# 	if self._isrealx:
-	# 		self._freq = np.arange(
-	# 			0, np.ceil(self._n_DFT/2)+1, 1) \
-	# 			/ self._n_DFT / self._dt
-	# 	else:
-	# 		if (self._n_DFT % 2 == 0):
-	# 			self._freq[int(self._n_DFT/2)+1:] = \
-	# 				self._freq[int(self._n_DFT/2)+1:] \
-	# 				- 1 / self._dt
-	# 		else:
-	# 			self._freq[(n_DFT+1)/2+1:] = \
-	# 				self._freq[(self._n_DFT+1)/2+1:] \
-	# 				- 1 / self._dt
-	# 	self._n_freq = len(self._freq)
-
 	def get_freq_axis(self):
 		"""Obtain frequency axis."""
 		self._freq = np.arange(0, self._n_DFT, 1) \
 			/ self._dt / self._n_DFT
-		if self._isrealx:
-			self._freq[int(self._n_DFT):] = \
-					self._freq[int(self._n_DFT):] \
-					- 1 / self._dt
-		else:
-			if (self._n_DFT % 2 == 0):
-				self._freq[int(self._n_DFT):] = \
-					self._freq[int(self._n_DFT):] \
-					- 1 / self._dt
+		if not self._fullspectrum:
+			if self._isrealx:
+				self._freq = np.arange(
+					0, np.ceil(self._n_DFT/2)+1, 1) \
+					/ self._n_DFT / self._dt
 			else:
-				self._freq[(n_DFT+1)/2+1:] = \
+				if (self._n_DFT % 2 == 0):
+					self._freq[int(self._n_DFT/2)+1:] = \
+						self._freq[int(self._n_DFT/2)+1:] \
+							- 1 / self._dt
+				else:
+					self._freq[(n_DFT+1)/2+1:] = \
 					self._freq[(self._n_DFT+1)/2+1:] \
-					- 1 / self._dt
+					 	- 1 / self._dt
 		self._n_freq = len(self._freq)
+
 
 	def compute_blocks(self, iBlk):
 		"""Compute FFT blocks."""
