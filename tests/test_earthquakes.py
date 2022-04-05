@@ -188,6 +188,7 @@ def test_spod_streaming():
 	# set longtime mean
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
+	params['fullspectrum'] = True
 
 	# SPOD analysis
 	SPOD_analysis = SPOD_streaming(params=params, data_handler=False, variables=variables)

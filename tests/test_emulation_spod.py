@@ -68,6 +68,7 @@ params['n_modes_save'     ] = 3  		  # modes to be saved
 params['conf_level'       ] = 0.95   	  # calculate confidence level
 params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem)
 params['reuse_blocks'] = False
+params['fullspectrum'] = True
 
 params_emulation = dict()
 
