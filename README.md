@@ -18,7 +18,7 @@
   </a>
 
   <a href="https://travis-ci.com/mengaldo/PySPOD" target="_blank">
-    <img alt="Build Status" src="https://travis-ci.com/mengaldo/PySPOD.svg?token=sY467gr18pmboZ16AN1x&branch=main">	  
+    <img alt="Build Status" src="https://app.travis-ci.com/mathe-lab/PySPOD.svg?branch=main">	  
   </a>
 
   <a href="https://coveralls.io/github/mengaldo/PySPOD?branch=main" target="_blank">
@@ -220,7 +220,6 @@ You can check out the current status of **PySPOD** [here](https://travis-ci.org/
 IF you want to run tests locally, you can do so by:
 
 ```bash
-> cd tests/
 > pytest -v
 ```
 
