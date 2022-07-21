@@ -9,18 +9,13 @@ import os
 import sys
 import psutil
 import warnings
+import scipy
 import numpy as np
 import scipy.special as sc
-from scipy.fft import fft
-import scipy
-
 from numpy import linalg as la
-from tqdm import tqdm
-
-from pyspod.base import base
-
 
 # Import custom Python packages
+from pyspod.base import base
 import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
 
@@ -30,6 +25,7 @@ CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 BYTE_TO_GB = 9.3132257461548e-10
+
 
 
 class SPOD_base(base):
@@ -182,6 +178,7 @@ class SPOD_base(base):
 		self.print_parameters()
 
 
+
 	# basic getters
 	# ---------------------------------------------------------------------------
 
@@ -195,6 +192,7 @@ class SPOD_base(base):
 		'''
 		return self._save_dir
 
+
 	@property
 	def dim(self):
 		'''
@@ -204,6 +202,7 @@ class SPOD_base(base):
 		:rtype: int
 		'''
 		return self._dim
+
 
 	@property
 	def shape(self):
@@ -215,6 +214,7 @@ class SPOD_base(base):
 		'''
 		return self._shape
 
+
 	@property
 	def nt(self):
 		'''
@@ -224,6 +224,7 @@ class SPOD_base(base):
 		:rtype: int
 		'''
 		return self._nt
+
 
 	@property
 	def nx(self):
@@ -235,6 +236,7 @@ class SPOD_base(base):
 		'''
 		return self._nx
 
+
 	@property
 	def nv(self):
 		'''
@@ -244,6 +246,7 @@ class SPOD_base(base):
 		:rtype: int
 		'''
 		return self._nv
+
 
 	@property
 	def xdim(self):
@@ -255,6 +258,7 @@ class SPOD_base(base):
 		'''
 		return self._xdim
 
+
 	@property
 	def xshape(self):
 		'''
@@ -264,6 +268,7 @@ class SPOD_base(base):
 		:rtype: tuple(int,)
 		'''
 		return self._xshape
+
 
 	@property
 	def n_freq(self):
@@ -275,6 +280,7 @@ class SPOD_base(base):
 		'''
 		return self._n_freq
 
+
 	@property
 	def freq_idx_lb(self):
 		'''
@@ -284,6 +290,7 @@ class SPOD_base(base):
 		:rtype: int
 		'''
 		return self._freq_idx_lb
+
 
 	@property
 	def freq_idx_ub(self):
@@ -295,6 +302,7 @@ class SPOD_base(base):
 		'''
 		return self._freq_idx_ub
 
+
 	@property
 	def freq(self):
 		'''
@@ -304,6 +312,7 @@ class SPOD_base(base):
 		:rtype: int
 		'''
 		return self._freq
+
 
 	@property
 	def dt(self):
@@ -315,6 +324,7 @@ class SPOD_base(base):
 		'''
 		return self._dt
 
+
 	@property
 	def n_DFT(self):
 		'''
@@ -324,6 +334,7 @@ class SPOD_base(base):
 		:rtype: int
 		'''
 		return self._n_DFT
+
 
 	@property
 	def variables(self):
@@ -335,6 +346,7 @@ class SPOD_base(base):
 		'''
 		return self._variables
 
+
 	@property
 	def eigs(self):
 		'''
@@ -344,6 +356,7 @@ class SPOD_base(base):
 		:rtype: numpy.ndarray
 		'''
 		return self._eigs
+
 
 	@property
 	def n_blocks(self):
@@ -355,6 +368,7 @@ class SPOD_base(base):
 		'''
 		return self._n_blocks
 
+
 	@property
 	def n_modes(self):
 		'''
@@ -364,6 +378,7 @@ class SPOD_base(base):
 		:rtype: int
 		'''
 		return self._n_modes
+
 
 	@property
 	def n_modes_save(self):
@@ -375,6 +390,7 @@ class SPOD_base(base):
 		'''
 		return self._n_modes_save
 
+
 	@property
 	def modes(self):
 		'''
@@ -384,6 +400,7 @@ class SPOD_base(base):
 		:rtype: dict
 		'''
 		return self._modes
+
 
 	@property
 	def Q_hat_f(self):
@@ -395,6 +412,7 @@ class SPOD_base(base):
 		'''
 		return self._Q_hat_f
 
+
 	@property
 	def weights(self):
 		'''
@@ -404,6 +422,7 @@ class SPOD_base(base):
 		:rtype: np.ndarray
 		'''
 		return self._weights
+
 
 	@property
 	def get_time_offset_lb(self):
@@ -415,6 +434,7 @@ class SPOD_base(base):
 		'''
 		return self._get_time_offset_lb
 
+
 	@property
 	def get_time_offset_ub(self):
 		'''
@@ -425,40 +445,11 @@ class SPOD_base(base):
 		'''
 		return self._get_time_offset_ub
 
-
-	# @property
-	# def Phi_tilde(self):
-	# 	'''
-	# 	Get the dictionary containing the path to the SPOD Phi for reconstruction.
-
-	# 	:return: the dictionary containing the path to the SPOD modes for reconstruction.
-	# 	:rtype: np.ndarray
-	# 	'''
-	# 	return phi_tilde	
-
-	# @property
-	# def lstm_coeffs(self):
-	# 	'''
-	# 	Get the dictionary containing the path to the SPOD Phi for reconstruction.
-
-	# 	:return: the dictionary containing the path to the LSTM coefficients for reconstruction.
-	# 	:rtype: np.ndarray
-	# 	'''
-	# 	return self._lstm_coeffs
-
-	# @property
-	# def reconstructed_data_lstm(self):
-	# 	'''
-	# 	Get the dictionary containing the path to the SPOD Phi for reconstruction.
-
-	# 	:return: the dictionary containing the path to the LSTM data reconstruction.
-	# 	:rtype: np.ndarray
-	# 	'''
-	# 	return self._reconstructed_data_lstm
 	# ---------------------------------------------------------------------------
 
 
-	# Common methods
+
+	# common methods
 	# ---------------------------------------------------------------------------
 
 	def select_mean(self):
@@ -559,7 +550,7 @@ class SPOD_base(base):
 		# window and Fourier transform block
 		self._window = self._window.reshape(self._window.shape[0],1)
 		Q_blk = Q_blk * self._window
-		Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
+		Q_blk_hat = (self._winWeight / self._n_DFT) * scipy.fft.fft(Q_blk, axis=0);
 
 		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
 
@@ -573,7 +564,7 @@ class SPOD_base(base):
 		"""Compute standard SPOD."""
 
 		# compute inner product in frequency space, for given frequency
-		M = np.matmul(Q_hat_f.conj().T, (Q_hat_f * self._weights))  / self._n_blocks
+		M = np.matmul(Q_hat_f.conj().T, (Q_hat_f * self._weights)) / self._n_blocks
 
 		# extract eigenvalues and eigenvectors
 		L,V = la.eig(M)
@@ -693,7 +684,7 @@ class SPOD_base(base):
 			# window and Fourier transform block
 			self._window = self._window.reshape(self._window.shape[0],1)
 			Q_blk = Q_blk * self._window
-			Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
+			Q_blk_hat = (self._winWeight / self._n_DFT) * scipy.fft.fft(Q_blk, axis=0);
 
 			if self._isrealx:
 			 	Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
@@ -701,21 +692,6 @@ class SPOD_base(base):
 			print('block '+str(iBlk+1)+'/'+str(n_blk)+\
 				  ' ('+str(offset)+':'+str(self._n_DFT+offset)+')')
 			Q_hat[:,:,iBlk] = Q_blk_hat
-
-			# CHECK inverse reconstruction via IFFT
-			# if self._isrealx:
-			# 	Q_blk_hat[1:-1,:] =  Q_blk_hat[1:-1,:]/2
-			# Q_blk = Q_blk/self._window
-			# Q_blk_rec = (self._n_DFT/self._winWeight)*scipy.fft.ifft(Q_blk_hat, axis=0)
-			# Q_blk_rec = Q_blk_rec/self._window 
-			# q_rec =  np.reshape(Q_blk_rec[5,:], [self._xshape[0], self._xshape[1]])
-			# q_blk = np.reshape(Q_blk[5,:], [self._xshape[0], self._xshape[1]])
-			# self.generate_2D_subplot(
-			# 	title1='1', title2='2', 
-			# 	var1=q_blk, var2=q_rec,
-			# 	N_round=2, path='CWD', filename=None
-			# 	)
-			# quit()
 
 		# initialize variables
 		if (T_lb is None) or (T_ub is None):
@@ -755,7 +731,6 @@ class SPOD_base(base):
 		# 	modes = np.reshape(modes, [self._nx*self._nv, self._n_modes_save])
 		# 	phi_tilde[iFreq,:,:] = modes
 
-
 		return Acoeff, phi_tilde, time_mean
 
 
@@ -782,37 +757,6 @@ class SPOD_base(base):
 		Q_reconstructed = np.reshape(Q_blk[:,:], [self._n_DFT,self._xshape[0], self._xshape[1], self._nv])
 
 		return Q_reconstructed
-
-
-	# def compute_coeffs_freq(self, data, nt, svd=True, T_lb=None, T_ub=None):
-	# 	'''
-	# 	Reconstruct coefficients in the frequency space.
-	# 	'''
-
-	# 	# self._coeff = dict()
-	# 	# initialize variables
-	# 	if (T_lb is None) or (T_ub is None):
-	# 		self._freq_idx_lb = 0
-	# 		self._freq_idx_ub = self._n_freq - 1
-	# 		self._freq_found_lb = self._freq[self._freq_idx_lb]
-	# 		self._freq_found_ub = self._freq[self._freq_idx_ub]
-	# 	else:
-	# 		self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
-	# 			freq_required=1/T_ub, freq=self._freq)
-	# 		self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
-	# 			freq_required=1/T_lb, freq=self._freq)
-	# 	self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
-
-	# 	Acoeff = np.zeros([self._n_freq_r, self._n_modes_save, self._n_blocks], dtype='complex_')
-	# 	for block_idx in range(self._n_blocks):
-	# 		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-	# 			Q_hat = self.get_Q_hat_at_freq(block_idx, iFreq)
-	# 			modes = self.get_modes_at_freq(iFreq)
-	# 			m_conj = np.squeeze(modes.conj().T)
-	# 			w = np.squeeze(self.weights)
-	# 			m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
-	# 			Acoeff[iFreq, :, block_idx] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat)
-	# 	return Acoeff
 
 
 	def compute_coeffs(self, data, nt, svd=True, T_lb=None, T_ub=None):
@@ -939,6 +883,7 @@ class SPOD_base(base):
 	# ---------------------------------------------------------------------------
 
 
+
 	# getters with arguments
 	# ---------------------------------------------------------------------------
 
@@ -1027,6 +972,7 @@ class SPOD_base(base):
 	# ---------------------------------------------------------------------------
 
 
+
 	# static methods
 	# ---------------------------------------------------------------------------
 
@@ -1052,18 +998,6 @@ class SPOD_base(base):
 			print('... blocks are not present - proceeding to compute them.\n')
 			return False
 
-	# @staticmethod
-	# def _nextpow2(a):
-	# 	'''
-	# 		Returns the exponents for the smallest powers
-	# 		of 2 that satisfy 2^p >= abs(a)
-	# 	'''
-	# 	p = 0
-	# 	v = 0
-	# 	while v < np.abs(a):
-	# 		v = 2 ** p
-	# 		p += 1
-	# 	return p
 
 	@staticmethod
 	def _hamming_window(N):
@@ -1077,9 +1011,9 @@ class SPOD_base(base):
 	# ---------------------------------------------------------------------------
 
 
+
 	# plotting methods
 	# ---------------------------------------------------------------------------
-
 
 	def plot_2D_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0], 
 		x1=None, x2=None, title='', coastlines='', figsize=(12,8), 

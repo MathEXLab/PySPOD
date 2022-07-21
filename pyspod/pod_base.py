@@ -1,5 +1,5 @@
 '''
-Base module for the SPOD:
+Base module for the POD:
 	- `fit` and `predict` methods must be implemented in inherited classes
 '''
 from __future__ import division
@@ -7,19 +7,12 @@ from __future__ import division
 # Import standard Python packages
 import os
 import sys
-import psutil
 import warnings
 import numpy as np
-import scipy.special as sc
 import scipy as scipy
-from scipy.fft import fft
-from numpy import linalg as la
-from tqdm import tqdm
-
-from pyspod.base import base
-
 
 # Import custom Python packages
+from pyspod.base import base
 import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
 
@@ -33,14 +26,13 @@ BYTE_TO_GB = 9.3132257461548e-10
 
 class POD_base(base):
 	'''
-	Spectral Proper Orthogonal Decomposition base class.
+	Proper Orthogonal Decomposition base class.
 	'''
 	def __init__(self, params, data_handler, variables, weights=None):
 		base.__init__(self, params, data_handler, variables, weights=weights)
 
 
 	def fit(self, data, nt):
-
 		# type of data management
 		# - data_handler: read type online
 		# - not data_handler: data is entirely pre-loaded
@@ -122,6 +114,8 @@ class POD_base(base):
 
 		return self
 
+
+
 	# basic getters
 	# ---------------------------------------------------------------------------
 
@@ -135,6 +129,7 @@ class POD_base(base):
 		'''
 		return self._save_dir
 
+
 	@property
 	def dim(self):
 		'''
@@ -144,6 +139,7 @@ class POD_base(base):
 		:rtype: int
 		'''
 		return self._dim
+
 
 	@property
 	def shape(self):
@@ -155,6 +151,7 @@ class POD_base(base):
 		'''
 		return self._shape
 
+
 	@property
 	def nt(self):
 		'''
@@ -164,6 +161,7 @@ class POD_base(base):
 		:rtype: int
 		'''
 		return self._nt
+
 
 	@property
 	def nx(self):
@@ -175,6 +173,7 @@ class POD_base(base):
 		'''
 		return self._nx
 
+
 	@property
 	def nv(self):
 		'''
@@ -185,6 +184,7 @@ class POD_base(base):
 		'''
 		return self._nv
 
+
 	@property
 	def xdim(self):
 		'''
@@ -194,6 +194,7 @@ class POD_base(base):
 		:rtype: tuple(int,)
 		'''
 		return self._xdim
+
 
 	@property
 	def xshape(self):
@@ -227,6 +228,7 @@ class POD_base(base):
 		'''
 		return self._variables
 
+
 	@property
 	def eigs(self):
 		'''
@@ -236,6 +238,7 @@ class POD_base(base):
 		:rtype: numpy.ndarray
 		'''
 		return self._eigs
+
 
 	@property
 	def n_modes(self):
@@ -247,6 +250,7 @@ class POD_base(base):
 		'''
 		return self._n_modes
 
+
 	@property
 	def n_modes_save(self):
 		'''
@@ -257,6 +261,7 @@ class POD_base(base):
 		'''
 		return self._n_modes_save
 
+
 	@property
 	def modes(self):
 		'''
@@ -266,6 +271,7 @@ class POD_base(base):
 		:rtype: dict
 		'''
 		return self._modes
+
 
 	@property
 	def weights(self):
@@ -279,6 +285,10 @@ class POD_base(base):
 
 	# ---------------------------------------------------------------------------
 
+
+
+	# main methods
+	# ---------------------------------------------------------------------------
 
 	def compute_pod_bases(self, data, num_modes, nt): 
 		'''
@@ -313,14 +323,14 @@ class POD_base(base):
 			data=data, 
 			nt=nt, 
 			svd=svd
-			)
+		)
 
 		# reconstruct data
 		reconstructed_data = self.reconstruct_data(
 			coeffs=coeffs, 
 			phi_tilde=phi_tilde,
 			time_mean=time_mean, 
-			)
+		)
 		
 		# # return data
 		dict_return = {
@@ -403,9 +413,9 @@ class POD_base(base):
 	# ---------------------------------------------------------------------------
 
 
+
 	# getters with arguments
 	# ---------------------------------------------------------------------------
-
 
 	def find_nearest_coords(self, coords, x):
 		'''
@@ -434,6 +444,7 @@ class POD_base(base):
 	# ---------------------------------------------------------------------------
 
 
+
 	# static methods
 	# ---------------------------------------------------------------------------
 
@@ -459,18 +470,6 @@ class POD_base(base):
 			print('... blocks are not present - proceeding to compute them.\n')
 			return False
 
-	# @staticmethod
-	# def _nextpow2(a):
-	# 	'''
-	# 		Returns the exponents for the smallest powers
-	# 		of 2 that satisfy 2^p >= abs(a)
-	# 	'''
-	# 	p = 0
-	# 	v = 0
-	# 	while v < np.abs(a):
-	# 		v = 2 ** p
-	# 		p += 1
-	# 	return p
 
 	@staticmethod
 	def _hamming_window(N):
