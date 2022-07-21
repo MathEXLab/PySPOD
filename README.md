@@ -201,7 +201,7 @@ to run the other two SPOD algorithms available.
 
 ## Documentation
 **PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation. 
-You can view the documentation online [here](http://mengaldo.github.io/PySPOD/). 
+You can view the documentation online [here](https://mathe-lab.github.io/PySPOD/). 
 If you want to build the documentation locally on your computer, you can do so 
 by:
 
@@ -215,9 +215,8 @@ Open it with your browser and explore the documentation locally.
 
 ## Testing
 Regression tests are deployed using Travis CI, that is a continuous intergration framework. 
-You can check out the current status of **PySPOD** [here](https://travis-ci.org/mengaldo/PySPOD).
 
-IF you want to run tests locally, you can do so by:
+If you want to run tests locally, you can do so by:
 
 ```bash
 > pytest -v
