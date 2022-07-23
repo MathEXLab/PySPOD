@@ -101,7 +101,7 @@ class SPOD_base(base):
 		#orig
 		self._isrealx = np.isreal(X[0]).all()
 		#self._isrealx = False
-		
+
 		# check weights
 		if isinstance(self._weights_tmp, dict):
 			self._weights = self._weights_tmp['weights']
@@ -498,22 +498,18 @@ class SPOD_base(base):
 
 	def get_freq_axis(self):
 		"""Obtain frequency axis."""
-		self._freq = np.arange(0, self._n_DFT, 1) \
-			/ self._dt / self._n_DFT
+		self._freq = (np.arange(0, self._n_DFT, 1) / self._dt) / self._n_DFT
 		if not self._fullspectrum:
 			if self._isrealx:
 				self._freq = np.arange(
-					0, np.ceil(self._n_DFT/2)+1, 1) \
-					/ self._n_DFT / self._dt
+					0, np.ceil(self._n_DFT/2)+1, 1) / self._n_DFT / self._dt
 			else:
 				if (self._n_DFT % 2 == 0):
 					self._freq[int(self._n_DFT/2)+1:] = \
-						self._freq[int(self._n_DFT/2)+1:] \
-							- 1 / self._dt
+						self._freq[int(self._n_DFT/2)+1:] - 1 / self._dt
 				else:
 					self._freq[(n_DFT+1)/2+1:] = \
-					self._freq[(self._n_DFT+1)/2+1:] \
-					 	- 1 / self._dt
+					self._freq[(self._n_DFT+1)/2+1:] - 1 / self._dt
 		self._n_freq = len(self._freq)
 
 
@@ -599,23 +595,23 @@ class SPOD_base(base):
 
 		# compute coeffs
 		coeffs, phi_tilde, time_mean = self.compute_coeffs(
-			data=data, 
-			nt=nt, 
-			svd=svd, 
-			T_lb=T_lb, 
+			data=data,
+			nt=nt,
+			svd=svd,
+			T_lb=T_lb,
 			T_ub=T_ub)
 
 		# reconstruct data
 		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs, 
+			coeffs=coeffs,
 			phi_tilde=phi_tilde,
-			time_mean=time_mean, 
-			T_lb=T_lb, 
+			time_mean=time_mean,
+			T_lb=T_lb,
 			T_ub=T_ub)
-		
+
 		# return data
 		dict_return = {
-			'coeffs': coeffs, 
+			'coeffs': coeffs,
 			'phi_tilde': phi_tilde,
 			'time_mean': time_mean,
 			'reconstructed_data': reconstructed_data
@@ -626,11 +622,11 @@ class SPOD_base(base):
 	def transform_freq(self, data, nt, T_lb=None, T_ub=None):
 
 		coeffs, phi_tilde, time_mean = self.compute_coeffs_freq(
-			data=data, 
-			nt=nt, 
-			T_lb=T_lb, 
+			data=data,
+			nt=nt,
+			T_lb=T_lb,
 			T_ub=T_ub)
-		
+
 		# return data
 		dict_return = {
 			'coeffs': coeffs,
@@ -790,8 +786,8 @@ class SPOD_base(base):
 		# save snapshots and weights
 		for nt in range(nt):
 			Q[:,nt] = X_reshape[nt,:]
-			W[:,nt] = np.squeeze(self.weights[:])		
-		
+			W[:,nt] = np.squeeze(self.weights[:])
+
 		# initialize modes and weights
 		phi_tilde = np.zeros([self._nx*self.nv, self._n_freq_r*self.n_modes_save], dtype='complex_')
 		W_phi = np.zeros([self._nx*self.nv, self._n_freq_r*self.n_modes_save], dtype='complex_')
@@ -806,7 +802,7 @@ class SPOD_base(base):
 				W_phi[ :,self.n_modes_save*cnt_freq+iMode] = np.squeeze(self.weights[:])
 				phi_tilde[ :,self.n_modes_save*cnt_freq+iMode] = modes[:,iMode]
 			cnt_freq = cnt_freq + 1
-		
+
 		# evaluate the coefficients by oblique projection
 		coeffs = post.oblique_projection(phi_tilde, W_phi, W, Q, svd=svd)
 
@@ -1015,11 +1011,11 @@ class SPOD_base(base):
 	# plotting methods
 	# ---------------------------------------------------------------------------
 
-	def plot_2D_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0], 
-		x1=None, x2=None, title='', coastlines='', figsize=(12,8), 
+	def plot_2D_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0],
+		x1=None, x2=None, title='', coastlines='', figsize=(12,8),
 		path='CWD', filename=None, origin=None):
 		"""
-		Plot 2D data.	
+		Plot 2D data.
 		:param numpy.ndarray X_data: 2D data to be plotted. \
 			First dimension must be time. Last dimension must be variable.
 		:param numpy.ndarray R: 2D reconstructed data to be plotted. \
@@ -1071,12 +1067,12 @@ class SPOD_base(base):
 				title_rec = 'Reconstructed, time idx = '+str(time_id)
 				title_true = 'True, time idx = '+str(time_id)
 				self.generate_2D_subplot(
-					var1=x, 
-					var2=r, 
-					title1=title_true, 
-					title2=title_rec, 
-					N_round=2, 
-					path='CWD', 
+					var1=x,
+					var2=r,
+					title1=title_true,
+					title2=title_rec,
+					N_round=2,
+					path='CWD',
 					filename=None)
 
 

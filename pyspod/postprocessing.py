@@ -17,11 +17,14 @@ CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
+
+
 # useful methods
 # ---------------------------------------------------------------------------
+
 #@jit(parallel=True, fastmath=True)
 def oblique_projection(Phi_tilde, W_phi, W, Q, svd=True):
-	if svd: 
+	if svd:
 		PhiTWPhi = Phi_tilde.conj().T @ (W_phi * Phi_tilde)
 		PhiTWQ = Phi_tilde.conj().T @ (W * Q)
 		u, l, v = np.linalg.svd(PhiTWPhi)
@@ -224,7 +227,8 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 
 
 def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
-	show_axes=True, equal_axes=False, figsize=(12,8), path='CWD', filename=None):
+	show_axes=True, equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+	fontsize=16, path='CWD', filename=None):
 	"""
 	Plot eigenvalues vs. frequency.
 
@@ -241,6 +245,10 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
 	"""
+
+	csfont = {'fontname': fontname}
+	szfont = {'fontsize': fontsize}
+
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 	if not isinstance(freq, np.ndarray):
@@ -260,9 +268,12 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 	ax.grid(True)
 
 	# axes management
-	plt.xlabel('Frequency')
-	plt.ylabel('Eigenvalues')
 	ax, xticks, yticks = _format_axes(ax, xticks, yticks)
+	plt.xlabel('Frequency', **szfont, **csfont)
+	plt.ylabel('Eigenvalues', **szfont, **csfont)
+	plt.xticks(**csfont, **szfont)
+	plt.yticks(**csfont, **szfont)
+
 	if  equal_axes:
 		ax.set_aspect('equal')
 	if len(title) > 1:
@@ -274,7 +285,8 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 
 
 def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
-	show_axes=True, equal_axes=False, figsize=(12,8), path='CWD', filename=None):
+	show_axes=True, equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+	fontsize=16, path='CWD', filename=None):
 	"""
 	Plot eigenvalues vs. period = 1 / freq.
 
@@ -291,6 +303,10 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
 	"""
+
+	csfont = {'fontname': fontname}
+	szfont = {'fontsize': fontsize}
+
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 	if not isinstance(freq, np.ndarray):
@@ -299,8 +315,6 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	# compute time vector
 	with np.errstate(divide='ignore'):
 		xx = 1. / freq
-	
-	csfont = {'fontname':'Times New Roman'}
 
 	# plot figure
 	plt.figure(figsize=figsize, frameon=True, constrained_layout=False)
@@ -319,28 +333,26 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 
 	# set limits for axis
 	ax, xticks, yticks = _format_axes(ax, xticks, yticks)
+	plt.xlabel('Period', **szfont, **csfont)
+	plt.ylabel('Eigenvalues', **szfont, **csfont)
+	plt.xticks(**csfont, **szfont)
+	plt.yticks(**csfont, **szfont)
 
-	# if  equal_axes:
-	# 	ax.set_aspect('equal')
-	# tick.label.set_fontsize(60)
-
-	plt.xlabel('Period',  fontsize=26,**csfont)
-	plt.ylabel('Eigenvalues', fontsize=26,**csfont)
-
-
-	# if len(title) > 1:
-	# 	plt.title(title)
-	# ax.invert_xaxis()
+	if  equal_axes:
+		ax.set_aspect('equal')
+	if len(title) > 1:
+		plt.title(title)
 
 	# save or show plots
 	_save_show_plots(filename, path, plt)
 
 
 
-def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
-	x1=None, x2=None, fftshift=False, imaginary=False, plot_max=False, coastlines='',
-	title='', xticks=None, yticks=None, figsize=(12,8), equal_axes=False, path='CWD',
-	filename=None,origin=None):
+def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0],
+	modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
+	plot_max=False, coastlines='', title='', xticks=None, yticks=None,
+	cmap='coolwarm', figsize=(12,8), equal_axes=False, path='CWD',
+	filename=None, origin=None):
 	"""
 	Plot SPOD modes for 2D problems.
 
@@ -384,7 +396,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 		raise TypeError('`modes_idx` must be a list or tuple')
 
 	# get modes at required frequency
-	freq_val, freq_idx = find_nearest_freq(freq_required=freq_required, freq=freq)
+	freq_val, freq_idx = find_nearest_freq(
+		freq_required=freq_required, freq=freq)
 	modes = get_modes_at_freq(modes=modes, freq_idx=freq_idx)
 
 	# if domain dimensions have not been passed, use data dimensions
@@ -398,7 +411,9 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 		for mode_id in modes_idx:
 
 			# initialize figure
-			fig = plt.figure(figsize=figsize, frameon=True, constrained_layout=False)
+			fig = plt.figure(
+				figsize=figsize, frameon=True, constrained_layout=False)
+			plt.set_cmap(cmap)
 
 			# extract mode
 			mode = np.squeeze(modes[:,:,var_id,mode_id])
@@ -414,7 +429,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 			# check dimension axes and data
 			size_coords = x1.shape[0] * x2.shape[0]
 			if size_coords != mode.size:
-				raise ValueError('Mode dimension does not match coordinates dimensions.')
+				raise ValueError(
+					'Mode dimension does not match coordinates dimensions.')
 
 			if x1.shape[0] != mode.shape[1] or x2.shape[0] != mode.shape[0]:
 				mode = mode.T
@@ -434,13 +450,16 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					vmax= np.abs(mode).max()*1.,
 					origin=origin)
 				if plot_max:
-					idx_x2,idx_x1 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
-					imag_ax  =_apply_2d_vertical_lines(imag_ax, x1, x2, idx_x1, idx_x2)
+					idx_x2,idx_x1 = np.where(np.abs(mode) == \
+						np.amax(np.abs(mode)))
+					real_ax = _apply_2d_vertical_lines(
+						real_ax, x1, x2, idx_x1, idx_x2)
+					imag_ax  =_apply_2d_vertical_lines(
+						imag_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
 				imag_divider = make_axes_locatable(imag_ax)
-				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
-				imag_cax = imag_divider.append_axes("right", size="5%", pad=0.05)
+				real_cax = real_divider.append_axes("right",size="5%",pad=0.05)
+				imag_cax = imag_divider.append_axes("right",size="5%",pad=0.05)
 				plt.colorbar(real, cax=real_cax)
 				plt.colorbar(imag, cax=imag_cax)
 
@@ -460,7 +479,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					fig.suptitle(title + \
 						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-					fig.suptitle('mode: {}, variable ID: {}'.format(mode_id, var_id))
+					fig.suptitle('mode: {}, variable ID: {}'.format(
+						mode_id, var_id))
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
 			else:
@@ -471,10 +491,12 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					vmax= np.abs(mode).max()*1.,
 					origin=origin)
 				if plot_max:
-					idx_x2,idx_x1 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
+					idx_x2,idx_x1 = np.where(np.abs(mode) == \
+						np.amax(np.abs(mode)))
+					real_ax = _apply_2d_vertical_lines(
+						real_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
-				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
+				real_cax = real_divider.append_axes("right",size="5%",pad=0.05)
 				plt.colorbar(real, cax=real_cax)
 				real_ax = _apply_2d_coastlines(coastlines, real_ax)
 
@@ -488,7 +510,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 					real_ax.set_title(title + \
 						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-					real_ax.set_title('mode: {}, variable ID: {}'.format(mode_id, var_id))
+					real_ax.set_title('mode: {}, variable ID: {}'.format(
+						mode_id, var_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
@@ -497,7 +520,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_i
 			if filename:
 				if path == 'CWD': path = CWD
 				basename, ext = splitext(filename)
-				filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
+				filename = '{0}_var{1}_mode{2}{3}'.format(
+					basename, var_id, mode_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=400)
 				plt.close(fig)
 			if not filename:
@@ -1161,7 +1185,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 
 
 def generate_2D_subplot(
-	var1, title1, var2=None, title2=None, var3=None, title3=None, 
+	var1, title1, var2=None, title2=None, var3=None, title3=None,
 	N_round=6, path='CWD', filename=None):
 	'''
 	Generate two 2D subplots in the same figure
@@ -1216,7 +1240,7 @@ def generate_2D_subplot(
 		ax3.set_ylabel('y',fontsize=16, **csfont)
 
 	if filename:
-		if path == 'CWD': 
+		if path == 'CWD':
 			path = CWD
 			plt.savefig(os.path.join(path,filename), dpi=300)
 			plt.close(fig)
@@ -1225,10 +1249,10 @@ def generate_2D_subplot(
 
 
 def plot_compareTimeSeries(
-	serie1, serie2, label1='', label2='', 
+	serie1, serie2, label1='', label2='',
 	legendLocation='upper left', filename=None):
 	ax = plt.gca()
-	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)	
+	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)
 	plt.plot(serie1, color = 'black')
 	plt.plot(serie2, color='gray')
 	# plt.title('model loss')
@@ -1249,7 +1273,7 @@ def plot_compareTimeSeries(
 
 def plot_trainingHistories(loss, val_loss):
 	ax = plt.gca()
-	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)	
+	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)
 	plt.plot(loss, color='black')
 	plt.plot(val_loss, color = 'gray')
 	# plt.title('model loss')

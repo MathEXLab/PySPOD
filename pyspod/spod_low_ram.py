@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import pickle
 import numpy as np
 from tqdm import tqdm
 import shutil
@@ -74,6 +75,8 @@ class SPOD_low_ram(SPOD_base):
 					np.save(file, Q_blk_hat_fi)
 					self._Q_hat_f[str(iBlk),str(iFreq)] = file
 
+				del Q_blk_hat_fi
+
 		print('------------------------------------')
 
 
@@ -116,6 +119,10 @@ class SPOD_low_ram(SPOD_base):
 
 			# compute standard spod
 			self.compute_standard_spod(Q_hat_f, iFreq)
+
+		# save dictionary of modes for loading
+		with open(os.path.join(self._save_dir_blocks, 'modes_dict.pkl'), 'wb') as handle:
+			pickle.dump(self._modes, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 		# store and save results
 		self.store_and_save()
