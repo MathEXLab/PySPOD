@@ -127,21 +127,21 @@ def get_Q_hat_at_freq(Q_hat, block_idx, freq_idx):
 
 
 
-def get_modes_at_freq(modes, freq_idx):
+def get_modes_at_freq(modes, freq_idx, modes_path='./'):
 	"""
 	Get the matrix containing the SPOD modes, stored by \
 	[frequencies, spatial dimensions data, no. of variables, no. of modes].
 
 	:param dict: path to the files where the SPOD modes are stored.
 	:param int freq_idx: frequency id requested.
-
+	:param str modes_path: path to mode files.
 	:return: the n_dims, n_vars, n_modes \
 		matrix containing the SPOD modes at requested frequency.
 	:rtype: numpy.ndarray
 	"""
 	# load modes from files if saved in storage
 	if isinstance(modes, dict):
-		filename = modes[freq_idx]
+		filename = os.path.join(modes_path, modes[freq_idx])
 		m = get_data_from_file(filename)
 	else:
 		raise TypeError('modes must be a dict.')
@@ -356,17 +356,18 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 
 
 
-def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0],
-	modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
-	plot_max=False, coastlines='', title='', xticks=None, yticks=None,
-	cmap='coolwarm', figsize=(12,8), equal_axes=False, path='CWD',
-	filename=None, origin=None):
+def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
+	vars_idx=[0], modes_idx=[0], x1=None, x2=None, fftshift=False,
+	imaginary=False, plot_max=False, coastlines='', title='',
+	xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
+	equal_axes=False, path='CWD', filename=None, origin=None):
 	"""
 	Plot SPOD modes for 2D problems.
 
 	:param numpy.ndarray modes: 2D SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
+	:param str modes_path: path to mode files.
 	:param int or sequence(int) vars_idx: variables to \
 		be plotted. Default, the first variable is plotted.
 	:param int or sequence(int) modes_idx: modes to
@@ -406,7 +407,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0],
 	# get modes at required frequency
 	freq_val, freq_idx = find_nearest_freq(
 		freq_required=freq_required, freq=freq)
-	modes = get_modes_at_freq(modes=modes, freq_idx=freq_idx)
+	modes = get_modes_at_freq(
+		modes=modes, freq_idx=freq_idx, modes_path=modes_path)
 
 	# if domain dimensions have not been passed, use data dimensions
 	if x1 is None and x2 is None:
@@ -537,15 +539,17 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, vars_idx=[0],
 
 
 
-def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
-	modes_idx=[0], x1=None, x2=None, max_each_mode=False, fftshift=False,
-	title='', figsize=(12,8), equal_axes=False, path='CWD', filename=None):
+def plot_2D_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
+	vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
+	fftshift=False, title='', figsize=(12,8), equal_axes=False, path='CWD',
+	filename=None):
 	"""
 	Plot the time evolution of SPOD mode slices for 2D problems.
 
 	:param numpy.ndarray modes: 2D SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
+	:param str modes_path: path to mode files.
 	:param int or sequence(int) vars_idx: variables to be plotted. \
 		Default, the first variable is plotted.
 	:param int or sequence(int) modes_idx: modes to be plotted. \
@@ -586,8 +590,10 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 		raise TypeError('`modes_idx` must be a list or tuple')
 
 	# get modes at required frequency
-	freq_val, freq_idx = find_nearest_freq(freq_required=freq_required, freq=freq)
-	modes = get_modes_at_freq(modes=modes, freq_idx=freq_idx)
+	freq_val, freq_idx = find_nearest_freq(
+		freq_required=freq_required, freq=freq)
+	modes = get_modes_at_freq(
+		modes=modes, freq_idx=freq_idx, modes_path=modes_path)
 
 	# if domain dimensions have not been passed, use data dimensions
 	if x1 is None and x2 is None:
@@ -732,9 +738,10 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, vars_idx=[0],
 
 
 
-def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], modes_idx=[0],
-	x1=None, x2=None, x3=None, slice_dim=0, slice_id=None, fftshift=False, imaginary=False,
-	plot_max=False, coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
+def plot_3D_modes_slice_at_frequency(modes, freq_required, freq,
+	modes_path='./', vars_idx=[0], modes_idx=[0], x1=None, x2=None, x3=None,
+	slice_dim=0, slice_id=None, fftshift=False, imaginary=False, plot_max=False,
+	coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
 	equal_axes=False, path='CWD', filename=None, origin=None):
 	"""
 	Plot SPOD modes for 3D problems.
@@ -742,6 +749,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 	:param numpy.ndarray modes: 3D SPOD modes.
 	:param double freq_required: frequency to be plotted.
 	:param numpy.ndarray freq: frequency array.
+	:param str modes_path: path to mode files.
 	:param int or sequence(int) vars_idx: variables to \
 		be plotted. Default, the first variable is plotted.
 	:param int or sequence(int) modes_idx: modes to be \
@@ -785,7 +793,8 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 
 	# get modes at required frequency
 	freq_val, freq_idx = find_nearest_freq(freq_required=freq_required, freq=freq)
-	modes = get_modes_at_freq(modes=modes, freq_idx=freq_idx)
+	modes = get_modes_at_freq(
+		modes=modes, freq_idx=freq_idx, modes_path=modes_path)
 
 	# if domain dimensions have not been passed, use data dimensions
 	if x1 is None and x2 is None and x3 is None:
@@ -922,8 +931,9 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq, vars_idx=[0], m
 
 
 
-def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=[0],
-	modes_idx=[0], fftshift=False, title='', figsize=(12,8), path='CWD', filename=None):
+def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
+	x=None, vars_idx=[0], modes_idx=[0], fftshift=False, title='',
+	figsize=(12,8), path='CWD', filename=None):
 	"""
 	Plot SPOD mode tracers for nD problems.
 
@@ -932,6 +942,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 	:param numpy.ndarray freq: frequency array.
 	:param list(tuple(*),) coords_list: list of tuples \
 		containing coordinates to be plotted.
+	:param str modes_path: path to mode files.
 	:param numpy.ndarray x: data coordinates. Default is None.
 	:type int or sequence(int) vars_idx: variables to be plotted. \
 		Default, the first variable is plotted.
@@ -969,7 +980,8 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, x=None, vars_idx=
 
 	# get modes at required frequency
 	freq_val, freq_idx = find_nearest_freq(freq_required=freq_required, freq=freq)
-	modes = get_modes_at_freq(modes=modes, freq_idx=freq_idx)
+	modes = get_modes_at_freq(
+		modes=modes, freq_idx=freq_idx, modes_path=modes_path)
 	xdim = modes[...,0,0].shape
 
 	# get default coordinates if not provided

@@ -173,12 +173,15 @@ class SPOD_base(base):
 			[self._n_freq,self._n_blocks,2], dtype='complex_')
 
 		# create folder to save results
-		self._save_dir_blocks = os.path.join(self._save_dir,
+		self._save_dir_simulation = os.path.join(self._save_dir,
 			'nfft'+str(self._n_DFT) \
 			+'_novlp'+str(self._n_overlap) \
 			+'_nblks'+str(self._n_blocks))
-		if not os.path.exists(self._save_dir_blocks):
-			os.makedirs(self._save_dir_blocks)
+		if not os.path.exists(self._save_dir_simulation):
+			os.makedirs(self._save_dir_simulation)
+		self._blocks_folder = os.path.join(self._save_dir_simulation, 'blocks')
+		if not os.path.exists(self._blocks_folder):
+			os.makedirs(self._blocks_folder)
 
 		# compute approx problem size (assuming double)
 		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
@@ -558,8 +561,7 @@ class SPOD_base(base):
 		# window and Fourier transform block
 		self._window = self._window.reshape(self._window.shape[0],1)
 		Q_blk = Q_blk * self._window
-		Q_blk_hat = (self._winWeight / self._n_DFT) * \
-			scipy.fft.fft(Q_blk, axis=0)
+		Q_blk_hat = (self._winWeight / self._n_DFT) * scipy.fft.fft(Q_blk, axis=0)
 		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
 
 		# correct Fourier coefficients for one-sided spectrum
@@ -568,7 +570,7 @@ class SPOD_base(base):
 		return Q_blk_hat, offset
 
 
-	def compute_standard_spod(self, Q_hat_f, iFreq):
+	def compute_standard_spod(self, Q_hat_f, i_freq):
 		"""Compute standard SPOD."""
 
 		# compute inner product in frequency space, for given frequency
@@ -591,17 +593,18 @@ class SPOD_base(base):
 		# save modes in storage too in case post-processing crashes
 		Phi = Phi[:,0:self._n_modes_save]
 		Phi = Phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-		file_psi = os.path.join(self._save_dir_blocks,
-			'modes1to{:04d}_freq{:04d}.npy'.format(self._n_modes_save, iFreq))
-		np.save(file_psi, Phi)
-		self._modes[iFreq] = file_psi
-		self._eigs[iFreq,:] = abs(L)
+		nms = self._n_modes_save # increase readibility
+		file_psi = 'modes1to{:06d}_freq{:06d}.npy'.format(nms, i_freq)
+		path_psi = os.path.join(self._save_dir_simulation, file_psi)
+		np.save(path_psi, Phi)
+		self._modes[i_freq] = file_psi
+		self._eigs[i_freq,:] = abs(L)
 
 		# get and save confidence interval
-		self._eigs_c[iFreq,:,0] = \
-			self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_lower
-		self._eigs_c[iFreq,:,1] = \
-			self._eigs[iFreq,:] * 2 * self._n_blocks / self._xi2_upper
+		self._eigs_c[i_freq,:,0] = \
+			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_lower
+		self._eigs_c[i_freq,:,1] = \
+			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_upper
 
 
 	def transform(self, data, nt, svd=True, T_lb=None, T_ub=None):
@@ -677,14 +680,14 @@ class SPOD_base(base):
 
 		# order the modes in the Phi_tilde vector
 		cnt_freq = 0
-		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-			modes = self.get_modes_at_freq(iFreq)
+		for i_freq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+			modes = self.get_modes_at_freq(i_freq)
 			modes = np.reshape(modes, [self.nv*self.nx, 1, self.n_modes_save])
 			modes = modes[:,0,:]
-			for iMode in range(self._n_modes_save):
-				W_phi[:,self.n_modes_save*cnt_freq+iMode] = \
+			for i_mode in range(self._n_modes_save):
+				W_phi[:,self.n_modes_save*cnt_freq+i_mode] = \
 					np.squeeze(self.weights[:])
-				phi_tilde[:,self.n_modes_save*cnt_freq+iMode] = modes[:,iMode]
+				phi_tilde[:,self.n_modes_save*cnt_freq+i_mode] = modes[:,i_mode]
 			cnt_freq = cnt_freq + 1
 		print('- retrieved requested frequencies. ', time.time() - st, 's.')
 		st = time.time()
@@ -696,8 +699,8 @@ class SPOD_base(base):
 		st = time.time()
 
 		# save coefficients
-		file_coeffs = os.path.join(self._save_dir_blocks,
-			'coeffs_modes1to{:04d}_freq{:08f}to{:08f}.npy'.format(
+		file_coeffs = os.path.join(self._save_dir_simulation,
+			'coeffs_modes1to{:06d}_freq{:08f}to{:08f}.npy'.format(
 				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
 		np.save(file_coeffs, coeffs)
 
@@ -726,8 +729,8 @@ class SPOD_base(base):
 		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
 			((nt,) + self._xshape + (self._nv,)))
 		print('- data reshaped. ', time.time() - st, 's.')
-		file_dynamics = os.path.join(self._save_dir_blocks,
-			'reconstructed_data_modes1to{:04d}_freq{:08f}to{:08f}.pkl'.format(
+		file_dynamics = os.path.join(self._save_dir_simulation,
+			'reconstructed_data_modes1to{:06d}_freq{:08f}to{:08f}.pkl'.format(
 				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
 		with open(file_dynamics, 'wb') as handle:
 			pickle.dump(Q_reconstructed, handle)
@@ -742,9 +745,14 @@ class SPOD_base(base):
 	def store_and_save(self):
 		"""Store and save results."""
 
+		# save dictionary of modes for loading
+		path_modes = os.path.join(self._save_dir_simulation, 'modes_dict.pkl')
+		with open(path_modes, 'wb') as handle:
+			pickle.dump(self._modes, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 		self._eigs_c_u = self._eigs_c[:,:,0]
 		self._eigs_c_l = self._eigs_c[:,:,1]
-		file = os.path.join(self._save_dir_blocks, 'spod_energy')
+		file = os.path.join(self._save_dir_simulation, 'spod_energy')
 		np.savez(file,
 			eigs=self._eigs,
 			eigs_c_u=self._eigs_c_u,
@@ -852,16 +860,18 @@ class SPOD_base(base):
 			gb_memory_modes = freq_idx * self.nx * self._n_modes_save * \
 				sys.getsizeof(complex()) * BYTE_TO_GB
 			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
-			gb_sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
+			gb_sram_avail = psutil.swap_memory   ()[2] * BYTE_TO_GB
 			if gb_memory_modes >= gb_vram_avail:
 				print('- RAM required for loading all modes ~',
 					gb_memory_modes, 'GB')
-				print('- Available RAM memory               ~',
-					gb_vram_avail  , 'GB')
-				raise ValueError('Not enough RAM memory to load modes stored, '
-								 'for all frequencies.')
+				print('- Available RAM                      ~',
+					gb_vram_avail, 'GB')
+				raise ValueError(
+					'Not enough RAM memory to load modes for all frequencies.')
 			else:
-				m = post.get_data_from_file(self._modes[freq_idx])
+				mode_path = os.path.join(
+					self._save_dir_simulation, self.modes[freq_idx])
+				m = post.get_data_from_file(mode_path)
 		else:
 			raise TypeError('Modes must be a dictionary')
 		return m
@@ -900,9 +910,9 @@ class SPOD_base(base):
 		all_blocks_exist = 0
 		for iBlk in range(0,n_blocks):
 			all_freq_exist = 0
-			for iFreq in range(0,n_freq):
+			for i_freq in range(0,n_freq):
 				file = os.path.join(saveDir,
-					'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
+					'fft_block{:06d}_freq{:06d}.npy'.format(iBlk,i_freq))
 				if os.path.exists(file):
 					all_freq_exist = all_freq_exist + 1
 			if (all_freq_exist == n_freq):
@@ -1050,11 +1060,11 @@ class SPOD_base(base):
 		'''
 		post.plot_2D_modes_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
-			vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
-			fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
-			coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
-			figsize=figsize, equal_axes=equal_axes, path=self.save_dir,
-			filename=filename)
+			modes_path=self._save_dir_simulation, vars_idx=vars_idx,
+			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift,
+			imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
+			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
+			equal_axes=equal_axes, path=self.save_dir, filename=filename)
 
 
 	def plot_2D_mode_slice_vs_time(self, freq_required, freq, vars_idx=[0],
@@ -1065,10 +1075,10 @@ class SPOD_base(base):
 		'''
 		post.plot_2D_mode_slice_vs_time(
 			self.modes, freq_required=freq_required, freq=freq,
-			vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
-			max_each_mode=max_each_mode, fftshift=fftshift, title=title,
-			figsize=figsize, equal_axes=equal_axes, path=self.save_dir,
-			filename=filename)
+			modes_path=self._save_dir_simulation, vars_idx=vars_idx,
+			modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
+			fftshift=fftshift, title=title, figsize=figsize,
+			equal_axes=equal_axes, path=self.save_dir, filename=filename)
 
 
 	def plot_3D_modes_slice_at_frequency(self, freq_required, freq,
@@ -1081,24 +1091,26 @@ class SPOD_base(base):
 		'''
 		post.plot_3D_modes_slice_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
-			vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
-			x3=x3, slice_dim=slice_dim, slice_id=slice_id, fftshift=fftshift,
-			imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
-			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
+			modes_path=self._save_dir_simulation, vars_idx=vars_idx,
+			modes_idx=modes_idx, x1=x1, x2=x2, x3=x3, slice_dim=slice_dim,
+			slice_id=slice_id, fftshift=fftshift, imaginary=imaginary,
+			plot_max=plot_max, coastlines=coastlines, title=title,
+			xticks=xticks, yticks=yticks, figsize=figsize,
 			equal_axes=equal_axes, path=self.save_dir, filename=filename)
 
 
-	def plot_mode_tracers(self, freq_required, freq, coords_list, x=None,
-		vars_idx=[0], modes_idx=[0], fftshift=False, title='', figsize=(12,8),
-		filename=None):
+	def plot_mode_tracers(self, freq_required, freq, coords_list,
+		x=None, vars_idx=[0], modes_idx=[0], fftshift=False, title='',
+		figsize=(12,8), filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_mode_tracers(
 			self.modes, freq_required=freq_required, freq=freq,
-			coords_list=coords_list, x=x, vars_idx=vars_idx,
-			modes_idx=modes_idx, fftshift=fftshift, title=title,
-			figsize=figsize, path=self.save_dir, filename=filename)
+			coords_list=coords_list, modes_path=self._save_dir_simulation,
+			x=x, vars_idx=vars_idx, modes_idx=modes_idx, fftshift=fftshift,
+			title=title, figsize=figsize, path=self.save_dir,
+			filename=filename)
 
 
 	def plot_2D_data(self, time_idx=[0], vars_idx=[0], x1=None, x2=None,

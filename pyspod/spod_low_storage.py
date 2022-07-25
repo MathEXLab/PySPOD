@@ -61,47 +61,47 @@ class SPOD_low_storage(SPOD_base):
 		blocks_present = False
 		if self._reuse_blocks:
 			blocks_present = self._are_blocks_present(
-				self._n_blocks,self._n_freq,self._save_dir_blocks)
+				self._n_blocks, self._n_freq, self._blocks_folder)
 
 		Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
-		Q_hat = np.empty([self._n_freq,self._nx*self.nv,self._n_blocks], dtype='complex_')
-		Q_blk_hat = np.empty([self._n_DFT,int(self._nx*self._nv)], dtype='complex_')
+		Q_hat = np.empty([self._n_freq,self._nx*self.nv,self._n_blocks],
+			dtype='complex_')
+		Q_blk_hat = np.empty([self._n_DFT,int(self._nx*self._nv)],
+			dtype='complex_')
 		self._Q_hat_f = dict()
 		if blocks_present:
 			# load blocks if present
-			for iBlk in tqdm(range(0, self._n_blocks), desc='loading blocks'):
-				self._Q_hat_f[str(iBlk)] = dict()
-				for iFreq in range(0, self._n_freq):
-					file = os.path.join(self._save_dir_blocks,\
-						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk, iFreq))
-					Q_hat[iFreq,:,iBlk] = np.load(file)
-					self._Q_hat_f[str(iBlk)][str(iFreq)] = file
+			for i_blk in tqdm(range(0, self._n_blocks), desc='loading blocks'):
+				self._Q_hat_f[str(i_blk)] = dict()
+				for i_freq in range(0, self._n_freq):
+					file = os.path.join(self._blocks_folder,
+						'fft_block{:06d}_freq{:06d}.npy'.format(i_blk, i_freq))
+					Q_hat[i_freq,:,i_blk] = np.load(file)
+					self._Q_hat_f[str(i_blk)][str(i_freq)] = file
 		else:
 			# loop over number of blocks and generate Fourier realizations
 			# if blocks are not saved in storage
-			for iBlk in range(0,self._n_blocks):
+			for i_blk in range(0,self._n_blocks):
 
 				# compute block
-				Q_blk_hat, offset = self.compute_blocks(iBlk)
+				Q_blk_hat, offset = self.compute_blocks(i_blk)
 
 				# print info file
-				print('block '+str(iBlk+1)+'/'+str(self._n_blocks)+\
+				print('block '+str(i_blk+1)+'/'+str(self._n_blocks)+\
 					  ' ('+str(offset)+':'+str(self._n_DFT+offset)+')')
 
 				# save FFT blocks in storage memory if required
-				self._Q_hat_f[str(iBlk)] = dict()
-				for iFreq in range(0,self._n_freq):
-					file = os.path.join(self._save_dir_blocks,
-						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
-					Q_blk_hat_fi = Q_blk_hat[iFreq,:]
-					np.save(file, Q_blk_hat_fi)
-					self._Q_hat_f[str(iBlk)][str(iFreq)] = file
+				self._Q_hat_f[str(i_blk)] = dict()
+				for i_freq in range(0,self._n_freq):
+					file = 'fft_block{:06d}_freq{:06d}.npy'.format(i_blk,i_freq)
+					path = os.path.join(self._blocks_folder, file)
+					Q_blk_hat_fi = Q_blk_hat[i_freq,:]
+					np.save(path, Q_blk_hat_fi)
+					self._Q_hat_f[str(i_blk)][str(i_freq)] = path
 
 				# store FFT blocks in RAM
-				Q_hat[:,:,iBlk] = Q_blk_hat
+				Q_hat[:,:,i_blk] = Q_blk_hat
 		print('--------------------------------------')
-
-
 
 		# loop over all frequencies and calculate SPOD
 		print(' ')
@@ -111,20 +111,20 @@ class SPOD_low_storage(SPOD_base):
 		self._modes = dict()
 
 		# keep everything in RAM memory (default)
-		for iFreq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
+		for i_freq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
 
 			# get FFT block from RAM memory for each given frequency
-			Q_hat_f = np.squeeze(Q_hat[iFreq,:,:]).astype('complex_')
+			Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
 
 			# compute standard spod
-			self.compute_standard_spod(Q_hat_f, iFreq)
+			self.compute_standard_spod(Q_hat_f, i_freq)
 
 		# store and save results
 		self.store_and_save()
 		print('--------------------------------------')
 		print(' ')
 
-		print('Results saved in folder ', self._save_dir_blocks)
+		print('Results saved in folder ', self._save_dir_simulation)
 		print('Elapsed time: ', time.time() - start, 's.')
 
 		return self

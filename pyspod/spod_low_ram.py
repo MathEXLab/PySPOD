@@ -49,32 +49,32 @@ class SPOD_low_ram(SPOD_base):
 		# check if blocks are already saved in memory
 		blocks_present = False
 		if self._reuse_blocks:
-			blocks_present = self._are_blocks_present(\
-				self._n_blocks, self._n_freq, self._save_dir_blocks)
+			blocks_present = self._are_blocks_present(
+				self._n_blocks, self._n_freq, self._blocks_folder)
 
 		# loop over number of blocks and generate Fourier realizations,
 		# if blocks are not saved in storage
 		self._Q_hat_f = dict()
 		if not blocks_present:
-			for iBlk in range(0,self._n_blocks):
+			for i_blk in range(0,self._n_blocks):
 
 				# compute block
-				Q_blk_hat, offset = self.compute_blocks(iBlk)
+				Q_blk_hat, offset = self.compute_blocks(i_blk)
 
 				# print info file
-				print('block '+str(iBlk+1)+'/'+str(self._n_blocks)+\
+				print('block '+str(i_blk+1)+'/'+str(self._n_blocks)+\
 					  ' ('+str(offset)+':'+str(self._n_DFT+offset)+'); ',
-					  '    Saving to directory: ', self._save_dir_blocks)
+					  '    Saving to directory: ', self._blocks_folder)
 
 				# save FFT blocks in storage memory
-				self._Q_hat_f[str(iBlk)] = dict()
-				for iFreq in range(0, self._n_freq):
-					file = os.path.join(self._save_dir_blocks,
-						'fft_block{:04d}_freq{:04d}.npy'.format(iBlk, iFreq))
-					Q_blk_hat_fi = Q_blk_hat[iFreq,:]
-					np.save(file, Q_blk_hat_fi)
-					self._Q_hat_f[str(iBlk),str(iFreq)] = file
-
+				self._Q_hat_f[str(i_blk)] = dict()
+				for i_freq in range(0, self._n_freq):
+					file = 'fft_block{:06d}_freq{:06d}.npy'.format(
+						i_blk, i_freq)
+					path = os.path.join(self._blocks_folder, file)
+					Q_blk_hat_fi = Q_blk_hat[i_freq,:]
+					np.save(path, Q_blk_hat_fi)
+					self._Q_hat_f[str(i_blk),str(i_freq)] = path
 				del Q_blk_hat_fi
 
 		print('------------------------------------')
@@ -94,41 +94,40 @@ class SPOD_low_ram(SPOD_base):
 		print('- Memory required for storing modes ~', gb_memory_modes , 'GB')
 		print('- Available storage memory          ~', gb_memory_avail , 'GB')
 		while gb_memory_modes >= 0.99 * gb_memory_avail:
-			print('Not enough storage memory to save all modes... halving modes to save.')
+			print('Not enough storage memory to save all modes... '
+				  ' halving modes to save.')
 			n_modes_save = np.floor(self._n_modes_save / 2)
 			gb_memory_modes = self._n_freq * self._nx * \
 				self._n_modes_save * sys.getsizeof(complex()) * BYTE_TO_GB
 			if self._n_modes_save == 0:
 				raise ValueError(
 					'Memory required for storing at least one mode '
-					'is equal or larger than available storage memory in your system ...\n'
+					'is equal or larger than available storage memory '
+					'in your system ...\n'
 					'... aborting computation...')
 
 		# if too much memory is required, this is modified above
 		if gb_memory_modes >= 0.99 * gb_memory_avail:
 			self._n_modes_save = n_modes_save
 
-		# load FFT blocks from hard drive and save modes on hard drive (for large data)
-		for iFreq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
+		# load FFT blocks from hard drive and save modes on hard drive
+		# (for large data)
+		for i_freq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
 			# load FFT data from previously saved file
 			Q_hat_f = np.zeros([self._nx,self._n_blocks], dtype='complex_')
-			for iBlk in range(0,self._n_blocks):
-				file = os.path.join(self._save_dir_blocks,
-					'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
-				Q_hat_f[:,iBlk] = np.load(file)
+			for i_blk in range(0,self._n_blocks):
+				file = 'fft_block{:06d}_freq{:06d}.npy'.format(i_blk,i_freq)
+				path = os.path.join(self._blocks_folder, file)
+				Q_hat_f[:,i_blk] = np.load(path)
 
 			# compute standard spod
-			self.compute_standard_spod(Q_hat_f, iFreq)
-
-		# save dictionary of modes for loading
-		with open(os.path.join(self._save_dir_blocks, 'modes_dict.pkl'), 'wb') as handle:
-			pickle.dump(self._modes, handle, protocol=pickle.HIGHEST_PROTOCOL)
+			self.compute_standard_spod(Q_hat_f, i_freq)
 
 		# store and save results
 		self.store_and_save()
 
 		print('------------------------------------')
 		print(' ')
-		print('Results saved in folder ', self._save_dir_blocks)
+		print('Results saved in folder ', self._save_dir_simulation)
 		print('Elapsed time: ', time.time() - start, 's.')
 		return self
