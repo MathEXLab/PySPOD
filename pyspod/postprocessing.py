@@ -41,6 +41,14 @@ def oblique_projection(Phi_tilde, W_phi, W, Q, svd=True):
 		coeffs = tmp1_inv @ PhiTWQ
 	return coeffs
 
+
+def change_path_modes(modes_dict, wanted, target):
+	l = modes_dict.values()
+	r = dict()
+	for i, v in enumerate(l):
+		v = v.replace(wanted, target)
+		r[i] = v
+	return r
 # ---------------------------------------------------------------------------
 
 

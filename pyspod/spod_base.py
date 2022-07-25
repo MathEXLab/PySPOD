@@ -7,6 +7,7 @@ from __future__ import division
 # Import standard Python packages
 import os
 import sys
+import time
 import psutil
 import warnings
 import scipy
@@ -35,14 +36,14 @@ class SPOD_base(base):
 	def __init__(self, params, data_handler, variables, weights=None):
 		base.__init__(self, params, data_handler, variables, weights=weights)
 		#--- required
-		self._n_DFT        		= int(params['n_DFT'   ])	# number of DFT (per block)
+		self._n_DFT = int(params['n_DFT']) # number of DFT (per block)
 		#--- optional
-		self._overlap      		= params.get('overlap', 0)			  	 # percentage overlap
-		self._mean_type    		= params.get('mean_type', 'longtime')	 # type of mean
-		self._conf_level		= params.get('conf_level', 0.95) 	     # what confidence level to use fo eigs
-		self._reuse_blocks 		= params.get('reuse_blocks', False)      # reuse blocks if present
-		self._savefft           = params.get('savefft', False) 		     # save fft block if required
-		self._fullspectrum      		= params.get('fullspectrum', False)			  	 # consider all the frequencies, if false a single-sided spectrum is considered
+		self._overlap      = params.get('overlap', 0) # percentage overlap
+		self._mean_type    = params.get('mean_type', 'longtime') # type of mean
+		self._conf_level   = params.get('conf_level', 0.95)    # what confidence level to use fo eigs
+		self._reuse_blocks = params.get('reuse_blocks', False) # reuse blocks if present
+		self._savefft      = params.get('savefft', False) 	   # save fft block if required
+		self._fullspectrum = params.get('fullspectrum', False) # consider all the frequencies, if false a single-sided spectrum is considered
 
 		# get default spectral estimation parameters and options
 		# define default spectral estimation parameters
@@ -75,7 +76,8 @@ class SPOD_base(base):
 				if t_0 > t_end:
 					raise ValueError('`t_0` cannot be greater than `t_end`.')
 				elif t_0 >= self._nt:
-					raise ValueError('`t_0` cannot be greater or equal to time dimension.')
+					raise ValueError(
+						'`t_0` cannot be greater or equal to time dimension.')
 				elif t_0 == t_end:
 					d = data[[t_0],...,:]
 				else:
@@ -85,7 +87,8 @@ class SPOD_base(base):
 					d = d[...,np.newaxis]
 				return d
 			self._data_handler = data_handler
-		X = self._data_handler(self._data, t_0=0, t_end=0, variables=self._variables)
+		X = self._data_handler(
+			self._data, t_0=0, t_end=0, variables=self._variables)
 		if self._nv == 1 and (X.ndim != self._xdim + 2):
 			X = X[...,np.newaxis]
 
@@ -128,7 +131,8 @@ class SPOD_base(base):
 
 		# flatten weights to number of spatial point
 		try:
-			self._weights = np.reshape(self._weights, [int(self._nx*self._nv), 1])
+			self._weights = np.reshape(
+				self._weights, [int(self._nx*self._nv), 1])
 		except:
 			raise ValurError(
 				'parameter ``weights`` must be cast into '
@@ -160,12 +164,16 @@ class SPOD_base(base):
 		self.get_freq_axis()
 
 		# get default for confidence interval
-		self._xi2_upper = 2 * sc.gammaincinv(self._n_blocks, 1 - self._conf_level)
-		self._xi2_lower = 2 * sc.gammaincinv(self._n_blocks,     self._conf_level)
-		self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype='complex_')
+		self._xi2_upper = 2 * sc.gammaincinv(
+			self._n_blocks, 1 - self._conf_level)
+		self._xi2_lower = 2 * sc.gammaincinv(
+			self._n_blocks,     self._conf_level)
+		self._eigs_c = np.zeros(
+			[self._n_freq,self._n_blocks,2], dtype='complex_')
 
 		# create folder to save results
-		self._save_dir_blocks = os.path.join(self._save_dir, 'nfft'+str(self._n_DFT) \
+		self._save_dir_blocks = os.path.join(self._save_dir,
+			'nfft'+str(self._n_DFT) \
 			+'_novlp'+str(self._n_overlap) \
 			+'_nblks'+str(self._n_blocks))
 		if not os.path.exists(self._save_dir_blocks):
@@ -180,7 +188,7 @@ class SPOD_base(base):
 
 
 	# basic getters
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 	@property
 	def save_dir(self):
@@ -407,7 +415,8 @@ class SPOD_base(base):
 		'''
 		Get the dictionary containing the path to the block data matrices saved.
 
-		:return: the dictionary containing the path to the block data matrices saved.
+		:return: the dictionary containing the path to the block data
+				 matrices saved.
 		:rtype: dict
 		'''
 		return self._Q_hat_f
@@ -445,23 +454,23 @@ class SPOD_base(base):
 		'''
 		return self._get_time_offset_ub
 
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 
 
 	# common methods
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 	def select_mean(self):
 		"""Select mean."""
 		if self._mean_type.lower() == 'longtime':
-			self._x_mean = self.longtime_mean()
+			self._time_mean = self.longtime_mean()
 			self._mean_name = 'longtime'
 		elif self._mean_type.lower() == 'blockwise':
-			self._x_mean = 0
+			self._time_mean = 0
 			self._mean_name = 'blockwise'
 		elif self._mean_type.lower() == 'zero':
-			self._x_mean = 0
+			self._time_mean = 0
 			self._mean_name = 'zero'
 			warnings.warn(
 				'No mean subtracted. '
@@ -529,7 +538,7 @@ class SPOD_base(base):
 		Q_blk = Q_blk.reshape(self._n_DFT, self._nx * self._nv)
 
 		# Subtract longtime or provided mean
-		Q_blk = Q_blk[:] - self._x_mean
+		Q_blk = Q_blk[:] - self._time_mean
 
 		# if block mean is to be subtracted,
 		# do it now that all data is collected
@@ -538,7 +547,8 @@ class SPOD_base(base):
 
 		# normalize by pointwise variance
 		if self._normalize_data:
-			Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_DFT-1)
+			Q_var = np.sum(
+				(Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_DFT-1)
 			# address division-by-0 problem with NaNs
 			Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
 			Q_blk = Q_blk / Q_var
@@ -546,8 +556,8 @@ class SPOD_base(base):
 		# window and Fourier transform block
 		self._window = self._window.reshape(self._window.shape[0],1)
 		Q_blk = Q_blk * self._window
-		Q_blk_hat = (self._winWeight / self._n_DFT) * scipy.fft.fft(Q_blk, axis=0);
-
+		Q_blk_hat = (self._winWeight / self._n_DFT) * \
+			scipy.fft.fft(Q_blk, axis=0)
 		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
 
 		# correct Fourier coefficients for one-sided spectrum
@@ -560,7 +570,8 @@ class SPOD_base(base):
 		"""Compute standard SPOD."""
 
 		# compute inner product in frequency space, for given frequency
-		M = np.matmul(Q_hat_f.conj().T, (Q_hat_f * self._weights)) / self._n_blocks
+		M = np.matmul(
+			Q_hat_f.conj().T, (Q_hat_f * self._weights)) / self._n_blocks
 
 		# extract eigenvalues and eigenvectors
 		L,V = la.eig(M)
@@ -619,6 +630,102 @@ class SPOD_base(base):
 		return dict_return
 
 
+	def compute_coeffs(self, data, nt, svd=True, T_lb=None, T_ub=None):
+		'''
+		Compute coefficients through oblique projection.
+		'''
+		st = time.time()
+		print('\nComputing coefficients'      )
+		print('------------------------------')
+
+		# initialize variables
+		if (T_lb is None) or (T_ub is None):
+			self._freq_idx_lb = 0
+			self._freq_idx_ub = self._n_freq - 1
+			self._freq_found_lb = self._freq[self._freq_idx_lb]
+			self._freq_found_ub = self._freq[self._freq_idx_ub]
+		else:
+			self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
+				freq_required=1/T_ub, freq=self._freq)
+			self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
+				freq_required=1/T_lb, freq=self._freq)
+		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
+		print('- identified frequencies. ', time.time() - st, 's.')
+		st = time.time()
+
+		coeffs = np.zeros([self._n_freq_r*self._n_modes_save, nt],
+			dtype='complex_')
+		print('- initialized matrices. ', time.time() - st, 's.')
+		st = time.time()
+
+		# get data, reshape and remove the mean
+		st = time.time()
+		X = self._data_handler(data, t_0=0, t_end=nt, variables=self.variables)
+		X = np.squeeze(X)
+		X_reshape = np.reshape(X[:,:,:], [nt, int(self._nx*self._nv)])
+		time_mean = np.mean(X_reshape, axis=0)
+		X_reshape = X_reshape - time_mean
+		print('- data and time mean. ', time.time() - st, 's.');
+		st = time.time()
+
+		# initialize modes and weights
+		phi_tilde = np.zeros(
+			[self._nx*self.nv, self._n_freq_r*self.n_modes_save],
+			dtype='complex_'
+		)
+		W_phi = np.zeros(
+			[self._nx*self.nv, self._n_freq_r*self.n_modes_save],
+			dtype='complex_'
+		)
+
+		# order the modes in the Phi_tilde vector
+		cnt_freq = 0
+		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+			modes = self.get_modes_at_freq(iFreq)
+			modes = np.reshape(modes, [self.nv*self.nx, 1, self.n_modes_save])
+			modes = modes[:,0,:]
+			for iMode in range(self._n_modes_save):
+				W_phi[:,self.n_modes_save*cnt_freq+iMode] = \
+					np.squeeze(self.weights[:])
+				phi_tilde[:,self.n_modes_save*cnt_freq+iMode] = modes[:,iMode]
+			cnt_freq = cnt_freq + 1
+		print('- retrieved requested frequencies. ', time.time() - st, 's.')
+		st = time.time()
+
+		# evaluate the coefficients by oblique projection
+		coeffs = post.oblique_projection(
+			phi_tilde, W_phi, self.weights, X_reshape.T, svd=svd)
+		print('- oblique projection done. ', time.time() - st, 's.')
+		st = time.time()
+
+		# save coefficients
+		file_coeffs = os.path.join(self._save_dir_blocks,
+			'coeffs_modes1to{:04d}_freq{:08f}to{:08f}.npy'.format(
+				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
+		np.save(file_coeffs, coeffs)
+		print('- saving coefficients in folder  ', file_coeffs)
+		print('- saving completed. ', time.time() - st, 's.')
+		print('------------------------------')
+		return coeffs, phi_tilde, time_mean
+
+
+	def reconstruct_data(
+		self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
+		'''
+		Reconstruct original data through oblique projection.
+		'''
+		nt = coeffs.shape[1]
+		Q_reconstructed = np.matmul(phi_tilde, coeffs)
+		Q_reconstructed = Q_reconstructed + time_mean[...,None]
+		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
+			((nt,) + self._xshape + (self._nv,)))
+		file_dynamics = os.path.join(self._save_dir_blocks,
+			'reconstructed_data_modes1to{:04d}_freq{:08f}to{:08f}.npy'.format(
+				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
+		np.save(file_dynamics, Q_reconstructed)
+		return Q_reconstructed
+
+
 	def transform_freq(self, data, nt, T_lb=None, T_ub=None):
 
 		coeffs, phi_tilde, time_mean = self.compute_coeffs_freq(
@@ -646,7 +753,7 @@ class SPOD_base(base):
 			/ (self._n_DFT - self._n_overlap)))
 
 		# Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
-		Q_hat = np.empty([self._n_DFT,self._nx*self.nv, n_blk], dtype='complex_')
+		Q_hat = np.empty([self._n_DFT,self._nx*self.nv,n_blk], dtype='complex_')
 
 		# Compute blocks and FFT
 		self._get_time_offset_lb = dict()
@@ -665,14 +772,15 @@ class SPOD_base(base):
 			# Subtract mean
 			if self._mean_type.lower() == 'blockwise':
 				Q_blk = Q_blk - np.mean(Q_blk, axis=0)
-				time_mean=np.mean(Q_blk, axis=0)
+				time_mean = np.mean(Q_blk, axis=0)
 			else:
-				Q_blk = Q_blk[:] - self._x_mean
-				time_mean = self._x_mean
+				Q_blk = Q_blk[:] - self._time_mean
+				time_mean = self._time_mean
 
 			# normalize by pointwise variance
 			if self._normalize_data:
-				Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_DFT-1)
+				Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) \
+					/ (self._n_DFT-1)
 				# address division-by-0 problem with NaNs
 				Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
 				Q_blk = Q_blk / Q_var
@@ -680,7 +788,8 @@ class SPOD_base(base):
 			# window and Fourier transform block
 			self._window = self._window.reshape(self._window.shape[0],1)
 			Q_blk = Q_blk * self._window
-			Q_blk_hat = (self._winWeight / self._n_DFT) * scipy.fft.fft(Q_blk, axis=0);
+			Q_blk_hat = (self._winWeight / self._n_DFT) * \
+				scipy.fft.fft(Q_blk, axis=0);
 
 			if self._isrealx:
 			 	Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
@@ -703,8 +812,12 @@ class SPOD_base(base):
 		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
 
 		# compute coefficients
-		Acoeff = np.zeros([self._n_freq_r, self._n_modes_save, n_blk], dtype='complex_')
-		phi_tilde = np.zeros([self._n_freq_r, self._nx*self._nv, self._n_modes_save], dtype='complex_')
+		Acoeff = np.zeros(
+			[self._n_freq_r, self._n_modes_save, n_blk], dtype='complex_')
+		phi_tilde = np.zeros(
+			[self._n_freq_r, self._nx*self._nv, self._n_modes_save],
+			dtype='complex_'
+		)
 
 		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
 			modes = self.get_modes_at_freq(iFreq)
@@ -712,29 +825,20 @@ class SPOD_base(base):
 			modes = np.reshape(modes, [self._nx*self._nv, self._n_modes_save])
 			m_conj = modes.conj().T
 			w = np.squeeze(self.weights)
-			# m_conj2 = np.reshape(m_conj, [self._n_modes_save,self._nv*self._nx])
-			# for block_idx in range(n_blk):
-			Q_hat2 = Q_hat[iFreq, :, :]
-			# Acoeff[iFreq, :, :] = np.matmul(m_conj2, np.squeeze(self.weights) * Q_hat2)
+			Q_hat2 = Q_hat[iFreq,:,:]
 			# TODO add w
 			Acoeff[iFreq, :, :] = np.matmul(m_conj, Q_hat2)
 			phi_tilde[iFreq,:,:] = modes
-
-		# reshape and save modes
-		# for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-		# 	modes = self.get_modes_at_freq(iFreq)
-		# 	modes = np.squeeze(modes)
-		# 	modes = np.reshape(modes, [self._nx*self._nv, self._n_modes_save])
-		# 	phi_tilde[iFreq,:,:] = modes
-
 		return Acoeff, phi_tilde, time_mean
 
 
-	def reconstruct_data_freq(self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
+	def reconstruct_data_freq(
+		self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
 		'''
 		Reconstruct original data.
 		'''
-		Q_hat_reconstructed = np.zeros([self._n_freq_r, self._nv*self._nx], dtype='complex_')
+		Q_hat_reconstructed = np.zeros(
+			[self._n_freq_r, self._nv*self._nx], dtype='complex_')
 
 		for l in range(self._n_freq_r):
 			for i in range(self._n_modes_save):
@@ -746,87 +850,15 @@ class SPOD_base(base):
 		# self._window = self._window.reshape(self._window.shape[0],1)
 		# Q_blk = Q_blk * self._window
 		# Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
-		Q_hat_reconstructed = (self._n_DFT / self._winWeight) * Q_hat_reconstructed
+		Q_hat_reconstructed = (self._n_DFT / self._winWeight) * \
+			Q_hat_reconstructed
 		Q_blk = scipy.fft.ifft(Q_hat_reconstructed, axis=0) / self._window
 		for i in range(self._n_freq_r):
 			Q_blk[i,:] = Q_blk[i,:] + time_mean
-		Q_reconstructed = np.reshape(Q_blk[:,:], [self._n_DFT,self._xshape[0], self._xshape[1], self._nv])
-
-		return Q_reconstructed
-
-
-	def compute_coeffs(self, data, nt, svd=True, T_lb=None, T_ub=None):
-		'''
-		Compute coefficients through oblique projection.
-		'''
-
-		# initialize variables
-		if (T_lb is None) or (T_ub is None):
-			self._freq_idx_lb = 0
-			self._freq_idx_ub = self._n_freq - 1
-			self._freq_found_lb = self._freq[self._freq_idx_lb]
-			self._freq_found_ub = self._freq[self._freq_idx_ub]
-		else:
-			self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
-				freq_required=1/T_ub, freq=self._freq)
-			self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
-				freq_required=1/T_lb, freq=self._freq)
-		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
-		coeffs = np.zeros([self._n_freq_r*self._n_modes_save, nt], dtype='complex_')
-		Q = np.zeros([self._nx*self._nv, nt], dtype='complex_')
-		W = np.zeros([self._nx*self._nv, nt], dtype='complex_')
-
-		# get data, reshape and remove the mean
-		X = self._data_handler(data, t_0=0, t_end=nt, variables=self.variables)
-		X = np.squeeze(X)
-		X_reshape = np.reshape(X[:,:,:], [nt, int(self._nx*self._nv)])
-		time_mean = np.mean(X_reshape, axis=0)
-		X_reshape = X_reshape - time_mean
-
-		# save snapshots and weights
-		for nt in range(nt):
-			Q[:,nt] = X_reshape[nt,:]
-			W[:,nt] = np.squeeze(self.weights[:])
-
-		# initialize modes and weights
-		phi_tilde = np.zeros([self._nx*self.nv, self._n_freq_r*self.n_modes_save], dtype='complex_')
-		W_phi = np.zeros([self._nx*self.nv, self._n_freq_r*self.n_modes_save], dtype='complex_')
-
-		# order the modes in the Phi_tilde vector
-		cnt_freq = 0
-		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-			modes = self.get_modes_at_freq(iFreq)
-			modes = np.reshape(modes, [self.nv*self.nx, 1, self.n_modes_save])
-			modes = modes[:,0,:]
-			for iMode in range(self._n_modes_save):
-				W_phi[ :,self.n_modes_save*cnt_freq+iMode] = np.squeeze(self.weights[:])
-				phi_tilde[ :,self.n_modes_save*cnt_freq+iMode] = modes[:,iMode]
-			cnt_freq = cnt_freq + 1
-
-		# evaluate the coefficients by oblique projection
-		coeffs = post.oblique_projection(phi_tilde, W_phi, W, Q, svd=svd)
-
-		# save coefficients
-		file_coeffs = os.path.join(self._save_dir_blocks,
-			'coeffs_modes1to{:04d}_freq{:08f}to{:08f}.npy'.format(
-				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
-		np.save(file_coeffs, coeffs)
-		return coeffs, phi_tilde, time_mean
-
-
-	def reconstruct_data(self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
-		'''
-		Reconstruct original data through oblique projection.
-		'''
-		nt = coeffs.shape[1]
-		Q_reconstructed = np.matmul(phi_tilde, coeffs)
-		Q_reconstructed = Q_reconstructed + time_mean[...,None]
-		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
-			((nt,) + self._xshape + (self._nv,)))
-		file_dynamics = os.path.join(self._save_dir_blocks,
-			'reconstructed_data_modes1to{:04d}_freq{:08f}to{:08f}.npy'.format(
-				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
-		np.save(file_dynamics, Q_reconstructed)
+		Q_reconstructed = np.reshape(
+			Q_blk[:,:],
+			[self._n_DFT,self._xshape[0], self._xshape[1], self._nv]
+		)
 		return Q_reconstructed
 
 
@@ -840,7 +872,8 @@ class SPOD_base(base):
 			eigs=self._eigs,
 			eigs_c_u=self._eigs_c_u,
 			eigs_c_l=self._eigs_c_l,
-			f=self._freq)
+			f=self._freq,
+			weights=self._weights)
 		self._n_modes = self._eigs.shape[-1]
 
 
@@ -890,7 +923,10 @@ class SPOD_base(base):
 		if not isinstance(freq, (list,np.ndarray,tuple)):
 			if not freq:
 				freq = self.freq
-		nearest_freq, idx = post.find_nearest_freq(freq_required=freq_required, freq=freq)
+		nearest_freq, idx = post.find_nearest_freq(
+			freq_required=freq_required,
+			freq=freq
+		)
 		return nearest_freq, idx
 
 
@@ -899,7 +935,8 @@ class SPOD_base(base):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		xi, idx = post.find_nearest_coords(coords=coords, x=x, data_space_dim=self.xshape)
+		xi, idx = post.find_nearest_coords(
+			coords=coords, x=x, data_space_dim=self.xshape)
 		return xi, idx
 
 
@@ -915,8 +952,10 @@ class SPOD_base(base):
 			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
 			gb_sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
 			if gb_memory_modes >= gb_vram_avail:
-				print('- RAM required for loading all Q_hat ~', gb_memory_modes, 'GB')
-				print('- Available RAM memory               ~', gb_vram_avail  , 'GB')
+				print('- RAM required for loading all Q_hat ~',
+					gb_memory_modes, 'GB')
+				print('- Available RAM memory               ~',
+					gb_vram_avail  , 'GB')
 				raise ValueError('Not enough RAM memory to load Q_hat stored.')
 			else:
 				file = self._Q_hat_f[str(block_idx)][str(freq_idx)]
@@ -938,8 +977,10 @@ class SPOD_base(base):
 			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
 			gb_sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
 			if gb_memory_modes >= gb_vram_avail:
-				print('- RAM required for loading all modes ~', gb_memory_modes, 'GB')
-				print('- Available RAM memory               ~', gb_vram_avail  , 'GB')
+				print('- RAM required for loading all modes ~',
+					gb_memory_modes, 'GB')
+				print('- Available RAM memory               ~',
+					gb_vram_avail  , 'GB')
 				raise ValueError('Not enough RAM memory to load modes stored, '
 								 'for all frequencies.')
 			else:
@@ -958,19 +999,23 @@ class SPOD_base(base):
 		'''
 		if self._data_handler:
 			X = self._data_handler(
-				data=self._data, t_0=t_0, t_end=t_end, variables=self._variables)
+				data=self._data,
+				t_0=t_0,
+				t_end=t_end,
+				variables=self._variables
+			)
 			if self._nv == 1 and (X.ndim != self._xdim + 2):
 				X = X[...,np.newaxis]
 		else:
 			X = self._data[t_0, t_end]
 		return X
 
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 
 
 	# static methods
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 	@staticmethod
 	def _are_blocks_present(n_blocks, n_freq, saveDir):
@@ -1004,12 +1049,12 @@ class SPOD_base(base):
 		window = (0.54 - 0.46 * np.cos(2 * np.pi * x / (N-1))).T
 		return window
 
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 
 
 	# plotting methods
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 	def plot_2D_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0],
 		x1=None, x2=None, title='', coastlines='', figsize=(12,8),
@@ -1035,12 +1080,16 @@ class SPOD_base(base):
 			Default is (12,8).
 		:param str path: if specified, the plot is saved at `path`. \
 			Default is CWD.
-		:param str filename: if specified, the plot is saved at `filename`.	"""
+		:param str filename: if specified, the plot is saved at `filename`.
+		"""
+
 		# check dimensions
 		if (X_data.ndim != 4) or (R.ndim != 4):
 			raise ValueError('Dimension of data is not 2D.')
 		if (X_data.shape != R.shape):
-			raise ValueError('Dimensions of data and reconstruction do not match.')	# get idx variables
+			raise ValueError(
+				'Dimensions of data and reconstruction do not match.')
+
 		# vars_idx = _check_vars(vars_idx)
 		vars_idx = 1
 		# if domain dimensions have not been passed, use data dimensions
@@ -1051,7 +1100,9 @@ class SPOD_base(base):
 		if isinstance(time_idx, int):
 			time_idx = [time_idx]
 		if not isinstance(time_idx, (list,tuple)):
-			raise TypeError('`time_idx` must be a list or tuple')	# loop over variables and time indices
+			raise TypeError('`time_idx` must be a list or tuple')
+
+		# loop over variables and time indices
 		for var_id in range(vars_idx):
 			for time_id in time_idx:
 				# get 2D data
@@ -1060,7 +1111,8 @@ class SPOD_base(base):
 				# check dimension axes and data
 				size_coords = x1.shape[0] * x2.shape[0]
 				if size_coords != x.size:
-					raise ValueError('Data dimension does not match coordinates dimensions.')
+					raise ValueError(
+						'Data dimension does not match coordinates dimensions.')
 					if x1.shape[0] != x.shape[1] or x2.shape[0] != x.shape[0]:
 						x = x.T
 						r = r.T
@@ -1076,28 +1128,19 @@ class SPOD_base(base):
 					filename=None)
 
 
-	def plot_eigs(self,
-				  title='',
-				  figsize=(12,8),
-				  show_axes=True,
-				  equal_axes=False,
-				  filename=None):
+	def plot_eigs(self, title='', figsize=(12,8), show_axes=True,
+		equal_axes=False, filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		post.plot_eigs(
-			self.eigs, title=title, figsize=figsize, show_axes=show_axes,
-			equal_axes=equal_axes, path=self.save_dir, filename=filename)
+		post.plot_eigs(self.eigs, title=title, figsize=figsize,
+			show_axes=show_axes, equal_axes=equal_axes, path=self.save_dir,
+			filename=filename)
 
-	def plot_eigs_vs_frequency(self,
-							   freq=None,
-							   title='',
-							   xticks=None,
-							   yticks=None,
-							   show_axes=True,
-							   equal_axes=False,
-							   figsize=(12,8),
-							   filename=None):
+
+	def plot_eigs_vs_frequency(self, freq=None, title='', xticks=None,
+		yticks=None, show_axes=True, equal_axes=False, figsize=(12,8),
+		filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -1107,15 +1150,10 @@ class SPOD_base(base):
 			show_axes=show_axes, equal_axes=equal_axes, figsize=figsize,
 			path=self.save_dir, filename=filename)
 
-	def plot_eigs_vs_period(self,
-							freq=None,
-							title='',
-							xticks=None,
-							yticks=None,
-							show_axes=True,
-							equal_axes=False,
-							figsize=(12,8),
-							filename=None):
+
+	def plot_eigs_vs_period(self, freq=None, title='', xticks=None,
+		yticks=None, show_axes=True, equal_axes=False, figsize=(12,8),
+		filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -1125,76 +1163,42 @@ class SPOD_base(base):
 			figsize=figsize, show_axes=show_axes, equal_axes=equal_axes,
 			path=self.save_dir, filename=filename)
 
-	def plot_2D_modes_at_frequency(self,
-								   freq_required,
-								   freq,
-								   vars_idx=[0],
-								   modes_idx=[0],
-								   x1=None,
-								   x2=None,
-								   fftshift=False,
-								   imaginary=False,
-								   plot_max=False,
-								   coastlines='',
-								   title='',
-								   xticks=None,
-								   yticks=None,
-								   figsize=(12,8),
-								   equal_axes=False,
-								   filename=None,
-                                   origin=None):
+
+	def plot_2D_modes_at_frequency(self, freq_required, freq, vars_idx=[0],
+		modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
+		plot_max=False, coastlines='', title='', xticks=None, yticks=None,
+		figsize=(12,8), equal_axes=False, filename=None, origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_2D_modes_at_frequency(
-			self.modes, freq_required=freq_required, freq=freq, vars_idx=vars_idx,
-			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift, imaginary=imaginary,
-			plot_max=plot_max, coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
-			figsize=figsize, equal_axes=equal_axes, path=self.save_dir, filename=filename)
+			self.modes, freq_required=freq_required, freq=freq,
+			vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
+			fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
+			coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
+			figsize=figsize, equal_axes=equal_axes, path=self.save_dir,
+			filename=filename)
 
-	def plot_2D_mode_slice_vs_time(self,
-								   freq_required,
-								   freq,
-								   vars_idx=[0],
-								   modes_idx=[0],
-								   x1=None,
-								   x2=None,
-								   max_each_mode=False,
-								   fftshift=False,
-								   title='',
-								   figsize=(12,8),
-								   equal_axes=False,
-								   filename=None):
+
+	def plot_2D_mode_slice_vs_time(self, freq_required, freq, vars_idx=[0],
+		modes_idx=[0], x1=None, x2=None, max_each_mode=False, fftshift=False,
+		title='', figsize=(12,8), equal_axes=False, filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_2D_mode_slice_vs_time(
-			self.modes, freq_required=freq_required, freq=freq, vars_idx=vars_idx,
-			modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
-			fftshift=fftshift, title=title, figsize=figsize, equal_axes=equal_axes,
-			path=self.save_dir, filename=filename)
+			self.modes, freq_required=freq_required, freq=freq,
+			vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
+			max_each_mode=max_each_mode, fftshift=fftshift, title=title,
+			figsize=figsize, equal_axes=equal_axes, path=self.save_dir,
+			filename=filename)
 
-	def plot_3D_modes_slice_at_frequency(self,
-										 freq_required,
-										 freq,
-										 vars_idx=[0],
-										 modes_idx=[0],
-										 x1=None,
-										 x2=None,
-										 x3=None,
-										 slice_dim=0,
-										 slice_id=None,
-										 fftshift=False,
-										 imaginary=False,
-										 plot_max=False,
-										 coastlines='',
-										 title='',
-										 xticks=None,
-										 yticks=None,
-										 figsize=(12,8),
-										 equal_axes=False,
-										 filename=None,
-                                         origin=None):
+
+	def plot_3D_modes_slice_at_frequency(self, freq_required, freq,
+		vars_idx=[0], modes_idx=[0], x1=None, x2=None, x3=None, slice_dim=0,
+		slice_id=None, fftshift=False, imaginary=False, plot_max=False,
+		coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
+		equal_axes=False, filename=None, origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -1206,35 +1210,22 @@ class SPOD_base(base):
 			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
 			equal_axes=equal_axes, path=self.save_dir, filename=filename)
 
-	def plot_mode_tracers(self,
-						  freq_required,
-						  freq,
-						  coords_list,
-						  x=None,
-						  vars_idx=[0],
-						  modes_idx=[0],
-						  fftshift=False,
-						  title='',
-						  figsize=(12,8),
-						  filename=None):
+
+	def plot_mode_tracers(self, freq_required, freq, coords_list, x=None,
+		vars_idx=[0], modes_idx=[0], fftshift=False, title='', figsize=(12,8),
+		filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_mode_tracers(
-			self.modes, freq_required=freq_required, freq=freq, coords_list=coords_list,
-			x=x, vars_idx=vars_idx, modes_idx=modes_idx, fftshift=fftshift,
-			title=title, figsize=figsize, path=self.save_dir, filename=filename)
+			self.modes, freq_required=freq_required, freq=freq,
+			coords_list=coords_list, x=x, vars_idx=vars_idx,
+			modes_idx=modes_idx, fftshift=fftshift, title=title,
+			figsize=figsize, path=self.save_dir, filename=filename)
 
-	def plot_2D_data(self,
-					 time_idx=[0],
-					 vars_idx=[0],
-					 x1=None,
-					 x2=None,
-					 title='',
-					 coastlines='',
-					 figsize=(12,8),
-					 filename=None,
-                     origin=None):
+
+	def plot_2D_data(self, time_idx=[0], vars_idx=[0], x1=None, x2=None,
+		title='', coastlines='', figsize=(12,8), filename=None, origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
@@ -1245,45 +1236,35 @@ class SPOD_base(base):
 			title=title, coastlines=coastlines, figsize=figsize,
 			path=self.save_dir, filename=filename)
 
-	def plot_data_tracers(self,
-						  coords_list,
-						  x=None,
-						  time_limits=[0,10],
-						  vars_idx=[0],
-						  title='',
-						  figsize=(12,8),
-						  filename=None):
+
+	def plot_data_tracers(self, coords_list, x=None, time_limits=[0,10],
+		vars_idx=[0], title='', figsize=(12,8), filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_data_tracers(
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			coords_list=coords_list, x=x, time_limits=time_limits,
-			vars_idx=vars_idx, title=title, figsize=figsize, path=self.save_dir,
-			filename=filename)
+			vars_idx=vars_idx, title=title, figsize=figsize,
+			path=self.save_dir, filename=filename)
 
-
-
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 
 
 	# Generate animations
-	# ---------------------------------------------------------------------------
-	def generate_2D_data_video(self,
-							   time_limits=[0,10],
-							   vars_idx=[0],
-							   sampling=1,
-							   x1=None,
-							   x2=None,
-							   coastlines='',
-							   figsize=(12,8),
-							   filename='data_video.mp4'):
+	# --------------------------------------------------------------------------
+
+	def generate_2D_data_video(self, time_limits=[0,10], vars_idx=[0],
+		sampling=1, x1=None, x2=None, coastlines='', figsize=(12,8),
+		filename='data_video.mp4'):
 		'''
 		See method implementation in the postprocessing module.
 		'''
 		post.generate_2D_data_video(
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
-			time_limits=[0,time_limits[-1]], vars_idx=vars_idx, sampling=sampling,
-			x1=x1, x2=x2, coastlines=coastlines, figsize=figsize, path=self.save_dir,
-			filename=filename)
+			time_limits=[0,time_limits[-1]], vars_idx=vars_idx,
+			sampling=sampling, x1=x1, x2=x2, coastlines=coastlines,
+			figsize=figsize, path=self.save_dir, filename=filename)
+
+	# --------------------------------------------------------------------------
