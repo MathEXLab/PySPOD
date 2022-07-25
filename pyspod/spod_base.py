@@ -8,6 +8,7 @@ from __future__ import division
 import os
 import sys
 import time
+import pickle
 import psutil
 import warnings
 import scipy
@@ -607,19 +608,12 @@ class SPOD_base(base):
 
 		# compute coeffs
 		coeffs, phi_tilde, time_mean = self.compute_coeffs(
-			data=data,
-			nt=nt,
-			svd=svd,
-			T_lb=T_lb,
-			T_ub=T_ub)
+			data=data, nt=nt, svd=svd, T_lb=T_lb, T_ub=T_ub)
 
 		# reconstruct data
 		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs,
-			phi_tilde=phi_tilde,
-			time_mean=time_mean,
-			T_lb=T_lb,
-			T_ub=T_ub)
+			coeffs=coeffs, phi_tilde=phi_tilde, time_mean=time_mean,
+			T_lb=T_lb, T_ub=T_ub)
 
 		# return data
 		dict_return = {
@@ -639,7 +633,7 @@ class SPOD_base(base):
 		print('\nComputing coefficients'      )
 		print('------------------------------')
 
-		# initialize variables
+		# initialize frequencies
 		st = time.time()
 		if (T_lb is None) or (T_ub is None):
 			self._freq_idx_lb = 0
@@ -655,9 +649,10 @@ class SPOD_base(base):
 		print('- identified frequencies. ', time.time() - st, 's.')
 		st = time.time()
 
+		# initialize coeffs matrix
 		coeffs = np.zeros([self._n_freq_r*self._n_modes_save, nt],
 			dtype='complex_')
-		print('- initialized matrices. ', time.time() - st, 's.')
+		print('- initialized coeff matrix. ', time.time() - st, 's.')
 		st = time.time()
 
 		# get data, reshape and remove the mean
@@ -719,151 +714,28 @@ class SPOD_base(base):
 		'''
 		Reconstruct original data through oblique projection.
 		'''
+		s0 = time.time()
+		print('\nReconstructing data from coefficients'      )
+		print('---------------------------------------------')
+		st = time.time()
 		nt = coeffs.shape[1]
 		Q_reconstructed = np.matmul(phi_tilde, coeffs)
+		print('- phi x coeffs completed. ', time.time() - st, 's.')
 		Q_reconstructed = Q_reconstructed + time_mean[...,None]
+		print('- added time mean. ', time.time() - st, 's.')
 		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
 			((nt,) + self._xshape + (self._nv,)))
+		print('- data reshaped. ', time.time() - st, 's.')
 		file_dynamics = os.path.join(self._save_dir_blocks,
-			'reconstructed_data_modes1to{:04d}_freq{:08f}to{:08f}.npy'.format(
+			'reconstructed_data_modes1to{:04d}_freq{:08f}to{:08f}.pkl'.format(
 				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
-		np.save(file_dynamics, Q_reconstructed)
-		return Q_reconstructed
-
-
-	def transform_freq(self, data, nt, T_lb=None, T_ub=None):
-
-		coeffs, phi_tilde, time_mean = self.compute_coeffs_freq(
-			data=data,
-			nt=nt,
-			T_lb=T_lb,
-			T_ub=T_ub)
-
-		# return data
-		dict_return = {
-			'coeffs': coeffs,
-			'phi_tilde': phi_tilde,
-			'time_mean': time_mean
-			# 'reconstructed_data': reconstructed_data
-		}
-		return dict_return
-
-
-	def compute_coeffs_freq(self, data, nt, T_lb, T_ub):
-		"""Compute FFT blocks."""
-
-		# Init variables
-		data = np.reshape(data, [nt, self._nx*self._nv])
-		n_blk = int(np.floor((nt - self._n_overlap) \
-			/ (self._n_DFT - self._n_overlap)))
-
-		# Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
-		Q_hat = np.empty([self._n_DFT,self._nx*self.nv,n_blk], dtype='complex_')
-
-		# Compute blocks and FFT
-		self._get_time_offset_lb = dict()
-		self._get_time_offset_ub = dict()
-		for iBlk in range(n_blk):
-			# get time index for present block
-			offset = min(iBlk * (self._n_DFT - self._n_overlap) \
-				+ self._n_DFT, nt) - self._n_DFT
-
-			self._get_time_offset_lb[iBlk] = offset
-			self._get_time_offset_ub[iBlk] = self._n_DFT + offset
-
-			# Get data
-			Q_blk = data[offset:self._n_DFT+offset,:]
-
-			# Subtract mean
-			if self._mean_type.lower() == 'blockwise':
-				Q_blk = Q_blk - np.mean(Q_blk, axis=0)
-				time_mean = np.mean(Q_blk, axis=0)
-			else:
-				Q_blk = Q_blk[:] - self._time_mean
-				time_mean = self._time_mean
-
-			# normalize by pointwise variance
-			if self._normalize_data:
-				Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) \
-					/ (self._n_DFT-1)
-				# address division-by-0 problem with NaNs
-				Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
-				Q_blk = Q_blk / Q_var
-
-			# window and Fourier transform block
-			self._window = self._window.reshape(self._window.shape[0],1)
-			Q_blk = Q_blk * self._window
-			Q_blk_hat = (self._winWeight / self._n_DFT) * \
-				scipy.fft.fft(Q_blk, axis=0);
-
-			if self._isrealx:
-			 	Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
-
-			print('block '+str(iBlk+1)+'/'+str(n_blk)+\
-				  ' ('+str(offset)+':'+str(self._n_DFT+offset)+')')
-			Q_hat[:,:,iBlk] = Q_blk_hat
-
-		# initialize variables
-		if (T_lb is None) or (T_ub is None):
-			self._freq_idx_lb = 0
-			self._freq_idx_ub = self._n_freq - 1
-			self._freq_found_lb = self._freq[self._freq_idx_lb]
-			self._freq_found_ub = self._freq[self._freq_idx_ub]
-		else:
-			self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
-				freq_required=1/T_ub, freq=self._freq)
-			self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
-				freq_required=1/T_lb, freq=self._freq)
-		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
-
-		# compute coefficients
-		Acoeff = np.zeros(
-			[self._n_freq_r, self._n_modes_save, n_blk], dtype='complex_')
-		phi_tilde = np.zeros(
-			[self._n_freq_r, self._nx*self._nv, self._n_modes_save],
-			dtype='complex_'
-		)
-
-		for iFreq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-			modes = self.get_modes_at_freq(iFreq)
-			modes = np.squeeze(modes)
-			modes = np.reshape(modes, [self._nx*self._nv, self._n_modes_save])
-			m_conj = modes.conj().T
-			w = np.squeeze(self.weights)
-			Q_hat2 = Q_hat[iFreq,:,:]
-			# TODO add w
-			Acoeff[iFreq, :, :] = np.matmul(m_conj, Q_hat2)
-			phi_tilde[iFreq,:,:] = modes
-		return Acoeff, phi_tilde, time_mean
-
-
-	def reconstruct_data_freq(
-		self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
-		'''
-		Reconstruct original data.
-		'''
-		Q_hat_reconstructed = np.zeros(
-			[self._n_freq_r, self._nv*self._nx], dtype='complex_')
-
-		for l in range(self._n_freq_r):
-			for i in range(self._n_modes_save):
-				Q_hat_reconstructed[l, :] += coeffs[l,i] * phi_tilde[l,:,i]
-		if self._isrealx:
-			Q_hat_reconstructed[1:-1,:] = Q_hat_reconstructed[1:-1,:] / 2
-
-		# # window and Fourier transform block
-		# self._window = self._window.reshape(self._window.shape[0],1)
-		# Q_blk = Q_blk * self._window
-		# Q_blk_hat = (self._winWeight / self._n_DFT) * fft(Q_blk, axis=0);
-		Q_hat_reconstructed = (self._n_DFT / self._winWeight) * \
-			Q_hat_reconstructed
-		Q_blk = scipy.fft.ifft(Q_hat_reconstructed, axis=0) / self._window
-		for i in range(self._n_freq_r):
-			Q_blk[i,:] = Q_blk[i,:] + time_mean
-		Q_reconstructed = np.reshape(
-			Q_blk[:,:],
-			[self._n_DFT,self._xshape[0], self._xshape[1], self._nv]
-		)
+		with open(file_dynamics, 'wb') as handle:
+			pickle.dump(Q_reconstructed, handle)
+		# np.save(file_dynamics, Q_reconstructed)
+		print('- data saved. ', time.time() - st, 's.')
+		print('---------------------------------------------')
+		print('Coefficients saved in folder  ', file_dynamics)
+		print('Elapsed time: ', time.time() - s0, 's.')
 		return Q_reconstructed
 
 
