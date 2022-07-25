@@ -473,8 +473,7 @@ class SPOD_base(base):
 			self._time_mean = 0
 			self._mean_name = 'zero'
 			warnings.warn(
-				'No mean subtracted. '
-				'Consider providing longtime mean.')
+				'No mean subtracted. Consider providing longtime mean.')
 		else:
 			raise ValueError(self._mean_type, 'not recognized.')
 
@@ -491,14 +490,16 @@ class SPOD_base(base):
 				data=self._data,
 				t_0=lb,
 				t_end=ub,
-				variables=self.variables)
+				variables=self.variables
+			)
 			x_sum += np.sum(x_data, axis=0)
 		if split_res > 0:
 			x_data = self._data_handler(
 				data=self._data,
 				t_0=self.nt-split_res,
 				t_end=self.nt,
-				variables=self.variables)
+				variables=self.variables
+			)
 			x_sum += np.sum(x_data, axis=0)
 		x_mean = x_sum / self.nt
 		x_mean = np.reshape(x_mean, (int(self.nx*self.nv)))
@@ -634,11 +635,12 @@ class SPOD_base(base):
 		'''
 		Compute coefficients through oblique projection.
 		'''
-		st = time.time()
+		s0 = time.time()
 		print('\nComputing coefficients'      )
 		print('------------------------------')
 
 		# initialize variables
+		st = time.time()
 		if (T_lb is None) or (T_ub is None):
 			self._freq_idx_lb = 0
 			self._freq_idx_ub = self._n_freq - 1
@@ -703,9 +705,12 @@ class SPOD_base(base):
 			'coeffs_modes1to{:04d}_freq{:08f}to{:08f}.npy'.format(
 				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
 		np.save(file_coeffs, coeffs)
-		print('- saving coefficients in folder  ', file_coeffs)
+
 		print('- saving completed. ', time.time() - st, 's.')
 		print('------------------------------')
+
+		print('Coefficients saved in folder  ', file_coeffs)
+		print('Elapsed time: ', time.time() - s0, 's.')
 		return coeffs, phi_tilde, time_mean
 
 
