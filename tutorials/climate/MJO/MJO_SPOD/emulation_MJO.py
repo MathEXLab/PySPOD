@@ -16,10 +16,10 @@ sys.path.append(os.path.join(CFD, "../../../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-from pyspod.emulation     import Emulation
+from pyspod.auxiliary.emulation     import Emulation
 import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
-import pyspod.utils as utils  
+import pyspod.auxiliary.utils_emulation as utils_emulation  
 import mjo_plotting_utils as mjo_plot
 
 
@@ -140,12 +140,12 @@ def spod_emulation():
 
 		# copy and normalize data 
 		scaler  = \
-			utils.compute_normalizationVector(coeffs_train[idx_x,:],normalizeMethod='localmax')
+			utils_emulation.compute_normalization_vector(coeffs_train[idx_x,:],normalize_method='localmax')
 		data_train[:,:] = \
-			utils.normalize_data(coeffs_train[idx_x,:], normalizationVec=scaler)
+			utils_emulation.normalize_data(coeffs_train[idx_x,:], normalization_vec=scaler)
 		data_test[:,:]  = \
-			utils.normalize_data(coeffs_test[idx_x,:],
-				normalizationVec=scaler)
+			utils_emulation.normalize_data(coeffs_test[idx_x,:],
+				normalization_vec=scaler)
 
 		#train the network
 		emulation.model_train(
@@ -161,7 +161,7 @@ def spod_emulation():
 		)
 
 		# denormalize data
-		coeffs[idx_x,:] = utils.denormalize_data(coeffs_tmp, scaler)
+		coeffs[idx_x,:] = utils_emulation.denormalize_data(coeffs_tmp, scaler)
 	
 	# Reconstruct data
 	emulation_rec =spod.reconstruct_data(

@@ -13,11 +13,11 @@ CFD = os.path.dirname(CF)
 
 # Import library specific modules
 sys.path.append(os.path.join(CFD, "../../../../"))
-from pyspod.pod_base import POD_base
-from pyspod.emulation     import Emulation
+from pyspod.auxiliary.pod_standard import POD_standard
+from pyspod.auxiliary.emulation     import Emulation
 import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
-import pyspod.utils as utils  
+import pyspod.auxiliary.utils_emulation as utils_emulation  
 import mjo_plotting_utils as mjo_plot
 
 file = os.path.join('../../../../../../pyspod/test/data/', 'EI_1979_2017_TP228128_reduced5000.nc')
@@ -99,7 +99,7 @@ def pod_emulation():
 	X_test  = da[nt_train:,:,:]
 
 	# POD analysis
-	POD_analysis = POD_base(
+	POD_analysis = POD_standard(
 		params=params, 
 		data_handler=False, 
 		variables=variables
@@ -134,12 +134,12 @@ def pod_emulation():
 	
 	# copy and normalize data 
 	scaler  = \
-		utils.compute_normalizationVectorReal(coeffs_train['coeffs'][:,:],normalizeMethod='globalmax')
+		utils_emulation.compute_normalization_vector_real(coeffs_train['coeffs'][:,:],normalize_method='globalmax')
 	data_train[:,:] = \
-		utils.normalize_dataReal(coeffs_train['coeffs'][:,:], normalizationVec=scaler)
+		utils_emulation.normalize_data_real(coeffs_train['coeffs'][:,:], normalization_vec=scaler)
 	data_test[:,:]  = \
-		utils.normalize_dataReal(coeffs_test[:,:],
-			normalizationVec=scaler)
+		utils_emulation.normalize_data_real(coeffs_test[:,:],
+			normalization_vec=scaler)
 
 	# train the network
 	pod_emulation.model_train(idx,
@@ -154,7 +154,7 @@ def pod_emulation():
 	)
 
 	# denormalize data
-	coeffs = utils.denormalize_dataReal(coeffs_tmp, scaler)
+	coeffs = utils_emulation.denormalize_data_real(coeffs_tmp, scaler)
 
 	# reconstruct solutions
 	emulation_rec = pod.reconstruct_data(

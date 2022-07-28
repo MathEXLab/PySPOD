@@ -27,9 +27,9 @@ sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-from pyspod.emulation        import Emulation
+from pyspod.auxiliary.emulation import Emulation
 import pyspod.utils_weights as utils_weights
-import pyspod.utils as utils  
+import pyspod.auxiliary.utils_emulation as utils_emulation
 
 # data ingestion
 file = os.path.join(CFD, '../tests/data/fluidmechanics_data.mat')
@@ -48,7 +48,7 @@ x1 = data_arrays['r'].T; x1 = x1[:,0]
 x2 = data_arrays['x'].T; x2 = x2[0,:]
 
 # ratio between training data number and total number of snapshots
-trainingDataRatio = 0.95 
+trainingDataRatio = 0.95
 testingDataRatio  = (1 - trainingDataRatio)
 
 # parameters
@@ -75,7 +75,7 @@ params_emulation = dict()
 params_emulation['network'   ] = 'lstm' # type of network
 params_emulation['epochs'    ] = 3  	# number of epochs
 params_emulation['batch_size'] = 32	    # batch size
-params_emulation['n_seq_in'  ] = 30	    # dimension of input sequence 
+params_emulation['n_seq_in'  ] = 30	    # dimension of input sequence
 params_emulation['n_seq_out' ] = 1      # number of steps to predict
 params_emulation['n_neurons' ] = 1      # number of neurons
 params_emulation['dropout'   ] = 0.15   # dropout
@@ -94,12 +94,12 @@ def test_emulation_spod():
 
 	# SPOD analysis
 	SPOD_analysis = SPOD_low_storage(
-		params=params, 
-		data_handler=False, 
+		params=params,
+		data_handler=False,
 		variables=variables
 	)
 
-	# fit 
+	# fit
 	spod = SPOD_analysis.fit(X_train, nt=nt_train)
 
 	# transform
@@ -107,7 +107,7 @@ def test_emulation_spod():
 	coeffs_test  = spod.transform(X_test , nt=nt_test , T_lb=None, T_ub=None)
 
 	# initialization of variables and structures
-	n_modes = params['n_modes_save'] 
+	n_modes = params['n_modes_save']
 	n_freq = spod._n_freq_r
 	n_feature = coeffs_train['coeffs'].shape[0]
 
@@ -118,60 +118,60 @@ def test_emulation_spod():
 
 	# LSTM
 	spod_emulation = Emulation(params_emulation)
-	
+
 	# initialization of the network
 	spod_emulation.model_initialize(data=data_train)
 
 	for idx in range(n_modes):
 		idx_x = list(range(idx, n_feature, n_modes))
 
-		# copy and normalize data 
+		# copy and normalize data
 		scaler  = \
-			utils.compute_normalizationVector(coeffs_train['coeffs'][idx_x,:],
-			normalizeMethod='localmax')
+			utils_emulation.compute_normalization_vector(coeffs_train['coeffs'][idx_x,:],
+			normalize_method='localmax')
 		data_train[:,:] = \
-			utils.normalize_data(coeffs_train['coeffs'][idx_x,:], normalizationVec=scaler)
+			utils_emulation.normalize_data(coeffs_train['coeffs'][idx_x,:], normalization_vec=scaler)
 		data_test[:,:]  = \
-			utils.normalize_data(coeffs_test['coeffs'][idx_x,:],
-				normalizationVec=scaler)
+			utils_emulation.normalize_data(coeffs_test['coeffs'][idx_x,:],
+				normalization_vec=scaler)
 
 		# train the network
 		spod_emulation.model_train(idx,
-			data_train=data_train, 
+			data_train=data_train,
 			data_valid=data_test,
 			plotHistory=False
 		)
 
-		#predict 
+		#predict
 		coeffs_tmp = spod_emulation.model_inference(
 			idx,
 			data_input=data_test
 		)
 
 		# denormalize data
-		coeffs[idx_x,:] = utils.denormalize_data(coeffs_tmp, scaler)
+		coeffs[idx_x,:] = utils_emulation.denormalize_data(coeffs_tmp, scaler)
 
 	# reconstruct solutions
 	phi_tilde = coeffs_train['phi_tilde']
 	time_mean = coeffs_train['time_mean']
-	
+
 	proj_rec =spod.reconstruct_data(
-			coeffs=coeffs_test['coeffs'][:,:], 
+			coeffs=coeffs_test['coeffs'][:,:],
 			phi_tilde=coeffs_train['phi_tilde'],
 			time_mean=coeffs_train['time_mean']
 		)
 
 	emulation_rec =spod.reconstruct_data(
-			coeffs=coeffs, 
+			coeffs=coeffs,
 			phi_tilde=coeffs_train['phi_tilde'],
 			time_mean=coeffs_train['time_mean']
 		)
 
 	# errors
-	spod.printErrors(
-		field_test=X_test, 
-		field_proj=proj_rec, 
-		field_emul=emulation_rec, 
+	utils_emulation.print_errors_2d(
+		data_test=X_test,
+		data_proj=proj_rec,
+		data_emul=emulation_rec,
 		n_snaps=10, n_offset=10
 	)
 

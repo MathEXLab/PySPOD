@@ -26,10 +26,10 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
 
-from pyspod.pod_base import POD_base
-from pyspod.emulation   import Emulation
+from pyspod.auxiliary.pod_standard import POD_standard
+from pyspod.auxiliary.emulation    import Emulation
 import pyspod.utils_weights as utils_weights
-import pyspod.utils as utils  
+import pyspod.auxiliary.utils_emulation as utils_emulation
 
 # data ingestion
 file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
@@ -67,7 +67,7 @@ params_emulation = dict()
 params_emulation['network'     ] = 'lstm' 	# type of network
 params_emulation['epochs'      ] = 10 		# number of epochs
 params_emulation['batch_size'  ] = 32		# batch size
-params_emulation['n_seq_in'    ] = 60		# dimension of input sequence 
+params_emulation['n_seq_in'    ] = 60		# dimension of input sequence
 params_emulation['n_seq_out'   ] = 1        # number of steps to predict
 params_emulation['n_neurons'   ] = 1        # number of neurons
 params_emulation['dropout'   ] = 0.15       # dropout
@@ -83,17 +83,17 @@ def test_emulation_pod():
 	X_train = X[:nt_train,:,:]
 	nt_test = nt - nt_train
 	X_test  = X[nt_train:,:,:]
-	
+
 	# SPOD analysis
-	POD_analysis = POD_base(
-		params=params, 
-		data_handler=False, 
+	POD_analysis = POD_standard(
+		params=params,
+		data_handler=False,
 		variables=variables
 	)
 
-	# fit 
+	# fit
 	pod = POD_analysis.fit(data=X_train, nt=nt_train)
-	
+
 	# transform to get train coefficients
 	coeffs_train = pod.transform(data=X_train, nt=nt_train)
 
@@ -104,7 +104,7 @@ def test_emulation_pod():
 	coeffs_test = np.matmul(np.transpose(coeffs_train['phi_tilde']), X_rearrange_test.T)
 
 	# # initialization of variables and structures
-	n_modes = params['n_modes_save'] 
+	n_modes = params['n_modes_save']
 	n_feature = coeffs_train['coeffs'].shape[0]
 
 	data_train = np.zeros([n_modes,              coeffs_train['coeffs'].shape[1]], dtype='double')
@@ -114,46 +114,46 @@ def test_emulation_pod():
 
 	# LSTM
 	pod_emulation = Emulation(params_emulation)
-	
+
 	# initialization of the network
 	pod_emulation.model_initialize(data=data_train)
 
-	# copy and normalize data 
-	normalizationVec  = \
-	 	utils.compute_normalizationVectorReal(coeffs_train['coeffs'][:,:],
-	 	normalizeMethod='localmax')
+	# copy and normalize data
+	normalization_vec  = \
+	 	utils_emulation.compute_normalization_vector_real(coeffs_train['coeffs'][:,:],
+	 	normalize_method='localmax')
 	data_train[:,:] = \
-	 	utils.normalize_dataReal(coeffs_train['coeffs'][:,:], normalizationVec=normalizationVec)
+	 	utils_emulation.normalize_data_real(coeffs_train['coeffs'][:,:], normalization_vec=normalization_vec)
 	data_test[:,:]  = \
-	 	utils.normalize_dataReal(coeffs_test[:,:], normalizationVec=normalizationVec)
+	 	utils_emulation.normalize_data_real(coeffs_test[:,:], normalization_vec=normalization_vec)
 
 	# train the network
 	idx = 0
 	pod_emulation.model_train(
 		idx,
-	 	data_train=data_train, 
+	 	data_train=data_train,
 	 	data_valid=data_test,
 	 	plotHistory=False
 	 )
 
-	#predict 
+	#predict
 	coeffs_tmp = pod_emulation.model_inference(idx, data_input=data_test)
 
 	# denormalize data
-	coeffs[:,:] = utils.denormalize_dataReal(coeffs_tmp, normalizationVec)
+	coeffs[:,:] = utils_emulation.denormalize_data_real(coeffs_tmp, normalization_vec)
 
 	# reconstruct solutions
 	phi_tilde = coeffs_train['phi_tilde']
 	time_mean = coeffs_train['time_mean']
-	
+
 	proj_rec =pod.reconstruct_data(
-			coeffs=coeffs_test[:,:], 
+			coeffs=coeffs_test[:,:],
 			phi_tilde=coeffs_train['phi_tilde'],
 			time_mean=coeffs_train['time_mean']
 	)
 
 	emulation_rec =pod.reconstruct_data(
-			coeffs=coeffs, 
+			coeffs=coeffs,
 			phi_tilde=coeffs_train['phi_tilde'],
 			time_mean=coeffs_train['time_mean']
 	)

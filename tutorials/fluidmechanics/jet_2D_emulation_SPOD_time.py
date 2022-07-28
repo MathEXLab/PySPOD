@@ -27,9 +27,9 @@ sys.path.insert(0, os.path.join(CFD, "../../"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-from pyspod.emulation      import Emulation
+from pyspod.auxiliary.emulation      import Emulation
 import pyspod.utils_weights as utils_weights
-import pyspod.utils as utils  
+import pyspod.auxiliary.utils_emulation as utils_emulation  
 
 # data ingestion
 file = os.path.join(CFD, '../../tests/data/fluidmechanics_data.mat')
@@ -126,13 +126,13 @@ def jet_emulationSPOD():
 
 		# copy and normalize data 
 		scaler  = \
-			utils.compute_normalizationVector(coeffs_train['coeffs'][idx_x,:],
-			normalizeMethod='localmax')
+			utils_emulation.compute_normalization_vector(coeffs_train['coeffs'][idx_x,:],
+			normalize_method='localmax')
 		data_train[:,:] = \
-			utils.normalize_data(coeffs_train['coeffs'][idx_x,:], normalizationVec=scaler)
+			utils_emulation.normalize_data(coeffs_train['coeffs'][idx_x,:], normalization_vec=scaler)
 		data_test[:,:]  = \
-			utils.normalize_data(coeffs_test['coeffs'][idx_x,:],
-				normalizationVec=scaler)
+			utils_emulation.normalize_data(coeffs_test['coeffs'][idx_x,:],
+				normalization_vec=scaler)
 
 		# train the network
 		spod_emulation.model_train(idx,
@@ -148,7 +148,7 @@ def jet_emulationSPOD():
 		)
 
 		# denormalize data
-		coeffs[idx_x,:] = utils.denormalize_data(coeffs_tmp, scaler)
+		coeffs[idx_x,:] = utils_emulation.denormalize_data(coeffs_tmp, scaler)
 
 	# reconstruct solutions
 	phi_tilde = coeffs_train['phi_tilde']

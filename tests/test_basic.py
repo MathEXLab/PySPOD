@@ -31,8 +31,6 @@ t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 p = np.empty((t_component.shape[0],)+s_component.shape)
 for i, t_c in enumerate(t_component):
 	p[i] = s_component * t_c
-# params = utils.parse_config_file()
-# print(p)
 
 
 # Let's define the required parameters into a dictionary

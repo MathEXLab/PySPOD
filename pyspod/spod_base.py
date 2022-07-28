@@ -17,7 +17,6 @@ import scipy.special as sc
 from numpy import linalg as la
 
 # Import custom Python packages
-from pyspod.base import base
 import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
 
@@ -30,14 +29,16 @@ BYTE_TO_GB = 9.3132257461548e-10
 
 
 
-class SPOD_base(base):
+class SPOD_standard(object):
 	'''
 	Spectral Proper Orthogonal Decomposition base class.
 	'''
 	def __init__(self, params, data_handler, variables, weights=None):
-		base.__init__(self, params, data_handler, variables, weights=weights)
 		#--- required
 		self._n_DFT = int(params['n_DFT']) # number of DFT (per block)
+		self._dt   = params['time_step'   ]	# time-step of the data
+		self._xdim = params['n_space_dims'] # number of spatial dimensions
+		self._nv   = params['n_variables' ]	# number of variables
 		#--- optional
 		self._overlap      = params.get('overlap', 0) # percentage overlap
 		self._mean_type    = params.get('mean_type', 'longtime') # type of mean
@@ -45,15 +46,22 @@ class SPOD_base(base):
 		self._reuse_blocks = params.get('reuse_blocks', False) # reuse blocks if present
 		self._savefft      = params.get('savefft', False) 	   # save fft block if required
 		self._fullspectrum = params.get('fullspectrum', False) # consider all the frequencies, if false a single-sided spectrum is considered
+		self._normalize_weights = params.get('normalize_weights', False) # normalize weights if required
+		self._normalize_data 	= params.get('normalize_data', False)    # normalize data by variance if required
+		self._n_modes_save      = params.get('n_modes_save', 1e10)       # default is all (large number)
+		self._save_dir          = params.get('savedir', os.path.join(CWD, 'results')) # where to save data
+		self._data_handler      = data_handler
+		self._variables         = variables
+		self._weights_tmp       = weights
 
 		# get default spectral estimation parameters and options
 		# define default spectral estimation parameters
 		if isinstance(self._n_DFT, int):
-			self._window = SPOD_base._hamming_window(self._n_DFT)
+			self._window = SPOD_standard._hamming_window(self._n_DFT)
 			self._window_name = 'hamming'
 		else:
 			self._n_DFT = int(2**(np.floor(np.log2(self.nt / 10))))
-			self._window = SPOD_base._hamming_window(self._n_DFT)
+			self._window = SPOD_standard._hamming_window(self._n_DFT)
 			self._window_name = 'hamming'
 			warnings.warn(
 				'Parameter `n_DFT` not equal to an integer.'
@@ -174,9 +182,11 @@ class SPOD_base(base):
 
 		# create folder to save results
 		self._save_dir_simulation = os.path.join(self._save_dir,
-			'nfft'+str(self._n_DFT) \
-			+'_novlp'+str(self._n_overlap) \
-			+'_nblks'+str(self._n_blocks))
+			'modes'+str(self._n_modes_save) \
+			+'_nfft'+str(self._n_DFT)        \
+			+'_novlp'+str(self._n_overlap)   \
+			+'_nblks'+str(self._n_blocks)    \
+		)
 		if not os.path.exists(self._save_dir_simulation):
 			os.makedirs(self._save_dir_simulation)
 		self._blocks_folder = os.path.join(self._save_dir_simulation, 'blocks')
@@ -561,7 +571,7 @@ class SPOD_base(base):
 		# window and Fourier transform block
 		self._window = self._window.reshape(self._window.shape[0],1)
 		Q_blk = Q_blk * self._window
-		Q_blk_hat = (self._winWeight / self._n_DFT) * scipy.fft.fft(Q_blk, axis=0)
+		Q_blk_hat = (self._winWeight / self._n_DFT) * np.fft.fft(Q_blk, axis=0)
 		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
 
 		# correct Fourier coefficients for one-sided spectrum
@@ -593,8 +603,7 @@ class SPOD_base(base):
 		# save modes in storage too in case post-processing crashes
 		Phi = Phi[:,0:self._n_modes_save]
 		Phi = Phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-		nms = self._n_modes_save # increase readibility
-		file_psi = 'modes1to{:06d}_freq{:06d}.npy'.format(nms, i_freq)
+		file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
 		path_psi = os.path.join(self._save_dir_simulation, file_psi)
 		np.save(path_psi, Phi)
 		self._modes[i_freq] = file_psi
@@ -612,6 +621,7 @@ class SPOD_base(base):
 		# compute coeffs
 		coeffs, phi_tilde, time_mean = self.compute_coeffs(
 			data=data, nt=nt, svd=svd, T_lb=T_lb, T_ub=T_ub)
+		# coeffs = np.real_if_close(coeffs, tol=1000000)
 
 		# reconstruct data
 		reconstructed_data = self.reconstruct_data(
@@ -700,8 +710,8 @@ class SPOD_base(base):
 
 		# save coefficients
 		file_coeffs = os.path.join(self._save_dir_simulation,
-			'coeffs_modes1to{:06d}_freq{:08f}to{:08f}.npy'.format(
-				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
+			'coeffs_freq{:08f}to{:08f}.npy'.format(
+				self._freq_found_lb, self._freq_found_ub))
 		np.save(file_coeffs, coeffs)
 
 		print('- saving completed. ', time.time() - st, 's.')
@@ -730,8 +740,8 @@ class SPOD_base(base):
 			((nt,) + self._xshape + (self._nv,)))
 		print('- data reshaped. ', time.time() - st, 's.')
 		file_dynamics = os.path.join(self._save_dir_simulation,
-			'reconstructed_data_modes1to{:06d}_freq{:08f}to{:08f}.pkl'.format(
-				self._n_modes_save, self._freq_found_lb, self._freq_found_ub))
+			'reconstructed_data_freq{:08f}to{:08f}.pkl'.format(
+				self._freq_found_lb, self._freq_found_ub))
 		with open(file_dynamics, 'wb') as handle:
 			pickle.dump(Q_reconstructed, handle)
 		# np.save(file_dynamics, Q_reconstructed)
@@ -912,7 +922,7 @@ class SPOD_base(base):
 			all_freq_exist = 0
 			for i_freq in range(0,n_freq):
 				file = os.path.join(saveDir,
-					'fft_block{:06d}_freq{:06d}.npy'.format(iBlk,i_freq))
+					'fft_block{:08d}_freq{:08d}.npy'.format(iBlk,i_freq))
 				if os.path.exists(file):
 					all_freq_exist = all_freq_exist + 1
 			if (all_freq_exist == n_freq):

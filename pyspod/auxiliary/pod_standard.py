@@ -12,7 +12,6 @@ import numpy as np
 import scipy as scipy
 
 # Import custom Python packages
-from pyspod.base import base
 import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
 
@@ -24,12 +23,25 @@ CFD = os.path.dirname(CF)
 BYTE_TO_GB = 9.3132257461548e-10
 
 
-class POD_base(base):
+
+class POD_standard(object):
 	'''
 	Proper Orthogonal Decomposition base class.
 	'''
 	def __init__(self, params, data_handler, variables, weights=None):
-		base.__init__(self, params, data_handler, variables, weights=weights)
+		# store mandatory parameters in class
+		self._dt   = params['time_step'   ]	# time-step of the data
+		self._xdim = params['n_space_dims'] # number of spatial dimensions
+		self._nv   = params['n_variables' ]	# number of variables
+
+		# store optional parameters in class
+		self._normalize_weights = params.get('normalize_weights', False) # normalize weights if required
+		self._normalize_data 	= params.get('normalize_data', False)    # normalize data by variance if required
+		self._n_modes_save      = params.get('n_modes_save', 1e10)       # default is all (large number)
+		self._save_dir          = params.get('savedir', os.path.join(CWD, 'results')) # where to save data
+		self._data_handler      = data_handler
+		self._variables         = variables
+		self._weights_tmp       = weights
 
 
 	def fit(self, data, nt):
@@ -41,9 +53,11 @@ class POD_base(base):
 		if not self._data_handler:
 			def data_handler(data, t_0, t_end, variables):
 				if t_0 > t_end:
-					raise ValueError('`t_0` cannot be greater than `t_end`.')
+					raise ValueError(
+						'`t_0` cannot be greater than `t_end`.')
 				elif t_0 >= self._nt:
-					raise ValueError('`t_0` cannot be greater or equal to time dimension.')
+					raise ValueError(
+						'`t_0` cannot be greater or equal to time dimension.')
 				elif t_0 == t_end:
 					d = data[[t_0],...,:]
 				else:
@@ -53,7 +67,8 @@ class POD_base(base):
 					d = d[...,np.newaxis]
 				return d
 			self._data_handler = data_handler
-		X = self._data_handler(self._data, t_0=0, t_end=0, variables=self._variables)
+		X = self._data_handler(
+			self._data, t_0=0, t_end=0, variables=self._variables)
 		if self._nv == 1 and (X.ndim != self._xdim + 2):
 			X = X[...,np.newaxis]
 
@@ -94,7 +109,8 @@ class POD_base(base):
 
 		# flatten weights to number of spatial point
 		try:
-			self._weights = np.reshape(self._weights, [int(self._nx*self._nv), 1])
+			self._weights = np.reshape(
+				self._weights, [int(self._nx*self._nv), 1])
 		except:
 			raise ValurError(
 				'parameter ``weights`` must be cast into '
@@ -102,7 +118,8 @@ class POD_base(base):
 				'spatial dimension of data.')
 
 		# create folder to save results
-		self._save_dir_modes = os.path.join(self._save_dir, 'modes'+str(self._n_modes_save))
+		self._save_dir_modes = os.path.join(
+			self._save_dir, 'modes'+str(self._n_modes_save))
 		if not os.path.exists(self._save_dir_modes):
 		 	os.makedirs(self._save_dir_modes)
 
@@ -117,7 +134,7 @@ class POD_base(base):
 
 
 	# basic getters
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 	@property
 	def save_dir(self):
@@ -283,14 +300,14 @@ class POD_base(base):
 		'''
 		return self._weights
 
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 
 
 	# main methods
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
-	def compute_pod_bases(self, data, num_modes, nt): 
+	def compute_pod_bases(self, data, num_modes, nt):
 		'''
 		Takes input of a snapshot matrix and computes POD bases
 		Outputs truncated POD bases and coefficients.
@@ -320,18 +337,18 @@ class POD_base(base):
 
 		# compute coeffs
 		coeffs, phi_tilde, time_mean = self.compute_coeffs(
-			data=data, 
-			nt=nt, 
+			data=data,
+			nt=nt,
 			svd=svd
 		)
 
 		# reconstruct data
 		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs, 
+			coeffs=coeffs,
 			phi_tilde=phi_tilde,
-			time_mean=time_mean, 
+			time_mean=time_mean,
 		)
-		
+
 		# # return data
 		dict_return = {
 			'coeffs': coeffs,
@@ -352,8 +369,10 @@ class POD_base(base):
 		X_rearrange_mean = np.mean(X_rearrange,axis=0)
 
 		for i in range(nt):
-			X_rearrange[i,:] = np.squeeze(X_rearrange[i,:]) - np.squeeze(X_rearrange_mean)
-		phi_trunc, cf_trunc = self.compute_pod_bases(X_rearrange.T,self._n_modes_save,nt)
+			X_rearrange[i,:] = np.squeeze(X_rearrange[i,:]) - \
+				np.squeeze(X_rearrange_mean)
+		phi_trunc, cf_trunc = self.compute_pod_bases(
+			X_rearrange.T,self._n_modes_save,nt)
 
 		# save coefficients
 		file_coeffs = os.path.join(self._save_dir_modes,
@@ -378,20 +397,6 @@ class POD_base(base):
 		return Q_reconstructed
 
 
-	def store_and_save(self):
-		"""Store and save results."""
-
-		self._eigs_c_u = self._eigs_c[:,:,0]
-		self._eigs_c_l = self._eigs_c[:,:,1]
-		file = os.path.join(self._save_dir_modes, 'spod_energy')
-		np.savez(file,
-			eigs=self._eigs,
-			eigs_c_u=self._eigs_c_u,
-			eigs_c_l=self._eigs_c_l,
-			f=self._freq)
-		self._n_modes = self._eigs.shape[-1]
-
-
 	def print_parameters(self):
 
 		# display parameter summary
@@ -410,18 +415,19 @@ class POD_base(base):
 		print('------------------------------------')
 		print('')
 
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 
 
 	# getters with arguments
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 	def find_nearest_coords(self, coords, x):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		xi, idx = post.find_nearest_coords(coords=coords, x=x, data_space_dim=self.xshape)
+		xi, idx = post.find_nearest_coords(
+			coords=coords, x=x, data_space_dim=self.xshape)
 		return xi, idx
 
 
@@ -434,48 +440,15 @@ class POD_base(base):
 		'''
 		if self._data_handler:
 			X = self._data_handler(
-				data=self._data, t_0=t_0, t_end=t_end, variables=self._variables)
+				data=self._data,
+				t_0=t_0,
+				t_end=t_end,
+				variables=self._variables
+			)
 			if self._nv == 1 and (X.ndim != self._xdim + 2):
 				X = X[...,np.newaxis]
 		else:
 			X = self._data[t_0, t_end]
 		return X
 
-	# ---------------------------------------------------------------------------
-
-
-
-	# static methods
-	# ---------------------------------------------------------------------------
-
-	@staticmethod
-	def _are_blocks_present(n_blocks, n_freq, saveDir):
-		print('Checking if blocks are already present ...')
-		all_blocks_exist = 0
-		for iBlk in range(0,n_blocks):
-			all_freq_exist = 0
-			for iFreq in range(0,n_freq):
-				file = os.path.join(saveDir,
-					'fft_block{:04d}_freq{:04d}.npy'.format(iBlk,iFreq))
-				if os.path.exists(file):
-					all_freq_exist = all_freq_exist + 1
-			if (all_freq_exist == n_freq):
-				print('block '+str(iBlk+1)+'/'+str(n_blocks)+\
-					' is present in: ', saveDir)
-				all_blocks_exist = all_blocks_exist + 1
-		if all_blocks_exist == n_blocks:
-			print('... all blocks are present - loading from storage.')
-			return True
-		else:
-			print('... blocks are not present - proceeding to compute them.\n')
-			return False
-
-
-	@staticmethod
-	def _hamming_window(N):
-		'''
-			Standard Hamming window of length N
-		'''
-		x = np.arange(0,N,1)
-		window = (0.54 - 0.46 * np.cos(2 * np.pi * x / (N-1))).T
-		return window
+	# --------------------------------------------------------------------------

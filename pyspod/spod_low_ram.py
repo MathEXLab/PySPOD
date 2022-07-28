@@ -11,14 +11,14 @@ import shutil
 
 
 # Import PySPOD base class for SPOD_low_ram
-from pyspod.spod_base import SPOD_base
+from pyspod.spod_base import SPOD_standard
 
 CWD = os.getcwd()
 BYTE_TO_GB = 9.3132257461548e-10
 
 
 
-class SPOD_low_ram(SPOD_base):
+class SPOD_low_ram(SPOD_standard):
 	"""
 	Class that implements the Spectral Proper Orthogonal Decomposition
 	to the input data using disk storage to reduce the amount
@@ -26,7 +26,7 @@ class SPOD_low_ram(SPOD_base):
 
 	The computation is performed on the data *X* passed
 	to the constructor of the `SPOD_low_ram` class, derived
-	from the `SPOD_base` class.
+	from the `SPOD_standard` class.
 	"""
 
 	def fit(self, data, nt):
@@ -69,7 +69,7 @@ class SPOD_low_ram(SPOD_base):
 				# save FFT blocks in storage memory
 				self._Q_hat_f[str(i_blk)] = dict()
 				for i_freq in range(0, self._n_freq):
-					file = 'fft_block{:06d}_freq{:06d}.npy'.format(
+					file = 'fft_block{:08d}_freq{:08d}.npy'.format(
 						i_blk, i_freq)
 					path = os.path.join(self._blocks_folder, file)
 					Q_blk_hat_fi = Q_blk_hat[i_freq,:]
@@ -116,7 +116,7 @@ class SPOD_low_ram(SPOD_base):
 			# load FFT data from previously saved file
 			Q_hat_f = np.zeros([self._nx,self._n_blocks], dtype='complex_')
 			for i_blk in range(0,self._n_blocks):
-				file = 'fft_block{:06d}_freq{:06d}.npy'.format(i_blk,i_freq)
+				file = 'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq)
 				path = os.path.join(self._blocks_folder, file)
 				Q_hat_f[:,i_blk] = np.load(path)
 
