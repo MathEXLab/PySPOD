@@ -205,14 +205,14 @@ class SPOD_standard(object):
 	# --------------------------------------------------------------------------
 
 	@property
-	def save_dir(self):
+	def save_dir_simulation(self):
 		'''
 		Get the directory where results are saved.
 
 		:return: path to directory where results are saved.
 		:rtype: str
 		'''
-		return self._save_dir
+		return self._save_dir_simulation
 
 
 	@property
@@ -1031,8 +1031,8 @@ class SPOD_standard(object):
 		See method implementation in the postprocessing module.
 		'''
 		post.plot_eigs(self.eigs, title=title, figsize=figsize,
-			show_axes=show_axes, equal_axes=equal_axes, path=self.save_dir,
-			filename=filename)
+			show_axes=show_axes, equal_axes=equal_axes,
+			path=self.save_dir_simulation, filename=filename)
 
 
 	def plot_eigs_vs_frequency(self, freq=None, title='', xticks=None,
@@ -1045,7 +1045,7 @@ class SPOD_standard(object):
 		post.plot_eigs_vs_frequency(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			show_axes=show_axes, equal_axes=equal_axes, figsize=figsize,
-			path=self.save_dir, filename=filename)
+			path=self.save_dir_simulation, filename=filename)
 
 
 	def plot_eigs_vs_period(self, freq=None, title='', xticks=None,
@@ -1058,7 +1058,7 @@ class SPOD_standard(object):
 		post.plot_eigs_vs_period(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			figsize=figsize, show_axes=show_axes, equal_axes=equal_axes,
-			path=self.save_dir, filename=filename)
+			path=self.save_dir_simulation, filename=filename)
 
 
 	def plot_2D_modes_at_frequency(self, freq_required, freq, vars_idx=[0],
@@ -1074,7 +1074,8 @@ class SPOD_standard(object):
 			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift,
 			imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
 			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir, filename=filename)
+			equal_axes=equal_axes, path=self.save_dir_simulation,
+			filename=filename)
 
 
 	def plot_2D_mode_slice_vs_time(self, freq_required, freq, vars_idx=[0],
@@ -1088,7 +1089,8 @@ class SPOD_standard(object):
 			modes_path=self._save_dir_simulation, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
 			fftshift=fftshift, title=title, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir, filename=filename)
+			equal_axes=equal_axes, path=self.save_dir_simulation,
+			filename=filename)
 
 
 	def plot_3D_modes_slice_at_frequency(self, freq_required, freq,
@@ -1106,7 +1108,8 @@ class SPOD_standard(object):
 			slice_id=slice_id, fftshift=fftshift, imaginary=imaginary,
 			plot_max=plot_max, coastlines=coastlines, title=title,
 			xticks=xticks, yticks=yticks, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir, filename=filename)
+			equal_axes=equal_axes, path=self.save_dir_simulation,
+			filename=filename)
 
 
 	def plot_mode_tracers(self, freq_required, freq, coords_list,
@@ -1119,7 +1122,7 @@ class SPOD_standard(object):
 			self.modes, freq_required=freq_required, freq=freq,
 			coords_list=coords_list, modes_path=self._save_dir_simulation,
 			x=x, vars_idx=vars_idx, modes_idx=modes_idx, fftshift=fftshift,
-			title=title, figsize=figsize, path=self.save_dir,
+			title=title, figsize=figsize, path=self.save_dir_simulation,
 			filename=filename)
 
 
@@ -1133,7 +1136,7 @@ class SPOD_standard(object):
 			X=self.get_data(t_0=0, t_end=max_time_idx+1),
 			time_idx=time_idx, vars_idx=vars_idx, x1=x1, x2=x2,
 			title=title, coastlines=coastlines, figsize=figsize,
-			path=self.save_dir, filename=filename)
+			path=self.save_dir_simulation, filename=filename)
 
 
 	def plot_data_tracers(self, coords_list, x=None, time_limits=[0,10],
@@ -1145,7 +1148,7 @@ class SPOD_standard(object):
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			coords_list=coords_list, x=x, time_limits=time_limits,
 			vars_idx=vars_idx, title=title, figsize=figsize,
-			path=self.save_dir, filename=filename)
+			path=self.save_dir_simulation, filename=filename)
 
 	# --------------------------------------------------------------------------
 
@@ -1164,6 +1167,6 @@ class SPOD_standard(object):
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			time_limits=[0,time_limits[-1]], vars_idx=vars_idx,
 			sampling=sampling, x1=x1, x2=x2, coastlines=coastlines,
-			figsize=figsize, path=self.save_dir, filename=filename)
+			figsize=figsize, path=self.save_dir_simulation, filename=filename)
 
 	# --------------------------------------------------------------------------
