@@ -1,4 +1,4 @@
-"""Module implementing utils used across the library."""
+'''Module implementing utils used across the library.'''
 
 import os
 import sys

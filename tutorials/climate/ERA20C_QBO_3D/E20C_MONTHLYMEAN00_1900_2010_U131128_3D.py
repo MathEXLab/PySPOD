@@ -3,12 +3,12 @@ from ecmwfapi import ECMWFDataServer
 server = ECMWFDataServer()
  
 def retrieve_era20c_mnth():
-    """      
+    '''      
        A function to demonstrate how to iterate efficiently over all months,
        for a list of years of the same decade (eg from 2000 to 2009) for an ERA-20C synoptic monthly means request.
        You can extend the number of years to adapt the iteration to your needs.
        You can use the variable 'target' to organise the requested data in files as you wish.
-    """
+    '''
     yearStart = 1900
     yearEnd = 2010
     monthStart = 1
@@ -22,11 +22,11 @@ def retrieve_era20c_mnth():
     era20c_mnth_pl_request(requestMonths, target_pl)
  
 def era20c_mnth_pl_request(requestMonths, target):
-    """      
+    '''      
         An ERA era20c request for analysis, pl data.
         You can change the keywords below to adapt it to your needs.
         (eg add or remove levels, parameters, times etc)
-    """
+    '''
     server.retrieve({
         "class": "e2",
         "stream": "mnth",

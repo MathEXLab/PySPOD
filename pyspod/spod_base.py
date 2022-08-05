@@ -49,7 +49,7 @@ class SPOD_standard(object):
 		self._normalize_weights = params.get('normalize_weights', False) # normalize weights if required
 		self._normalize_data 	= params.get('normalize_data', False)    # normalize data by variance if required
 		self._n_modes_save      = params.get('n_modes_save', 1e10)       # default is all (large number)
-		self._save_dir          = params.get('savedir', os.path.join(CWD, 'results')) # where to save data
+		self._save_dir          = params.get('savedir', os.path.join(CWD, 'spod_results')) # where to save data
 		self._data_handler      = data_handler
 		self._variables         = variables
 		self._weights_tmp       = weights
@@ -476,7 +476,7 @@ class SPOD_standard(object):
 	# --------------------------------------------------------------------------
 
 	def select_mean(self):
-		"""Select mean."""
+		'''Select mean.'''
 		if self._mean_type.lower() == 'longtime':
 			self._time_mean = self.longtime_mean()
 			self._mean_name = 'longtime'
@@ -493,7 +493,7 @@ class SPOD_standard(object):
 
 
 	def longtime_mean(self):
-		"""Get longtime mean."""
+		'''Get longtime mean.'''
 		split_block = self.nt // self._n_blocks
 		split_res = self.nt % self._n_blocks
 		x_sum = np.zeros(self.xshape+(self.nv,))
@@ -521,7 +521,7 @@ class SPOD_standard(object):
 
 
 	def get_freq_axis(self):
-		"""Obtain frequency axis."""
+		'''Obtain frequency axis.'''
 		self._freq = (np.arange(0, self._n_DFT, 1) / self._dt) / self._n_DFT
 		if not self._fullspectrum:
 			if self._isrealx:
@@ -538,7 +538,7 @@ class SPOD_standard(object):
 
 
 	def compute_blocks(self, iBlk):
-		"""Compute FFT blocks."""
+		'''Compute FFT blocks.'''
 
 		# get time index for present block
 		offset = min(iBlk * (self._n_DFT - self._n_overlap) \
@@ -581,7 +581,7 @@ class SPOD_standard(object):
 
 
 	def compute_standard_spod(self, Q_hat_f, i_freq):
-		"""Compute standard SPOD."""
+		'''Compute standard SPOD.'''
 
 		# compute inner product in frequency space, for given frequency
 		M = np.matmul(
@@ -747,13 +747,13 @@ class SPOD_standard(object):
 		# np.save(file_dynamics, Q_reconstructed)
 		print('- data saved. ', time.time() - st, 's.')
 		print('---------------------------------------------')
-		print('Coefficients saved in folder  ', file_dynamics)
+		print('Reconstructed data saved in folder  ', file_dynamics)
 		print('Elapsed time: ', time.time() - s0, 's.')
 		return Q_reconstructed
 
 
 	def store_and_save(self):
-		"""Store and save results."""
+		'''Store and save results.'''
 
 		# save dictionary of modes for loading
 		path_modes = os.path.join(self._save_dir_simulation, 'modes_dict.pkl')
@@ -956,7 +956,7 @@ class SPOD_standard(object):
 	def plot_2D_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0],
 		x1=None, x2=None, title='', coastlines='', figsize=(12,8),
 		path='CWD', filename=None, origin=None):
-		"""
+		'''
 		Plot 2D data.
 		:param numpy.ndarray X_data: 2D data to be plotted. \
 			First dimension must be time. Last dimension must be variable.
@@ -978,7 +978,7 @@ class SPOD_standard(object):
 		:param str path: if specified, the plot is saved at `path`. \
 			Default is CWD.
 		:param str filename: if specified, the plot is saved at `filename`.
-		"""
+		'''
 
 		# check dimensions
 		if (X_data.ndim != 4) or (R.ndim != 4):

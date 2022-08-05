@@ -1,4 +1,4 @@
-"""Derived module from spod_base.py for SPOD emulation."""
+'''Derived module from spod_base.py for SPOD emulation.'''
 
 # Import standard Python packages
 import os
@@ -36,14 +36,14 @@ CWD = os.getcwd()
 
 
 class Emulation():
-	"""
+	'''
 	Class that implements a non-intrusive emulation of the
 	latent-space SPOD dynamics via neural networks.
 
 	The computation is performed on the data *data* passed
 	to the constructor of the `SPOD_low_ram` class, derived
 	from the `SPOD_standard` class.
-	"""
+	'''
 	def __init__(self, params):
 		self._network     = params.get('network', 'lstm')
 		self._n_neurons   = params.get('n_neurons',20)

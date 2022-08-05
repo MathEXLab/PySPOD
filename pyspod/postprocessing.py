@@ -1,4 +1,4 @@
-"""Derived module from spodbase.py for classic spod."""
+'''Derived module from spodbase.py for classic spod.'''
 
 # import standard python packages
 import os
@@ -56,7 +56,7 @@ def change_path_modes(modes_dict, wanted, target):
 # ---------------------------------------------------------------------------
 
 def find_nearest_freq(freq_required, freq):
-	"""
+	'''
 	Get nearest frequency to requested `freq_value`.
 
 	:param double freq_required: requested frequency.
@@ -64,7 +64,7 @@ def find_nearest_freq(freq_required, freq):
 
 	:return: the nearest frequecy to the `freq_value` requested and its id.
 	:rtype: double, int
-	"""
+	'''
 	freq = np.asarray(freq)
 	idx = (np.abs(freq - freq_required)).argmin()
 	return freq[idx], idx
@@ -72,7 +72,7 @@ def find_nearest_freq(freq_required, freq):
 
 
 def find_nearest_coords(coords, x, data_space_dim):
-	"""
+	'''
 	Get nearest data coordinates to requested coordinates `coords`.
 
 	:param np.ndarray coords: coordinate requested.
@@ -81,7 +81,7 @@ def find_nearest_coords(coords, x, data_space_dim):
 
 	:return: the nearest coordinate to the `coords` requested and its id.
 	:rtype: numpy.ndarray, int
-	"""
+	'''
 	coords = np.asarray(coords)
 	if isinstance(x, list):
 		grid = np.array(np.meshgrid(*x, indexing='ij'))
@@ -106,7 +106,7 @@ def find_nearest_coords(coords, x, data_space_dim):
 
 
 def get_Q_hat_at_freq(Q_hat, block_idx, freq_idx):
-	"""
+	'''
 	Get the matrix containing the block data matrices.
 
 	:param dict: path to the files where the SPOD modes are stored.
@@ -114,7 +114,7 @@ def get_Q_hat_at_freq(Q_hat, block_idx, freq_idx):
 
 	:return: the block data matrices at requested frequency.
 	:rtype: numpy.ndarray
-	"""
+	'''
 	# load modes from files if saved in storage
 	if isinstance(Q_hat, dict):
 		filename = Q_hat[block_idx][freq_idx]
@@ -128,7 +128,7 @@ def get_Q_hat_at_freq(Q_hat, block_idx, freq_idx):
 
 
 def get_modes_at_freq(modes, freq_idx, modes_path='./'):
-	"""
+	'''
 	Get the matrix containing the SPOD modes, stored by \
 	[frequencies, spatial dimensions data, no. of variables, no. of modes].
 
@@ -138,7 +138,7 @@ def get_modes_at_freq(modes, freq_idx, modes_path='./'):
 	:return: the n_dims, n_vars, n_modes \
 		matrix containing the SPOD modes at requested frequency.
 	:rtype: numpy.ndarray
-	"""
+	'''
 	# load modes from files if saved in storage
 	if isinstance(modes, dict):
 		filename = os.path.join(modes_path, modes[freq_idx])
@@ -152,14 +152,14 @@ def get_modes_at_freq(modes, freq_idx, modes_path='./'):
 
 
 def get_data_from_file(filename):
-	"""
+	'''
 	Load data from file
 
 	:param str filename: path from where to load data.
 
 	:return: the requested data stored in `filename`
 	:rtype: numpy.ndarray
-	"""
+	'''
 	_, ext = splitext(filename)
 	if ext.lower() == '.npy':
 		m = np.load(filename)
@@ -181,7 +181,7 @@ def get_data_from_file(filename):
 
 def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 	equal_axes=False,  path='CWD', filename=None):
-	"""
+	'''
 	Plot eigenvalues `eigs`.
 
 	:param ndarray eigs: eigenvalues.
@@ -193,7 +193,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	"""
+	'''
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 
@@ -237,7 +237,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 	show_axes=True, equal_axes=False, figsize=(12,8), fontname='Times New Roman',
 	fontsize=16, path='CWD', filename=None):
-	"""
+	'''
 	Plot eigenvalues vs. frequency.
 
 	:param ndarray eigs: eigenvalues.
@@ -252,7 +252,7 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	"""
+	'''
 
 	csfont = {'fontname': fontname}
 	szfont = {'fontsize': fontsize}
@@ -295,7 +295,7 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	show_axes=True, equal_axes=False, figsize=(12,8), fontname='Times New Roman',
 	fontsize=16, path='CWD', filename=None):
-	"""
+	'''
 	Plot eigenvalues vs. period = 1 / freq.
 
 	:param ndarray eigs: eigenvalues.
@@ -310,7 +310,7 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	"""
+	'''
 
 	csfont = {'fontname': fontname}
 	szfont = {'fontsize': fontsize}
@@ -361,7 +361,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 	imaginary=False, plot_max=False, coastlines='', title='',
 	xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
 	equal_axes=False, path='CWD', filename=None, origin=None):
-	"""
+	'''
 	Plot SPOD modes for 2D problems.
 
 	:param numpy.ndarray modes: 2D SPOD modes.
@@ -394,7 +394,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	"""
+	'''
 	# get idx variables
 	vars_idx = _check_vars(vars_idx)
 
@@ -543,7 +543,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 	vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
 	fftshift=False, title='', figsize=(12,8), equal_axes=False, path='CWD',
 	filename=None):
-	"""
+	'''
 	Plot the time evolution of SPOD mode slices for 2D problems.
 
 	:param numpy.ndarray modes: 2D SPOD modes.
@@ -578,7 +578,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	"""
+	'''
 
 	# get idx variables
 	vars_idx = _check_vars(vars_idx)
@@ -743,7 +743,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq,
 	slice_dim=0, slice_id=None, fftshift=False, imaginary=False, plot_max=False,
 	coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
 	equal_axes=False, path='CWD', filename=None, origin=None):
-	"""
+	'''
 	Plot SPOD modes for 3D problems.
 
 	:param numpy.ndarray modes: 3D SPOD modes.
@@ -780,7 +780,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq,
 		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	"""
+	'''
 
 	# get idx variables
 	vars_idx = _check_vars(vars_idx)
@@ -934,7 +934,7 @@ def plot_3D_modes_slice_at_frequency(modes, freq_required, freq,
 def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 	x=None, vars_idx=[0], modes_idx=[0], fftshift=False, title='',
 	figsize=(12,8), path='CWD', filename=None):
-	"""
+	'''
 	Plot SPOD mode tracers for nD problems.
 
 	:param numpy.ndarray modes: nD SPOD modes.
@@ -957,7 +957,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
-	"""
+	'''
 
 	# get idx variables
 	vars_idx = _check_vars(vars_idx)
@@ -1043,7 +1043,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 
 def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 	title='', coastlines='', figsize=(12,8), path='CWD', filename=None, origin=None):
-	"""
+	'''
 	Plot 2D data.
 
 	:param numpy.ndarray X: 2D data to be plotted. \
@@ -1065,7 +1065,7 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`.
 
-	"""
+	'''
 	# check dimensions
 	if X.ndim != 4:
 		raise ValueError('Dimension of data is not 2D.')
@@ -1135,7 +1135,7 @@ def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 	vars_idx=[0], title='', figsize=(12,8), path='CWD', filename=None):
-	"""
+	'''
 	Plot data tracers for nD problems.
 
 	:param numpy.ndarray X: nD data.
@@ -1152,7 +1152,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 	:param str path: if specified, the plot is saved at `path`. Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`.
 		Default is None.
-	"""
+	'''
 
 	# check coord_list has correct shape and type
 	if not coords_list:
@@ -1312,7 +1312,7 @@ def plot_trainingHistories(loss, val_loss):
 
 def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	x1=None, x2=None, coastlines='', figsize=(12,8), path='CWD', filename='data_video.mp4'):
-	"""
+	'''
 		Make movie of 2D data.
 
 	:param numpy.ndarray X: 2D data to be plotted. \
@@ -1332,7 +1332,7 @@ def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	:param str path: if specified, the plot is saved at `path`. \
 		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`.
-	"""
+	'''
 	# check dimensions
 	if X.ndim != 4:
 		raise ValueError('Dimension of data is not 2D.')

@@ -7,6 +7,8 @@ from __future__ import division
 # Import standard Python packages
 import os
 import sys
+import time
+import pickle
 import warnings
 import numpy as np
 import scipy as scipy
@@ -38,13 +40,22 @@ class POD_standard(object):
 		self._normalize_weights = params.get('normalize_weights', False) # normalize weights if required
 		self._normalize_data 	= params.get('normalize_data', False)    # normalize data by variance if required
 		self._n_modes_save      = params.get('n_modes_save', 1e10)       # default is all (large number)
-		self._save_dir          = params.get('savedir', os.path.join(CWD, 'results')) # where to save data
+		self._save_dir          = params.get('savedir', os.path.join(CWD, 'pod_results')) # where to save data
 		self._data_handler      = data_handler
 		self._variables         = variables
 		self._weights_tmp       = weights
 
+		# define data handler
+		self._data_handler = data_handler
 
-	def fit(self, data, nt):
+		# get variables
+		self._variables = variables
+
+		# get weights
+		self._weights_tmp = weights
+
+
+	def initialize_fit(self, data, nt):
 		# type of data management
 		# - data_handler: read type online
 		# - not data_handler: data is entirely pre-loaded
@@ -128,9 +139,6 @@ class POD_standard(object):
 
 		# print parameters to the screen
 		self.print_parameters()
-
-		return self
-
 
 
 	# basic getters
@@ -307,49 +315,76 @@ class POD_standard(object):
 	# main methods
 	# --------------------------------------------------------------------------
 
-	def compute_pod_bases(self, data, num_modes, nt):
+	# def compute_pod_bases(self, data, num_modes, nt):
+	# 	'''
+	# 	Takes input of a snapshot matrix and computes POD bases
+	# 	Outputs truncated POD bases and coefficients.
+	# 	Note, mean should be removed from data.
+	# 	'''
+	#
+	# 	# # eigendecomposition
+	# 	# Q = np.matmul(np.transpose(data), data * self._weights)
+	# 	# w, v = scipy.linalg.eig(Q)
+	# 	#
+	# 	# # bases
+	# 	# phi = np.real(np.matmul(data, v))
+	# 	# t = np.arange(nt)
+	# 	# phi[:,t] = phi[:,t] / np.sqrt(w[:])
+	# 	#
+	# 	# # coefficients
+	# 	# a = np.matmul(np.transpose(phi), data)
+	#
+	# 	# # truncation
+	# 	# phi_r = phi[:,0:num_modes]
+	# 	a_r = a[0:num_modes,:]
+	#
+	# 	return phi_r, a_r
+
+	def fit(self, data, nt):
 		'''
-		Takes input of a snapshot matrix and computes POD bases
-		Outputs truncated POD bases and coefficients.
-		Note, mean should be removed from data.
+		Class-specific method to fit the data matrix X using standard POD.
 		'''
+		start = time.time()
+
+		print(' ')
+		print('Initialize data')
+		print('-----------------------------------------------')
+		self.initialize_fit(data, nt)
+		print('-----------------------------------------------')
+
+		# get data and remove mean
+		X, _ = self.reshape_and_remove_mean(data, nt)
 
 		# eigendecomposition
-		Q = np.matmul(np.transpose(data), data * self._weights)
+		Q = np.matmul(np.transpose(X), X * self._weights)
 		w, v = scipy.linalg.eig(Q)
 
 		# bases
-		phi = np.real(np.matmul(data, v))
+		print(' ')
+		print('Calculating standard POD')
+		print('-----------------------------------------------')
+		phi = np.real(np.matmul(X, v))
 		t = np.arange(nt)
 		phi[:,t] = phi[:,t] / np.sqrt(w[:])
 
-		# coefficients
-		a = np.matmul(np.transpose(phi), data)
-
-		# truncation
-		phi_r = phi[:,0:num_modes]
-		a_r = a[0:num_modes,:]
-
-		return phi_r, a_r
+		# truncation and save
+		phi_r = phi[:,0:self._n_modes_save]
+		file_modes = os.path.join(self._save_dir_modes, 'modes.npy')
+		np.save(file_modes, phi_r)
+		print('-----------------------------------------------')
+		return self
 
 
-	def transform(self, data, nt, svd=True):
+	def transform(self, data, nt):
 
 		# compute coeffs
-		coeffs, phi_tilde, time_mean = self.compute_coeffs(
-			data=data,
-			nt=nt,
-			svd=svd
-		)
+		coeffs, phi_tilde, time_mean = self.compute_coeffs(data=data, nt=nt)
 
 		# reconstruct data
 		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs,
-			phi_tilde=phi_tilde,
-			time_mean=time_mean,
-		)
+			coeffs=coeffs, phi_tilde=phi_tilde, time_mean=time_mean)
 
-		# # return data
+		# return data
 		dict_return = {
 			'coeffs': coeffs,
 			'phi_tilde': phi_tilde,
@@ -359,42 +394,63 @@ class POD_standard(object):
 		return dict_return
 
 
-	def compute_coeffs(self, data, nt, svd=True, T_lb=None, T_ub=None):
+	def compute_coeffs(self, data, nt):
 		'''
 		Compute coefficients through oblique projection.
 		'''
+		s0 = time.time()
+		print('\nComputing coefficients'                     )
+		print('---------------------------------------------')
 
-		# initialize variables
-		X_rearrange = np.reshape(data[:,:,:], [nt,self.nv*self.nx])
-		X_rearrange_mean = np.mean(X_rearrange,axis=0)
+		X, X_mean = self.reshape_and_remove_mean(data, nt)
 
-		for i in range(nt):
-			X_rearrange[i,:] = np.squeeze(X_rearrange[i,:]) - \
-				np.squeeze(X_rearrange_mean)
-		phi_trunc, cf_trunc = self.compute_pod_bases(
-			X_rearrange.T,self._n_modes_save,nt)
+		# compute coefficients
+		phi = np.load(os.path.join(self._save_dir_modes, 'modes.npy'))
+		a = np.matmul(np.transpose(phi), X)
 
 		# save coefficients
-		file_coeffs = os.path.join(self._save_dir_modes,
-			'coeffs_modes1to{:04d}.npy'.format(self._n_modes_save))
-		np.save(file_coeffs, cf_trunc)
-		return cf_trunc, phi_trunc, X_rearrange_mean
+		file_coeffs = os.path.join(self._save_dir_modes, 'coeffs.npy')
+		np.save(file_coeffs, a)
+		print('---------------------------------------------')
+		print('Coefficients saved in folder  ', file_coeffs)
+		print('Elapsed time: ', time.time() - s0, 's.')
+		return a, phi, X_mean
 
 
 	def reconstruct_data(self, coeffs, phi_tilde, time_mean):
 		'''
 		Reconstruct original data through oblique projection.
 		'''
+		s0 = time.time()
+		print('\nReconstructing data from coefficients'      )
+		print('---------------------------------------------')
 		nt = coeffs.shape[1]
 		Q_reconstructed = np.matmul(phi_tilde, coeffs)
 		Q_reconstructed = Q_reconstructed + time_mean[...,None]
 		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
 		 	((nt,) + self._xshape + (self._nv,)))
 		file_dynamics = os.path.join(self._save_dir_modes,
-		 	'reconstructed_data_modes1to{:04d}.npy'.format(
-		 		self._n_modes_save))
-		np.save(file_dynamics, Q_reconstructed)
+			'reconstructed_data.pkl')
+		with open(file_dynamics, 'wb') as handle:
+			pickle.dump(Q_reconstructed, handle)
+		print('---------------------------------------------')
+		print('Reconstructed data saved in folder  ', file_dynamics)
+		print('Elapsed time: ', time.time() - s0, 's.')
 		return Q_reconstructed
+
+
+	def reshape_and_remove_mean(self, data, nt):
+		'''
+		Get data, reshape and remove mean.
+		'''
+		X_tmp = self._data_handler(
+			data, t_0=0, t_end=nt, variables=self.variables)
+		X_tmp = np.squeeze(X_tmp)
+		X = np.reshape(X_tmp[:,:,:], [nt,self.nv*self.nx])
+		X_mean = np.mean(X, axis=0)
+		for i in range(nt):
+			X[i,:] = np.squeeze(X[i,:]) - np.squeeze(X_mean)
+		return np.transpose(X), X_mean
 
 
 	def print_parameters(self):

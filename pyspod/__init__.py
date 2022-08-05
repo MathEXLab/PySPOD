@@ -1,4 +1,4 @@
-"""PySPOD init"""
+'''PySPOD init'''
 __all__ = ['spod_base', 'spod_low_storage', 'spod_low_ram', 'spod_streaming']
 # __all__ = ['SPOD_standard', 'SPOD_low_storage', 'SPOD_low_ram', 'SPOD_streaming']
 

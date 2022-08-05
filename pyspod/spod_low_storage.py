@@ -1,4 +1,4 @@
-"""Derived module from spod_base.py for low storage SPOD."""
+'''Derived module from spod_base.py for low storage SPOD.'''
 
 # import standard python packages
 import os
@@ -18,7 +18,7 @@ BYTE_TO_GB = 9.3132257461548e-10
 
 
 class SPOD_low_storage(SPOD_standard):
-	"""
+	'''
 	Class that implements the Spectral Proper Orthogonal Decomposition
 	to the input data using RAM to reduce the amount of I/O
 	and disk storage (for small datasets / large RAM machines).
@@ -26,13 +26,13 @@ class SPOD_low_storage(SPOD_standard):
 	The computation is performed on the data *X* passed to the
 	constructor of the `SPOD_low_storage` class, derived from
 	the `SPOD_standard` class.
-	"""
+	'''
 
 	def fit(self, data, nt):
-		"""
+		'''
 		Class-specific method to fit the data matrix X using
 		the SPOD low storage algorithm.
-		"""
+		'''
 		start = time.time()
 
 		print(' ')

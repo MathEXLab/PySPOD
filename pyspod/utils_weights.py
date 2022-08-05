@@ -1,4 +1,4 @@
-"""Module implementing weights for standard cases."""
+'''Module implementing weights for standard cases.'''
 
 # import standard python packages
 import numpy as np

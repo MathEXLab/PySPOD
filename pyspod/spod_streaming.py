@@ -1,4 +1,4 @@
-"""Derived module from spod_base.py for streaming SPOD."""
+'''Derived module from spod_base.py for streaming SPOD.'''
 
 # import standard python packages
 import os
@@ -12,7 +12,7 @@ from pyspod.spod_base import SPOD_standard
 
 
 class SPOD_streaming(SPOD_standard):
-	"""
+	'''
 	Class that implements the Spectral Proper Orthogonal Decomposition
 	to the input data X using a streaming algorithn to reduce the amount
 	of I/O and disk storage (for small datasets / large RAM machines).
@@ -20,13 +20,13 @@ class SPOD_streaming(SPOD_standard):
 	The computation is performed on the data *X* passed to the
 	constructor of the `SPOD_streaming` class, derived from
 	the `SPOD_standard` class.
-	"""
+	'''
 
 	def fit(self, data, nt):
-		"""
+		'''
 		Class-specific method to fit the data matrix X using the SPOD
 		streaming algorithm.
-		"""
+		'''
 		start = time.time()
 
 		print(' ')
