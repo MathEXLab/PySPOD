@@ -3,11 +3,11 @@ name: ci
 on:
   push:
     branches:
-      - master
+      - main
       - restructuring
   pull_request:
     branches:
-      - master
+      - main
       - restructuring
   workflow_dispatch:
 
