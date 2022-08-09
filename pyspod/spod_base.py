@@ -73,14 +73,17 @@ class SPOD_standard(object):
 			raise ValueError('Overlap is too large.')
 
 
-	def initialize_fit(self, data, nt):
+	def initialize_fit(self, data, nt, comm=None):
+
+		self._nt = nt
+		self._data = data
+		self._comm = comm
 
 		# type of data management
 		# - data_handler: read type online
 		# - not data_handler: data is entirely pre-loaded
-		self._nt = nt
-		self._data = data
 		if not self._data_handler:
+			print('- defining data handler (since not defined)')
 			def data_handler(data, t_0, t_end, variables):
 				if t_0 > t_end:
 					raise ValueError('`t_0` cannot be greater than `t_end`.')
@@ -96,12 +99,15 @@ class SPOD_standard(object):
 					d = d[...,np.newaxis]
 				return d
 			self._data_handler = data_handler
+
+		print('- reading first time snapshot to get dimensions')
 		X = self._data_handler(
 			self._data, t_0=0, t_end=0, variables=self._variables)
 		if self._nv == 1 and (X.ndim != self._xdim + 2):
 			X = X[...,np.newaxis]
 
 		# get data dimensions and store in class
+		print('- getting data dimensions')
 		self._nx     = X[0,...,0].size
 		self._dim    = X.ndim
 		self._shape  = X.shape
@@ -110,11 +116,11 @@ class SPOD_standard(object):
 
 		# Determine whether data is real-valued or complex-valued-valued
 		# to decide on one- or two-sided spectrum from data
-		#orig
 		self._isrealx = np.isreal(X[0]).all()
 		#self._isrealx = False
 
 		# check weights
+		print('checking data dimensions')
 		if isinstance(self._weights_tmp, dict):
 			self._weights = self._weights_tmp['weights']
 			self._weights_name = self._weights_tmp['weights_name']
@@ -132,6 +138,7 @@ class SPOD_standard(object):
 
 		# normalize weigths if required
 		if self._normalize_weights:
+			print('- normalizing weights')
 			self._weights = utils_weights.apply_normalization(
 				data=self._data,
 				weights=self._weights,
@@ -143,7 +150,7 @@ class SPOD_standard(object):
 			self._weights = np.reshape(
 				self._weights, [int(self._nx*self._nv), 1])
 		except:
-			raise ValurError(
+			raise ValueError(
 				'parameter ``weights`` must be cast into '
 				'1d array with dimension equal to flattened '
 				'spatial dimension of data.')
@@ -167,6 +174,7 @@ class SPOD_standard(object):
 		self._window = self._window.reshape(self._window.shape[0], 1)
 
 		# apply mean
+		print('- computing time mean')
 		self.select_mean()
 
 		# get frequency axis
@@ -195,6 +203,26 @@ class SPOD_standard(object):
 
 		# compute approx problem size (assuming double)
 		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
+
+
+		if comm:
+			## split into distributed arrays
+			perrank = n_longitudes // size
+			remaind = n_longitudes % size
+			if rank == size - 1:
+				X_tmp = X[:,:,rank*perrank:]
+			else:
+				X_tmp = X[:,:,rank*perrank:(rank+1)*perrank]
+
+			## shapes
+			X = np.reshape(
+				X_tmp.values, [X_tmp.shape[0], X_tmp.shape[1] * X_tmp.shape[2]])
+			if rank == 0:
+				assert(X_tmp.shape == (n_samples,n_latitudes,perrank))
+				assert(X    .shape == (n_samples,n_latitudes*perrank))
+			comm.Barrier()
+
+		## pyyaml
 
 		# print parameters to the screen
 		self.print_parameters()
@@ -246,6 +274,17 @@ class SPOD_standard(object):
 		:rtype: int
 		'''
 		return self._nt
+
+
+	@property
+	def comm(self):
+		'''
+		Get the MPI communicator.
+
+		:return: the MPI communicator.
+		:rtype: mpi4py.MPI.Intracomm
+		'''
+		return self._comm
 
 
 	@property
@@ -586,6 +625,8 @@ class SPOD_standard(object):
 		# compute inner product in frequency space, for given frequency
 		M = np.matmul(
 			Q_hat_f.conj().T, (Q_hat_f * self._weights)) / self._n_blocks
+
+		import pdb; pdb.set_trace()
 
 		# extract eigenvalues and eigenvectors
 		L,V = la.eig(M)

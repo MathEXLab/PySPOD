@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+      - restructuring
+  pull_request:
+    branches:
+      - master
+      - restructuring
+  workflow_dispatch:
+
+jobs:
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-11
+        mpi:
+          - mpich
+          - openmpi
+        py:
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+        exclude:
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Use Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3
+
+    - name: Install basic dependencies
+      run:  python -m pip install --upgrade -r requirements.txt
+
+    - name: Install extra dependencies
+      run:  python -m pip install --upgrade -r requirements_extra.txt
+
+    - name: Test package
+      run: coverage run --source ./pyspod -m pytest -v tests/
+
+    - name: Coverage report
+      run: coverage report

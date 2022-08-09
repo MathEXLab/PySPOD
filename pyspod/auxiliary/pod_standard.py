@@ -141,6 +141,7 @@ class POD_standard(object):
 		self.print_parameters()
 
 
+
 	# basic getters
 	# --------------------------------------------------------------------------
 
@@ -315,31 +316,6 @@ class POD_standard(object):
 	# main methods
 	# --------------------------------------------------------------------------
 
-	# def compute_pod_bases(self, data, num_modes, nt):
-	# 	'''
-	# 	Takes input of a snapshot matrix and computes POD bases
-	# 	Outputs truncated POD bases and coefficients.
-	# 	Note, mean should be removed from data.
-	# 	'''
-	#
-	# 	# # eigendecomposition
-	# 	# Q = np.matmul(np.transpose(data), data * self._weights)
-	# 	# w, v = scipy.linalg.eig(Q)
-	# 	#
-	# 	# # bases
-	# 	# phi = np.real(np.matmul(data, v))
-	# 	# t = np.arange(nt)
-	# 	# phi[:,t] = phi[:,t] / np.sqrt(w[:])
-	# 	#
-	# 	# # coefficients
-	# 	# a = np.matmul(np.transpose(phi), data)
-	#
-	# 	# # truncation
-	# 	# phi_r = phi[:,0:num_modes]
-	# 	a_r = a[0:num_modes,:]
-	#
-	# 	return phi_r, a_r
-
 	def fit(self, data, nt):
 		'''
 		Class-specific method to fit the data matrix X using standard POD.
@@ -347,10 +323,8 @@ class POD_standard(object):
 		start = time.time()
 
 		print(' ')
-		print('Initialize data')
-		print('-----------------------------------------------')
+		print('Initialize data ...')
 		self.initialize_fit(data, nt)
-		print('-----------------------------------------------')
 
 		# get data and remove mean
 		X, _ = self.reshape_and_remove_mean(data, nt)
@@ -361,8 +335,8 @@ class POD_standard(object):
 
 		# bases
 		print(' ')
-		print('Calculating standard POD')
-		print('-----------------------------------------------')
+		print('Calculating standard POD ...')
+		st = time.time()
 		phi = np.real(np.matmul(X, v))
 		t = np.arange(nt)
 		phi[:,t] = phi[:,t] / np.sqrt(w[:])
@@ -371,12 +345,16 @@ class POD_standard(object):
 		phi_r = phi[:,0:self._n_modes_save]
 		file_modes = os.path.join(self._save_dir_modes, 'modes.npy')
 		np.save(file_modes, phi_r)
-		print('-----------------------------------------------')
+		print('done. Elapsed time: ', time.time() - st, 's.')
+		print('Modes saved in  ', file_modes)
+
 		return self
 
 
 	def transform(self, data, nt):
-
+		'''
+		Compute coefficients and reconstruction through oblique projection.
+		'''
 		# compute coeffs
 		coeffs, phi_tilde, time_mean = self.compute_coeffs(data=data, nt=nt)
 
@@ -399,8 +377,7 @@ class POD_standard(object):
 		Compute coefficients through oblique projection.
 		'''
 		s0 = time.time()
-		print('\nComputing coefficients'                     )
-		print('---------------------------------------------')
+		print('\nComputing coefficients ...')
 
 		X, X_mean = self.reshape_and_remove_mean(data, nt)
 
@@ -411,9 +388,8 @@ class POD_standard(object):
 		# save coefficients
 		file_coeffs = os.path.join(self._save_dir_modes, 'coeffs.npy')
 		np.save(file_coeffs, a)
-		print('---------------------------------------------')
-		print('Coefficients saved in folder  ', file_coeffs)
-		print('Elapsed time: ', time.time() - s0, 's.')
+		print('done. Elapsed time: ', time.time() - s0, 's.')
+		print('Coefficients saved in  ', file_coeffs)
 		return a, phi, X_mean
 
 
@@ -422,8 +398,7 @@ class POD_standard(object):
 		Reconstruct original data through oblique projection.
 		'''
 		s0 = time.time()
-		print('\nReconstructing data from coefficients'      )
-		print('---------------------------------------------')
+		print('\nReconstructing data from coefficients ...')
 		nt = coeffs.shape[1]
 		Q_reconstructed = np.matmul(phi_tilde, coeffs)
 		Q_reconstructed = Q_reconstructed + time_mean[...,None]
@@ -433,9 +408,8 @@ class POD_standard(object):
 			'reconstructed_data.pkl')
 		with open(file_dynamics, 'wb') as handle:
 			pickle.dump(Q_reconstructed, handle)
-		print('---------------------------------------------')
-		print('Reconstructed data saved in folder  ', file_dynamics)
-		print('Elapsed time: ', time.time() - s0, 's.')
+		print('done. Elapsed time: ', time.time() - s0, 's.')
+		print('Reconstructed data saved in  ', file_dynamics)
 		return Q_reconstructed
 
 
