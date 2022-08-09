@@ -40,10 +40,10 @@ jobs:
         python-version: 3
 
     - name: Install basic dependencies
-      run:  python3 -m pip3 install -r requirements.txt
+      run:  python -m pip install -r requirements.txt
 
     - name: Install extra dependencies
-      run:  python3 -m pip3 install -r requirements_extra.txt
+      run:  python -m pip install -r requirements_extra.txt
 
     - name: Test package
       run: coverage run --source ./pyspod -m pytest -v tests/
