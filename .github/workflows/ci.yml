@@ -19,10 +19,10 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
+          # - ubuntu-20.04
           - macos-11
         mpi:
-          - mpich
+          # - mpich
           - openmpi
         py:
           - "3.7"
@@ -40,10 +40,10 @@ jobs:
         python-version: 3
 
     - name: Install basic dependencies
-      run:  python -m pip install --upgrade -r requirements.txt
+      run:  python3 -m pip3 install -r requirements.txt
 
     - name: Install extra dependencies
-      run:  python -m pip install --upgrade -r requirements_extra.txt
+      run:  python3 -m pip3 install -r requirements_extra.txt
 
     - name: Test package
       run: coverage run --source ./pyspod -m pytest -v tests/
