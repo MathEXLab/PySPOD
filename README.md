@@ -8,23 +8,23 @@
   <a href="https://doi.org/10.21105/joss.02862" target="_blank">
     <img alt="JOSS Paper" src="https://joss.theoj.org/papers/10.21105/joss.02862/status.svg">
   </a>
-
+	
   <a href="https://github.com/mengaldo/PySPOD/LICENSE" target="_blank">
     <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
   </a>
-
+	
   <a href="https://badge.fury.io/py/pyspod">
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
+  </a>	
+	
+  <a href="https://github.com/mathe-lab/PySPOD/actions" target="_blank">
+    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/workflows/ci/badge.svg?branch=master">	  
   </a>
-
-  <a href="https://travis-ci.com/mengaldo/PySPOD" target="_blank">
-    <img alt="Build Status" src="https://app.travis-ci.com/mathe-lab/PySPOD.svg?branch=main">	  
-  </a>
-
+	
   <a href="https://coveralls.io/github/mengaldo/PySPOD?branch=main" target="_blank">
     <img src="https://coveralls.io/repos/github/mengaldo/PySPOD/badge.svg?branch=main" alt="Coverage Status" />
   </a>
-
+	
   <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mengaldo/PySPOD&amp;utm_campaign=Badge_Grade">
     <img src="https://app.codacy.com/project/badge/Grade/7ac24e711aea47df806ad52ab067e3a6"/>
   </a>
