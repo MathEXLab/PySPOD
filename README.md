@@ -18,7 +18,7 @@
   </a>	
 	
   <a href="https://github.com/mathe-lab/PySPOD/actions" target="_blank">
-    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/workflows/ci/badge.svg?branch=master">	  
+    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/workflows/ci/badge.svg">	  
   </a>
 	
   <a href="https://coveralls.io/github/mathe-lab/PySPOD?branch=main" target="_blank">
