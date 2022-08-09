@@ -626,8 +626,6 @@ class SPOD_standard(object):
 		M = np.matmul(
 			Q_hat_f.conj().T, (Q_hat_f * self._weights)) / self._n_blocks
 
-		import pdb; pdb.set_trace()
-
 		# extract eigenvalues and eigenvectors
 		L,V = la.eig(M)
 		L = np.real_if_close(L, tol=1000000)
