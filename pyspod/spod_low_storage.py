@@ -38,7 +38,7 @@ class SPOD_low_storage(SPOD_standard):
 		print(' ')
 		print('Initialize data')
 		print('------------------------------------')
-		self.initialize_fit(data, nt)
+		self._initialize(data, nt)
 		print('------------------------------------')
 
 		print(' ')
@@ -46,7 +46,7 @@ class SPOD_low_storage(SPOD_standard):
 		print('--------------------------------------')
 
 		# check RAM requirements
-		gb_vram_required = self._n_DFT * self._nx * self._nv \
+		gb_vram_required = self._n_dft * self._nx * self._nv \
 			* sys.getsizeof(complex()) * BYTE_TO_GB
 
 		gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
@@ -63,10 +63,10 @@ class SPOD_low_storage(SPOD_standard):
 			blocks_present = self._are_blocks_present(
 				self._n_blocks, self._n_freq, self._blocks_folder)
 
-		Q_blk = np.empty([self._n_DFT,int(self._nx*self._nv)])
+		Q_blk = np.empty([self._n_dft,int(self._nx*self._nv)])
 		Q_hat = np.empty([self._n_freq,self._nx*self.nv,self._n_blocks],
 			dtype='complex_')
-		Q_blk_hat = np.empty([self._n_DFT,int(self._nx*self._nv)],
+		Q_blk_hat = np.empty([self._n_dft,int(self._nx*self._nv)],
 			dtype='complex_')
 		self._Q_hat_f = dict()
 		if blocks_present:
@@ -88,7 +88,7 @@ class SPOD_low_storage(SPOD_standard):
 
 				# print info file
 				print('block '+str(i_blk+1)+'/'+str(self._n_blocks)+\
-					  ' ('+str(offset)+':'+str(self._n_DFT+offset)+')')
+					  ' ('+str(offset)+':'+str(self._n_dft+offset)+')')
 
 				# save FFT blocks in storage memory if required
 				self._Q_hat_f[str(i_blk)] = dict()

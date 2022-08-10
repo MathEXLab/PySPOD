@@ -40,7 +40,7 @@ params = dict()
 params['time_step'   ] = 1                	# data time-sampling
 params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
-params['n_DFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
+params['n_dft'       ] = 100          		# length of FFT blocks (100 time-snapshots)
 
 # -- optional parameters
 params['overlap'          ] = 0 			# dimension block overlap region
@@ -57,7 +57,7 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 def test_basic_spod_low_storage():
 	# Initialize libraries for the low_storage algorithm
-	spod_ls = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
+	spod_ls = SPOD_low_storage(params=params, variables=['p'])
 	spod_ls.fit(p, nt)
 
 	# Let's plot the data
@@ -81,7 +81,7 @@ def test_basic_spod_low_storage():
 
 def test_basic_spod_low_ram():
 	# Let's try the low_ram algorithm
-	spod_ram = SPOD_low_ram(params=params, data_handler=False, variables=['p'])
+	spod_ram = SPOD_low_ram(params=params, variables=['p'])
 	spod_ram.fit(p, nt)
 
 	# Show results
@@ -109,7 +109,7 @@ def test_basic_spod_low_ram_default():
 	params['n_FFT'] = 'default'
 
 	# Let's try the low_ram algorithm
-	spod_ram = SPOD_low_ram(params=params, data_handler=False, variables=['p']	)
+	spod_ram = SPOD_low_ram(params=params, variables=['p']	)
 	spod_ram.fit(p, nt)
 
 	# Show results

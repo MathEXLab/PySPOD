@@ -18,18 +18,18 @@ BYTE_TO_GB = 9.3132257461548e-10
 
 
 
-class SPOD_low_ram(SPOD_standard):
+class SPOD_parallel(SPOD_standard):
 	'''
-	Class that implements the Spectral Proper Orthogonal Decomposition
-	to the input data using disk storage to reduce the amount
-	of RAM (for large datasets / small RAM machines).
+	Class that implements a distributed version of the
+	Spectral Proper Orthogonal Decomposition to the input
+	data (for large datasets ).
 
 	The computation is performed on the data *X* passed
-	to the constructor of the `SPOD_low_ram` class, derived
+	to the constructor of the `SPOD_parallel` class, derived
 	from the `SPOD_standard` class.
 	'''
 
-	def fit(self, data, nt):
+	def fit(self, data, nt, comm=None):
 		'''
 		Class-specific method to fit the data matrix X using
 		the SPOD low ram algorithm.
@@ -39,7 +39,7 @@ class SPOD_low_ram(SPOD_standard):
 		print(' ')
 		print('Initialize data')
 		print('------------------------------------')
-		self._initialize(data, nt)
+		self._initialize(data, nt, comm=comm)
 		print('------------------------------------')
 
 		print(' ')

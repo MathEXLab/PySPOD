@@ -53,7 +53,7 @@ params = {
 	'n_snapshots_SPOD' : ntSPOD, # number of time snapshots for generating SPOD base
 	'n_space_dims'	   : 2,
 	'n_variables' 	   : len(variables),
-	'n_DFT'       	   : int(np.ceil(period_hours / dt_hours)),
+	'n_dft'       	   : int(np.ceil(period_hours / dt_hours)),
 	'overlap'          : 0,
 	'mean_type'        : 'longtime',
 	'normalize_weights': False,

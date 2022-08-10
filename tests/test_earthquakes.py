@@ -47,7 +47,7 @@ params = dict()
 params['time_step'   ] = 1 					# data time-sampling
 params['n_space_dims'] = 2 					# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = 1 					# number of variables
-params['n_DFT'       ] = np.ceil(32) 		# length of FFT blocks (100 time-snapshots)
+params['n_dft'       ] = np.ceil(32) 		# length of FFT blocks (100 time-snapshots)
 
 # -- optional parameters
 params['overlap'          ] = 50			# dimension in percentage (1 to 100) of block overlap
@@ -69,7 +69,7 @@ def test_spod_low_storage_blockwise_mean():
 	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
@@ -99,7 +99,7 @@ def test_spod_low_storage_longtime_mean():
 	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
@@ -129,7 +129,7 @@ def test_spod_low_ram_blockwise_mean():
 	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
@@ -159,7 +159,7 @@ def test_spod_low_ram_longtime_mean():
 	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
@@ -191,7 +191,7 @@ def test_spod_streaming():
 	params['fullspectrum'] = True
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_streaming(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_streaming(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results
@@ -220,7 +220,7 @@ def test_spod_low_storage_savefft():
 	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 1
@@ -240,7 +240,7 @@ def test_spod_low_storage_savefft():
 
 	# SPOD analysis
 	params['reuse_blocks'] = True
-	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 2 (after loading blocks from storage)
@@ -275,7 +275,7 @@ def test_spod_low_ram_savefft():
 	params['reuse_blocks'] = False
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 1
@@ -295,7 +295,7 @@ def test_spod_low_ram_savefft():
 
 	# SPOD analysis
 	params['reuse_blocks'] = True
-	SPOD_analysis = SPOD_low_ram(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test results 2 (after loading blocks from storage)

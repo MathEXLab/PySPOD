@@ -26,7 +26,7 @@ def parse_config_file():
 	params['time_step'    ] = float(dict_req['time_step'])
 	params['n_space_dims' ] = int(dict_req['n_space_dims'])
 	params['n_variables'  ] = int(dict_req['n_variables'])
-	params['n_DFT'        ] = int(dict_req['n_DFT'])
+	params['n_dft'        ] = int(dict_req['n_dft'])
 
 	# optional parameters
 	dict_opt = dict_['optional']

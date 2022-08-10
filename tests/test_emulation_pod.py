@@ -87,7 +87,6 @@ def test_emulation_pod():
 	# SPOD analysis
 	POD_analysis = POD_standard(
 		params=params,
-		data_handler=False,
 		variables=variables
 	)
 
@@ -171,6 +170,12 @@ def test_emulation_pod():
 		   (np.abs(emulation_rec[50,7,20])  > 4.459560725321217 -tol))
 	assert((np.abs(emulation_rec[60,8,9])   < 4.463653302190512 +tol) & \
 		   (np.abs(emulation_rec[60,8,9])   > 4.463653302190512 -tol))
+
+	# clean up results
+	try:
+		shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 

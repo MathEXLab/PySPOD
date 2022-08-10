@@ -46,6 +46,8 @@ ds.to_netcdf("data.nc")
 # to the constructor of pyspod to read data sequentially (thereby
 # reducing RAM requirements)
 
+
+
 # Reader for netCDF
 def read_data_netCDF(data, t_0, t_end, variables):
 	if t_0 == t_end: ti = [t_0]
@@ -65,7 +67,7 @@ params = dict()
 params['time_step'   ] = 1                	# data time-sampling
 params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
-params['n_DFT'       ] = 100          		# length of FFT blocks (100 time-snapshots)
+params['n_dft'       ] = 100          		# length of FFT blocks (100 time-snapshots)
 
 # -- optional parameters
 params['overlap'     	  ] = 0 		  # dimension block overlap region
@@ -83,11 +85,10 @@ def test_basic_file_spod_low_storage():
 	# Initialize libraries by using data_handler for the low storage algorithm
 	spod_ls = SPOD_low_storage(
 		params=params,
-		data_handler=read_data_netCDF,
 		variables=variables)
 
 	# fit spod
-	spod_ls.fit(data=os.path.join(CWD,'data.nc'), nt=nt)
+	spod_ls.fit(data=x_nc, nt=nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)
@@ -108,9 +109,8 @@ def test_basic_file_spod_low_ram():
 	# Let's try the low_ram algorithm
 	spod_ram = SPOD_low_ram(
 		params=params,
-		data_handler=read_data_netCDF,
 		variables=variables)
-	spod_ram.fit(data=os.path.join(CWD,'data.nc'), nt=nt)
+	spod_ram.fit(data=x_nc, nt=nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)

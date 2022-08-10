@@ -51,7 +51,7 @@ params = dict()
 params['time_step'   ] = 744                # data time-sampling
 params['n_space_dims'] = X[0,...,0].ndim    # number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
-params['n_DFT'       ] = np.ceil(12 * 12)   # length of FFT blocks (100 time-snapshots)
+params['n_dft'       ] = np.ceil(12 * 12)   # length of FFT blocks (100 time-snapshots)
 
 # -- optional parameters
 params['overlap'          ] = 0 			# dimension block overlap region

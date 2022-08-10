@@ -44,7 +44,7 @@ params['time_step'   ] = 1                	# data time-sampling (1 day)
 params['n_snapshots' ] = snapshots.shape[0] # number of time snapshots (we consider all data)
 params['n_space_dims'] = 2                	# number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = 1            		# number of variables
-params['n_DFT'       ] = np.ceil(3 * 30)    # length of FFT blocks (30 days by 4 months)
+params['n_dft'       ] = np.ceil(3 * 30)    # length of FFT blocks (30 days by 4 months)
 
 # -- optional parameters
 params['overlap'          ] = 0 			# dimension block overlap region in percentage [0, 100]

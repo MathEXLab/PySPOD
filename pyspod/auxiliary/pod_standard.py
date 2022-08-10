@@ -30,7 +30,7 @@ class POD_standard(object):
 	'''
 	Proper Orthogonal Decomposition base class.
 	'''
-	def __init__(self, params, data_handler, variables, weights=None):
+	def __init__(self, params, variables, weights=None):
 		# store mandatory parameters in class
 		self._dt   = params['time_step'   ]	# time-step of the data
 		self._xdim = params['n_space_dims'] # number of spatial dimensions
@@ -41,104 +41,12 @@ class POD_standard(object):
 		self._normalize_data 	= params.get('normalize_data', False)    # normalize data by variance if required
 		self._n_modes_save      = params.get('n_modes_save', 1e10)       # default is all (large number)
 		self._save_dir          = params.get('savedir', os.path.join(CWD, 'pod_results')) # where to save data
-		self._data_handler      = data_handler
 		self._variables         = variables
 		self._weights_tmp       = weights
 
-		# define data handler
-		self._data_handler = data_handler
-
-		# get variables
+		## get other inputs
 		self._variables = variables
-
-		# get weights
 		self._weights_tmp = weights
-
-
-	def initialize_fit(self, data, nt):
-		# type of data management
-		# - data_handler: read type online
-		# - not data_handler: data is entirely pre-loaded
-		self._nt = nt
-		self._data = data
-		if not self._data_handler:
-			def data_handler(data, t_0, t_end, variables):
-				if t_0 > t_end:
-					raise ValueError(
-						'`t_0` cannot be greater than `t_end`.')
-				elif t_0 >= self._nt:
-					raise ValueError(
-						'`t_0` cannot be greater or equal to time dimension.')
-				elif t_0 == t_end:
-					d = data[[t_0],...,:]
-				else:
-					ti = np.arange(t_0, t_end)
-					d = data[ti,...,:]
-				if self._nv == 1 and (d.ndim != self._xdim + 2):
-					d = d[...,np.newaxis]
-				return d
-			self._data_handler = data_handler
-		X = self._data_handler(
-			self._data, t_0=0, t_end=0, variables=self._variables)
-		if self._nv == 1 and (X.ndim != self._xdim + 2):
-			X = X[...,np.newaxis]
-
-		# # get data dimensions and store in class
-		self._nx     = X[0,...,0].size
-		self._dim    = X.ndim
-		self._shape  = X.shape
-		self._xdim   = X[0,...,0].ndim
-		self._xshape = X[0,...,0].shape
-
-		# # Determine whether data is real-valued or complex-valued-valued
-		# # to decide on one- or two-sided spectrum from data
-		self._isrealx = np.isreal(X[0]).all()
-
-		# check weights
-		if isinstance(self._weights_tmp, dict):
-			self._weights = self._weights_tmp['weights']
-			self._weights_name = self._weights_tmp['weights_name']
-			if np.size(self._weights) != int(self.nx * self.nv):
-				raise ValueError(
-					'parameter ``weights`` must have the '
-					'same size as flattened data spatial '
-					'dimensions, that is: ', int(self.nx * self.nv))
-		else:
-			self._weights = np.ones(self._xshape+(self._nv,))
-			self._weights_name = 'uniform'
-			warnings.warn(
-				'Parameter `weights` not equal to an `numpy.ndarray`.'
-				'Using default uniform weighting')
-
-		# normalize weigths if required
-		if self._normalize_weights:
-			self._weights = utils_weights.apply_normalization(
-				data=self._data,
-				weights=self._weights,
-				n_variables=self._nv,
-				method='variance')
-
-		# flatten weights to number of spatial point
-		try:
-			self._weights = np.reshape(
-				self._weights, [int(self._nx*self._nv), 1])
-		except:
-			raise ValurError(
-				'parameter ``weights`` must be cast into '
-				'1d array with dimension equal to flattened '
-				'spatial dimension of data.')
-
-		# create folder to save results
-		self._save_dir_modes = os.path.join(
-			self._save_dir, 'modes'+str(self._n_modes_save))
-		if not os.path.exists(self._save_dir_modes):
-		 	os.makedirs(self._save_dir_modes)
-
-		# # compute approx problem size (assuming double)
-		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
-
-		# print parameters to the screen
-		self.print_parameters()
 
 
 
@@ -316,6 +224,76 @@ class POD_standard(object):
 	# main methods
 	# --------------------------------------------------------------------------
 
+	def initialize(self, data, nt, comm=None):
+
+		self._nt = nt
+		self._data = data
+		self._comm = comm
+
+		print('- correcting data dimension for single-variable data')
+		## correct last dimension for single variable data
+		if self._nv == 1 and (self._data.ndim != self._xdim + 2):
+			self._data = self._data[...,np.newaxis]
+
+		## get data dimensions and store in class
+		print('- getting data dimensions')
+		self._nx     = self._data[0,...,0].size
+		self._dim    = self._data.ndim
+		self._shape  = self._data.shape
+		self._xdim   = self._data[0,...,0].ndim
+		self._xshape = self._data[0,...,0].shape
+
+		# # Determine whether data is real-valued or complex-valued-valued
+		# # to decide on one- or two-sided spectrum from data
+		self._isrealx = np.isreal(self._data[0]).all()
+
+		# check weights
+		if isinstance(self._weights_tmp, dict):
+			self._weights = self._weights_tmp['weights']
+			self._weights_name = self._weights_tmp['weights_name']
+			if np.size(self._weights) != int(self.nx * self.nv):
+				raise ValueError(
+					'parameter ``weights`` must have the '
+					'same size as flattened data spatial '
+					'dimensions, that is: ', int(self.nx * self.nv))
+		else:
+			self._weights = np.ones(self._xshape+(self._nv,))
+			self._weights_name = 'uniform'
+			warnings.warn(
+				'Parameter `weights` not equal to an `numpy.ndarray`.'
+				'Using default uniform weighting')
+
+		# normalize weigths if required
+		if self._normalize_weights:
+			self._weights = utils_weights.apply_normalization(
+				data=self._data,
+				weights=self._weights,
+				n_variables=self._nv,
+				method='variance')
+
+		# flatten weights to number of spatial point
+		try:
+			self._weights = np.reshape(
+				self._weights, [int(self._nx*self._nv), 1])
+		except:
+			raise ValurError(
+				'parameter ``weights`` must be cast into '
+				'1d array with dimension equal to flattened '
+				'spatial dimension of data.')
+
+		# create folder to save results
+		self._save_dir_modes = os.path.join(
+			self._save_dir, 'modes'+str(self._n_modes_save))
+		if not os.path.exists(self._save_dir_modes):
+		 	os.makedirs(self._save_dir_modes)
+
+		# # compute approx problem size (assuming double)
+		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
+
+		# print parameters to the screen
+		self.print_parameters()
+
+
 	def fit(self, data, nt):
 		'''
 		Class-specific method to fit the data matrix X using standard POD.
@@ -324,7 +302,7 @@ class POD_standard(object):
 
 		print(' ')
 		print('Initialize data ...')
-		self.initialize_fit(data, nt)
+		self.initialize(data, nt)
 
 		# get data and remove mean
 		X, _ = self.reshape_and_remove_mean(data, nt)
@@ -417,8 +395,7 @@ class POD_standard(object):
 		'''
 		Get data, reshape and remove mean.
 		'''
-		X_tmp = self._data_handler(
-			data, t_0=0, t_end=nt, variables=self.variables)
+		X_tmp = data[0:nt,...]
 		X_tmp = np.squeeze(X_tmp)
 		X = np.reshape(X_tmp[:,:,:], [nt,self.nv*self.nx])
 		X_mean = np.mean(X, axis=0)
@@ -468,17 +445,9 @@ class POD_standard(object):
 		:return: the matrix that contains the original snapshots.
 		:rtype: numpy.ndarray
 		'''
-		if self._data_handler:
-			X = self._data_handler(
-				data=self._data,
-				t_0=t_0,
-				t_end=t_end,
-				variables=self._variables
-			)
-			if self._nv == 1 and (X.ndim != self._xdim + 2):
+		X = self._data[t_0:t_end,...]
+		if self._nv == 1 and (X.ndim != self._xdim + 2):
 				X = X[...,np.newaxis]
-		else:
-			X = self._data[t_0, t_end]
 		return X
 
 	# --------------------------------------------------------------------------

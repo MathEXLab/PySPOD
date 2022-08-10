@@ -24,13 +24,13 @@ def test_postprocessing_2D():
 
 	# data ingestion and configuration
 	variables = ['slip_potency']
-	file = os.path.join(CFD,'data','earthquakes_data.nc')
+	file = os.path.join(CWD,'data','earthquakes_data.nc')
 	ds = xr.open_dataset(file)
 	t = np.array(ds['time'])
 	x1 = np.array(ds['x'])
 	x2 = np.array(ds['z'])
 	X = np.array(ds[variables[0]]).T
-	nt = t.shape[0] 
+	nt = t.shape[0]
 
 	# parameters
 	params = dict()
@@ -39,7 +39,7 @@ def test_postprocessing_2D():
 	params['time_step'   ] = 1 					# data time-sampling
 	params['n_space_dims'] = 2 					# number of spatial dimensions (longitude and latitude)
 	params['n_variables' ] = 1 					# number of variables
-	params['n_DFT'       ] = np.ceil(32) 		# length of FFT blocks (100 time-snapshots)
+	params['n_dft'       ] = np.ceil(32) 		# length of FFT blocks (100 time-snapshots)
 
 	# -- optional parameters
 	params['overlap'          ] = 50			# dimension in percentage (1 to 100) of block overlap
@@ -55,7 +55,7 @@ def test_postprocessing_2D():
 
 
 	# SPOD analysis
-	SPOD_analysis = SPOD_low_storage(params=params, data_handler=False, variables=variables)
+	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 
 	# Test postprocessing and results
@@ -133,9 +133,9 @@ def test_postprocessing_2D():
 	except OSError as e:
 		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 	try:
-		shutil.rmtree(os.path.join(CFD,'__pycache__'))
+		shutil.rmtree(os.path.join(CWD,'__pycache__'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CFD,'__pycache__'), e.strerror))
+		pass
 
 
 
@@ -149,22 +149,23 @@ def test_postprocessing_3D():
 	x3 = np.linspace(0, 2, 20)
 	xx1, xx2, xx3 = np.meshgrid(x1, x2, x3)
 	t = np.linspace(0, 200, 1000)
-	s_component = np.sin(xx1 * xx2 * xx3) + np.cos(xx1)**2 + np.sin(0.1*xx2) + np.sin(0.5*xx3)**2
+	s_component = np.sin(xx1 * xx2 * xx3) + np.cos(xx1)**2 + \
+		np.sin(0.1*xx2) + np.sin(0.5*xx3)**2
 	t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
 	p = np.empty((t_component.shape[0],)+s_component.shape)
 	for i, t_c in enumerate(t_component):
 		p[i] = s_component * t_c
-	nt = t.shape[0] 
-	
+	nt = t.shape[0]
+
 	# Let's define the required parameters into a dictionary
 	params = dict()
 
 	# -- required parameters
 	params['time_step'   ] = 1 			# data time-sampling
-	params['n_snapshots' ] = t.shape[0] # number of time snapshots (we consider all data)
-	params['n_space_dims'] = 3 			# number of spatial dimensions (longitude and latitude)
+	params['n_snapshots' ] = t.shape[0] # number of time snapshots
+	params['n_space_dims'] = 3 			# number of spatial dimensions
 	params['n_variables' ] = 1 			# number of variables
-	params['n_DFT'       ] = 100 		# length of FFT blocks (100 time-snapshots)
+	params['n_dft'       ] = 100 		# length of FFT blocks
 
 	# -- optional parameters
 	params['overlap'          ] = 0			    # dimension in percentage (1 to 100) of block overlap
@@ -178,20 +179,22 @@ def test_postprocessing_3D():
 	params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test')
 
 	# Initialize libraries for the low_storage algorithm
-	spod = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
+	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(data=p, nt=nt)
 
 	# Show results
 	T_approx = 10 # approximate period = 10 days (in days)
 	freq = spod.freq
-	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+	freq_found, freq_idx = spod.find_nearest_freq(
+		freq_required=1/T_approx, freq=freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 	spod.plot_eigs             (filename='eigs.png')
 	spod.plot_eigs_vs_frequency(filename='eigs.png')
 	spod.plot_eigs_vs_period   (filename='eigs.png')
 	spod.plot_3D_modes_slice_at_frequency(
 		freq_required=freq_found, freq=spod.freq,
-		x1=x1, x2=x2, x3=x3, imaginary=True, filename='modes.png', plot_max=True)
+		x1=x1, x2=x2, x3=x3, imaginary=True,
+		filename='modes.png', plot_max=True)
 	spod.plot_3D_modes_slice_at_frequency(
 		freq_required=freq_found, freq=spod.freq,
 		x1=x1, x2=x2, x3=x3, imaginary=False,
@@ -211,8 +214,18 @@ def test_postprocessing_3D():
 		x1=None, x2=None, x3=None, imaginary=True,
 		filename='modes.png', fftshift=True,
 		plot_max=True, slice_dim=2, equal_axes=True)
-	spod.plot_data_tracers(coords_list=[(4,2,1)], time_limits=[0,t.shape[0]], filename='tmp.png')
+	spod.plot_data_tracers(
+		coords_list=[(4,2,1)], time_limits=[0,t.shape[0]], filename='tmp.png')
 
+	# clean up results
+	try:
+		shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+	try:
+		shutil.rmtree(os.path.join(CWD,'__pycache__'))
+	except OSError as e:
+		pass
 
 
 

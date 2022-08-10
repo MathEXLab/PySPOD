@@ -58,7 +58,7 @@ params = dict()
 params['time_step'   	 ] = dt # data time-sampling
 params['n_space_dims'    ] = 2	# number of spatial dimensions (longitude and latitude)
 params['n_variables'     ] = 1	# number of variables
-params['n_DFT'           ] = np.ceil(block_dimension / dt) # length of FFT blocks
+params['n_dft'           ] = np.ceil(block_dimension / dt) # length of FFT blocks
 # -- optional parameters
 params['overlap'          ] = 50		  # dimension in percentage (1 to 100) of block overlap
 params['mean_type'        ] = 'blockwise' # type of mean to subtract to the data
@@ -95,7 +95,6 @@ def test_emulation_spod():
 	# SPOD analysis
 	SPOD_analysis = SPOD_low_storage(
 		params=params,
-		data_handler=False,
 		variables=variables
 	)
 
@@ -111,10 +110,15 @@ def test_emulation_spod():
 	n_freq = spod._n_freq_r
 	n_feature = coeffs_train['coeffs'].shape[0]
 
-	data_train = np.zeros([n_freq,coeffs_train['coeffs'].shape[1]],dtype='complex')
-	data_test = np.zeros([n_freq,coeffs_test['coeffs'].shape[1]],dtype='complex')
-	coeffs = np.zeros([coeffs_test['coeffs'].shape[0],coeffs_test['coeffs'].shape[1]],dtype='complex')
-	coeffs_tmp = np.zeros([n_freq,coeffs_test['coeffs'].shape[1]],dtype='complex')
+	data_train = np.zeros(
+		[n_freq,coeffs_train['coeffs'].shape[1]],dtype='complex')
+	data_test = np.zeros(
+		[n_freq,coeffs_test['coeffs'].shape[1]],dtype='complex')
+	coeffs = np.zeros(
+		[coeffs_test['coeffs'].shape[0],coeffs_test['coeffs'].shape[1]],
+		dtype='complex')
+	coeffs_tmp = np.zeros(
+		[n_freq,coeffs_test['coeffs'].shape[1]],dtype='complex')
 
 	# LSTM
 	spod_emulation = Emulation(params_emulation)
@@ -127,13 +131,14 @@ def test_emulation_spod():
 
 		# copy and normalize data
 		scaler  = \
-			utils_emulation.compute_normalization_vector(coeffs_train['coeffs'][idx_x,:],
-			normalize_method='localmax')
+			utils_emulation.compute_normalization_vector(
+				coeffs_train['coeffs'][idx_x,:],normalize_method='localmax')
 		data_train[:,:] = \
-			utils_emulation.normalize_data(coeffs_train['coeffs'][idx_x,:], normalization_vec=scaler)
+			utils_emulation.normalize_data(
+				coeffs_train['coeffs'][idx_x,:], normalization_vec=scaler)
 		data_test[:,:]  = \
-			utils_emulation.normalize_data(coeffs_test['coeffs'][idx_x,:],
-				normalization_vec=scaler)
+			utils_emulation.normalize_data(
+				coeffs_test['coeffs'][idx_x,:],normalization_vec=scaler)
 
 		# train the network
 		spod_emulation.model_train(idx,
@@ -188,6 +193,12 @@ def test_emulation_spod():
 		   (np.abs(emulation_rec[10,0,0,0]) > 4.465600418067508 - tol))
 	assert((np.abs(emulation_rec[15,5,12,0])< 4.457098452307361 + tol) & \
 		   (np.abs(emulation_rec[15,5,12,0])> 4.457098452307361 - tol))
+
+	# clean up results
+	try:
+		shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 

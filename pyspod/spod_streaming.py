@@ -32,17 +32,17 @@ class SPOD_streaming(SPOD_standard):
 		print(' ')
 		print('Initialize data')
 		print('------------------------------------')
-		self.initialize_fit(data, nt)
+		self._initialize(data, nt)
 		print('------------------------------------')
 
 		# sqrt of weights
 		sqrtW = np.sqrt(self._weights)
 
 		# separation between adjacent blocks
-		dn = self._n_DFT - self._n_overlap
+		dn = self._n_dft - self._n_overlap
 
 		# number of blocks being updated in parallel if segments overlap
-		n_blocks_parallel = int(np.ceil(self._n_DFT/dn))
+		n_blocks_parallel = int(np.ceil(self._n_dft/dn))
 
 		# sliding, relative time index for each block
 		t_idx = np.zeros([n_blocks_parallel,1], dtype=int)
@@ -54,9 +54,7 @@ class SPOD_streaming(SPOD_standard):
 		print('------------------------------------')
 
 		# obtain first snapshot to determine data size
-		# x_new = self._X[0]
-		x_new = self._data_handler(
-			self._data, t_0=0, t_end=0, variables=self._variables)
+		x_new = self._data[0,...]
 		x_new = np.reshape(x_new,(self._nx*self._nv,1))
 
 		# allocate data arrays
@@ -73,12 +71,12 @@ class SPOD_streaming(SPOD_standard):
 		self._modes = dict()
 
 		# DFT matrix
-		Fourier = np.fft.fft(np.identity(self._n_DFT))
+		Fourier = np.fft.fft(np.identity(self._n_dft))
 
 		if self._isrealx:
 			Fourier[:,1:self._n_freq-1] = 2 * Fourier[:,1:self._n_freq-1]
-			# freq_idx = np.arange(0, int(self._n_DFT/2+1))
-			freq_idx = np.arange(0, int(self._n_DFT), 1)
+			# freq_idx = np.arange(0, int(self._n_dft/2+1))
+			freq_idx = np.arange(0, int(self._n_dft), 1)
 			Fourier = Fourier[:,freq_idx]
 
 		# convergence tests
@@ -99,9 +97,7 @@ class SPOD_streaming(SPOD_standard):
 			# Get new snapshot and abort if data stream runs dry
 			if ti > 0:
 				try:
-					x_new = self._data_handler(
-						self._data, t_0=ti, t_end=ti, variables=self._variables)
-					# x_new = self._X[ti]
+					x_new = self._data[ti,...]
 					x_new = np.reshape(x_new,(self._nx*self._nv,1))
 				except:
 					print('--> Data stream ended.')
@@ -120,7 +116,7 @@ class SPOD_streaming(SPOD_standard):
 						Fourier[t_idx[block_j],:] * x_new
 
 				# check if sum is completed, and if so, initiate update
-				if t_idx[block_j] == self._n_DFT-1:
+				if t_idx[block_j] == self._n_dft-1:
 					update = True
 					X_hat = X_sum[:,:,block_j].copy()
 					X_sum[:,:,block_j] = 0
@@ -133,12 +129,12 @@ class SPOD_streaming(SPOD_standard):
 				block_i = block_i + 1
 
 				# subtract mean contribution to Fourier sum
-				for row_idx in range(0,self._n_DFT):
+				for row_idx in range(0,self._n_dft):
 					X_hat = X_hat - (self._window[row_idx] * \
 						Fourier[row_idx,:]) * mu
 
-				# correct for windowing function and apply 1/self._n_DFT factor
-				X_hat = self._winWeight / self._n_DFT * X_hat
+				# correct for windowing function and apply 1/self._n_dft factor
+				X_hat = self._winWeight / self._n_dft * X_hat
 
 				if block_i == 0:
 					# initialize basis with first vector
