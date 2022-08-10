@@ -22,7 +22,7 @@ jobs:
           - ubuntu-20.04
           - macos-11
         mpi:
-          # - mpich
+          - mpich
           - openmpi
         py:
           - "3.7"
