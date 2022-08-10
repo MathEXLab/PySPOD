@@ -29,7 +29,7 @@ class SPOD_parallel(SPOD_standard):
 	from the `SPOD_standard` class.
 	'''
 
-	def fit(self, data, nt, comm=None):
+	def fit(self, data, nt):
 		'''
 		Class-specific method to fit the data matrix X using
 		the SPOD low ram algorithm.
@@ -39,7 +39,7 @@ class SPOD_parallel(SPOD_standard):
 		print(' ')
 		print('Initialize data')
 		print('------------------------------------')
-		self._initialize(data, nt, comm=comm)
+		self._initialize(data, nt)
 		print('------------------------------------')
 
 		print(' ')
