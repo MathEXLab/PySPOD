@@ -430,9 +430,6 @@ class SPOD_standard(object):
 			self._distribute(self._comm)
 			self._comm.Barrier()
 
-		print(self._data.shape)
-		sys.exit(2)
-
 		## add axis for single variable
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
