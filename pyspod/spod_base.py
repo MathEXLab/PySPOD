@@ -425,15 +425,21 @@ class SPOD_standard(object):
 					'Parameter `weights` not equal to a `numpy.ndarray`.'
 					'Using default uniform weighting')
 
+		print('self._data.shape 1 = ', self._data.shape)
+		print('self._weights.shape 1 = ', self._weights.shape)
 		## distribute data and weights
 		if self._comm:
 			self._distribute(self._comm)
 			self._comm.Barrier()
+		print('self._data.shape 2 = ', self._data.shape)
+		print('self._weights.shape 2 = ', self._weights.shape)
 
 		## add axis for single variable
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
+		print('self._data.shape 3 = ', self._data.shape)
+		print('self._weights.shape 3 = ', self._weights.shape)
 
 		## normalize weigths if required
 		if self._normalize_weights:
@@ -442,6 +448,7 @@ class SPOD_standard(object):
 				data=self._data,
 				weights=self._weights,
 				n_variables=self._nv,
+				comm=self._comm,
 				method='variance')
 
 		## flatten weights to number of space x variables points
@@ -831,27 +838,43 @@ class SPOD_standard(object):
 		perrank = maxval // self._size
 		remaind = maxval  % self._size
 		print('perrank = ', perrank, 'remaind = ', remaind)
+		# idx = [slice(None)] * self._dim
+		# idx[axis] = maxdim_idx + 1
+		# A[tuple(idx)] = ...
 		if maxdim_idx == 0:
 			if self._rank == self._size - 1:
 				self._data = self._data[\
 					:,self._rank*perrank:,...]
+				self._weights = self._weights[\
+					  self._rank*perrank:,...]
 			else:
 				self._data = self._data[\
-					:,self._rank*perrank:(rank+1)*perrank,...]
+					:,self._rank*perrank:(self._rank+1)*perrank,...]
+				self._weights = self._weights[\
+					  self._rank*perrank:(self._rank+1)*perrank,...]
+
 		elif maxdim_idx == 1:
 			if self._rank == self._size - 1:
 				self._data = self._data[\
 					:,:,self._rank*perrank:,...]
+				self._weights = self._weights[\
+					  :,self._rank*perrank:,...]
 			else:
 				self._data = self._data[\
-					:,:,self._rank*perrank:(rank+1)*perrank,...]
+					:,:,self._rank*perrank:(self._rank+1)*perrank,...]
+				self._weights = self._weights[\
+					  :,self._rank*perrank:(self._rank+1)*perrank,...]
 		elif maxdim_idx == 2:
 			if self._rank == self._size - 1:
 				self._data = self._data[\
 					:,:,:,self._rank*perrank:,...]
+				self._weights = self._weights[\
+					  :,:,self._rank*perrank:,...]
 			else:
 				self._data = self._data[\
-					:,:,:,self._rank*perrank:(rank+1)*perrank,...]
+					:,:,:,self._rank*perrank:(self._rank+1)*perrank,...]
+				self._weights = self._weights[\
+					  :,:,self._rank*perrank:(self._rank+1)*perrank,...]
 		else:
 			raise ValueError('MPI distribution planned on 3D problems.')
 

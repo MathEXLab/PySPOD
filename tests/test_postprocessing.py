@@ -24,7 +24,7 @@ def test_postprocessing_2D():
 
 	# data ingestion and configuration
 	variables = ['slip_potency']
-	file = os.path.join(CWD,'data','earthquakes_data.nc')
+	file = os.path.join(CFD,'data','earthquakes_data.nc')
 	ds = xr.open_dataset(file)
 	t = np.array(ds['time'])
 	x1 = np.array(ds['x'])

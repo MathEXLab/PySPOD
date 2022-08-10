@@ -104,22 +104,43 @@ def custom(**kwargs):
 	pass
 
 
-def apply_normalization(data, weights, n_variables, method='variance'):
+def apply_normalization(data, weights, n_variables, comm, method='variance'):
 	'''Normalization of weights if required.'''
 
 	# variable-wise normalization by variance via weight matrix
-	if method.lower() == 'variance':
-		print('')
-		print('Normalization by variance')
-		print('-------------------------')
-		axis = tuple(np.arange(0, data[...,0].ndim))
-		for i in range(0, n_variables):
-			sigma2 = np.nanvar(data[...,i], axis=axis)
-			print('variable = ', i, ',  variance = ', sigma2)
-			weights[...,i] = weights[...,i] / sigma2
+	if comm:
+		if method.lower() == 'variance':
+			if comm.rank == 0:
+				print('')
+				print('Normalization by variance')
+				print('-------------------------')
+			axis = tuple(np.arange(0, data[...,0].ndim))
+			print(axis)
+
+			for i in range(0, n_variables):
+				sigma2 = np.nanvar(data[...,i], axis=axis) #### how do we make this parallel?
+				print('variable = ', i, ',  variance = ', sigma2)
+				comm.Barrier()
+				comm.all_reduce()
+				weights[...,i] = weights[...,i] / sigma2
+		else:
+			if comm.rank:
+				print('')
+				print('No normalization performed')
+				print('--------------------------')
 	else:
-		print('')
-		print('No normalization performed')
-		print('--------------------------')
+		if method.lower() == 'variance':
+			print('')
+			print('Normalization by variance')
+			print('-------------------------')
+			axis = tuple(np.arange(0, data[...,0].ndim))
+			for i in range(0, n_variables):
+				sigma2 = np.nanvar(data[...,i], axis=axis)
+				print('variable = ', i, ',  variance = ', sigma2)
+				weights[...,i] = weights[...,i] / sigma2
+		else:
+			print('')
+			print('No normalization performed')
+			print('--------------------------')
 
 	return weights
