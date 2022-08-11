@@ -11,7 +11,6 @@ def compute_l_errors(data, data_ref, norm_type='l2'):
     print('nx = ', nx)
     e = np.abs(data - data_ref)
     import pdb
-    # pdb.set_trace()
     ef = e.flatten('C')
     print(e.shape)
     print(ef.shape)

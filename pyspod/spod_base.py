@@ -536,6 +536,8 @@ class SPOD_standard(object):
 		split_block = self.nt // self._n_blocks
 		split_res = self.nt % self._n_blocks
 		x_sum = np.zeros(self.xshape+(self.nv,))
+
+
 		for iBlk in range(0, self._n_blocks):
 			lb = iBlk * split_block
 			ub = lb + split_block
