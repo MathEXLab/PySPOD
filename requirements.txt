@@ -11,3 +11,4 @@ scipy
 sphinx_rtd_theme
 xarray
 opt_einsum
+mpi4py
