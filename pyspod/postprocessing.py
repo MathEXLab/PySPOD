@@ -425,6 +425,8 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 				figsize=figsize, frameon=True, constrained_layout=False)
 			plt.set_cmap(cmap)
 
+			print(modes.shape)
+			
 			# extract mode
 			mode = np.squeeze(modes[:,:,var_id,mode_id])
 

@@ -35,11 +35,8 @@ class SPOD_low_storage(SPOD_standard):
 		'''
 		start = time.time()
 
-		print(' ')
-		print('Initialize data')
-		print('------------------------------------')
+		## initialize data and variables
 		self._initialize(data, nt)
-		print('------------------------------------')
 
 		print(' ')
 		print('Calculating temporal DFT (low_storage)')

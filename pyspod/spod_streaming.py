@@ -29,11 +29,8 @@ class SPOD_streaming(SPOD_standard):
 		'''
 		start = time.time()
 
-		print(' ')
-		print('Initialize data')
-		print('------------------------------------')
+		## initialize data and variables
 		self._initialize(data, nt)
-		print('------------------------------------')
 
 		# sqrt of weights
 		sqrtW = np.sqrt(self._weights)

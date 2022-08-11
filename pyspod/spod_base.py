@@ -15,6 +15,7 @@ import scipy
 import numpy as np
 import scipy.special as sc
 from numpy import linalg as la
+from mpi4py import MPI
 
 # Import custom Python packages
 import pyspod.utils_weights as utils_weights
@@ -73,6 +74,7 @@ class SPOD_standard(object):
 			self._size = comm.size
 		else:
 			self._rank = 0
+			self._size = 1
 
 		# get default spectral estimation parameters and options
 		# define default spectral estimation parameters
@@ -381,6 +383,11 @@ class SPOD_standard(object):
 
 	def _initialize(self, data, nt):
 
+		if self._rank == 0:
+			print(' ')
+			print('Initialize data')
+			print('------------------------------------')
+
 		self._nt = nt
 		self._data = data
 
@@ -454,7 +461,7 @@ class SPOD_standard(object):
 		## flatten weights to number of space x variables points
 		try:
 			self._weights = np.reshape(
-				self._weights, [int(self._nx*self._nv),1])
+				self._weights, [self._data[0,...].size,1])
 		except:
 			if self._rank == 0:
 				raise ValueError(
@@ -498,9 +505,9 @@ class SPOD_standard(object):
 		# create folder to save results
 		self._save_dir_simulation = os.path.join(self._save_dir,
 			'modes'+str(self._n_modes_save) \
-			+'_nfft'+str(self._n_dft)        \
-			+'_novlp'+str(self._n_overlap)   \
-			+'_nblks'+str(self._n_blocks)    \
+			+'_nfft'+str(self._n_dft)       \
+			+'_novlp'+str(self._n_overlap)  \
+			+'_nblks'+str(self._n_blocks)   \
 		)
 		if not os.path.exists(self._save_dir_simulation):
 			os.makedirs(self._save_dir_simulation)
@@ -513,44 +520,43 @@ class SPOD_standard(object):
 
 		# print parameters to the screen
 		self.print_parameters()
+		if self._rank == 0: print('------------------------------------')
 
 
 	def select_mean(self):
 		'''Select mean.'''
-		if self._mean_type.lower() == 'longtime':
-			self._time_mean = self.longtime_mean()
-			self._mean_name = 'longtime'
-		elif self._mean_type.lower() == 'blockwise':
-			self._time_mean = 0
-			self._mean_name = 'blockwise'
-		elif self._mean_type.lower() == 'zero':
-			self._time_mean = 0
-			self._mean_name = 'zero'
-			if self._rank == 0:
-				warnings.warn(
-					'No mean subtracted. Consider providing longtime mean.')
+		self._mean_type = self._mean_type.lower()
+		if self._mean_type   == 'longtime' : self._t_mean = self.long_t_mean()
+		elif self._mean_type == 'blockwise': self._t_mean = 0
+		elif self._mean_type == 'zero'     : self._t_mean = 0
 		else:
-			raise ValueError(self._mean_type, 'not recognized.')
+			## mean_type not recognized
+			if self._rank == 0:
+				raise ValueError(self._mean_type, 'not recognized.')
+		## trigger warning if mean_type is zero
+		if (self._mean_type == 'zero') and (self._rank == 0):
+			warnings.warn(
+				'No mean subtracted. Consider providing longtime mean.')
 
 
-	def longtime_mean(self):
+	def long_t_mean(self):
 		'''Get longtime mean.'''
 		split_block = self.nt // self._n_blocks
 		split_res = self.nt % self._n_blocks
-		x_sum = np.zeros(self.xshape+(self.nv,))
-
-		for iBlk in range(0, self._n_blocks):
-			lb = iBlk * split_block
+		shape_s_v = self._data[0,...].shape
+		shape_sxv = self._data[0,...].size
+		t_sum = np.zeros(self._data[0,...].shape)
+		for i_blk in range(0, self._n_blocks):
+			lb = i_blk * split_block
 			ub = lb + split_block
-			x_data = self._data[lb:ub,...,:]
-			# import pdb; pdb.set_trace()
-			x_sum += np.sum(x_data, axis=0)
+			d = self._data[lb:ub,...,:]
+			t_sum += np.sum(d, axis=0)
 		if split_res > 0:
-			x_data = self._data[self.nt-split_res:self.nt,...,:]
-			x_sum += np.sum(x_data, axis=0)
-		x_mean = x_sum / self.nt
-		x_mean = np.reshape(x_mean, (int(self.nx*self.nv)))
-		return x_mean
+			d = self._data[self.nt-split_res:self.nt,...,:]
+			t_sum += np.sum(d, axis=0)
+		t_mean = t_sum / self.nt
+		t_mean = np.reshape(t_mean, shape_sxv)
+		return t_mean
 
 
 	def get_freq_axis(self):
@@ -570,24 +576,19 @@ class SPOD_standard(object):
 		self._n_freq = len(self._freq)
 
 
-	def compute_blocks(self, iBlk):
+	def compute_blocks(self, i_blk):
 		'''Compute FFT blocks.'''
 
 		# get time index for present block
-		offset = min(iBlk * (self._n_dft - self._n_overlap) \
+		offset = min(i_blk * (self._n_dft - self._n_overlap) \
 			+ self._n_dft, self._nt) - self._n_dft
 
 		# Get data
-		# Q_blk = self._data_handler(
-		# 	self._data,
-		# 	t_0=offset,
-		# 	t_end=self._n_dft+offset,
-		# 	variables=self._variables)
 		Q_blk = self._data[offset:self._n_dft+offset,...]
-		Q_blk = Q_blk.reshape(self._n_dft, self._nx * self._nv)
+		Q_blk = Q_blk.reshape(self._n_dft, self._data[0,...].size)
 
 		# Subtract longtime or provided mean
-		Q_blk = Q_blk[:] - self._time_mean
+		Q_blk = Q_blk[:] - self._t_mean
 
 		# if block mean is to be subtracted,
 		# do it now that all data is collected
@@ -621,7 +622,12 @@ class SPOD_standard(object):
 		M = np.matmul(
 			Q_hat_f.conj().T, (Q_hat_f * self._weights)) / self._n_blocks
 
-		# extract eigenvalues and eigenvectors
+		if self._comm:
+			M_reduced = np.zeros_like(M)
+			self._comm.Barrier()
+			self._comm.Allreduce(M, M_reduced, op=MPI.SUM)
+			M = M_reduced
+
 		L,V = la.eig(M)
 		L = np.real_if_close(L, tol=1000000)
 
@@ -631,23 +637,35 @@ class SPOD_standard(object):
 		V = V[:,idx]
 
 		# compute spatial modes for given frequency
-		Phi = np.matmul(Q_hat_f, np.matmul(\
-			V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
+		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
+		Phi = np.matmul(Q_hat_f, V * L_diag[None,:])
+		# Phi = np.matmul(Q_hat_f, np.matmul(\
+			# V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
+		if self._comm:
+			Phi_0 = self._comm.gather(Phi, root=0)
+			if self._rank == 0:
+				for p in Phi_0:
+					shape = list(self._global_shape)
+					shape[self._maxdim_idx] = -1
+					p.shape = shape
+				Phi = np.concatenate(Phi_0, axis=self._maxdim_idx)
+				Phi.shape = list(self._xshape + (self._n_blocks,))
 
-		# save modes in storage too in case post-processing crashes
-		Phi = Phi[:,0:self._n_modes_save]
-		Phi = Phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-		file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
-		path_psi = os.path.join(self._save_dir_simulation, file_psi)
-		np.save(path_psi, Phi)
-		self._modes[i_freq] = file_psi
-		self._eigs[i_freq,:] = abs(L)
+		if self._rank == 0:
+			Phi = Phi[...,0:self._n_modes_save]
+			print(Phi.shape)
+			Phi = Phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
+			file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
+			path_psi = os.path.join(self._save_dir_simulation, file_psi)
+			np.save(path_psi, Phi)
+			self._modes[i_freq] = file_psi
+			self._eigs[i_freq,:] = abs(L)
 
-		# get and save confidence interval
-		self._eigs_c[i_freq,:,0] = \
-			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_lower
-		self._eigs_c[i_freq,:,1] = \
-			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_upper
+			# get and save confidence interval
+			self._eigs_c[i_freq,:,0] = \
+				self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_lower
+			self._eigs_c[i_freq,:,1] = \
+				self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_upper
 
 
 	def transform(self, data, nt, svd=True, T_lb=None, T_ub=None):
@@ -810,22 +828,22 @@ class SPOD_standard(object):
 
 	def store_and_save(self):
 		'''Store and save results.'''
+		if self._rank == 0:
+			# save dictionary of modes for loading
+			path_modes = os.path.join(self._save_dir_simulation, 'modes_dict.pkl')
+			with open(path_modes, 'wb') as handle:
+				pickle.dump(self._modes, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-		# save dictionary of modes for loading
-		path_modes = os.path.join(self._save_dir_simulation, 'modes_dict.pkl')
-		with open(path_modes, 'wb') as handle:
-			pickle.dump(self._modes, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-		self._eigs_c_u = self._eigs_c[:,:,0]
-		self._eigs_c_l = self._eigs_c[:,:,1]
-		file = os.path.join(self._save_dir_simulation, 'spod_energy')
-		np.savez(file,
-			eigs=self._eigs,
-			eigs_c_u=self._eigs_c_u,
-			eigs_c_l=self._eigs_c_l,
-			f=self._freq,
-			weights=self._weights)
-		self._n_modes = self._eigs.shape[-1]
+			self._eigs_c_u = self._eigs_c[:,:,0]
+			self._eigs_c_l = self._eigs_c[:,:,1]
+			file = os.path.join(self._save_dir_simulation, 'spod_energy')
+			np.savez(file,
+				eigs=self._eigs,
+				eigs_c_u=self._eigs_c_u,
+				eigs_c_l=self._eigs_c_l,
+				f=self._freq,
+				weights=self._weights)
+			self._n_modes = self._eigs.shape[-1]
 
 
 	def _distribute(self, comm):
@@ -877,41 +895,51 @@ class SPOD_standard(object):
 					  :,:,self._rank*perrank:(self._rank+1)*perrank,...]
 		else:
 			raise ValueError('MPI distribution planned on 3D problems.')
+		self._maxdim_idx = maxdim_idx
+		self._global_shape = shape
 
+
+	def _reduce(self):
+		pass
+
+	def _print_r0(self):
+		# print(f'{a = :.2f} hello {a}')
+		pass
 
 	def print_parameters(self):
 
-		# display parameter summary
-		print('')
-		print('SPOD parameters')
-		print('------------------------------------')
-		print('Problem size               : ', self._pb_size, 'GB. (double)')
-		print('No. of snapshots per block : ', self._n_dft)
-		print('Block overlap              : ', self._n_overlap)
-		print('No. of blocks              : ', self._n_blocks)
-		print('Windowing fct. (time)      : ', self._window_name)
-		print('Weighting fct. (space)     : ', self._weights_name)
-		print('Mean                       : ', self._mean_name)
-		print('Number of frequencies      : ', self._n_freq)
-		print('Time-step                  : ', self._dt)
-		print('Time snapshots             : ', self._nt)
-		print('Space dimensions           : ', self._xdim)
-		print('Number of variables        : ', self._nv)
-		print('Normalization weights      : ', self._normalize_weights)
-		print('Normalization data         : ', self._normalize_data)
-		print('Number of modes to be saved: ', self._n_modes_save)
-		print('Confidence level for eigs  : ', self._c_level)
-		print('Results to be saved in     : ', self._save_dir)
-		print('Save FFT blocks            : ', self._savefft)
-		print('Reuse FFT blocks           : ', self._reuse_blocks)
-		if self._isrealx: print('Spectrum type             : ',
-			'one-sided (real-valued signal)')
-		else            : print('Spectrum type             : ',
-			'two-sided (complex-valued signal)')
-		print('------------------------------------')
-		print('')
+		if self._rank == 0:
+			# display parameter summary
+			print(f'')
+			print(f'SPOD parameters')
+			print(f'------------------------------------')
+			print(f'Problem size              : {self._pb_size} GB. (double)')
+			print('No. of snapshots per block : ', self._n_dft)
+			print('Block overlap              : ', self._n_overlap)
+			print('No. of blocks              : ', self._n_blocks)
+			print('Windowing fct. (time)      : ', self._window_name)
+			print('Weighting fct. (space)     : ', self._weights_name)
+			print('Mean                       : ', self._mean_type)
+			print('Number of frequencies      : ', self._n_freq)
+			print('Time-step                  : ', self._dt)
+			print('Time snapshots             : ', self._nt)
+			print('Space dimensions           : ', self._xdim)
+			print('Number of variables        : ', self._nv)
+			print('Normalization weights      : ', self._normalize_weights)
+			print('Normalization data         : ', self._normalize_data)
+			print('Number of modes to be saved: ', self._n_modes_save)
+			print('Confidence level for eigs  : ', self._c_level)
+			print('Results to be saved in     : ', self._save_dir)
+			print('Save FFT blocks            : ', self._savefft)
+			print('Reuse FFT blocks           : ', self._reuse_blocks)
+			if self._isrealx: print('Spectrum type             : ',
+				'one-sided (real-valued signal)')
+			else            : print('Spectrum type             : ',
+				'two-sided (complex-valued signal)')
+			print('------------------------------------')
+			print('')
 
-	# ---------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
 
 
@@ -1016,15 +1044,15 @@ class SPOD_standard(object):
 	def _are_blocks_present(n_blocks, n_freq, saveDir):
 		print('Checking if blocks are already present ...')
 		all_blocks_exist = 0
-		for iBlk in range(0,n_blocks):
+		for i_blk in range(0,n_blocks):
 			all_freq_exist = 0
 			for i_freq in range(0,n_freq):
 				file = os.path.join(saveDir,
-					'fft_block{:08d}_freq{:08d}.npy'.format(iBlk,i_freq))
+					'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq))
 				if os.path.exists(file):
 					all_freq_exist = all_freq_exist + 1
 			if (all_freq_exist == n_freq):
-				print('block '+str(iBlk+1)+'/'+str(n_blocks)+\
+				print('block '+str(i_blk+1)+'/'+str(n_blocks)+\
 					' is present in: ', saveDir)
 				all_blocks_exist = all_blocks_exist + 1
 		if all_blocks_exist == n_blocks:

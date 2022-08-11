@@ -89,7 +89,7 @@ def test_spod_low_storage_blockwise_mean():
 
 
 
-def test_spod_low_storage_longtime_mean():
+def test_spod_low_storage_long_t_mean():
 	'''
 	spod tests on earthquake data for methodologies.
 	'''
@@ -149,7 +149,7 @@ def test_spod_low_ram_blockwise_mean():
 
 
 
-def test_spod_low_ram_longtime_mean():
+def test_spod_low_ram_long_t_mean():
 	'''
 	spod tests on earthquake data for methodologies.
 	'''
@@ -323,9 +323,9 @@ def test_spod_low_ram_savefft():
 
 if __name__ == "__main__":
 	test_spod_low_storage_blockwise_mean()
-	test_spod_low_storage_longtime_mean ()
+	test_spod_low_storage_long_t_mean ()
 	test_spod_low_ram_blockwise_mean    ()
-	test_spod_low_ram_longtime_mean     ()
+	test_spod_low_ram_long_t_mean     ()
 	test_spod_streaming                 ()
 	test_spod_low_storage_savefft       ()
 	test_spod_low_ram_savefft           ()

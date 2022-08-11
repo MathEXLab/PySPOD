@@ -7,6 +7,7 @@ import time
 import pickle
 import numpy as np
 from tqdm import tqdm
+from mpi4py import MPI
 import shutil
 
 
@@ -36,15 +37,13 @@ class SPOD_parallel(SPOD_standard):
 		'''
 		start = time.time()
 
-		print(' ')
-		print('Initialize data')
-		print('------------------------------------')
+		## initialize data and variables
 		self._initialize(data, nt)
-		print('------------------------------------')
 
-		print(' ')
-		print('Calculating temporal DFT (low_ram)')
-		print('------------------------------------')
+		if self._rank == 0:
+			print(' ')
+			print('Calculating temporal DFT (low_ram)')
+			print('------------------------------------')
 
 		# check if blocks are already saved in memory
 		blocks_present = False
@@ -55,70 +54,59 @@ class SPOD_parallel(SPOD_standard):
 		# loop over number of blocks and generate Fourier realizations,
 		# if blocks are not saved in storage
 		self._Q_hat_f = dict()
+		size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
+		Q_hat = np.empty(size_Q_hat, dtype='complex_')
 		if not blocks_present:
 			for i_blk in range(0,self._n_blocks):
 
 				# compute block
 				Q_blk_hat, offset = self.compute_blocks(i_blk)
-
-				# print info file
-				print('block '+str(i_blk+1)+'/'+str(self._n_blocks)+\
-					  ' ('+str(offset)+':'+str(self._n_dft+offset)+'); ',
-					  '    Saving to directory: ', self._blocks_folder)
+				if self._rank == 0:
+					# print info file
+					print('block '+str(i_blk+1)+'/'+str(self._n_blocks)+\
+					  	' ('+str(offset)+':'+str(self._n_dft+offset)+'); ',
+					  	'    Saving to directory: ', self._blocks_folder)
 
 				# save FFT blocks in storage memory
 				self._Q_hat_f[str(i_blk)] = dict()
 				for i_freq in range(0, self._n_freq):
-					file = 'fft_block{:08d}_freq{:08d}.npy'.format(
-						i_blk, i_freq)
+					file = 'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq)
 					path = os.path.join(self._blocks_folder, file)
-					Q_blk_hat_fi = Q_blk_hat[i_freq,:]
-					np.save(path, Q_blk_hat_fi)
+					Q_blk_hat_fr = Q_blk_hat[i_freq,:]
+					np.save(path, Q_blk_hat_fr)
 					self._Q_hat_f[str(i_blk),str(i_freq)] = path
-				del Q_blk_hat_fi
 
-		print('------------------------------------')
+				## store FFT blocks in RAM
+				Q_hat[:,:,i_blk] = Q_blk_hat
+
+				## delete temporary block
+				del Q_blk_hat_fr
+
+		if self._rank == 0:
+			print('------------------------------------')
 
 
 
 		# Loop over all frequencies and calculate SPOD
-		print(' ')
-		print('Calculating SPOD (low_ram)')
-		print('------------------------------------')
-		self._eigs = np.zeros([self._n_freq, self._n_blocks], dtype='complex_')
+		if self._rank == 0:
+			print(' ')
+			print('Calculating SPOD (low_ram)')
+			print('------------------------------------')
+		self._eigs = np.zeros([self._n_freq,self._n_blocks], dtype=complex)
 		self._modes = dict()
 
-		gb_memory_modes = self._n_freq * self._nx * \
-			self._n_modes_save * sys.getsizeof(complex()) * BYTE_TO_GB
-		gb_memory_avail = shutil.disk_usage(CWD)[2] * BYTE_TO_GB
-		print('- Memory required for storing modes ~', gb_memory_modes , 'GB')
-		print('- Available storage memory          ~', gb_memory_avail , 'GB')
-		while gb_memory_modes >= 0.99 * gb_memory_avail:
-			print('Not enough storage memory to save all modes... '
-				  ' halving modes to save.')
-			n_modes_save = np.floor(self._n_modes_save / 2)
-			gb_memory_modes = self._n_freq * self._nx * \
-				self._n_modes_save * sys.getsizeof(complex()) * BYTE_TO_GB
-			if self._n_modes_save == 0:
-				raise ValueError(
-					'Memory required for storing at least one mode '
-					'is equal or larger than available storage memory '
-					'in your system ...\n'
-					'... aborting computation...')
-
-		# if too much memory is required, this is modified above
-		if gb_memory_modes >= 0.99 * gb_memory_avail:
-			self._n_modes_save = n_modes_save
-
-		# load FFT blocks from hard drive and save modes on hard drive
-		# (for large data)
+		# keep everything in RAM memory (default)
 		for i_freq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
-			# load FFT data from previously saved file
-			Q_hat_f = np.zeros([self._nx,self._n_blocks], dtype='complex_')
-			for i_blk in range(0,self._n_blocks):
-				file = 'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq)
-				path = os.path.join(self._blocks_folder, file)
-				Q_hat_f[:,i_blk] = np.load(path)
+
+			# get FFT block from RAM memory for each given frequency
+			Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
+
+			# print('Q_hat.shape = ', Q_hat_f.shape)
+			# print('Q_hat.sum distributed = ', np.sum(Q_hat_f))
+			# sum_reduced = np.zeros([1], dtype='complex_')
+			# self._comm.Barrier()
+			# self._comm.Reduce(np.sum(Q_hat_f), sum_reduced, op=MPI.SUM, root=0)
+			# print('sum_reduced Q_hat = ', *sum_reduced)
 
 			# compute standard spod
 			self.compute_standard_spod(Q_hat_f, i_freq)
