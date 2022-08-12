@@ -383,16 +383,14 @@ class SPOD_standard(object):
 
 	def _initialize(self, data, nt):
 
-		if self._rank == 0:
-			print(' ')
-			print('Initialize data')
-			print('------------------------------------')
+		self._pr0(f' ')
+		self._pr0(f'Initialize data')
+		self._pr0(f'------------------------------------')
 
 		self._nt = nt
 		self._data = data
 
-		if self._rank == 0:
-			print('- reading first time snapshot for data dimensions')
+		self._pr0(f'- reading first time snapshot for data dimensions')
 		if not isinstance(self._data[[0],...], np.ndarray):
 			x_tmp = self._data[[0],...].values
 		else:
@@ -402,7 +400,7 @@ class SPOD_standard(object):
 			x_tmp = x_tmp[...,np.newaxis]
 
 		## get data dimensions and store in class
-		if self._rank == 0: print('- getting data dimensions')
+		self._pr0('- getting data dimensions')
 		self._nx     = x_tmp[0,...,0].size
 		self._dim    = x_tmp.ndim
 		self._shape  = x_tmp.shape
@@ -414,7 +412,7 @@ class SPOD_standard(object):
 		self._isrealx = np.isreal(self._data[0]).all()
 
 		## check weights
-		if self._rank == 0: print('- checking weight dimensions')
+		self._pr0('- checking weight dimensions')
 		if isinstance(self._weights_tmp, dict):
 			self._weights = self._weights_tmp['weights']
 			self._weights_name = self._weights_tmp['weights_name']
@@ -432,25 +430,19 @@ class SPOD_standard(object):
 					'Parameter `weights` not equal to a `numpy.ndarray`.'
 					'Using default uniform weighting')
 
-		print('self._data.shape 1 = ', self._data.shape)
-		print('self._weights.shape 1 = ', self._weights.shape)
 		## distribute data and weights
 		if self._comm:
 			self._distribute(self._comm)
 			self._comm.Barrier()
-		print('self._data.shape 2 = ', self._data.shape)
-		print('self._weights.shape 2 = ', self._weights.shape)
 
 		## add axis for single variable
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
-		print('self._data.shape 3 = ', self._data.shape)
-		print('self._weights.shape 3 = ', self._weights.shape)
 
 		## normalize weigths if required
 		if self._normalize_weights:
-			if self._rank == 0: print('- normalizing weights')
+			self._pr0('- normalizing weights')
 			self._weights = utils_weights.apply_normalization(
 				data=self._data,
 				weights=self._weights,
@@ -491,7 +483,7 @@ class SPOD_standard(object):
 		# import pdb; pdb.set_trace()
 
 		# apply mean
-		if self._rank == 0: print('- computing time mean')
+		self._pr0(f'- computing time mean')
 		self.select_mean()
 
 		# get frequency axis
@@ -509,18 +501,19 @@ class SPOD_standard(object):
 			+'_novlp'+str(self._n_overlap)  \
 			+'_nblks'+str(self._n_blocks)   \
 		)
-		if not os.path.exists(self._save_dir_simulation):
-			os.makedirs(self._save_dir_simulation)
 		self._blocks_folder = os.path.join(self._save_dir_simulation, 'blocks')
-		if not os.path.exists(self._blocks_folder):
-			os.makedirs(self._blocks_folder)
+		if self._rank == 0:
+			if not os.path.exists(self._save_dir_simulation):
+				os.makedirs(self._save_dir_simulation)
+			if not os.path.exists(self._blocks_folder):
+				os.makedirs(self._blocks_folder)
 
 		# compute approx problem size (assuming double)
 		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
 
 		# print parameters to the screen
-		self.print_parameters()
-		if self._rank == 0: print('------------------------------------')
+		self._print_parameters()
+		self._pr0(f'------------------------------------')
 
 
 	def select_mean(self):
@@ -619,8 +612,7 @@ class SPOD_standard(object):
 		'''Compute standard SPOD.'''
 
 		# compute inner product in frequency space, for given frequency
-		M = np.matmul(
-			Q_hat_f.conj().T, (Q_hat_f * self._weights)) / self._n_blocks
+		M = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
 
 		if self._comm:
 			M_reduced = np.zeros_like(M)
@@ -639,8 +631,10 @@ class SPOD_standard(object):
 		# compute spatial modes for given frequency
 		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
 		Phi = np.matmul(Q_hat_f, V * L_diag[None,:])
+
 		# Phi = np.matmul(Q_hat_f, np.matmul(\
 			# V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
+
 		if self._comm:
 			Phi_0 = self._comm.gather(Phi, root=0)
 			if self._rank == 0:
@@ -653,7 +647,6 @@ class SPOD_standard(object):
 
 		if self._rank == 0:
 			Phi = Phi[...,0:self._n_modes_save]
-			print(Phi.shape)
 			Phi = Phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
 			file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
 			path_psi = os.path.join(self._save_dir_simulation, file_psi)
@@ -695,8 +688,8 @@ class SPOD_standard(object):
 		Compute coefficients through oblique projection.
 		'''
 		s0 = time.time()
-		print('\nComputing coefficients'      )
-		print('------------------------------')
+		self._pr0(f'\nComputing coefficients'      )
+		self._pr0(f'------------------------------')
 
 		## initialize frequencies
 		st = time.time()
@@ -711,43 +704,50 @@ class SPOD_standard(object):
 			self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
 				freq_required=1/T_lb, freq=self._freq)
 		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
-		if self._rank == 0: print('- identified frequencies. ', time.time() - st, 's.')
+		self._pr0(f'- identified frequencies: {time.time() - st} s.')
 		st = time.time()
 
 		## initialize coeffs matrix
-		coeffs = np.zeros([self._n_freq_r*self._n_modes_save, nt],
-			dtype='complex_')
-		if self._rank == 0: print('- initialized coeff matrix. ', time.time() - st, 's.')
+		shape_tmp = (self._n_freq_r*self._n_modes_save, nt)
+		mem_tmp = self._n_freq_r * self._n_modes_save * nt
+		mem_coeffs = mem_tmp * sys.getsizeof(complex()) * BYTE_TO_GB
+		vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
+		sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
+		self._pr0(f'- RAM memory to compute coeffs ~ {mem_coeffs} GB.')
+		self._pr0(f'- Available RAM memory         ~ {vram_avail} GB.')
+		if self._rank == 0:
+			if mem_coeffs > vram_avail:
+				raise ValueError('Not enough RAM memory to compute coeffs.')
+
+		coeffs = np.zeros(shape_tmp, dtype=complex)  ########### how to initialize distributed?
+		self._pr0(f'- initialized coeff matrix: {time.time() - st} s.')
 		st = time.time()
 
-		## get data, reshape and remove the mean
-		st = time.time()
 		## distribute data
 		if self._comm:
-			self._distribute(self._comm)
+			data = self._distribute_field(self._comm, data)
 			self._comm.Barrier()
+
+		self._pr0(f'{data.shape = :}')
+
 		## add axis for single variable
 		if not isinstance(data,np.ndarray): data = data.values
 		if (self._nv == 1) and (data.ndim != self._xdim + 2):
 			data = data[...,np.newaxis]
+
+		## get data, reshape and remove the mean
 		X = data[0:nt,...]
 		X = np.squeeze(X)
 		X_reshape = np.reshape(X[:,:,:], [nt, int(self._nx*self._nv)])
 		time_mean = np.mean(X_reshape, axis=0)
 		X_reshape = X_reshape - time_mean
-		if self._rank == 0:
-			print('- data and time mean. ', time.time() - st, 's.');
+		self._pr0(f'- data and time mean: {time.time() - st} s.');
 		st = time.time()
 
 		# initialize modes and weights
-		phi_tilde = np.zeros(
-			[self._nx*self.nv, self._n_freq_r*self.n_modes_save],
-			dtype='complex_'
-		)
-		W_phi = np.zeros(
-			[self._nx*self.nv, self._n_freq_r*self.n_modes_save],
-			dtype='complex_'
-		)
+		shape_tmp = (self._nx*self.nv, self._n_freq_r*self.n_modes_save)
+		phi_tilde = np.zeros(shape_tmp, dtype=complex)
+		W_phi = np.zeros(shape_tmp, dtype=complex)
 
 		# order the modes in the Phi_tilde vector
 		cnt_freq = 0
@@ -760,14 +760,13 @@ class SPOD_standard(object):
 					np.squeeze(self.weights[:])
 				phi_tilde[:,self.n_modes_save*cnt_freq+i_mode] = modes[:,i_mode]
 			cnt_freq = cnt_freq + 1
-		if self._rank == 0:
-			print('- retrieved requested frequencies.',time.time() - st, 's.')
+		self._pr0(f'- retrieved requested frequencies: {time.time() - st} s.')
 		st = time.time()
 
 		# evaluate the coefficients by oblique projection
 		coeffs = post.oblique_projection(
 			phi_tilde, W_phi, self.weights, X_reshape.T, svd=svd)
-		print('- oblique projection done. ', time.time() - st, 's.')
+		self._pr0(f'- oblique projection done: {time.time() - st} s.')
 		st = time.time()
 
 		# save coefficients
@@ -775,12 +774,10 @@ class SPOD_standard(object):
 			'coeffs_freq{:08f}to{:08f}.npy'.format(
 				self._freq_found_lb, self._freq_found_ub))
 		np.save(file_coeffs, coeffs)
-
-		if self._rank == 0: print('- saving completed.', time.time() - st, 's.')
-		if self._rank == 0: print('------------------------------')
-
-		if self._rank == 0: print('Coefficients saved in folder', file_coeffs)
-		if self._rank == 0: print('Elapsed time: ', time.time() - s0, 's.')
+		self._pr0(f'- saving completed: {time.time() - st} s.')
+		self._pr0(f'------------------------------')
+		self._pr0(f'Coefficients saved in folder: {file_coeffs}')
+		self._pr0(f'Elapsed time: {time.time() - s0} s.')
 		return coeffs, phi_tilde, time_mean
 
 
@@ -790,27 +787,23 @@ class SPOD_standard(object):
 		Reconstruct original data through oblique projection.
 		'''
 		s0 = time.time()
-		if self._rank == 0:
-			print('\nReconstructing data from coefficients'   )
-			print('------------------------------------------')
+		self._pr0(f'\nReconstructing data from coefficients'   )
+		self._pr0(f'------------------------------------------')
 		st = time.time()
 
 		## phi x coeffs
 		nt = coeffs.shape[1]
 		Q_reconstructed = np.matmul(phi_tilde, coeffs)
-		if self._rank == 0:
-			print('- phi x coeffs completed. ', time.time() - st, 's.')
+		self._pr0(f'- phi x coeffs completed: {time.time() - st} s.')
 
 		## add time mean
 		Q_reconstructed = Q_reconstructed + time_mean[...,None]
-		if self._rank == 0:
-			print('- added time mean. ', time.time() - st, 's.')
+		self._pr0(f'- added time mean: {time.time() - st} s.')
 
 		## reshape data
 		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
 			((nt,) + self._xshape + (self._nv,)))
-		if self._rank == 0:
-			print('- data reshaped. ', time.time() - st, 's.')
+		self._pr0(f'- data reshaped: {time.time() - st} s.')
 
 		## save
 		file_dynamics = os.path.join(self._save_dir_simulation,
@@ -818,11 +811,10 @@ class SPOD_standard(object):
 				self._freq_found_lb, self._freq_found_ub))
 		with open(file_dynamics, 'wb') as handle:
 			pickle.dump(Q_reconstructed, handle)
-		if self._rank == 0:
-			print('- data saved. ', time.time() - st, 's.')
-			print('------------------------------------------')
-			print('Reconstructed data saved in folder', file_dynamics)
-			print('Elapsed time: ', time.time() - s0, 's.')
+		self._pr0(f'- data saved: {time.time() - st} s.')
+		self._pr0(f'------------------------------------------')
+		self._pr0(f'Reconstructed data saved in folder: {file_dynamics}')
+		self._pr0(f'Elapsed time: {time.time() - s0} s.')
 		return Q_reconstructed
 
 
@@ -899,45 +891,90 @@ class SPOD_standard(object):
 		self._global_shape = shape
 
 
-	def _reduce(self):
-		pass
 
-	def _print_r0(self):
-		# print(f'{a = :.2f} hello {a}')
-		pass
+	def _distribute_field(self, comm, field):
 
-	def print_parameters(self):
+		## distribute largest spatial dimension
+		shape = field[0,...].shape
+		maxdim_idx = np.argmax(shape)
+		maxval = shape[maxdim_idx]
+		print('maxval = ', maxval, 'maxdim_idx = ', maxdim_idx)
+		perrank = maxval // self._size
+		remaind = maxval  % self._size
+		print('perrank = ', perrank, 'remaind = ', remaind)
+		# idx = [slice(None)] * self._dim
+		# idx[axis] = maxdim_idx + 1
+		# A[tuple(idx)] = ...
+		if maxdim_idx == 0:
+			if self._rank == self._size - 1:
+				field = field[\
+					:,self._rank*perrank:,...]
+			else:
+				field = field[\
+					:,self._rank*perrank:(self._rank+1)*perrank,...]
+		elif maxdim_idx == 1:
+			if self._rank == self._size - 1:
+				field = field[\
+					:,:,self._rank*perrank:,...]
+			else:
+				field = field[\
+					:,:,self._rank*perrank:(self._rank+1)*perrank,...]
+		elif maxdim_idx == 2:
+			if self._rank == self._size - 1:
+				field = field[\
+					:,:,:,self._rank*perrank:,...]
+			else:
+				field = field[\
+					:,:,:,self._rank*perrank:(self._rank+1)*perrank,...]
+		else:
+			raise ValueError('MPI distribution planned on 3D problems.')
+		self._maxdim_idx_field = maxdim_idx
+		self._global_shape_field = shape
+		return field
 
-		if self._rank == 0:
-			# display parameter summary
-			print(f'')
-			print(f'SPOD parameters')
-			print(f'------------------------------------')
-			print(f'Problem size              : {self._pb_size} GB. (double)')
-			print('No. of snapshots per block : ', self._n_dft)
-			print('Block overlap              : ', self._n_overlap)
-			print('No. of blocks              : ', self._n_blocks)
-			print('Windowing fct. (time)      : ', self._window_name)
-			print('Weighting fct. (space)     : ', self._weights_name)
-			print('Mean                       : ', self._mean_type)
-			print('Number of frequencies      : ', self._n_freq)
-			print('Time-step                  : ', self._dt)
-			print('Time snapshots             : ', self._nt)
-			print('Space dimensions           : ', self._xdim)
-			print('Number of variables        : ', self._nv)
-			print('Normalization weights      : ', self._normalize_weights)
-			print('Normalization data         : ', self._normalize_data)
-			print('Number of modes to be saved: ', self._n_modes_save)
-			print('Confidence level for eigs  : ', self._c_level)
-			print('Results to be saved in     : ', self._save_dir)
-			print('Save FFT blocks            : ', self._savefft)
-			print('Reuse FFT blocks           : ', self._reuse_blocks)
-			if self._isrealx: print('Spectrum type             : ',
-				'one-sided (real-valued signal)')
-			else            : print('Spectrum type             : ',
-				'two-sided (complex-valued signal)')
-			print('------------------------------------')
-			print('')
+
+	def _allreduce(self, d):
+		d_reduced = np.zeros_like(d)
+		self._comm.Barrier()
+		self._comm.Allreduce(d, d_reduced, op=MPI.SUM)
+		return d_reduced
+
+
+	def _pr0(self, fstring):
+		if self._rank == 0: print(fstring)
+
+
+
+	def _print_parameters(self):
+
+		# display parameter summary
+		self._pr0(f'SPOD parameters')
+		self._pr0(f'------------------------------------')
+		self._pr0(f'Problem size             : {self._pb_size} GB. (double)')
+		self._pr0(f'No. snapshots per block  : {self._n_dft}')
+		self._pr0(f'Block overlap            : {self._n_overlap}')
+		self._pr0(f'No. of blocks            : {self._n_blocks}')
+		self._pr0(f'Windowing fct. (time)    : {self._window_name}')
+		self._pr0(f'Weighting fct. (space)   : {self._weights_name}')
+		self._pr0(f'Mean                     : {self._mean_type}')
+		self._pr0(f'Number of frequencies    : {self._n_freq}')
+		self._pr0(f'Time-step                : {self._dt}')
+		self._pr0(f'Time snapshots           : {self._nt}')
+		self._pr0(f'Space dimensions         : {self._xdim}')
+		self._pr0(f'Number of variables      : {self._nv}')
+		self._pr0(f'Normalization weights    : {self._normalize_weights}')
+		self._pr0(f'Normalization data       : {self._normalize_data}')
+		self._pr0(f'No. modes to be saved    : {self._n_modes_save}')
+		self._pr0(f'Confidence level for eigs: {self._c_level}')
+		self._pr0(f'Results to be saved in   : {self._save_dir}')
+		self._pr0(f'Save FFT blocks          : {self._savefft}')
+		self._pr0(f'Reuse FFT blocks         : {self._reuse_blocks}')
+		if self._isrealx and (not self._fullspectrum):
+			self._pr0(f'Spectrum type: one-sided (real-valued signal)')
+		else:
+			self._pr0(f'Spectrum type: two-sided (complex-valued signal)')
+		self._pr0(f'------------------------------------')
+		self._pr0(f'')
 
 	# --------------------------------------------------------------------------
 
@@ -967,31 +1004,6 @@ class SPOD_standard(object):
 		xi, idx = post.find_nearest_coords(
 			coords=coords, x=x, data_space_dim=self.xshape)
 		return xi, idx
-
-
-	def get_Q_hat_at_freq(self, block_idx, freq_idx):
-		'''
-		See method implementation in the postprocessing module.
-		'''
-		if self._Q_hat_f is None:
-			raise ValueError('Q_hat_f not found. Consider running fit()')
-		elif isinstance(self._Q_hat_f, dict):
-			gb_memory_modes = freq_idx * self.nx * \
-				sys.getsizeof(complex()) * BYTE_TO_GB
-			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
-			gb_sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
-			if gb_memory_modes >= gb_vram_avail:
-				print('- RAM required for loading all Q_hat ~',
-					gb_memory_modes, 'GB')
-				print('- Available RAM memory               ~',
-					gb_vram_avail  , 'GB')
-				raise ValueError('Not enough RAM memory to load Q_hat stored.')
-			else:
-				file = self._Q_hat_f[str(block_idx)][str(freq_idx)]
-				qf = post.get_data_from_file(file)
-		else:
-			raise TypeError('Modes must be a dictionary')
-		return qf
 
 
 	def get_modes_at_freq(self, freq_idx):

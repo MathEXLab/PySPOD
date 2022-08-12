@@ -49,7 +49,9 @@ def change_path_modes(modes_dict, wanted, target):
 		v = v.replace(wanted, target)
 		r[i] = v
 	return r
+
 # ---------------------------------------------------------------------------
+
 
 
 # getters
@@ -102,28 +104,6 @@ def find_nearest_coords(coords, x, data_space_dim):
 		xi += (grid[tuple_idx],)
 		idx += (tmp_idx[cnt],)
 	return xi, idx
-
-
-
-def get_Q_hat_at_freq(Q_hat, block_idx, freq_idx):
-	'''
-	Get the matrix containing the block data matrices.
-
-	:param dict: path to the files where the SPOD modes are stored.
-	:param int freq_idx: frequency id requested.
-
-	:return: the block data matrices at requested frequency.
-	:rtype: numpy.ndarray
-	'''
-	# load modes from files if saved in storage
-	if isinstance(Q_hat, dict):
-		filename = Q_hat[block_idx][freq_idx]
-		qf = get_data_from_file(filename)
-	else:
-		raise TypeError('modes must be a dict.')
-	# else:
-	# 	qf = Q_hat[freq_idx,...]
-	return qf
 
 
 
@@ -426,7 +406,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 			plt.set_cmap(cmap)
 
 			print(modes.shape)
-			
+
 			# extract mode
 			mode = np.squeeze(modes[:,:,var_id,mode_id])
 
