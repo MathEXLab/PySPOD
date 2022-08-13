@@ -69,12 +69,12 @@ def test_weights_2D():
 	freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 	tol = 1e-10
-	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.15812414887564405 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,0]) > 0.15812414887564405 -tol))
+	assert((np.abs(modes_at_freq[5,10,0,0]) < 0.15812414887564405+tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0]) > 0.15812414887564405-tol))
 	assert((np.abs(modes_at_freq[0,0,0,0])  < 0.1912878813107214 +tol) & \
 		   (np.abs(modes_at_freq[0,0,0,0])  > 0.1912878813107214 -tol))
-	assert((np.max(np.abs(modes_at_freq))   < 0.46987413376959064 +tol) & \
-		   (np.max(np.abs(modes_at_freq))   > 0.46987413376959064 -tol))
+	assert((np.max(np.abs(modes_at_freq))   < 0.46987413376959064+tol) & \
+		   (np.max(np.abs(modes_at_freq))   > 0.46987413376959064-tol))
 
 
 
