@@ -109,7 +109,7 @@ def jet_emulationSPOD():
 	q_rec = spod.reconstruct_data_freq(
 		coeffs_train['coeffs'][:,:,id_block], 
 		coeffs_train['phi_tilde'], 
-		coeffs_train['time_mean']
+		coeffs_train['t_mean']
 	)
 	time_offset_lb = spod.get_time_offset_lb
 	time_offset_ub = spod.get_time_offset_ub
@@ -183,18 +183,18 @@ def jet_emulationSPOD():
 
 	# reconstruct solutions
 	# phi_tilde = coeffs_train['phi_tilde']
-	# time_mean = coeffs_train['time_mean']
+	# t_mean = coeffs_train['t_mean']
 	
 	# proj_rec =spod.reconstruct_data(
 	# 		coeffs=coeffs_test['coeffs'][:,:], 
 	# 		phi_tilde=coeffs_train['phi_tilde'],
-	# 		time_mean=coeffs_train['time_mean']
+	# 		t_mean=coeffs_train['t_mean']
 	# 	)
 
 	# emulation_rec =spod.reconstruct_data(
 	# 		coeffs=coeffs, 
 	# 		phi_tilde=coeffs_train['phi_tilde'],
-	# 		time_mean=coeffs_train['time_mean']
+	# 		t_mean=coeffs_train['t_mean']
 	# 	)
 
 	# # errors

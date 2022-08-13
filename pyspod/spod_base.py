@@ -411,31 +411,16 @@ class SPOD_standard(object):
 		## to decide on one- or two-sided spectrum from data
 		self._isrealx = np.isreal(self._data[0]).all()
 
-		## check weights
-		self._pr0('- checking weight dimensions')
-		if isinstance(self._weights_tmp, dict):
-			self._weights = self._weights_tmp['weights']
-			self._weights_name = self._weights_tmp['weights_name']
-			if np.size(self._weights) != int(self.nx * self.nv):
-				if self._rank == 0:
-					raise ValueError(
-						'parameter ``weights`` must have the '
-						'same size as flattened data spatial '
-						'dimensions, that is: ', int(self.nx * self.nv))
-		else:
-			self._weights = np.ones(self._xshape+(self._nv,))
-			self._weights_name = 'uniform'
-			if self._rank == 0:
-				warnings.warn(
-					'Parameter `weights` not equal to a `numpy.ndarray`.'
-					'Using default uniform weighting')
+		## define and check weights
+		self.define_weights()
 
 		## distribute data and weights
 		if self._comm:
-			self._distribute(self._comm)
+			self._distribute_data(self._comm)
+			self._weights = self._distribute_field(self._comm, self._weights)
 			self._comm.Barrier()
 
-		## add axis for single variable
+		## get data and add axis for single variable
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
@@ -514,6 +499,27 @@ class SPOD_standard(object):
 		# print parameters to the screen
 		self._print_parameters()
 		self._pr0(f'------------------------------------')
+
+
+	def define_weights(self):
+		'''Define and check weights.'''
+		self._pr0('- checking weight dimensions')
+		if isinstance(self._weights_tmp, dict):
+			self._weights = self._weights_tmp['weights']
+			self._weights_name = self._weights_tmp['weights_name']
+			if np.size(self._weights) != int(self.nx * self.nv):
+				if self._rank == 0:
+					raise ValueError(
+						'parameter ``weights`` must have the '
+						'same size as flattened data spatial '
+						'dimensions, that is: ', int(self.nx * self.nv))
+		else:
+			self._weights = np.ones(self._xshape+(self._nv,))
+			self._weights_name = 'uniform'
+			if self._rank == 0:
+				warnings.warn(
+					'Parameter `weights` not equal to a `numpy.ndarray`.'
+					'Using default uniform weighting')
 
 
 	def select_mean(self):
@@ -636,54 +642,67 @@ class SPOD_standard(object):
 			# V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
 
 		if self._comm:
-			Phi_0 = self._comm.gather(Phi, root=0)
-			if self._rank == 0:
-				for p in Phi_0:
-					shape = list(self._global_shape)
-					shape[self._maxdim_idx] = -1
-					p.shape = shape
-				Phi = np.concatenate(Phi_0, axis=self._maxdim_idx)
-				Phi.shape = list(self._xshape + (self._n_blocks,))
+			Phi = self._gather(Phi, root=0)
+			# Phi_0 = self._comm.gather(Phi, root=0)
+			# if self._rank == 0:
+				# for p in Phi_0:
+					# shape = list(self._global_shape)
+					# shape[self._maxdim_idx] = -1
+					# p.shape = shape
+				# Phi = np.concatenate(Phi_0, axis=self._maxdim_idx)
+				# Phi.shape = list(self._xshape + (self._n_blocks,))
 
+		## save modes
+		file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
+		path_psi = os.path.join(self._save_dir_simulation, file_psi)
+		self._modes[i_freq] = file_psi
 		if self._rank == 0:
 			Phi = Phi[...,0:self._n_modes_save]
 			Phi = Phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-			file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
-			path_psi = os.path.join(self._save_dir_simulation, file_psi)
 			np.save(path_psi, Phi)
-			self._modes[i_freq] = file_psi
-			self._eigs[i_freq,:] = abs(L)
 
-			# get and save confidence interval
-			self._eigs_c[i_freq,:,0] = \
-				self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_lower
-			self._eigs_c[i_freq,:,1] = \
-				self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_upper
+		# get eigenvalues and confidence intervals
+		self._eigs[i_freq,:] = abs(L)
+		self._eigs_c[i_freq,:,0] = \
+			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_lower
+		self._eigs_c[i_freq,:,1] = \
+			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_upper
 
 
-	def transform(self, data, nt, svd=True, T_lb=None, T_ub=None):
+	def transform(
+		self, data, nt, svd=True, rec_idx=None, T_lb=None, T_ub=None):
+
+		## override class variables self._data
+		self._data = data
+		self._nt = nt
+
+		## select time snapshots required
+		self._data = self._data[0:self._nt,...]
 
 		# compute coeffs
-		coeffs, phi_tilde, time_mean = self.compute_coeffs(
-			data=data, nt=nt, svd=svd, T_lb=T_lb, T_ub=T_ub)
+		coeffs, phi_tilde, t_mean = self.compute_coeffs(
+			svd=svd, T_lb=T_lb, T_ub=T_ub)
 		# coeffs = np.real_if_close(coeffs, tol=1000000)
 
 		# reconstruct data
+		self._rec_idx = rec_idx
+		if not self._rec_idx: self._rec_idx = [0,self._nt%2,self._nt-1]
 		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs, phi_tilde=phi_tilde, time_mean=time_mean,
+			coeffs=coeffs, phi_tilde=phi_tilde, t_mean=t_mean,
 			T_lb=T_lb, T_ub=T_ub)
 
 		# return data
 		dict_return = {
 			'coeffs': coeffs,
 			'phi_tilde': phi_tilde,
-			'time_mean': time_mean,
+			't_mean': t_mean,
+			'weights': self._weights,
 			'reconstructed_data': reconstructed_data
 		}
 		return dict_return
 
 
-	def compute_coeffs(self, data, nt, svd=True, T_lb=None, T_ub=None):
+	def compute_coeffs(self, svd=True, T_lb=None, T_ub=None):
 		'''
 		Compute coefficients through oblique projection.
 		'''
@@ -708,13 +727,13 @@ class SPOD_standard(object):
 		st = time.time()
 
 		## initialize coeffs matrix
-		shape_tmp = (self._n_freq_r*self._n_modes_save, nt)
-		mem_tmp = self._n_freq_r * self._n_modes_save * nt
+		shape_tmp = (self._n_freq_r*self._n_modes_save, self._nt)
+		mem_tmp = self._n_freq_r * self._n_modes_save * self._nt
 		mem_coeffs = mem_tmp * sys.getsizeof(complex()) * BYTE_TO_GB
 		vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
 		sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
 		self._pr0(f'- RAM memory to compute coeffs ~ {mem_coeffs} GB.')
-		self._pr0(f'- Available RAM memory         ~ {vram_avail} GB.')
+		self._pr0(f'- Available RAM memory ~ {vram_avail} GB.')
 		if self._rank == 0:
 			if mem_coeffs > vram_avail:
 				raise ValueError('Not enough RAM memory to compute coeffs.')
@@ -723,49 +742,80 @@ class SPOD_standard(object):
 		self._pr0(f'- initialized coeff matrix: {time.time() - st} s.')
 		st = time.time()
 
-		## distribute data
+		# self._pr0(f'{coeffs.shape = :}')
+		# self._pr0(f'{self._data.shape = :}')
+		# self._pr0(f'{self._weights.shape = :}')
+
+		## distribute data if parallel required
+		## note: weights are already distributed from fit()
+		## it is assumed that one runs fit and transform within the same main
 		if self._comm:
-			data = self._distribute_field(self._comm, data)
+			self._distribute_data(self._comm)
 			self._comm.Barrier()
 
-		self._pr0(f'{data.shape = :}')
+		self._pr0(f'{self._data.shape = :}')
 
 		## add axis for single variable
-		if not isinstance(data,np.ndarray): data = data.values
-		if (self._nv == 1) and (data.ndim != self._xdim + 2):
-			data = data[...,np.newaxis]
+		if not isinstance(self._data,np.ndarray):
+			self._data = self._data.values
+		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
+			self._data = self._data[...,np.newaxis]
 
-		## get data, reshape and remove the mean
-		X = data[0:nt,...]
-		X = np.squeeze(X)
-		X_reshape = np.reshape(X[:,:,:], [nt, int(self._nx*self._nv)])
-		time_mean = np.mean(X_reshape, axis=0)
-		X_reshape = X_reshape - time_mean
+		## flatten spatial x variable dimensions
+		self._data = np.reshape(self._data, [self._nt, self._data[0,...].size])
+		# self._pr0(f'{self._data.shape = :}')
+
+		## compute time mean and subtract from data
+		t_mean = np.mean(self._data, axis=0) ###### should we reuse the time mean from fit?
+		self._data = self._data - t_mean
+		# self._pr0(f'{t_mean.shape = :}')
+		# self._pr0(f'{self._data.shape = :}')
 		self._pr0(f'- data and time mean: {time.time() - st} s.');
 		st = time.time()
 
 		# initialize modes and weights
-		shape_tmp = (self._nx*self.nv, self._n_freq_r*self.n_modes_save)
+		shape_tmp = (self._data[0,...].size, self._n_freq_r*self.n_modes_save)
 		phi_tilde = np.zeros(shape_tmp, dtype=complex)
-		W_phi = np.zeros(shape_tmp, dtype=complex)
+		weights_phi = np.zeros(shape_tmp, dtype=complex)
+		# self._pr0(f'{phi_tilde.shape = :}')
+		# self._pr0(f'{weights_phi.shape = :}')
 
-		# order the modes in the Phi_tilde vector
+		## order weights and modes such that each frequency contains
+		## all required modes (n_modes_save)
+		## - freq_0: modes from 0 to n_modes_save
+		## - freq_1: modes from 0 to n_modes_save
+		## ...
 		cnt_freq = 0
 		for i_freq in range(self._freq_idx_lb, self._freq_idx_ub+1):
+			# self._pr0(f'{i_freq = :}')
 			modes = self.get_modes_at_freq(i_freq)
-			modes = np.reshape(modes, [self.nv*self.nx, 1, self.n_modes_save])
-			modes = modes[:,0,:]
+			# print(f'{i_freq = : } { modes.shape = :}')
+			if self._comm:
+				modes = self._distribute_field(self._comm, modes)
+			# self._pr0(f'{modes.shape = :}')
+			modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
+			# print(f'{modes.shape = :}')
 			for i_mode in range(self._n_modes_save):
-				W_phi[:,self.n_modes_save*cnt_freq+i_mode] = \
-					np.squeeze(self.weights[:])
-				phi_tilde[:,self.n_modes_save*cnt_freq+i_mode] = modes[:,i_mode]
+				# self._pr0(f'{i_mode = :}')
+				jump_freq = self.n_modes_save*cnt_freq+i_mode
+				weights_phi[:,jump_freq] = np.squeeze(self._weights[:])
+				# self._pr0(f'{self._weights.shape = :}')
+				# self._pr0(f'{weights_phi.shape = :}')
+				phi_tilde  [:,jump_freq] = modes[:,i_mode]
+				# self._pr0(f'{phi_tilde.shape = :}')
 			cnt_freq = cnt_freq + 1
 		self._pr0(f'- retrieved requested frequencies: {time.time() - st} s.')
 		st = time.time()
 
 		# evaluate the coefficients by oblique projection
-		coeffs = post.oblique_projection(
-			phi_tilde, W_phi, self.weights, X_reshape.T, svd=svd)
+		self._pr0(f'{phi_tilde.shape = :}')
+		self._pr0(f'{weights_phi.shape = :}')
+		self._pr0(f'{self._weights.shape = :}')
+		self._pr0(f'{self._data.T.shape = :}')
+
+		coeffs = self._oblique_projection(
+			phi_tilde, weights_phi, self._weights, self._data, svd=svd)
+		self._pr0(f'{coeffs.shape = :}')
 		self._pr0(f'- oblique projection done: {time.time() - st} s.')
 		st = time.time()
 
@@ -773,16 +823,49 @@ class SPOD_standard(object):
 		file_coeffs = os.path.join(self._save_dir_simulation,
 			'coeffs_freq{:08f}to{:08f}.npy'.format(
 				self._freq_found_lb, self._freq_found_ub))
-		np.save(file_coeffs, coeffs)
+		if self._rank == 0:
+			np.save(file_coeffs, coeffs)
 		self._pr0(f'- saving completed: {time.time() - st} s.')
 		self._pr0(f'------------------------------')
 		self._pr0(f'Coefficients saved in folder: {file_coeffs}')
 		self._pr0(f'Elapsed time: {time.time() - s0} s.')
-		return coeffs, phi_tilde, time_mean
+		return coeffs, phi_tilde, t_mean
 
 
-	def reconstruct_data(
-		self, coeffs, phi_tilde, time_mean, T_lb=None, T_ub=None):
+	def _oblique_projection(
+		self, phi_tilde, weights_phi, weights, data, svd=True):
+		'''Compute oblique projection for time coefficients.'''
+		data = data.T
+		M = phi_tilde.conj().T @ (weights_phi * phi_tilde)
+		Q = phi_tilde.conj().T @ (weights * data)
+		if self._comm:
+			M = self._allreduce(M)
+			Q = self._allreduce(Q)
+		print(f'{self._rank = :}  {M.shape = :}')
+		print(f'{self._rank = :}  {np.sum(M) = :}')
+		## --
+		print(f'{self._rank = :}  {Q.shape = :}')
+		print(f'{self._rank = :}  {np.sum(Q) = :}')
+		if svd:
+			u, l, v = np.linalg.svd(M)
+			l_inv = np.zeros([len(l),len(l)], dtype=complex)
+			for i in range(len(l)):
+				if (l[i] > 1e-10):
+					l_inv[i,i] = 1 / l[i]
+			M_inv = (v.conj().T @ l_inv) @ u.conj().T
+			coeffs = M_inv @ Q
+			print(f'{self._rank = :}  {coeffs.shape = :}')
+			print(f'{self._rank = :}  {np.sum(coeffs) = :}')
+		else:
+			tmp1_inv = np.linalg.pinv(M)
+			coeffs = tmp1_inv @ Q
+			print(f'{self._rank = :}  {coeffs.shape = :}')
+			print(f'{self._rank = :}  {np.sum(coeffs) = :}')
+		return coeffs
+
+
+	def reconstruct_data(##### self._rec_idx to be added here!
+		self, coeffs, phi_tilde, t_mean, T_lb=None, T_ub=None):
 		'''
 		Reconstruct original data through oblique projection.
 		'''
@@ -793,39 +876,61 @@ class SPOD_standard(object):
 
 		## phi x coeffs
 		nt = coeffs.shape[1]
-		Q_reconstructed = np.matmul(phi_tilde, coeffs)
+		self._pr0(f'{phi_tilde.shape = :}')
+		self._pr0(f'{coeffs.shape = :}')
+		Q_reconstructed = np.matmul(phi_tilde, coeffs[:,self._rec_idx])
+		print(f'{self._rank = }  {Q_reconstructed.shape = :}')
+		print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
 		self._pr0(f'- phi x coeffs completed: {time.time() - st} s.')
 
 		## add time mean
-		Q_reconstructed = Q_reconstructed + time_mean[...,None]
+		self._pr0(f'{t_mean.shape = :}')
+		Q_reconstructed = Q_reconstructed + t_mean[...,None]
 		self._pr0(f'- added time mean: {time.time() - st} s.')
 
-		## reshape data
-		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
-			((nt,) + self._xshape + (self._nv,)))
-		self._pr0(f'- data reshaped: {time.time() - st} s.')
+		print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
+		if self._comm:
+			d_0 = self._comm.gather(Q_reconstructed, root=0)
+			if self._rank == 0:
+				for e in d_0:
+					shape = list(self._global_shape)
+					shape[self._maxdim_idx] = -1
+					e.shape = shape
+				Q_reconstructed = np.concatenate(d_0, axis=self._maxdim_idx)
+				Q_reconstructed.shape = list(self._xshape+(len(self._rec_idx),))
+		else:
+			pass
+		## reshape data and save
+		if self._rank == 0:
+			print(f'{self._rank = }  {Q_reconstructed.shape = :}')
+			# Q_reconstructed = np.einsum('ijk->kij', Q_reconstructed)
+			Q_reconstructed.shape = [len(self._rec_idx),*self._xshape,self._nv]
+			print(f'{self._rank = }  {Q_reconstructed.shape = :}')
+			print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
+			# Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
+				# ((nt,) + self._xshape + (self._nv,)))
+			self._pr0(f'- data reshaped: {time.time() - st} s.')
 
-		## save
-		file_dynamics = os.path.join(self._save_dir_simulation,
-			'reconstructed_data_freq{:08f}to{:08f}.pkl'.format(
-				self._freq_found_lb, self._freq_found_ub))
-		with open(file_dynamics, 'wb') as handle:
-			pickle.dump(Q_reconstructed, handle)
-		self._pr0(f'- data saved: {time.time() - st} s.')
-		self._pr0(f'------------------------------------------')
-		self._pr0(f'Reconstructed data saved in folder: {file_dynamics}')
-		self._pr0(f'Elapsed time: {time.time() - s0} s.')
+			## save reconstructed data
+			file_dynamics = os.path.join(self._save_dir_simulation,
+				'reconstructed_data_freq{:08f}to{:08f}.pkl'.format(
+					self._freq_found_lb, self._freq_found_ub))
+			with open(file_dynamics, 'wb') as handle:
+				pickle.dump(Q_reconstructed, handle)
+			self._pr0(f'- data saved: {time.time() - st} s.')
+			self._pr0(f'------------------------------------------')
+			self._pr0(f'Reconstructed data saved in folder: {file_dynamics}')
+			self._pr0(f'Elapsed time: {time.time() - s0} s.')
 		return Q_reconstructed
 
 
-	def store_and_save(self):
+	def _store_and_save(self):
 		'''Store and save results.'''
 		if self._rank == 0:
 			# save dictionary of modes for loading
 			path_modes = os.path.join(self._save_dir_simulation, 'modes_dict.pkl')
 			with open(path_modes, 'wb') as handle:
 				pickle.dump(self._modes, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
 			self._eigs_c_u = self._eigs_c[:,:,0]
 			self._eigs_c_l = self._eigs_c[:,:,1]
 			file = os.path.join(self._save_dir_simulation, 'spod_energy')
@@ -838,100 +943,80 @@ class SPOD_standard(object):
 			self._n_modes = self._eigs.shape[-1]
 
 
-	def _distribute(self, comm):
+	def _distribute_data(self, comm):
 
 		## distribute largest spatial dimension
 		shape = self._data[0,...].shape
 		maxdim_idx = np.argmax(shape)
-		maxval = shape[maxdim_idx]
-		print('maxval = ', maxval, 'maxdim_idx = ', maxdim_idx)
-		perrank = maxval // self._size
-		remaind = maxval  % self._size
-		print('perrank = ', perrank, 'remaind = ', remaind)
+		maxdim_val = shape[maxdim_idx]
+		perrank = maxdim_val // self._size
+		remaind = maxdim_val  % self._size
+		self._pr0(f'data')
+		self._pr0(f'{maxdim_val = :};  {maxdim_idx = :}')
+		self._pr0(f'{perrank = :};   {remaind = :}')
 		# idx = [slice(None)] * self._dim
 		# idx[axis] = maxdim_idx + 1
 		# A[tuple(idx)] = ...
 		if maxdim_idx == 0:
 			if self._rank == self._size - 1:
-				self._data = self._data[\
-					:,self._rank*perrank:,...]
-				self._weights = self._weights[\
-					  self._rank*perrank:,...]
+				self._data = self._data[:,self._rank*perrank:,...]
 			else:
 				self._data = self._data[\
 					:,self._rank*perrank:(self._rank+1)*perrank,...]
-				self._weights = self._weights[\
-					  self._rank*perrank:(self._rank+1)*perrank,...]
-
 		elif maxdim_idx == 1:
 			if self._rank == self._size - 1:
-				self._data = self._data[\
-					:,:,self._rank*perrank:,...]
-				self._weights = self._weights[\
-					  :,self._rank*perrank:,...]
+				self._data = self._data[:,:,self._rank*perrank:,...]
 			else:
 				self._data = self._data[\
 					:,:,self._rank*perrank:(self._rank+1)*perrank,...]
-				self._weights = self._weights[\
-					  :,self._rank*perrank:(self._rank+1)*perrank,...]
 		elif maxdim_idx == 2:
 			if self._rank == self._size - 1:
-				self._data = self._data[\
-					:,:,:,self._rank*perrank:,...]
-				self._weights = self._weights[\
-					  :,:,self._rank*perrank:,...]
+				self._data = self._data[:,:,:,self._rank*perrank:,...]
 			else:
 				self._data = self._data[\
 					:,:,:,self._rank*perrank:(self._rank+1)*perrank,...]
-				self._weights = self._weights[\
-					  :,:,self._rank*perrank:(self._rank+1)*perrank,...]
 		else:
 			raise ValueError('MPI distribution planned on 3D problems.')
 		self._maxdim_idx = maxdim_idx
+		self._maxdim_val = maxdim_val
 		self._global_shape = shape
 
 
-
 	def _distribute_field(self, comm, field):
+		"""
+		Distribute largest spatial dimension,
+		assuming spatial dimensions appear as first coordinates
+		of the array.
+		This is typically the case for `weights` and `modes`
 
-		## distribute largest spatial dimension
-		shape = field[0,...].shape
-		maxdim_idx = np.argmax(shape)
-		maxval = shape[maxdim_idx]
-		print('maxval = ', maxval, 'maxdim_idx = ', maxdim_idx)
-		perrank = maxval // self._size
-		remaind = maxval  % self._size
-		print('perrank = ', perrank, 'remaind = ', remaind)
-		# idx = [slice(None)] * self._dim
-		# idx[axis] = maxdim_idx + 1
-		# A[tuple(idx)] = ...
-		if maxdim_idx == 0:
+		"""
+		## distribute largest spatial dimension based on data
+		if (not hasattr(self, '_maxdim_idx')):
+			raise ValueError(
+				'distribution of field requires distribution of data first')
+		perrank = self._maxdim_val // self._size
+		remaind = self._maxdim_val  % self._size
+		# self._pr0(f'field')
+		# self._pr0(f'{self._maxdim_val = :};  {self._maxdim_idx = :}')
+		# self._pr0(f'{perrank = :};   {remaind = :}')
+		if self._maxdim_idx == 0:
 			if self._rank == self._size - 1:
-				field = field[\
-					:,self._rank*perrank:,...]
+				field = field[self._rank*perrank:,...]
 			else:
-				field = field[\
-					:,self._rank*perrank:(self._rank+1)*perrank,...]
-		elif maxdim_idx == 1:
+				field = field[self._rank*perrank:(self._rank+1)*perrank,...]
+		elif self._maxdim_idx == 1:
 			if self._rank == self._size - 1:
-				field = field[\
-					:,:,self._rank*perrank:,...]
+				field = field[:,self._rank*perrank:,...]
 			else:
-				field = field[\
-					:,:,self._rank*perrank:(self._rank+1)*perrank,...]
-		elif maxdim_idx == 2:
+				field = field[:,self._rank*perrank:(self._rank+1)*perrank,...]
+		elif self._maxdim_idx == 2:
 			if self._rank == self._size - 1:
-				field = field[\
-					:,:,:,self._rank*perrank:,...]
+				field = field[:,:,self._rank*perrank:,...]
 			else:
-				field = field[\
-					:,:,:,self._rank*perrank:(self._rank+1)*perrank,...]
+				field = field[:,:,self._rank*perrank:(self._rank+1)*perrank,...]
 		else:
 			raise ValueError('MPI distribution planned on 3D problems.')
-		self._maxdim_idx_field = maxdim_idx
-		self._global_shape_field = shape
 		return field
-
 
 	def _allreduce(self, d):
 		d_reduced = np.zeros_like(d)
@@ -940,9 +1025,20 @@ class SPOD_standard(object):
 		return d_reduced
 
 
+	def _gather(self, d, root):
+		d_0 = self._comm.gather(d, root=root)
+		if self._rank == 0:
+			for e in d_0:
+				shape = list(self._global_shape)
+				shape[self._maxdim_idx] = -1
+				e.shape = shape
+			d = np.concatenate(d_0, axis=self._maxdim_idx)
+			d.shape = list(self._xshape + (self._n_blocks,))
+		return d
+
+
 	def _pr0(self, fstring):
 		if self._rank == 0: print(fstring)
-
 
 
 	def _print_parameters(self):

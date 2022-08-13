@@ -167,12 +167,12 @@ def spod_emulation():
 	emulation_rec =spod.reconstruct_data(
 			coeffs=coeffs, 
 			phi_tilde=spod_train['phi_tilde'],
-			time_mean=spod_train['time_mean']
+			t_mean=spod_train['t_mean']
 		)
 	proj_rec =spod.reconstruct_data(
 			coeffs=spod_test['coeffs'][:,:], 
 			phi_tilde=spod_train['phi_tilde'],
-			time_mean=spod_train['time_mean']
+			t_mean=spod_train['t_mean']
 		)
 
 	# Output and visulalization

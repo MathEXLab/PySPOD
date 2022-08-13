@@ -334,17 +334,17 @@ class POD_standard(object):
 		Compute coefficients and reconstruction through oblique projection.
 		'''
 		# compute coeffs
-		coeffs, phi_tilde, time_mean = self.compute_coeffs(data=data, nt=nt)
+		coeffs, phi_tilde, t_mean = self.compute_coeffs(data=data, nt=nt)
 
 		# reconstruct data
 		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs, phi_tilde=phi_tilde, time_mean=time_mean)
+			coeffs=coeffs, phi_tilde=phi_tilde, t_mean=t_mean)
 
 		# return data
 		dict_return = {
 			'coeffs': coeffs,
 			'phi_tilde': phi_tilde,
-			'time_mean': time_mean,
+			't_mean': t_mean,
 			'reconstructed_data': reconstructed_data
 		}
 		return dict_return
@@ -371,7 +371,7 @@ class POD_standard(object):
 		return a, phi, X_mean
 
 
-	def reconstruct_data(self, coeffs, phi_tilde, time_mean):
+	def reconstruct_data(self, coeffs, phi_tilde, t_mean):
 		'''
 		Reconstruct original data through oblique projection.
 		'''
@@ -379,7 +379,7 @@ class POD_standard(object):
 		print('\nReconstructing data from coefficients ...')
 		nt = coeffs.shape[1]
 		Q_reconstructed = np.matmul(phi_tilde, coeffs)
-		Q_reconstructed = Q_reconstructed + time_mean[...,None]
+		Q_reconstructed = Q_reconstructed + t_mean[...,None]
 		Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
 		 	((nt,) + self._xshape + (self._nv,)))
 		file_dynamics = os.path.join(self._save_dir_modes,

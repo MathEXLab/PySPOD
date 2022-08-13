@@ -152,18 +152,18 @@ def jet_emulationSPOD():
 
 	# reconstruct solutions
 	phi_tilde = coeffs_train['phi_tilde']
-	time_mean = coeffs_train['time_mean']
+	t_mean = coeffs_train['t_mean']
 	
 	proj_rec =spod.reconstruct_data(
 			coeffs=coeffs_test['coeffs'][:,:], 
 			phi_tilde=coeffs_train['phi_tilde'],
-			time_mean=coeffs_train['time_mean']
+			t_mean=coeffs_train['t_mean']
 		)
 
 	emulation_rec =spod.reconstruct_data(
 			coeffs=coeffs, 
 			phi_tilde=coeffs_train['phi_tilde'],
-			time_mean=coeffs_train['time_mean']
+			t_mean=coeffs_train['t_mean']
 		)
 
 	# errors

@@ -112,7 +112,7 @@ class SPOD_parallel(SPOD_standard):
 			self.compute_standard_spod(Q_hat_f, i_freq)
 
 		# store and save results
-		self.store_and_save()
+		self._store_and_save()
 
 		print('------------------------------------')
 		print(' ')

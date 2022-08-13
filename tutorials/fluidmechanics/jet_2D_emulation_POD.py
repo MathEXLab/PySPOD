@@ -98,7 +98,7 @@ def jet_emulationPOD():
 
 	X_rearrange_test = np.reshape(X_test[:,:,:], [nt_test,pod.nv*pod.nx])
 	for i in range(nt_test):
-		X_rearrange_test[i,:] = np.squeeze(X_rearrange_test[i,:]) - np.squeeze(coeffs_train['time_mean'])
+		X_rearrange_test[i,:] = np.squeeze(X_rearrange_test[i,:]) - np.squeeze(coeffs_train['t_mean'])
 	coeffs_test = np.matmul(np.transpose(coeffs_train['phi_tilde']), X_rearrange_test.T)
 
 	# # initialization of variables and structures
@@ -143,18 +143,18 @@ def jet_emulationPOD():
 
 	# reconstruct solutions
 	phi_tilde = coeffs_train['phi_tilde']
-	time_mean = coeffs_train['time_mean']
+	t_mean = coeffs_train['t_mean']
 	
 	proj_rec =pod.reconstruct_data(
 			coeffs=coeffs_test[:,:], 
 			phi_tilde=coeffs_train['phi_tilde'],
-			time_mean=coeffs_train['time_mean']
+			t_mean=coeffs_train['t_mean']
 		)
 
 	emulation_rec =pod.reconstruct_data(
 			coeffs=coeffs, 
 			phi_tilde=coeffs_train['phi_tilde'],
-			time_mean=coeffs_train['time_mean']
+			t_mean=coeffs_train['t_mean']
 		)
 
 	# errors

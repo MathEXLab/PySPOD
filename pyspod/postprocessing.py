@@ -22,26 +22,6 @@ CFD = os.path.dirname(CF)
 # useful methods
 # ---------------------------------------------------------------------------
 
-#@jit(parallel=True, fastmath=True)
-def oblique_projection(Phi_tilde, W_phi, W, Q, svd=True):
-	if svd:
-		PhiTWPhi = Phi_tilde.conj().T @ (W_phi * Phi_tilde)
-		PhiTWQ = Phi_tilde.conj().T @ (W * Q)
-		u, l, v = np.linalg.svd(PhiTWPhi)
-		l_inv = np.zeros([len(l), len(l)], dtype='complex_')
-		for i in range(len(l)):
-			if (l[i] > 1e-10):
-				l_inv[i,i] = 1 / l[i]
-		PhiTWPhi_inv = (v.conj().T @ l_inv) @ u.conj().T
-		coeffs = PhiTWPhi_inv @ PhiTWQ
-	else:
-		PhiTWPhi = Phi_tilde.conj().T @ (W_phi * Phi_tilde)
-		PhiTWQ = Phi_tilde.conj().T @ (W * Q)
-		tmp1_inv = np.linalg.pinv(PhiTWPhi)
-		coeffs = tmp1_inv @ PhiTWQ
-	return coeffs
-
-
 def change_path_modes(modes_dict, wanted, target):
 	l = modes_dict.values()
 	r = dict()
