@@ -170,7 +170,7 @@ def jet_emulationPOD():
 				  legendLocation = 'upper left',
 				  filename=None)
 
-	pod.generate_2D_subplot(
+	pod.generate_2d_subplot(
 		title1='True solution', 
 		title2='Projection-based solution', 
 		title3='LSTM-based solution',

@@ -670,7 +670,7 @@ class SPOD_standard(object):
 
 
 	def transform(
-		self, data, nt, svd=True, rec_idx=None, T_lb=None, T_ub=None):
+		self, data, nt, rec_idx=None, svd=True, T_lb=None, T_ub=None):
 
 		## override class variables self._data
 		self._data = data
@@ -684,12 +684,9 @@ class SPOD_standard(object):
 			svd=svd, T_lb=T_lb, T_ub=T_ub)
 		# coeffs = np.real_if_close(coeffs, tol=1000000)
 
-		# reconstruct data
-		self._rec_idx = rec_idx
-		if not self._rec_idx: self._rec_idx = [0,self._nt%2,self._nt-1]
 		reconstructed_data = self.reconstruct_data(
 			coeffs=coeffs, phi_tilde=phi_tilde, t_mean=t_mean,
-			T_lb=T_lb, T_ub=T_ub)
+			rec_idx=rec_idx, T_lb=T_lb, T_ub=T_ub)
 
 		# return data
 		dict_return = {
@@ -864,8 +861,8 @@ class SPOD_standard(object):
 		return coeffs
 
 
-	def reconstruct_data(##### self._rec_idx to be added here!
-		self, coeffs, phi_tilde, t_mean, T_lb=None, T_ub=None):
+	def reconstruct_data(
+		self, coeffs, phi_tilde, t_mean, rec_idx, T_lb=None, T_ub=None):
 		'''
 		Reconstruct original data through oblique projection.
 		'''
@@ -874,11 +871,16 @@ class SPOD_standard(object):
 		self._pr0(f'------------------------------------------')
 		st = time.time()
 
+		# get time snapshots to be reconstructed
+		if not rec_idx: rec_idx = [0,self._nt%2,self._nt-1]
+		elif rec_idx.lower() == 'all': rec_idx = np.arange(0,self._nt)
+		else: rec_idx = rec_idx
+
 		## phi x coeffs
 		nt = coeffs.shape[1]
 		self._pr0(f'{phi_tilde.shape = :}')
 		self._pr0(f'{coeffs.shape = :}')
-		Q_reconstructed = np.matmul(phi_tilde, coeffs[:,self._rec_idx])
+		Q_reconstructed = np.matmul(phi_tilde, coeffs[:,rec_idx])
 		print(f'{self._rank = }  {Q_reconstructed.shape = :}')
 		print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
 		self._pr0(f'- phi x coeffs completed: {time.time() - st} s.')
@@ -887,8 +889,8 @@ class SPOD_standard(object):
 		self._pr0(f'{t_mean.shape = :}')
 		Q_reconstructed = Q_reconstructed + t_mean[...,None]
 		self._pr0(f'- added time mean: {time.time() - st} s.')
-
-		print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
+		print(f'{self._rank = }  {Q_reconstructed.shape = :}')
+		# print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
 		if self._comm:
 			d_0 = self._comm.gather(Q_reconstructed, root=0)
 			if self._rank == 0:
@@ -897,14 +899,15 @@ class SPOD_standard(object):
 					shape[self._maxdim_idx] = -1
 					e.shape = shape
 				Q_reconstructed = np.concatenate(d_0, axis=self._maxdim_idx)
-				Q_reconstructed.shape = list(self._xshape+(len(self._rec_idx),))
+				Q_reconstructed.shape = [*self._xshape,len(rec_idx)]
 		else:
-			pass
+			Q_reconstructed.shape = [*self._xshape,len(rec_idx)]
+		print(f'{self._rank = }  {Q_reconstructed.shape = :}')
 		## reshape data and save
 		if self._rank == 0:
 			print(f'{self._rank = }  {Q_reconstructed.shape = :}')
-			# Q_reconstructed = np.einsum('ijk->kij', Q_reconstructed)
-			Q_reconstructed.shape = [len(self._rec_idx),*self._xshape,self._nv]
+			Q_reconstructed = np.einsum('ijk->kij', Q_reconstructed)
+			Q_reconstructed.shape = [len(rec_idx),*self._xshape,self._nv]
 			print(f'{self._rank = }  {Q_reconstructed.shape = :}')
 			print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
 			# Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
@@ -1187,7 +1190,7 @@ class SPOD_standard(object):
 	# plotting methods
 	# --------------------------------------------------------------------------
 
-	def plot_2D_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0],
+	def plot_2d_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0],
 		x1=None, x2=None, title='', coastlines='', figsize=(12,8),
 		path='CWD', filename=None, origin=None):
 		'''
@@ -1249,7 +1252,7 @@ class SPOD_standard(object):
 						r = r.T
 				title_rec = 'Reconstructed, time idx = '+str(time_id)
 				title_true = 'True, time idx = '+str(time_id)
-				self.generate_2D_subplot(
+				self.generate_2d_subplot(
 					var1=x,
 					var2=r,
 					title1=title_true,
@@ -1295,14 +1298,14 @@ class SPOD_standard(object):
 			path=self.save_dir_simulation, filename=filename)
 
 
-	def plot_2D_modes_at_frequency(self, freq_required, freq, vars_idx=[0],
+	def plot_2d_modes_at_frequency(self, freq_required, freq, vars_idx=[0],
 		modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
 		plot_max=False, coastlines='', title='', xticks=None, yticks=None,
 		figsize=(12,8), equal_axes=False, filename=None, origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		post.plot_2D_modes_at_frequency(
+		post.plot_2d_modes_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
 			modes_path=self._save_dir_simulation, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift,
@@ -1312,13 +1315,13 @@ class SPOD_standard(object):
 			filename=filename)
 
 
-	def plot_2D_mode_slice_vs_time(self, freq_required, freq, vars_idx=[0],
+	def plot_2d_mode_slice_vs_time(self, freq_required, freq, vars_idx=[0],
 		modes_idx=[0], x1=None, x2=None, max_each_mode=False, fftshift=False,
 		title='', figsize=(12,8), equal_axes=False, filename=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		post.plot_2D_mode_slice_vs_time(
+		post.plot_2d_mode_slice_vs_time(
 			self.modes, freq_required=freq_required, freq=freq,
 			modes_path=self._save_dir_simulation, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
@@ -1327,7 +1330,7 @@ class SPOD_standard(object):
 			filename=filename)
 
 
-	def plot_3D_modes_slice_at_frequency(self, freq_required, freq,
+	def plot_3d_modes_slice_at_frequency(self, freq_required, freq,
 		vars_idx=[0], modes_idx=[0], x1=None, x2=None, x3=None, slice_dim=0,
 		slice_id=None, fftshift=False, imaginary=False, plot_max=False,
 		coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
@@ -1335,7 +1338,7 @@ class SPOD_standard(object):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		post.plot_3D_modes_slice_at_frequency(
+		post.plot_3d_modes_slice_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
 			modes_path=self._save_dir_simulation, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, x3=x3, slice_dim=slice_dim,
@@ -1360,13 +1363,13 @@ class SPOD_standard(object):
 			filename=filename)
 
 
-	def plot_2D_data(self, time_idx=[0], vars_idx=[0], x1=None, x2=None,
+	def plot_2d_data(self, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 		title='', coastlines='', figsize=(12,8), filename=None, origin=None):
 		'''
 		See method implementation in the postprocessing module.
 		'''
 		max_time_idx = np.max(time_idx)
-		post.plot_2D_data(
+		post.plot_2d_data(
 			X=self.get_data(t_0=0, t_end=max_time_idx+1),
 			time_idx=time_idx, vars_idx=vars_idx, x1=x1, x2=x2,
 			title=title, coastlines=coastlines, figsize=figsize,
@@ -1391,13 +1394,13 @@ class SPOD_standard(object):
 	# Generate animations
 	# --------------------------------------------------------------------------
 
-	def generate_2D_data_video(self, time_limits=[0,10], vars_idx=[0],
+	def generate_2d_data_video(self, time_limits=[0,10], vars_idx=[0],
 		sampling=1, x1=None, x2=None, coastlines='', figsize=(12,8),
 		filename='data_video.mp4'):
 		'''
 		See method implementation in the postprocessing module.
 		'''
-		post.generate_2D_data_video(
+		post.generate_2d_data_video(
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			time_limits=[0,time_limits[-1]], vars_idx=vars_idx,
 			sampling=sampling, x1=x1, x2=x2, coastlines=coastlines,

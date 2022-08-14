@@ -69,7 +69,7 @@ To see how to use the **PySPOD** package and its user-friendly interface, you ca
 
 ### SPOD emulation
 
-We also implement the emulation of the **SPOD latent space** (i.e., time coefficients) with the aid of a **long-short term memory (LSTM) neural network** - see [Tutorial: 2D Jet emulation SPOD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2D_emulation_SPOD_time.ipynb). The SPOD emulation is also compared against **POD emulation** - see [Tutorial: 2D Jet emulation POD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2D_emulation_POD.ipynb). For more details you can refer to the following preprint: 
+We also implement the emulation of the **SPOD latent space** (i.e., time coefficients) with the aid of a **long-short term memory (LSTM) neural network** - see [Tutorial: 2D Jet emulation SPOD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2d_emulation_SPOD_time.ipynb). The SPOD emulation is also compared against **POD emulation** - see [Tutorial: 2D Jet emulation POD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2d_emulation_POD.ipynb). For more details you can refer to the following preprint: 
 
   - [**Neural-network learning of SPOD latent dynamics**](https://arxiv.org/abs/2110.09218), by A. Lario, R. Maulik, O.T. Schmidt, G. Rozza, and G. Mengaldo
 
@@ -182,7 +182,7 @@ spod.fit(p, nt)
 
 
 # Let's plot the data
-spod.plot_2D_data(time_idx=[1,2])
+spod.plot_2d_data(time_idx=[1,2])
 spod.plot_data_tracers(coords_list=[(5,2.5)], time_limits=[0,t.shape[0]])
 
 
@@ -193,7 +193,7 @@ freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=fre
 modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 spod.plot_eigs()
 spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
-spod.plot_2D_modes_at_frequency(
+spod.plot_2d_modes_at_frequency(
 	freq_required=freq_found, freq=freq, x1=x2, x2=x1, modes_idx=[0,1], vars_idx=[0])
 ```
 You can change `SPOD_low_storage` to `SPOD_low_ram` and `SPOD_streaming`, 

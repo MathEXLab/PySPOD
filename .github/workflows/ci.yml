@@ -31,13 +31,24 @@ jobs:
           - "3.10"
 
     steps:
+
+    - name: Configure hostname
+      if:   runner.os == 'Linux' || runner.os == 'macOS'
+      run:  echo 127.0.0.1 `hostname` | sudo tee -a /etc/hosts > /dev/null
+
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Use Python
+    - name: Setup MPI (${{ matrix.mpi }})
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: ${{ matrix.mpi }}
+
+    - name: Use Python ${{ matrix.py }}
       uses: actions/setup-python@v3
       with:
-        python-version: 3
+        python-version: ${{ matrix.py }}
+        architecture: x64
 
     - name: Install basic dependencies
       run:  python -m pip install -r requirements.txt

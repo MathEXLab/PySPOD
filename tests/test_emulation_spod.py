@@ -163,13 +163,15 @@ def test_emulation_spod():
 	proj_rec =spod.reconstruct_data(
 			coeffs=coeffs_test['coeffs'][:,:],
 			phi_tilde=coeffs_train['phi_tilde'],
-			t_mean=coeffs_train['t_mean']
+			t_mean=coeffs_train['t_mean'],
+			rec_idx='all'
 		)
 
 	emulation_rec =spod.reconstruct_data(
 			coeffs=coeffs,
 			phi_tilde=coeffs_train['phi_tilde'],
-			t_mean=coeffs_train['t_mean']
+			t_mean=coeffs_train['t_mean'],
+			rec_idx='all'
 		)
 
 	# errors

@@ -66,11 +66,11 @@ encouraged to increase the number of snapshots.
 This tutorial shows a simple 2D application to a turbulent jet, where the variable 
 studied is pressure.
 
-#### [Tutorial: 2D Jet emulation POD](fluidmechanics/jet_2D_emulation_POD.ipynb)
+#### [Tutorial: 2D Jet emulation POD](fluidmechanics/jet_2d_emulation_POD.ipynb)
 
 This tutorial shows the emulation via a long-short term memory (LSTM) neural network of the 2D turbulent jet introduced in [Tutorial: 2D Jet](fluidmechanics/jet_2D/jet_2D.ipynb), using proper orthogonal decomposition (POD).
 
-#### [Tutorial: 2D Jet emulation SPOD](fluidmechanics/jet_2D_emulation_SPOD_time.ipynb)
+#### [Tutorial: 2D Jet emulation SPOD](fluidmechanics/jet_2d_emulation_SPOD_time.ipynb)
 
 This tutorial shows the emulation via a long-short term memory (LSTM) neural network of the 2D turbulent jet introduced in [Tutorial: 2D Jet](fluidmechanics/jet_2D/jet_2D.ipynb), using spectral proper orthogonal decomposition (SPOD).
 

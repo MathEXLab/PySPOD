@@ -60,9 +60,9 @@ spod_ls = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
 spod_ls.fit(data=p, nt=t.shape[0])
 
 # Let's plot the data
-spod_ls.plot_2D_data(time_idx=[1,2])
+spod_ls.plot_2d_data(time_idx=[1,2])
 spod_ls.plot_data_tracers(coords_list=[(5,2.5)], time_limits=[0,t.shape[0]])
-spod_ls.generate_2D_data_video(sampling=10, time_limits=[0,t.shape[0]])
+spod_ls.generate_2d_data_video(sampling=10, time_limits=[0,t.shape[0]])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
@@ -72,7 +72,7 @@ modes_at_freq = spod_ls.get_modes_at_freq(freq_idx=freq_idx)
 spod_ls.plot_eigs()
 spod_ls.plot_eigs_vs_frequency(freq=freq)
 spod_ls.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
-spod_ls.plot_2D_modes_at_frequency(
+spod_ls.plot_2d_modes_at_frequency(
 	freq_required=freq_found,
     freq=freq,
     x1=x2,
@@ -93,7 +93,7 @@ modes_at_freq = spod_ram.get_modes_at_freq(freq_idx=freq_idx)
 spod_ram.plot_eigs()
 spod_ram.plot_eigs_vs_frequency(freq=freq)
 spod_ram.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
-spod_ram.plot_2D_modes_at_frequency(
+spod_ram.plot_2d_modes_at_frequency(
 	freq_required=freq_found,
     freq=freq,
     x1=x2,
@@ -113,7 +113,7 @@ modes_at_freq = spod_st.get_modes_at_freq(freq_idx=freq_idx)
 spod_st.plot_eigs()
 spod_st.plot_eigs_vs_frequency(freq=freq)
 spod_st.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
-spod_st.plot_2D_modes_at_frequency(
+spod_st.plot_2d_modes_at_frequency(
 	freq_required=freq_found,
     freq=freq,
     x1=x2,

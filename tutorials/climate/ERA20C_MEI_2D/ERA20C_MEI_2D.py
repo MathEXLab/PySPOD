@@ -87,7 +87,7 @@ modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 freq = spod.freq*24
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
-spod.plot_2D_modes_at_frequency(
+spod.plot_2d_modes_at_frequency(
 	freq_required=freq_found,
 	freq=freq,
 	x1=x1-180,
@@ -95,14 +95,14 @@ spod.plot_2D_modes_at_frequency(
 	coastlines='centred',
 	modes_idx=[0,1],
 	vars_idx=[1,4])
-spod.plot_2D_data(
+spod.plot_2d_data(
 	x1=x1-180,
 	x2=x2,
 	coastlines='centred',
 	vars_idx=[5],
 	time_idx=[0,100,200])
 
-spod.generate_2D_data_video(
+spod.generate_2d_data_video(
     x1=x1-180,
     x2=x2,
     # coastlines='centred',

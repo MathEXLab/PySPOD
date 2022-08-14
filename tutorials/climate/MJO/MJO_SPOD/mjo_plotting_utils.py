@@ -64,7 +64,7 @@ def _apply_2d_vertical_lines(ax, x1, x2, idx1, idx2):
 	ax.axvline(x2[idx2], ymin=0, ymax=1,color='k',linestyle='--')
 	return ax
 
-def plot_2D_modes(
+def plot_2d_modes(
 	modes, modes_idx, vars_idx, x1, x2,
 	fftshift=False, imaginary=False, plot_max=False, 
 	coastlines='centred', path='CWD', filename=None, 
@@ -190,7 +190,7 @@ def plot_2D_modes(
 			if not filename:
 				plt.show()
 
-def plot_2D_snap(
+def plot_2d_snap(
 	snaps, snap_idx, vars_idx, x1, x2,
 	fftshift=False, imaginary=False, plot_max=False, 
 	coastlines='centred', path='CWD', filename=None, 
@@ -317,7 +317,7 @@ def plot_2D_snap(
 # ---------------------------------------------------------------------------
 
 
-def plot_2D_4subplot(var1, title1, var2, title2, var3, title3, var4, title4, x1, x2,
+def plot_2d_4subplot(var1, title1, var2, title2, var3, title3, var4, title4, x1, x2,
 	N_round=6, path='CWD', filename=None, coastlines='', maxVal=10^-6, minVal =-10^-6):
 	'''
 	Generate two 2D subplots in the same figure
@@ -423,7 +423,7 @@ def plot_2D_4subplot(var1, title1, var2, title2, var3, title3, var4, title4, x1,
 		plt.show()
 
 
-def plot_2D_2subplot(var1, title1, var2, title2, x1, x2,
+def plot_2d_2subplot(var1, title1, var2, title2, x1, x2,
 	N_round=6, path='CWD', filename=None, coastlines='', maxVal=10^-6, minVal =-10^-6):
 	'''
 	Generate two 2D subplots in the same figure

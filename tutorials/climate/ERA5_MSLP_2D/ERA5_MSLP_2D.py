@@ -101,7 +101,7 @@ modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 spod.plot_eigs()
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
-spod.plot_2D_modes_at_frequency(
+spod.plot_2d_modes_at_frequency(
 	freq_required=freq_found,
     freq=freq,
     x1=x1-180,

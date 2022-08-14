@@ -88,7 +88,7 @@ freq = spod.freq*24
 spod.plot_eigs()
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 740, 1825])
-spod.plot_3D_modes_slice_at_frequency(
+spod.plot_3d_modes_slice_at_frequency(
     freq_required=freq_found,
     freq=freq,
     x1=x1-180,

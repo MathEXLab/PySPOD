@@ -159,10 +159,10 @@ The key routines implemented are
 			  plot_eigs,
 			  plot_eigs_vs_frequency,
 			  plot_eigs_vs_period,
-			  plot_2D_modes_at_frequency,
-			  plot_2D_mode_slice_vs_time,
-			  plot_3D_modes_slice_at_frequency,
+			  plot_2d_modes_at_frequency,
+			  plot_2d_mode_slice_vs_time,
+			  plot_3d_modes_slice_at_frequency,
 			  plot_mode_tracers,
-			  plot_2D_data,
+			  plot_2d_data,
 			  plot_data_tracers,
-			  generate_2D_data_video
+			  generate_2d_data_video

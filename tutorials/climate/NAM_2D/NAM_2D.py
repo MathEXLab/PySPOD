@@ -80,12 +80,12 @@ modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 spod.plot_eigs()
 freq = spod.freq * 7 # (in weeks)
 spod.plot_eigs_vs_frequency(freq=freq)
-spod.plot_2D_modes_at_frequency(
+spod.plot_2d_modes_at_frequency(
 	freq_required=freq_found,
 	freq=freq, x1=lat, x2=lon,
 	modes_idx=[0,1,2], vars_idx=[0],
 	origin='lower')
-spod.plot_2D_data(
+spod.plot_2d_data(
 	x1=lat, x2=lon, vars_idx=[0],
 	time_idx=[0,100,200],origin='lower')
-spod.generate_2D_data_video(x1=lat, x2=lon, vars_idx=[0])
+spod.generate_2d_data_video(x1=lat, x2=lon, vars_idx=[0])

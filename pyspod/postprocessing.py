@@ -316,7 +316,7 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 
 
 
-def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
+def plot_2d_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 	vars_idx=[0], modes_idx=[0], x1=None, x2=None, fftshift=False,
 	imaginary=False, plot_max=False, coastlines='', title='',
 	xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
@@ -384,8 +384,6 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 			fig = plt.figure(
 				figsize=figsize, frameon=True, constrained_layout=False)
 			plt.set_cmap(cmap)
-
-			print(modes.shape)
 
 			# extract mode
 			mode = np.squeeze(modes[:,:,var_id,mode_id])
@@ -501,7 +499,7 @@ def plot_2D_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 
 
 
-def plot_2D_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
+def plot_2d_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 	vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
 	fftshift=False, title='', figsize=(12,8), equal_axes=False, path='CWD',
 	filename=None):
@@ -700,7 +698,7 @@ def plot_2D_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 
 
 
-def plot_3D_modes_slice_at_frequency(modes, freq_required, freq,
+def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 	modes_path='./', vars_idx=[0], modes_idx=[0], x1=None, x2=None, x3=None,
 	slice_dim=0, slice_id=None, fftshift=False, imaginary=False, plot_max=False,
 	coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
@@ -1003,7 +1001,7 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 
 
 
-def plot_2D_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
+def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 	title='', coastlines='', figsize=(12,8), path='CWD', filename=None, origin=None):
 	'''
 	Plot 2D data.
@@ -1166,7 +1164,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 				plt.show()
 
 
-def generate_2D_subplot(
+def generate_2d_subplot(
 	var1, title1, var2=None, title2=None, var3=None, title3=None,
 	N_round=6, path='CWD', filename=None):
 	'''
@@ -1272,7 +1270,7 @@ def plot_trainingHistories(loss, val_loss):
 # Animations
 # ---------------------------------------------------------------------------
 
-def generate_2D_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
+def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	x1=None, x2=None, coastlines='', figsize=(12,8), path='CWD', filename='data_video.mp4'):
 	'''
 		Make movie of 2D data.

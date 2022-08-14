@@ -168,10 +168,10 @@ def pod_emulation():
 			t_mean=coeffs_train['t_mean']
 		)
 
-	mjo_plot.plot_2D_snap(snaps=X_train,
+	mjo_plot.plot_2d_snap(snaps=X_train,
 	 	snap_idx=[100], vars_idx=[0], x1=x1-180, x2=x2)
 
-	mjo_plot.plot_2D_2subplot(
+	mjo_plot.plot_2d_2subplot(
 		title1='Projection-based solution', 
 		title2='LSTM-based solution',
 		var1=proj_rec[100,:,:,0], 

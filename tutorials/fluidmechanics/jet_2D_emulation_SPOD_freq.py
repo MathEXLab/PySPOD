@@ -116,7 +116,7 @@ def jet_emulationSPOD():
 	offset = time_offset_lb[id_block]
 	mean = np.reshape(spod._x_mean,[20,88])
 	q_cmpr = X[offset+time_idx,:,:]# - mean 
-	spod.generate_2D_subplot(
+	spod.generate_2d_subplot(
 		title1='True', 
 		title2='Reconstructed', 
 		var1=q_cmpr, 
@@ -207,9 +207,9 @@ def jet_emulationSPOD():
 	
 	#T_approx = 12.5
 	#freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
-	# spod.plot_2D_modes_at_frequency(freq=spod.freq, freq_required=freq_found, modes_idx=[0,1,2])
+	# spod.plot_2d_modes_at_frequency(freq=spod.freq, freq_required=freq_found, modes_idx=[0,1,2])
 
-	# spod.generate_2D_subplot(
+	# spod.generate_2d_subplot(
 	# 	title1='True solution', 
 	# 	title2='Projection-based solution', 
 	# 	title3='LSTM-based solution',

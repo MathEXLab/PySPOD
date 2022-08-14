@@ -40,10 +40,9 @@ class SPOD_parallel(SPOD_standard):
 		## initialize data and variables
 		self._initialize(data, nt)
 
-		if self._rank == 0:
-			print(' ')
-			print('Calculating temporal DFT (low_ram)')
-			print('------------------------------------')
+		self._pr0(f' ')
+		self._pr0(f'Calculating temporal DFT (parallel)')
+		self._pr0(f'------------------------------------')
 
 		# check if blocks are already saved in memory
 		blocks_present = False
@@ -81,17 +80,14 @@ class SPOD_parallel(SPOD_standard):
 
 				## delete temporary block
 				del Q_blk_hat_fr
-
-		if self._rank == 0:
-			print('------------------------------------')
+		self._pr0(f'------------------------------------')
 
 
 
 		# Loop over all frequencies and calculate SPOD
-		if self._rank == 0:
-			print(' ')
-			print('Calculating SPOD (low_ram)')
-			print('------------------------------------')
+		self._pr0(f' ')
+		self._pr0(f'Calculating SPOD (parallel)')
+		self._pr0(f'------------------------------------')
 		self._eigs = np.zeros([self._n_freq,self._n_blocks], dtype=complex)
 		self._modes = dict()
 
@@ -113,9 +109,8 @@ class SPOD_parallel(SPOD_standard):
 
 		# store and save results
 		self._store_and_save()
-
-		print('------------------------------------')
-		print(' ')
-		print('Results saved in folder ', self._save_dir_simulation)
-		print('Elapsed time: ', time.time() - start, 's.')
+		self._pr0(f'------------------------------------')
+		self._pr0(f' ')
+		self._pr0(f'Results saved in folder {self._save_dir_simulation}')
+		self._pr0(f'Elapsed time: {time.time() - start} s.')
 		return self

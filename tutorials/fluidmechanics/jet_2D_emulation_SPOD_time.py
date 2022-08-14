@@ -176,10 +176,10 @@ def jet_emulationSPOD():
 	
 	#T_approx = 12.5
 	#freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
-	# spod.plot_2D_modes_at_frequency(freq=spod.freq, freq_required=freq_found, modes_idx=[0,1,2])
+	# spod.plot_2d_modes_at_frequency(freq=spod.freq, freq_required=freq_found, modes_idx=[0,1,2])
 	# spod.plot_compareTimeSeries(serie1=coeffs[0,:].real, serie2=coeffs_test['coeffs'][0,:].real, label1="Prediction", label2="Testing")
 
-	#spod.generate_2D_subplot(
+	#spod.generate_2d_subplot(
 		#title1='True solution', 
 		#title2='Projection-based solution', 
 		#title3='LSTM-based solution',
