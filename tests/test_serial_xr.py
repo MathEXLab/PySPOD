@@ -36,7 +36,7 @@ ds        = xr.open_dataset(file)
 t         = np.array(ds['time'])
 x1        = np.array(ds['x'])
 x2        = np.array(ds['z'])
-X         = np.array(ds[variables[0]]).T
+da        = ds[variables[0]].T
 nt        = t.shape[0]
 
 ## define the required parameters into a dictionary
@@ -62,7 +62,7 @@ def test_standard_blockwise():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_approx = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -81,7 +81,7 @@ def test_standard_longtime():
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_approx = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -101,7 +101,7 @@ def test_streaming_blockwise():
 	params['reuse_blocks'] = False
 	params['fullspectrum'] = True
 	SPOD_analysis = SPOD_streaming(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_approx = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -123,7 +123,7 @@ def test_streaming_longtime():
 
 	# SPOD analysis
 	SPOD_analysis = SPOD_streaming(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 
 	# Test results
 	T_approx = 12.5; 	tol = 1e-10
@@ -144,7 +144,7 @@ def test_standard1_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_approx = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -160,7 +160,7 @@ def test_standard1_reuse_blocks():
 		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
 	params['reuse_blocks'] = True
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_approx = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -177,13 +177,14 @@ def test_standard1_reuse_blocks():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 def test_standard2_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_approx = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -199,7 +200,7 @@ def test_standard2_reuse_blocks():
 		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
 	params['reuse_blocks'] = True
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_approx = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -216,7 +217,8 @@ def test_standard2_reuse_blocks():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 

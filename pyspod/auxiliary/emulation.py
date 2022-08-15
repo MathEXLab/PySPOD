@@ -37,22 +37,22 @@ CWD = os.getcwd()
 
 class Emulation():
 	'''
-	Class that implements a non-intrusive emulation of the
-	latent-space SPOD dynamics via neural networks.
+	Class that implements a non-intrusive emulation of
+	the latent-space SPOD dynamics via neural networks.
 
 	The computation is performed on the data *data* passed
 	to the constructor of the `SPOD_low_ram` class, derived
-	from the `SPOD_standard` class.
+	from the `SPOD_Base` class.
 	'''
 	def __init__(self, params):
-		self._network     = params.get('network', 'lstm')
-		self._n_neurons   = params.get('n_neurons',20)
-		self._epochs      = params.get('epochs', 20)
-		self._batch_size  = params.get('batch_size',32)
-		self._n_seq_in    = params.get('n_seq_in', 1)
-		self._n_seq_out   = params.get('n_seq_out', 1)
-		self._save_dir    = params.get('savedir', os.path.join(CWD, 'results')) # where to save data
-		self._dropout     = params.get('dropout', 0)
+		self._network    = params.get('network', 'lstm')
+		self._n_neurons  = params.get('n_neurons',20)
+		self._epochs     = params.get('epochs', 20)
+		self._batch_size = params.get('batch_size',32)
+		self._n_seq_in   = params.get('n_seq_in', 1)
+		self._n_seq_out  = params.get('n_seq_out', 1)
+		self._save_dir   = params.get('savedir', os.path.join(CWD, 'results'))
+		self._dropout    = params.get('dropout', 0)
 
 
 	def build_lstm(self):
@@ -60,8 +60,8 @@ class Emulation():
 		Build a LSTM network
 		'''
 		def coeff_determination(y_pred, y_true):
-			SS_res = K.sum(K.square( y_true-y_pred ),axis=0)
-			SS_tot = K.sum(K.square( y_true - K.mean(y_true,axis=0) ),axis=0 )
+			SS_res = K.sum(K.square(y_true-y_pred), axis=0)
+			SS_tot = K.sum(K.square(y_true - K.mean(y_true,axis=0)), axis=0 )
 			return K.mean(1 - SS_res/(SS_tot + K.epsilon()) )
 		self.model = Sequential()
 		self.model.add(LSTM(self._n_neurons,
@@ -69,7 +69,6 @@ class Emulation():
 		self.model.add(Dropout(self._dropout))
 		self.model.add(Dense(
 			self._n_seq_out * self.n_features, activation='linear'))
-		#opt = optimizers.RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=1e-6)
 		opt = optimizers.Adam(
 			lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None,
 			decay=0.0, amsgrad=False)
@@ -83,14 +82,11 @@ class Emulation():
 		Build a Covolutional Neural Network
 		'''
 		def coeff_determination(y_pred, y_true):
-			SS_res =  K.sum(K.square( y_true-y_pred ),axis=0)
-			SS_tot = K.sum(K.square( y_true - K.mean(y_true,axis=0) ),axis=0 )
+			SS_res =  K.sum(K.square(y_true-y_pred), axis=0)
+			SS_tot = K.sum(K.square(y_true - K.mean(y_true,axis=0)), axis=0 )
 			return K.mean(1 - SS_res/(SS_tot + K.epsilon()) )
-		self.model = Sequential()
-		opt = optimizers.RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=1e-6)
-		self.model.compile(
-			optimizer=opt, loss='mse', metrics=[coeff_determination])
-		self.model.summary()
+		## to be added
+		pass
 
 
 	def extract_sequences(self, data, fh=1):
@@ -144,27 +140,21 @@ class Emulation():
 
 
 	def model_train(
-		self, idx, data_train, data_valid, plotHistory=False):
+		self, idx, data_train, data_valid, plot_history=False):
 		'''
 		Train a network previously initialized
 		'''
 		# extract sequences
-		train_data_ip, train_data_op = \
-			self.extract_sequences(
-				data=data_train.real,
-			)
+		train_data_ip, train_data_op = self.extract_sequences(
+			data=data_train.real,)
 
 		# extract sequences
-		valid_data_ip, valid_data_op = \
-			self.extract_sequences(
-				data=data_valid.real,
-			)
+		valid_data_ip, valid_data_op = self.extract_sequences(
+			data=data_valid.real,)
 
 		# training
 		name = 'real' + str(idx)
-		name_filepath = \
-			os.path.join(self._save_dir, name+'__weights.h5')
-
+		name_filepath = os.path.join(self._save_dir, name+'__weights.h5')
 		cb_chk = tf.keras.callbacks.ModelCheckpoint(
 			name_filepath,
 			monitor='loss',
@@ -184,36 +174,30 @@ class Emulation():
 			verbose=0,
 			factor=0.2)
 		self.callbacks_list = [cb_chk]
-
 		self.train_history = self.model.fit(
 			x=train_data_ip,
 			y=train_data_op,
 			validation_data=(valid_data_ip, valid_data_op),
 			epochs=self._epochs,
 			batch_size=self._batch_size,
-			callbacks=self.callbacks_list,
-		)
+			callbacks=self.callbacks_list,)
 
-		if plotHistory == True:
-			post.plot_trainingHistories(
+		if plot_history == True:
+			post.plot_training_histories(
 				self.train_history.history['loss'],
-				self.train_history.history['val_loss']
-			)
+				self.train_history.history['val_loss'],
+				filename='emulation1.png')
 
 		# repeat for imaginary components
 		if not np.isreal(data_train).all():
 
 			# extract sequences
 			train_data_ip, train_data_op = \
-				self.extract_sequences(
-					data=data_train.imag,
-				)
+				self.extract_sequences(data=data_train.imag,)
 
 			# extract sequences
 			valid_data_ip, valid_data_op = \
-				self.extract_sequences(
-					data=data_valid.imag,
-				)
+				self.extract_sequences(data=data_valid.imag,)
 
 			# training
 			name = 'imag' + str(idx)

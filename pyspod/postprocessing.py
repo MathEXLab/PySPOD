@@ -1002,7 +1002,8 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 
 
 def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
-	title='', coastlines='', figsize=(12,8), path='CWD', filename=None, origin=None):
+	title='', coastlines='', figsize=(12,8), path='CWD', filename=None,
+	origin=None):
 	'''
 	Plot 2D data.
 
@@ -1251,7 +1252,9 @@ def plot_compareTimeSeries(
 		plt.show()
 
 
-def plot_trainingHistories(loss, val_loss):
+def plot_training_histories(loss, val_loss, figsize=(12,8),
+	path='CWD', filename=None):
+	fig = plt.figure(figsize=figsize)
 	ax = plt.gca()
 	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)
 	plt.plot(loss, color='black')
@@ -1261,7 +1264,14 @@ def plot_trainingHistories(loss, val_loss):
 	plt.ylabel('loss', fontsize=20)
 	plt.xlabel('epoch', fontsize=20)
 	plt.legend(['train', 'validation'], loc='upper right', fontsize=18)
-	plt.show()
+	if filename:
+		if path == 'CWD': path = CWD
+		basename, ext = splitext(filename)
+		filename = '{0}_history{1}'.format(basename, ext)
+		plt.savefig(os.path.join(path,filename),dpi=400)
+		plt.close(fig)
+	if not filename:
+		plt.show()
 
 # ---------------------------------------------------------------------------
 

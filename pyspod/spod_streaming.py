@@ -7,19 +7,19 @@ import numpy as np
 from numpy import linalg as la
 
 # import PySPOD base class for SSPOD
-from pyspod.spod_base import SPOD_standard
+from pyspod.spod_base import SPOD_Base
 
 
 
-class SPOD_streaming(SPOD_standard):
+class SPOD_streaming(SPOD_Base):
 	'''
 	Class that implements the Spectral Proper Orthogonal Decomposition
-	to the input data X using a streaming algorithn to reduce the amount
+	to the input `data` using a streaming algorithn to reduce the amount
 	of I/O and disk storage (for small datasets / large RAM machines).
 
-	The computation is performed on the data *X* passed to the
+	The computation is performed on the `data` passed to the
 	constructor of the `SPOD_streaming` class, derived from
-	the `SPOD_standard` class.
+	the `SPOD_Base` class.
 	'''
 
 	def fit(self, data, nt):
@@ -32,192 +32,189 @@ class SPOD_streaming(SPOD_standard):
 		## initialize data and variables
 		self._initialize(data, nt)
 
-		# sqrt of weights
-		sqrtW = np.sqrt(self._weights)
+		## sqrt of weights
+		sqrt_w = np.sqrt(self._weights)
 
-		# separation between adjacent blocks
+		## separation between adjacent blocks
 		dn = self._n_dft - self._n_overlap
 
-		# number of blocks being updated in parallel if segments overlap
-		n_blocks_parallel = int(np.ceil(self._n_dft/dn))
+		## number of blocks being updated in parallel if segments overlap
+		n_blocks_par = int(np.ceil(self._n_dft/dn))
 
-		# sliding, relative time index for each block
-		t_idx = np.zeros([n_blocks_parallel,1], dtype=int)
-		for block_i in range(0,n_blocks_parallel):
-			t_idx[block_i] =  t_idx[block_i] - (block_i) * dn
+		## sliding, relative time index for each block
+		t_idx = np.zeros([n_blocks_par,1], dtype=int)
+		for block_i in range(0,n_blocks_par):
+			t_idx[block_i] = t_idx[block_i] - (block_i) * dn
 
-		print(' ')
-		print('Calculating temporal DFT (streaming)')
-		print('------------------------------------')
+		self._pr0(f' ')
+		self._pr0(f'Calculating temporal DFT (streaming)')
+		self._pr0(f'------------------------------------')
 
-		# obtain first snapshot to determine data size
+		## obtain first snapshot to determine data size
+		flat_dim = int(self._nv*self._nx)
+		n_m_save = self._n_modes_save
+		n_freq = self._n_freq
 		x_new = self._data[0,...]
-		x_new = np.reshape(x_new,(self._nx*self._nv,1))
+		x_new = np.reshape(x_new,(flat_dim,1))
 
-		# allocate data arrays
-		X_hat = np.zeros([self._nv*self._nx,self._n_freq], dtype='complex_')
-		X_sum = np.zeros([self._nv*self._nx,self._n_freq,n_blocks_parallel],
-			dtype='complex_')
-		X_SPOD = np.zeros([self._nv*self._nx,self._n_freq,self._n_modes_save],
-			dtype='complex_')
-		U_hat = np.zeros([self._nv*self._nx,self._n_freq,self._n_modes_save],
-			dtype='complex_')
-		mu = np.zeros([self._nv*self._nx,1], dtype='complex_')
-		self._eigs = np.zeros([self._n_modes_save,self._n_freq],
-			dtype='complex_')
+		## allocate data arrays
+		mu     = np.zeros([flat_dim,1], dtype=complex)
+		x_hat  = np.zeros([flat_dim,n_freq],dtype=complex)
+		x_sum  = np.zeros([flat_dim,n_freq,n_blocks_par],dtype=complex)
+		x_spod = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
+		u_hat  = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
+		self._eigs  = np.zeros([n_m_save,n_freq],dtype=complex)
 		self._modes = dict()
 
-		# DFT matrix
-		Fourier = np.fft.fft(np.identity(self._n_dft))
+		## dft matrix
+		dft = np.fft.fft(np.identity(self._n_dft))
 
+		## check if real for frequency axis
 		if self._isrealx:
-			Fourier[:,1:self._n_freq-1] = 2 * Fourier[:,1:self._n_freq-1]
+			dft[:,1:n_freq-1] = 2 * dft[:,1:n_freq-1]
 			# freq_idx = np.arange(0, int(self._n_dft/2+1))
 			freq_idx = np.arange(0, int(self._n_dft), 1)
-			Fourier = Fourier[:,freq_idx]
+			dft = dft[:,freq_idx]
 
-		# convergence tests
-		mse_prev = np.empty([int(1e3),self._n_modes_save,self._n_freq],
-			dtype='complex_') * np.nan
-		proj_prev = np.empty([self._n_freq,int(1e3),self._n_modes_save],
-			dtype='complex_') * np.nan
-		S_hat_prev = np.zeros([self._n_modes_save,self._n_freq],
-			dtype='complex_')
+		## convergence tests
+		mse_prev = np.empty([int(1e3),n_m_save,n_freq],dtype=complex) * np.nan
+		proj_prev = np.empty([n_freq,int(1e3),n_m_save],dtype=complex) * np.nan
+		S_hat_prev = np.zeros([n_m_save,n_freq],dtype=complex)
 
-		# initialize counters
+		## initialize counters
 		block_i = 0
 		ti = -1
-		z = np.zeros([1,self._n_modes_save])
+		z = np.zeros([1,n_m_save])
 		while True:
 			ti = ti + 1
-
-			# Get new snapshot and abort if data stream runs dry
+			## get new snapshot and abort if data stream runs dry
 			if ti > 0:
 				try:
 					x_new = self._data[ti,...]
-					x_new = np.reshape(x_new,(self._nx*self._nv,1))
+					x_new = np.reshape(x_new,(flat_dim,1))
 				except:
-					print('--> Data stream ended.')
+					self._pr0(f'--> Data stream ended.')
 					break
 
-			# Update sample mean
+			## update sample mean
 			mu_old = mu
 			mu = (ti * mu_old + x_new) / (ti + 1)
 
-			# Update incomplete Fourier sums, eqn (17)
+			## update incomplete dft sums, eqn (17)
 			update = False
-			for block_j in range(0,n_blocks_parallel):
+			for block_j in range(0,n_blocks_par):
 				if t_idx[block_j] > -1:
-					X_sum[:,:,block_j] = X_sum[:,:,block_j] + \
+					x_sum[:,:,block_j] = x_sum[:,:,block_j] + \
 						self._window[t_idx[block_j]] * \
-						Fourier[t_idx[block_j],:] * x_new
+						dft[t_idx[block_j],:] * x_new
 
-				# check if sum is completed, and if so, initiate update
+				## check if sum is completed, and if so, initiate update
 				if t_idx[block_j] == self._n_dft-1:
 					update = True
-					X_hat = X_sum[:,:,block_j].copy()
-					X_sum[:,:,block_j] = 0
+					x_hat = x_sum[:,:,block_j].copy()
+					x_sum[:,:,block_j] = 0
 					t_idx[block_j] = min(t_idx) - dn
 				else:
 					t_idx[block_j] = t_idx[block_j] + 1
 
-			# Update basis if a Fourier sum is completed
+			## update basis if a dft sum is completed
 			if update:
 				block_i = block_i + 1
 
-				# subtract mean contribution to Fourier sum
+				## subtract mean contribution to dft sum
 				for row_idx in range(0,self._n_dft):
-					X_hat = X_hat - (self._window[row_idx] * \
-						Fourier[row_idx,:]) * mu
+					x_hat = x_hat - (self._window[row_idx] \
+						* dft[row_idx,:]) * mu
 
-				# correct for windowing function and apply 1/self._n_dft factor
-				X_hat = self._winWeight / self._n_dft * X_hat
+				## correct for windowing function and apply
+				## 1/self._n_dft factor
+				x_hat = self._win_weight / self._n_dft * x_hat
 
 				if block_i == 0:
-					# initialize basis with first vector
-					print('--> Initializing left singular vectors', 'Time ', \
-						str(ti), ' / block ', str(block_i))
-					U_hat[:,:,0] = X_hat * sqrtW
-					self._eigs[0,:] = np.sum(abs(U_hat[:,:,0]**2))
+					## initialize basis with first vector
+					self._pr0(
+						f'--> Initializing left singular vectors; '
+						f'Time {str(ti)} / block {str(block_i)}')
+					u_hat[:,:,0] = x_hat * sqrt_w
+					self._eigs[0,:] = np.sum(abs(u_hat[:,:,0]**2))
 				else:
-					# update basis
-					print('--> Updating left singular vectors', 'Time ', \
-						str(ti), ' / block ', str(block_i))
-					S_hat_prev  = self._eigs.copy()
-					for iFreq in range(0,self._n_freq):
+					## update basis
+					self._pr0(
+						f'--> Updating left singular vectors'
+						f'Time {str(ti)} / block {str(block_i)}')
 
-						# new data (weighted)
-						x = X_hat[:,[iFreq]] * sqrtW[:]
-						# old basis
-						U = np.squeeze(U_hat[:,iFreq,:])
-						# old singular values
-						S = np.diag(np.squeeze(self._eigs[:,iFreq]))
-						# product U^H*x needed in eqns. (27,32)
+					S_hat_prev = self._eigs.copy()
+					for i_freq in range(0,n_freq):
+						## new data (weighted)
+						x = x_hat[:,[i_freq]] * sqrt_w[:]
+						## old basis
+						U = np.squeeze(u_hat[:,i_freq,:])
+						## old singular values
+						S = np.diag(np.squeeze(self._eigs[:,i_freq]))
+						## product U^H*x needed in eqns. (27,32)
 						Ux = np.matmul(U.conj().T, x)
-						# orthogonal complement to U, eqn. (27)
+						## orthogonal complement to U, eqn. (27)
 						u_p = x - np.matmul(U, Ux)
-						# norm of orthogonal complement
+						## norm of orthogonal complement
 						abs_up = np.sqrt(np.matmul(u_p.conj().T, u_p))
-						# normalized orthogonal complement
+						## normalized orthogonal complement
 						u_new = u_p / abs_up
-
-						# build K matrix and compute its SVD, eqn. (32)
+						## build K matrix and compute its SVD, eqn. (32)
 						K_1 = np.hstack((np.sqrt(block_i+2) * S, Ux))
 						K_2 = np.hstack((z, abs_up))
 						K = np.vstack((K_1, K_2))
 						K = np.sqrt((block_i+1)/ (block_i+2)**2) * K
 
-						# calculate partial svd
+						## calculate partial svd
 						Up, Sp, _ = la.svd(K, full_matrices=False)
 
-						# update U as in eqn. (33)
-						# for simplicity, we could not rotate here and instead
-						# update U<-[U p] and Up<-[Up 0;0 1]*Up and rotate later
-						# see Brand (LAA ,2006, section 4.1)
+						## update U as in eqn. (33)
+						## for simplicity, we could not rotate here and instead
+						## update U<-[U p] and Up<-[Up 0;0 1]*Up and rotate
+						## later; see Brand (LAA ,2006, section 4.1)
 						U_tmp = np.hstack((U, u_new))
 						U = np.dot(U_tmp, Up)
 
-						# best rank-k approximation, eqn. (37)
-						U_hat[:,iFreq,:] = U[:,0:self._n_modes_save]
-						self._eigs[:,iFreq] = Sp[0:self._n_modes_save]
+						## best rank-k approximation, eqn. (37)
+						u_hat[:,i_freq,:] = U[:,0:self._n_modes_save]
+						self._eigs[:,i_freq] = Sp[0:self._n_modes_save]
 
-					# reset Fourier sum
-					X_hat[:,:] = 0
+					## reset dft sum
+					x_hat[:,:] = 0
 
-				X_SPOD_prev = X_SPOD
-				X_SPOD = U_hat * (1 / sqrtW[:,:,np.newaxis])
+				x_spod_prev = x_spod
+				x_spod = u_hat * (1 / sqrt_w[:,:,np.newaxis])
 
-				# Convergence
-				for iFreq in range(0,self._n_freq):
-					proj_iFreq = np.matmul(
-						(np.squeeze(X_SPOD_prev[:,iFreq,:]) * \
-							self._weights).conj().T, \
-							np.squeeze(X_SPOD[:,iFreq,:]))
-					proj_prev[iFreq,block_i,:] = \
-						np.amax(np.abs(proj_iFreq), axis=0)
+				## convergence
+				for i_freq in range(0,n_freq):
+					proj_i_freq = (np.squeeze(x_spod_prev[:,i_freq,:]) * \
+						self._weights).conj().T @ np.squeeze(x_spod[:,i_freq,:])
+					proj_prev[i_freq,block_i,:] = \
+						np.amax(np.abs(proj_i_freq), axis=0)
 				mse_prev[block_i,:,:] = (np.abs(S_hat_prev**2 - \
 					self._eigs**2)**2) / (S_hat_prev**2)
 
-		# rescale such that <U_i,U_j>_E = U_i^H*W*U_j = delta_ij
-		X_SPOD = U_hat[:,:,0:self._n_modes_save] *  (1 / sqrtW[:,:,np.newaxis])
+		## rescale such that <U_i,U_j>_E = U_i^H * W * U_j = delta_ij
+		x_spod = u_hat[:,:,0:n_m_save] * (1 / sqrt_w[:,:,np.newaxis])
 
-		# shuffle and reshape
-		X_SPOD = np.einsum('ijk->jik', X_SPOD)
-		X_SPOD = np.reshape(X_SPOD, (self._n_freq,)+\
-			self._xshape+(self._nv,)+(self._n_modes_save,))
+		## shuffle and reshape
+		x_spod = np.einsum('ijk->jik', x_spod)
+		x_spod = np.reshape(x_spod, (n_freq,)+\
+			self._xshape+(self._nv,)+(n_m_save,))
 
-		# save eigenvalues
+		## save eigenvalues
 		self._eigs = self._eigs.T
 
-		# save results into files
-		file = os.path.join(self._save_dir,'spod_energy')
-		np.savez(file, eigs=self._eigs, f=self._freq)
-		for iFreq in range(0,self._n_freq):
-			Psi = X_SPOD[iFreq,...]
+		## save results into files
+		file = os.path.join(self._save_dir_simulation,'spod_energy')
+		if self._rank == 0:
+			np.savez(file, eigs=self._eigs, f=self._freq)
+		for i_freq in range(0,n_freq):
+			Psi = x_spod[i_freq,...]
 			file_psi = os.path.join(self._save_dir_simulation,
-				'modes_freq{:08d}.npy'.format(iFreq))
-			np.save(file_psi, Psi)
-			self._modes[iFreq] = file_psi
-
-		print('Elapsed time: ', time.time() - start, 's.')
+				'modes_freq{:08d}.npy'.format(i_freq))
+			self._modes[i_freq] = file_psi
+			if self._rank == 0:
+				np.save(file_psi, Psi)
+		self._pr0(f'Elapsed time: {time.time() - start} s.')
 		return self

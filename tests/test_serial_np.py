@@ -64,7 +64,7 @@ params = {
 ## --------------------------------------------------------------
 
 
-def test_standard1_fullspectrum_blockwise():
+def test_low_storage_fullspectrum_blockwise():
 	params['mean_type'] = 'blockwise'
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
@@ -82,7 +82,7 @@ def test_standard1_fullspectrum_blockwise():
 	assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) & \
 		   (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
 
-def test_standard1_fullspectrum_longtime():
+def test_low_storage_fullspectrum_longtime():
 	params['mean_type'] = 'longtime'
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
@@ -100,7 +100,7 @@ def test_standard1_fullspectrum_longtime():
 	assert((np.max(np.abs(modes_at_freq))   <0.11868012076745382+tol) & \
 		   (np.max(np.abs(modes_at_freq))   >0.11868012076745382-tol))
 
-def test_standard2_fullspectrum_blockwise():
+def test_low_ram_fullspectrum_blockwise():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
@@ -119,7 +119,7 @@ def test_standard2_fullspectrum_blockwise():
 	assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) & \
 		   (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
 
-def test_standard2_fullspectrum_longtime():
+def test_low_ram_fullspectrum_longtime():
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
@@ -157,7 +157,7 @@ def test_streaming_fullspectrum_longtime():
 	assert((np.max(np.abs(modes_at_freq))   <0.11068809881000957+tol) & \
 		   (np.max(np.abs(modes_at_freq))   >0.11068809881000957-tol))
 
-def test_standard1_fullspectrum_reuse_blocks():
+def test_low_storage_fullspectrum_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
@@ -196,7 +196,7 @@ def test_standard1_fullspectrum_reuse_blocks():
 	except OSError as e:
 		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
-def test_standard2_fullspectrum_reuse_blocks():
+def test_low_ram_fullspectrum_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
@@ -284,11 +284,11 @@ def test_postprocessing():
 
 
 if __name__ == "__main__":
-	test_standard1_fullspectrum_blockwise   ()
-	test_standard1_fullspectrum_longtime    ()
-	test_standard2_fullspectrum_blockwise   ()
-	test_standard2_fullspectrum_longtime    ()
-	test_streaming_fullspectrum_longtime    ()
-	test_standard1_fullspectrum_reuse_blocks()
-	test_standard2_fullspectrum_reuse_blocks()
-	test_postprocessing                     ()
+	test_low_storage_fullspectrum_blockwise   ()
+	test_low_storage_fullspectrum_longtime    ()
+	test_low_ram_fullspectrum_blockwise       ()
+	test_low_ram_fullspectrum_longtime        ()
+	test_streaming_fullspectrum_longtime      ()
+	test_low_storage_fullspectrum_reuse_blocks()
+	test_low_ram_fullspectrum_reuse_blocks    ()
+	test_postprocessing                       ()

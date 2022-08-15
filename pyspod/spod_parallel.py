@@ -12,14 +12,14 @@ import shutil
 
 
 # Import PySPOD base class for SPOD_low_ram
-from pyspod.spod_base import SPOD_standard
+from pyspod.spod_base import SPOD_Base
 
 CWD = os.getcwd()
 BYTE_TO_GB = 9.3132257461548e-10
 
 
 
-class SPOD_parallel(SPOD_standard):
+class SPOD_parallel(SPOD_Base):
 	'''
 	Class that implements a distributed version of the
 	Spectral Proper Orthogonal Decomposition to the input
@@ -27,7 +27,7 @@ class SPOD_parallel(SPOD_standard):
 
 	The computation is performed on the data *X* passed
 	to the constructor of the `SPOD_parallel` class, derived
-	from the `SPOD_standard` class.
+	from the `SPOD_Base` class.
 	'''
 
 	def fit(self, data, nt):
@@ -48,7 +48,7 @@ class SPOD_parallel(SPOD_standard):
 		blocks_present = False
 		if self._reuse_blocks:
 			blocks_present = self._are_blocks_present(
-				self._n_blocks, self._n_freq, self._blocks_folder)
+				self._n_blocks, self._n_freq, self._blocks_folder, self._rank)
 
 		# loop over number of blocks and generate Fourier realizations,
 		# if blocks are not saved in storage
@@ -82,8 +82,6 @@ class SPOD_parallel(SPOD_standard):
 				del Q_blk_hat_fr
 		self._pr0(f'------------------------------------')
 
-
-
 		# Loop over all frequencies and calculate SPOD
 		self._pr0(f' ')
 		self._pr0(f'Calculating SPOD (parallel)')
@@ -96,13 +94,6 @@ class SPOD_parallel(SPOD_standard):
 
 			# get FFT block from RAM memory for each given frequency
 			Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
-
-			# print('Q_hat.shape = ', Q_hat_f.shape)
-			# print('Q_hat.sum distributed = ', np.sum(Q_hat_f))
-			# sum_reduced = np.zeros([1], dtype='complex_')
-			# self._comm.Barrier()
-			# self._comm.Reduce(np.sum(Q_hat_f), sum_reduced, op=MPI.SUM, root=0)
-			# print('sum_reduced Q_hat = ', *sum_reduced)
 
 			# compute standard spod
 			self.compute_standard_spod(Q_hat_f, i_freq)

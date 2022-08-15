@@ -71,7 +71,8 @@ def test_standard_blockwise():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 def test_standard_longtime():
@@ -91,7 +92,8 @@ def test_standard_longtime():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 def test_standard_zero():
@@ -111,7 +113,8 @@ def test_standard_zero():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 def test_standard_fft():
 	params['mean' ] = 'longtime'
@@ -131,7 +134,8 @@ def test_standard_fft():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 def test_standard_overlap():
 	params['mean'   ] = 'longtime'
@@ -151,7 +155,8 @@ def test_standard_overlap():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 def test_standard_normalization():
 	params['mean'   ] = 'longtime'
@@ -173,7 +178,8 @@ def test_standard_normalization():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 

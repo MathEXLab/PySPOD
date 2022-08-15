@@ -103,7 +103,7 @@ coeffs_tmp = np.zeros([n_freq,dim1_test ],dtype='complex')
 coeffs = np.zeros([dim0_test,dim1_test],dtype='complex')
 
 
-def test_lstm():
+def test_emulation_spod_lstm():
 	## select lstm
 	params_emulation['network'] = 'lstm'
 	## initialization Emulation class and run
@@ -166,70 +166,69 @@ def test_lstm():
 
 
 
-# def test_cnn():
-# 	## select lstm
-# 	params_emulation['network'] = 'cnn'
-# 	## initialization Emulation class and run
-# 	spod_emulation = Emulation(params_emulation)
-# 	spod_emulation.model_initialize(data=data_train)
-# 	for idx in range(n_modes):
-# 		idx_x = list(range(idx,n_feature,n_modes))
-# 		## normalize data
-# 		scaler = utils_emulation.compute_normalization_vector(\
-# 			coeffs_train['coeffs'][idx_x,:],normalize_method='localmax')
-# 		data_train[:,:] = utils_emulation.normalize_data(\
-# 			coeffs_train['coeffs'][idx_x,:], normalization_vec=scaler)
-# 		data_test[:,:] = utils_emulation.normalize_data(\
-# 			coeffs_test['coeffs'][idx_x,:],normalization_vec=scaler)
-# 		## train model
-# 		spod_emulation.model_train(\
-# 			idx, data_train=data_train, data_valid=data_test, plot_history=True)
-# 		coeffs_tmp = spod_emulation.model_inference(idx, data_input=data_test)
-# 		## denormalize data
-# 		coeffs[idx_x,:] = utils_emulation.denormalize_data(coeffs_tmp, scaler)
-# 	## reconstruct solutions
-# 	phi_tilde = coeffs_train['phi_tilde']
-# 	t_mean = coeffs_train['t_mean']
-# 	proj_rec =spod.reconstruct_data(
-# 		coeffs=coeffs_test['coeffs'][:,:],
-# 		phi_tilde=coeffs_train['phi_tilde'],
-# 		t_mean=coeffs_train['t_mean'],
-# 		rec_idx='all')
-# 	emulation_rec =spod.reconstruct_data(
-# 		coeffs=coeffs,
-# 		phi_tilde=coeffs_train['phi_tilde'],
-# 		t_mean=coeffs_train['t_mean'],
-# 		rec_idx='all')
-# 	# compute errors
-# 	utils_emulation.print_errors_2d(
-# 		data_test=X_test,
-# 		data_proj=proj_rec,
-# 		data_emul=emulation_rec,
-# 		n_snaps=10, n_offset=10)
-# 	## assert test
-# 	import pdb; pdb.set_trace()
-# 	tol = 1e-10
-# 	assert((np.abs(proj_rec     [0,0,0,0])  <4.467528967599+tol) & \
-# 		   (np.abs(proj_rec     [0,0,0,0])  >4.467528967599-tol))
-# 	assert((np.abs(proj_rec     [10,0,0,0]) <4.465600418067+tol) & \
-# 		   (np.abs(proj_rec     [10,0,0,0]) >4.465600418067-tol))
-# 	assert((np.abs(proj_rec     [15,5,12,0])<4.457098452307+tol) & \
-# 		   (np.abs(proj_rec     [15,5,12,0])>4.457098452307-tol))
-# 	assert((np.abs(emulation_rec[0,0,0,0])  <4.467528967599+tol) & \
-# 		   (np.abs(emulation_rec[0,0,0,0])  >4.467528967599-tol))
-# 	assert((np.abs(emulation_rec[10,0,0,0]) <4.465600418067+tol) & \
-# 		   (np.abs(emulation_rec[10,0,0,0]) >4.465600418067-tol))
-# 	assert((np.abs(emulation_rec[15,5,12,0])<4.457098452307+tol) & \
-# 		   (np.abs(emulation_rec[15,5,12,0])>4.457098452307-tol))
-# 	# clean up results
-# 	try:
-# 		shutil.rmtree(os.path.join(CWD,'results'))
-# 	except OSError as e:
-# 		pass
-# 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+def test_emulation_spod_cnn():
+	## select lstm
+	params_emulation['network'] = 'cnn'
+	## initialization Emulation class and run
+	spod_emulation = Emulation(params_emulation)
+	spod_emulation.model_initialize(data=data_train)
+	for idx in range(n_modes):
+		idx_x = list(range(idx,n_feature,n_modes))
+		## normalize data
+		scaler = utils_emulation.compute_normalization_vector(\
+			coeffs_train['coeffs'][idx_x,:],normalize_method='localmax')
+		data_train[:,:] = utils_emulation.normalize_data(\
+			coeffs_train['coeffs'][idx_x,:], normalization_vec=scaler)
+		data_test[:,:] = utils_emulation.normalize_data(\
+			coeffs_test['coeffs'][idx_x,:],normalization_vec=scaler)
+		## train model
+		spod_emulation.model_train(\
+			idx, data_train=data_train, data_valid=data_test, plot_history=True)
+		coeffs_tmp = spod_emulation.model_inference(idx, data_input=data_test)
+		## denormalize data
+		coeffs[idx_x,:] = utils_emulation.denormalize_data(coeffs_tmp, scaler)
+	## reconstruct solutions
+	phi_tilde = coeffs_train['phi_tilde']
+	t_mean = coeffs_train['t_mean']
+	proj_rec =spod.reconstruct_data(
+		coeffs=coeffs_test['coeffs'][:,:],
+		phi_tilde=coeffs_train['phi_tilde'],
+		t_mean=coeffs_train['t_mean'],
+		rec_idx='all')
+	emulation_rec =spod.reconstruct_data(
+		coeffs=coeffs,
+		phi_tilde=coeffs_train['phi_tilde'],
+		t_mean=coeffs_train['t_mean'],
+		rec_idx='all')
+	# compute errors
+	utils_emulation.print_errors_2d(
+		data_test=X_test,
+		data_proj=proj_rec,
+		data_emul=emulation_rec,
+		n_snaps=10, n_offset=10)
+	## assert test
+	import pdb; pdb.set_trace()
+	tol = 1e-10
+	assert((np.abs(proj_rec     [0,0,0,0])  <4.467528967599+tol) & \
+		   (np.abs(proj_rec     [0,0,0,0])  >4.467528967599-tol))
+	assert((np.abs(proj_rec     [10,0,0,0]) <4.465600418067+tol) & \
+		   (np.abs(proj_rec     [10,0,0,0]) >4.465600418067-tol))
+	assert((np.abs(proj_rec     [15,5,12,0])<4.457098452307+tol) & \
+		   (np.abs(proj_rec     [15,5,12,0])>4.457098452307-tol))
+	assert((np.abs(emulation_rec[0,0,0,0])  <4.467528967599+tol) & \
+		   (np.abs(emulation_rec[0,0,0,0])  >4.467528967599-tol))
+	assert((np.abs(emulation_rec[10,0,0,0]) <4.465600418067+tol) & \
+		   (np.abs(emulation_rec[10,0,0,0]) >4.465600418067-tol))
+	assert((np.abs(emulation_rec[15,5,12,0])<4.457098452307+tol) & \
+		   (np.abs(emulation_rec[15,5,12,0])>4.457098452307-tol))
+	# clean up results
+	try:
+		shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+		pass
+		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 
 if __name__ == "__main__":
-	test_lstm()
-	# test_cnn ()
+	test_emulation_spod()

@@ -1,8 +1,8 @@
 '''PySPOD init'''
 __all__ = ['spod_base', 'spod_low_storage', 'spod_low_ram', 'spod_streaming']
-# __all__ = ['SPOD_standard', 'SPOD_low_storage', 'SPOD_low_ram', 'SPOD_streaming']
+# __all__ = ['SPOD_Base', 'SPOD_low_storage', 'SPOD_low_ram', 'SPOD_streaming']
 
-from .spod_base        import SPOD_standard
+from .spod_base        import SPOD_Base
 from .spod_low_storage import SPOD_low_storage
 from .spod_low_ram     import SPOD_low_ram
 from .spod_streaming   import SPOD_streaming

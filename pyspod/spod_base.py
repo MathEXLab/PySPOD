@@ -30,7 +30,7 @@ BYTE_TO_GB = 9.3132257461548e-10
 
 
 
-class SPOD_standard(object):
+class SPOD_Base(object):
 	'''
 	Spectral Proper Orthogonal Decomposition base class.
 	'''
@@ -79,11 +79,11 @@ class SPOD_standard(object):
 		# get default spectral estimation parameters and options
 		# define default spectral estimation parameters
 		if isinstance(self._n_dft, int):
-			self._window = SPOD_standard._hamming_window(self._n_dft)
+			self._window = SPOD_Base._hamming_window(self._n_dft)
 			self._window_name = 'hamming'
 		else:
 			self._n_dft = int(2**(np.floor(np.log2(self.nt / 10))))
-			self._window = SPOD_standard._hamming_window(self._n_dft)
+			self._window = SPOD_Base._hamming_window(self._n_dft)
 			self._window_name = 'hamming'
 			warnings.warn(
 				'Parameter `n_dft` not equal to an integer.'
@@ -462,7 +462,7 @@ class SPOD_standard(object):
 					'Spectral estimation parameters not meaningful.')
 
 		# determine correction for FFT window gain
-		self._winWeight = 1 / np.mean(self._window)
+		self._win_weight = 1 / np.mean(self._window)
 		self._window = self._window.reshape(self._window.shape[0], 1)
 
 		# import pdb; pdb.set_trace()
@@ -605,7 +605,7 @@ class SPOD_standard(object):
 		# window and Fourier transform block
 		self._window = self._window.reshape(self._window.shape[0],1)
 		Q_blk = Q_blk * self._window
-		Q_blk_hat = (self._winWeight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
+		Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
 		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
 
 		# correct Fourier coefficients for one-sided spectrum
@@ -1112,23 +1112,22 @@ class SPOD_standard(object):
 		if self._modes is None:
 			raise ValueError('Modes not found. Consider running fit()')
 		elif isinstance(self._modes, dict):
-			gb_memory_modes = freq_idx * self.nx * self._n_modes_save * \
+			ram_modes = freq_idx * self.nx * self._n_modes_save * \
 				sys.getsizeof(complex()) * BYTE_TO_GB
-			gb_vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
-			gb_sram_avail = psutil.swap_memory   ()[2] * BYTE_TO_GB
-			if gb_memory_modes >= gb_vram_avail:
-				print('- RAM required for loading all modes ~',
-					gb_memory_modes, 'GB')
-				print('- Available RAM                      ~',
-					gb_vram_avail, 'GB')
-				raise ValueError(
-					'Not enough RAM memory to load modes for all frequencies.')
+			vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
+			sram_avail = psutil.swap_memory   ()[2] * BYTE_TO_GB
+			if ram_modes >= vram_avail:
+				self._pr0(f'- RAM required for loading modes ~ {ram_modes} GB')
+				self._pr0(f'- Available RAM ~ {vram_avail} GB')
+				if self._rank == 0:
+					raise ValueError('Not enough RAM to load all modes.')
 			else:
 				mode_path = os.path.join(
 					self._save_dir_simulation, self.modes[freq_idx])
 				m = post.get_data_from_file(mode_path)
 		else:
-			raise TypeError('Modes must be a dictionary')
+			if self._rank == 0:
+				raise TypeError('Modes must be a dictionary')
 		return m
 
 
@@ -1152,25 +1151,28 @@ class SPOD_standard(object):
 	# --------------------------------------------------------------------------
 
 	@staticmethod
-	def _are_blocks_present(n_blocks, n_freq, saveDir):
-		print('Checking if blocks are already present ...')
+	def _are_blocks_present(n_blocks, n_freq, save_dir, rank):
+		if rank == 0:
+			print(f'Checking if blocks are already present ...')
 		all_blocks_exist = 0
 		for i_blk in range(0,n_blocks):
 			all_freq_exist = 0
 			for i_freq in range(0,n_freq):
-				file = os.path.join(saveDir,
+				file = os.path.join(save_dir,
 					'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq))
 				if os.path.exists(file):
 					all_freq_exist = all_freq_exist + 1
 			if (all_freq_exist == n_freq):
-				print('block '+str(i_blk+1)+'/'+str(n_blocks)+\
-					' is present in: ', saveDir)
+				if rank == 0:
+					print(f'block {i_blk+1}/{n_blocks} present in: {save_dir}')
 				all_blocks_exist = all_blocks_exist + 1
 		if all_blocks_exist == n_blocks:
-			print('... all blocks are present - loading from storage.')
+			if rank == 0:
+				print(f'... all blocks present; loading from storage.')
 			return True
 		else:
-			print('... blocks are not present - proceeding to compute them.\n')
+			if rank == 0:
+				print(f'... blocks not present; proceeding to compute them.\n')
 			return False
 
 

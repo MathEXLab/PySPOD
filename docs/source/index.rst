@@ -25,7 +25,7 @@ Summary
 
 The `PySPOD` library is organized following an abstract factory 
 design pattern, where we define a base class in `spod_base.py`, 
-called `SPOD_standard` :ref:`SPOD base class`, that implements functions 
+called `SPOD_Base` :ref:`SPOD base class`, that implements functions 
 and parameters available to all derived classes. In addition, it 
 implements two abstract functions, `fit()` and `predict()` which 
 implementation must be provided by the derived classes. 
@@ -90,7 +90,7 @@ SPOD main modules
 The SPOD main modules constitutes the backbone of the `PySPOD` library. 
 They are constituted by the base class:
 
-  - `SPOD_standard` (implemented in `spod_base.py`) :ref:`SPOD base class` 
+  - `SPOD_Base` (implemented in `spod_base.py`) :ref:`SPOD base class` 
 
 along with its derived classes:
 
@@ -105,7 +105,7 @@ The **SPOD base class** is intended to hold functions that are shared
 by all derived classes. It follows an abstract factory design pattern.
 
 .. automodule:: pyspod.spod_base
-	:members: SPOD_standard
+	:members: SPOD_Base
 
 SPOD low storage
 ----------------
