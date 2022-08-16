@@ -70,7 +70,7 @@ class Emulation():
 		self.model.add(Dense(
 			self._n_seq_out * self.n_features, activation='linear'))
 		opt = optimizers.Adam(
-			lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None,
+			learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=None,
 			decay=0.0, amsgrad=False)
 		self.model.compile(
 			optimizer=opt, loss='mse', metrics=[coeff_determination])
@@ -85,7 +85,8 @@ class Emulation():
 			SS_res =  K.sum(K.square(y_true-y_pred), axis=0)
 			SS_tot = K.sum(K.square(y_true - K.mean(y_true,axis=0)), axis=0 )
 			return K.mean(1 - SS_res/(SS_tot + K.epsilon()) )
-		## to be added
+		self.model = Sequential()
+		## to be added ...
 		pass
 
 
@@ -201,8 +202,7 @@ class Emulation():
 
 			# training
 			name = 'imag' + str(idx)
-			name_filepath = \
-				os.path.join(self._save_dir, name+'__weights.h5')
+			name_filepath = os.path.join(self._save_dir, name+'__weights.h5')
 			cb_chk = tf.keras.callbacks.ModelCheckpoint(
 				name_filepath,
 				monitor='loss',

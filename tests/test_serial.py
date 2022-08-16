@@ -51,7 +51,7 @@ params = {
 ## --------------------------------------------------------------
 
 
-def test_standard_blockwise():
+def test_low_storage_blockwise():
 	params['mean'] = 'blockwise'
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
@@ -75,7 +75,7 @@ def test_standard_blockwise():
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
-def test_standard_longtime():
+def test_low_storage_longtime():
 	params['mean'] = 'longtime'
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
@@ -96,7 +96,7 @@ def test_standard_longtime():
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
-def test_standard_zero():
+def test_low_storage_zero():
 	params['mean' ] = 'zero'
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
@@ -116,7 +116,7 @@ def test_standard_zero():
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
-def test_standard_fft():
+def test_low_storage_fft():
 	params['mean' ] = 'longtime'
 	params['n_FFT'] = 'default'
 	spod = SPOD_low_storage(params=params, variables=['p'])
@@ -137,7 +137,7 @@ def test_standard_fft():
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
-def test_standard_overlap():
+def test_low_storage_overlap():
 	params['mean'   ] = 'longtime'
 	params['overlap'] = 20
 	spod = SPOD_low_storage(params=params, variables=['p'])
@@ -158,7 +158,7 @@ def test_standard_overlap():
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
-def test_standard_normalization():
+def test_low_storage_normalization():
 	params['mean'   ] = 'longtime'
 	params['overlap'] = 0
 	params['normalize_weights'] = True
@@ -184,9 +184,9 @@ def test_standard_normalization():
 
 
 if __name__ == "__main__":
-	test_standard_blockwise    ()
-	test_standard_longtime     ()
-	test_standard_zero         ()
-	test_standard_fft          ()
-	test_standard_overlap      ()
-	test_standard_normalization()
+	test_low_storage_blockwise    ()
+	test_low_storage_longtime     ()
+	test_low_storage_zero         ()
+	test_low_storage_fft          ()
+	test_low_storage_overlap      ()
+	test_low_storage_normalization()

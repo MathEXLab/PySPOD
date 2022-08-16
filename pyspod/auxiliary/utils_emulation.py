@@ -111,10 +111,7 @@ def print_errors_2d(
 		)
 		Linf_LvsT= compute_error_norm_2d(
 			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_test[n_offset+i,:,:],
-			norm_type='Linf'
-		)
-
+            data_ref=data_test[n_offset+i,:,:], norm_type='Linf')
 		L2_PvsT_tot = L2_PvsT_tot + L2_PvsT
 		L2_LvsP_tot = L2_LvsP_tot + L2_LvsP
 		L2_LvsT_tot = L2_LvsT_tot + L2_LvsT
@@ -124,7 +121,6 @@ def print_errors_2d(
 		Linf_PvsT_tot = Linf_PvsT_tot + Linf_PvsT
 		Linf_LvsP_tot = Linf_LvsP_tot + Linf_LvsP
 		Linf_LvsT_tot = Linf_LvsT_tot + Linf_LvsT
-
 	print('Avg L2 error projection vs true solution       :',
 		L2_PvsT_tot/n_snaps)
 	print('Avg L2 error lstm prediction vs projection     :',

@@ -18,6 +18,7 @@ from numpy import linalg as la
 from mpi4py import MPI
 
 # Import custom Python packages
+import pyspod.utils_io as utils_io
 import pyspod.utils_weights as utils_weights
 import pyspod.postprocessing as post
 
@@ -881,8 +882,6 @@ class SPOD_Base(object):
 		self._pr0(f'{phi_tilde.shape = :}')
 		self._pr0(f'{coeffs.shape = :}')
 		Q_reconstructed = np.matmul(phi_tilde, coeffs[:,rec_idx])
-		print(f'{self._rank = }  {Q_reconstructed.shape = :}')
-		print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
 		self._pr0(f'- phi x coeffs completed: {time.time() - st} s.')
 
 		## add time mean
@@ -891,40 +890,63 @@ class SPOD_Base(object):
 		self._pr0(f'- added time mean: {time.time() - st} s.')
 		print(f'{self._rank = }  {Q_reconstructed.shape = :}')
 		# print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
+		file_dynamics = os.path.join(self._save_dir_simulation,
+			'reconstructed_data_freq{:08f}to{:08f}.npy'.format(
+				self._freq_found_lb, self._freq_found_ub))
+
+		print(f'BEFORE {self._rank = }  {Q_reconstructed.shape = :}')
+		shape = [*self._xshape,self._nv,len(rec_idx)]
 		if self._comm:
-			d_0 = self._comm.gather(Q_reconstructed, root=0)
-			if self._rank == 0:
-				for e in d_0:
-					shape = list(self._global_shape)
-					shape[self._maxdim_idx] = -1
-					e.shape = shape
-				Q_reconstructed = np.concatenate(d_0, axis=self._maxdim_idx)
-				Q_reconstructed.shape = [*self._xshape,len(rec_idx)]
+			shape[self._maxdim_idx] = -1
+		Q_reconstructed.shape = shape
+		Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
+		# Q_reconstructed = np.einsum('ijkl->lijk', Q_reconstructed)
+		print(f'AFTER {self._rank = }  {Q_reconstructed.shape = :}')
+		if self._comm:
+			utils_io.npy_save(
+				self._comm, file_dynamics, Q_reconstructed,
+				axis=self._maxdim_idx+1)
+
+			# d_0 = self._comm.gather(Q_reconstructed, root=0)
+			# if self._rank == 0:
+			# 	for e in d_0:
+			# 		shape = list(self._global_shape)
+			# 		shape[self._maxdim_idx] = -1
+			# 		e.shape = shape
+				# Q_reconstructed = np.concatenate(d_0, axis=self._maxdim_idx)
+				# Q_reconstructed.shape = [*self._xshape,len(rec_idx)]
 		else:
-			Q_reconstructed.shape = [*self._xshape,len(rec_idx)]
-		print(f'{self._rank = }  {Q_reconstructed.shape = :}')
+			np.save(file_dynamics, Q_reconstructed)
+			# Q_reconstructed.shape = [*self._xshape,len(rec_idx)]
+
 		## reshape data and save
 		if self._rank == 0:
-			print(f'{self._rank = }  {Q_reconstructed.shape = :}')
-			Q_reconstructed = np.einsum('ijk->kij', Q_reconstructed)
-			Q_reconstructed.shape = [len(rec_idx),*self._xshape,self._nv]
-			print(f'{self._rank = }  {Q_reconstructed.shape = :}')
-			print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
+			# print(f'{self._rank = }  {Q_reconstructed.shape = :}')
+			# Q_reconstructed = np.einsum('ijk->kij', Q_reconstructed)
+			# Q_reconstructed.shape = [len(rec_idx),*self._xshape,self._nv]
+			# print(f'{self._rank = }  {Q_reconstructed.shape = :}')
+			# print(f'{self._rank = }  {np.sum(Q_reconstructed) = :}')
 			# Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
 				# ((nt,) + self._xshape + (self._nv,)))
 			self._pr0(f'- data reshaped: {time.time() - st} s.')
 
-			## save reconstructed data
-			file_dynamics = os.path.join(self._save_dir_simulation,
-				'reconstructed_data_freq{:08f}to{:08f}.pkl'.format(
-					self._freq_found_lb, self._freq_found_ub))
-			with open(file_dynamics, 'wb') as handle:
-				pickle.dump(Q_reconstructed, handle)
+			# ## save reconstructed data
+			# file_dynamics = os.path.join(self._save_dir_simulation,
+			# 	'reconstructed_data_freq{:08f}to{:08f}.pkl'.format(
+			# 		self._freq_found_lb, self._freq_found_ub))
+			# with open(file_dynamics, 'wb') as handle:
+			# 	pickle.dump(Q_reconstructed, handle)
 			self._pr0(f'- data saved: {time.time() - st} s.')
 			self._pr0(f'------------------------------------------')
 			self._pr0(f'Reconstructed data saved in folder: {file_dynamics}')
 			self._pr0(f'Elapsed time: {time.time() - s0} s.')
 		return Q_reconstructed
+
+
+	def _write_distributed_array(self, d):
+		da = xr.DataArray()
+
+
 
 
 	def _store_and_save(self):
@@ -1020,6 +1042,7 @@ class SPOD_Base(object):
 		else:
 			raise ValueError('MPI distribution planned on 3D problems.')
 		return field
+
 
 	def _allreduce(self, d):
 		d_reduced = np.zeros_like(d)

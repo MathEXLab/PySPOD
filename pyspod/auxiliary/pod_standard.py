@@ -30,19 +30,21 @@ class POD_standard(object):
 	'''
 	Proper Orthogonal Decomposition base class.
 	'''
-	def __init__(self, params, variables, weights=None):
+	def __init__(self, params, variables, weights=None, comm=None):
 		# store mandatory parameters in class
-		self._dt   = params['time_step'   ]	# time-step of the data
-		self._xdim = params['n_space_dims'] # number of spatial dimensions
-		self._nv   = params['n_variables' ]	# number of variables
+		self._dt   = params['time_step'   ]
+		self._xdim = params['n_space_dims']
+		self._nv   = params['n_variables' ]
 
 		# store optional parameters in class
-		self._normalize_weights = params.get('normalize_weights', False) # normalize weights if required
-		self._normalize_data 	= params.get('normalize_data', False)    # normalize data by variance if required
-		self._n_modes_save      = params.get('n_modes_save', 1e10)       # default is all (large number)
-		self._save_dir          = params.get('savedir', os.path.join(CWD, 'pod_results')) # where to save data
-		self._variables         = variables
-		self._weights_tmp       = weights
+		saveto = os.path.join(CWD, 'pod_results')
+		self._normalize_weights = params.get('normalize_weights', False)
+		self._normalize_data = params.get('normalize_data', False)
+		self._n_modes_save = params.get('n_modes_save', 1e10)
+		self._save_dir = params.get('savedir', saveto)
+		self._variables = variables
+		self._weights_tmp = weights
+		self._comm = comm
 
 		## get other inputs
 		self._variables = variables
@@ -146,7 +148,7 @@ class POD_standard(object):
 		'''
 		Get the time-step.
 
-		:return: the time-step used by the SPOD algorithm.
+		:return: the time-step used by the POD algorithm.
 		:rtype: double
 		'''
 		return self._dt
@@ -166,23 +168,12 @@ class POD_standard(object):
 	@property
 	def eigs(self):
 		'''
-		Get the eigenvalues of the SPOD matrix.
+		Get the eigenvalues of the POD matrix.
 
-		:return: the eigenvalues from the eigendecomposition the SPOD matrix.
+		:return: the eigenvalues from the eigendecomposition the POD matrix.
 		:rtype: numpy.ndarray
 		'''
 		return self._eigs
-
-
-	@property
-	def n_modes(self):
-		'''
-		Get the number of modes.
-
-		:return: the number of modes computed by the SPOD algorithm.
-		:rtype: int
-		'''
-		return self._n_modes
 
 
 	@property
@@ -190,21 +181,10 @@ class POD_standard(object):
 		'''
 		Get the number of modes.
 
-		:return: the number of modes computed by the SPOD algorithm.
+		:return: the number of modes computed by the POD algorithm.
 		:rtype: int
 		'''
 		return self._n_modes_save
-
-
-	@property
-	def modes(self):
-		'''
-		Get the dictionary containing the path to the SPOD modes saved.
-
-		:return: the dictionary containing the path to the SPOD modes saved.
-		:rtype: dict
-		'''
-		return self._modes
 
 
 	@property
@@ -269,7 +249,8 @@ class POD_standard(object):
 				data=self._data,
 				weights=self._weights,
 				n_variables=self._nv,
-				method='variance')
+				method='variance',
+				comm=self._comm)
 
 		# flatten weights to number of spatial point
 		try:
@@ -325,7 +306,7 @@ class POD_standard(object):
 		np.save(file_modes, phi_r)
 		print('done. Elapsed time: ', time.time() - st, 's.')
 		print('Modes saved in  ', file_modes)
-
+		self._eigs = w
 		return self
 
 

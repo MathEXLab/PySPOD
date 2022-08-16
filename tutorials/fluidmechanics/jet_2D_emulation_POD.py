@@ -162,7 +162,7 @@ def jet_emulationPOD():
 
 	# routines for visualization
 	#pod.plot_eigs()
-	pod.plot_compareTimeSeries(
+	pod.plot_compare_time_series(
 				  serie1= coeffs_test[0,:],
 				  serie2= coeffs[0,:],
 				  label1='test',

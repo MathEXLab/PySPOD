@@ -19,21 +19,6 @@ CFD = os.path.dirname(CF)
 
 
 
-# useful methods
-# ---------------------------------------------------------------------------
-
-def change_path_modes(modes_dict, wanted, target):
-	l = modes_dict.values()
-	r = dict()
-	for i, v in enumerate(l):
-		v = v.replace(wanted, target)
-		r[i] = v
-	return r
-
-# ---------------------------------------------------------------------------
-
-
-
 # getters
 # ---------------------------------------------------------------------------
 
@@ -1171,55 +1156,48 @@ def generate_2d_subplot(
 	'''
 	Generate two 2D subplots in the same figure
 	'''
-
 	csfont = {'fontname':'Times New Roman'}
 	multiplier = 10 ** N_round
-	maxVal = np.ceil(np.max(var1.real) * multiplier) / multiplier     # round up the maximum
-	minVal = np.floor(np.min(var1.real) * multiplier) / multiplier    # round down the minimum
+	maxVal = np.ceil (np.max(var1.real) * multiplier) / multiplier
+	minVal = np.floor(np.min(var1.real) * multiplier) / multiplier
 	ticks_range = np.linspace(minVal, maxVal, num=5)
 	nSubplots = 1
 	if var2 is not None:
 		nSubplots = 2
 	if var3 is not None:
 		nSubplots = 3
-
 	if nSubplots == 1:
 		fig, (ax1) = plt.subplots(1, 1, sharex=True, sharey=True)
 	if nSubplots == 2:
 		fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
 	if nSubplots == 3:
 		fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=True)
-
 	fig.set_size_inches(10, 8/3*nSubplots)
 	plt.set_cmap('coolwarm')
 	fig.tight_layout(pad=5.0)
-
 	cax1 = ax1.contourf(var1[:,:], levels=np.linspace(minVal, maxVal, 9))
 	ax1.tick_params(labelsize=11)
 	cb1=plt.colorbar(cax1, ax=ax1, ticks=ticks_range, aspect=10)
-	cb1.ax.tick_params(labelsize=12) #Set the font size of the color scale scale.
+	cb1.ax.tick_params(labelsize=12)
 	ax1.set_title(title1, fontsize=18,**csfont)
 	ax1.set_xlabel('x', fontsize=16,**csfont)
 	ax1.set_ylabel('y',fontsize=16,**csfont)
-
 	if (nSubplots == 2) or (nSubplots == 3):
 		ax2.tick_params(labelsize=11)
 		cax2 = ax2.contourf(var2, levels=np.linspace(minVal, maxVal, 9))
 		cb2=plt.colorbar(cax2, ax=ax2, ticks=ticks_range, aspect=10)
-		cb2.ax.tick_params(labelsize=12) #Set the font size of the color scale scale.
+		cb2.ax.tick_params(labelsize=12)
 		ax2.set_title(title2, fontsize=18, **csfont)
 		ax2.set_xlabel('x', fontsize=16, **csfont)
-		ax2.set_ylabel('y',fontsize=16,**csfont)
-
+		ax2.set_ylabel('y',fontsize=16, **csfont)
 	if nSubplots == 3:
 		ax3.tick_params(labelsize=11)
 		cax3 = ax3.contourf(var3, levels=np.linspace(minVal, maxVal, 9))
 		cb3=plt.colorbar(cax3, ax=ax3, ticks=ticks_range, aspect=10)
-		cb3.ax.tick_params(labelsize=12) #Set the font size of the color scale scale.
+		cb3.ax.tick_params(labelsize=12)
 		ax3.set_title(title3, fontsize=18, **csfont)
 		ax3.set_xlabel('x', fontsize=16, **csfont)
 		ax3.set_ylabel('y',fontsize=16, **csfont)
-
 	if filename:
 		if path == 'CWD':
 			path = CWD
@@ -1229,11 +1207,11 @@ def generate_2d_subplot(
 		plt.show()
 
 
-def plot_compareTimeSeries(
+def plot_compare_time_series(
 	serie1, serie2, label1='', label2='',
 	legendLocation='upper left', filename=None):
 	ax = plt.gca()
-	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)
+	ax.tick_params(axis = 'both', which='major', labelsize=18)
 	plt.plot(serie1, color = 'black')
 	plt.plot(serie2, color='gray')
 	# plt.title('model loss')
@@ -1241,11 +1219,11 @@ def plot_compareTimeSeries(
 	plt.ylabel('Coefficient value', fontsize=20)
 	plt.xlabel('Index', fontsize=20)
 	plt.legend([label1, label2], loc=legendLocation, fontsize=18)
-
 	if filename:
 		if path == 'CWD': path = CWD
 		basename, ext = splitext(filename)
-		filename = '{0}_coords{1}_var{2}{3}'.format(basename, coords, var_id, ext)
+		filename = '{0}_coords{1}_var{2}{3}'.format(\
+			basename, coords, var_id, ext)
 		plt.savefig(os.path.join(path,filename),dpi=400)
 		plt.close(fig)
 	if not filename:
@@ -1256,7 +1234,7 @@ def plot_training_histories(loss, val_loss, figsize=(12,8),
 	path='CWD', filename=None):
 	fig = plt.figure(figsize=figsize)
 	ax = plt.gca()
-	ax.tick_params(axis = 'both', which = 'major', labelsize = 18)
+	ax.tick_params(axis='both', which='major', labelsize=18)
 	plt.plot(loss, color='black')
 	plt.plot(val_loss, color = 'gray')
 	# plt.title('model loss')
@@ -1280,8 +1258,9 @@ def plot_training_histories(loss, val_loss, figsize=(12,8),
 # Animations
 # ---------------------------------------------------------------------------
 
-def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
-	x1=None, x2=None, coastlines='', figsize=(12,8), path='CWD', filename='data_video.mp4'):
+def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
+	sampling=1, x1=None, x2=None, coastlines='', figsize=(12,8),
+	path='CWD', filename='data_video.mp4'):
 	'''
 		Make movie of 2D data.
 
@@ -1322,7 +1301,8 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	# check dimension axes and data
 	size_coords = x1.shape[0] * x2.shape[0]
 	if size_coords != X[0,...,0].size:
-		raise ValueError('Data dimension does not match coordinates dimensions.')
+		raise ValueError(\
+			'Data dimension does not match coordinates dimensions.')
 
 	transpose = False
 	if x1.shape[0] != X.shape[1] or x2.shape[0] != X.shape[0]:
@@ -1334,7 +1314,8 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 		coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
 		cst = True
 	elif coastlines.lower() == 'centred':
-		coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
+		coast = loadmat(os.path.join(\
+			CFD,'plotting_support','coast_centred.mat'))
 		cst = True
 
 	# filename
@@ -1346,7 +1327,6 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 	vmean = np.nanmean(X)
 	for i in vars_idx:
 		fig = plt.figure()
-
 		# generate movie
 		if cst:
 			if transpose:
@@ -1388,7 +1368,6 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None, sampling=1,
 									vmax= 0.9*vmean)]
 					for state in time_range
 				]
-
 		a = animation.ArtistAnimation(
 			fig, frames, interval=70, blit=False, repeat=False)
 		Writer = animation.writers['ffmpeg']
@@ -1414,16 +1393,12 @@ def _format_axes(ax, xticks, yticks):
 		ax.set_yticklabels(yticks)
 	return ax, xticks, yticks
 
-
-
 def _check_vars(vars_idx):
 	if isinstance(vars_idx, int):
 	  vars_idx = [vars_idx]
 	if not isinstance(vars_idx, (list,tuple)):
 	    raise TypeError('`vars_idx` must be a list or tuple')
 	return vars_idx
-
-
 
 def _save_show_plots(filename, path, plt):
 	# save or show plots
@@ -1434,14 +1409,10 @@ def _save_show_plots(filename, path, plt):
 	else:
 	    plt.show()
 
-
-
 def _set_2d_axes_limits(ax, x1, x2):
 	ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
 	ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
 	return ax
-
-
 
 def _apply_2d_coastlines(coastlines, ax):
 	# overlay coastlines if required
@@ -1449,11 +1420,10 @@ def _apply_2d_coastlines(coastlines, ax):
 	    coast = loadmat(os.path.join(CFD, 'plotting_support','coast.mat'))
 	    ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 	elif coastlines.lower() == 'centred':
-	    coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
+	    coast = loadmat(\
+			os.path.join(CFD,'plotting_support','coast_centred.mat'))
 	    ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 	return ax
-
-
 
 def _apply_2d_vertical_lines(ax, x1, x2, idx1, idx2):
 	ax.axhline(x1[idx1], xmin=0, xmax=1,color='k',linestyle='--')
@@ -1479,7 +1449,6 @@ def compute_energy_spectrum(u):
     eplot = np.zeros(nx // 2, dtype='double')
     for i in range(1, nx // 2):
         eplot[i] = 0.5 * (espec[i] + espec[nx - i])
-
     return eplot
 
 # ---------------------------------------------------------------------------

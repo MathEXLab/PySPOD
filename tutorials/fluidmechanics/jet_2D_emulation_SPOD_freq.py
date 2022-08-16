@@ -179,7 +179,7 @@ def jet_emulationSPOD():
 		# denormalize data
 		coeffs[idx_x,:] = utils_emulation.denormalize_data(coeffs_tmp, scaler)
 
-	spod.plot_compareTimeSeries(serie1=coeffs[0,:].real, serie2=coeffs_test_2D[0,:].real, label1="Prediction", label2="Testing")
+	spod.plot_compare_time_series(serie1=coeffs[0,:].real, serie2=coeffs_test_2D[0,:].real, label1="Prediction", label2="Testing")
 
 	# reconstruct solutions
 	# phi_tilde = coeffs_train['phi_tilde']
