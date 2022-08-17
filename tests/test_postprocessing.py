@@ -60,34 +60,22 @@ def test_postprocessing_2d():
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	spod.plot_eigs             (filename='eigs.png')
 	spod.plot_eigs_vs_frequency(filename='eigs.png')
-	spod.plot_eigs_vs_period   (
+	spod.plot_eigs_vs_period(
 		filename='eigs.png', xticks=[1, 10, 20], yticks=[1, 2, 10])
-	spod.plot_2d_modes_at_frequency(freq_required=f_,
-									freq=spod.freq,
-									x1=x1, x2=x2,
-									filename='modes.png')
-	spod.plot_2d_modes_at_frequency(freq_required=f_,
-									freq=spod.freq,
-									x1=None, x2=None,
-									equal_axes=True,
-									filename='modes.png',
-									plot_max=True,
-									coastlines='regular')
-	spod.plot_2d_modes_at_frequency(freq_required=f_,
-									freq=spod.freq,
-									x1=None, x2=None,
-									imaginary=True,
-									equal_axes=True,
-									filename='modes.png',
-									plot_max=True,
-									coastlines='centred')
-	spod.plot_2d_mode_slice_vs_time(freq_required=f_,
-									freq=spod.freq,
-									filename='modes.png')
-	spod.plot_mode_tracers(freq_required=f_,
-							freq=spod.freq,
-							coords_list=[(10,10), (14,14)],
-							filename='tracers.png')
+	spod.plot_2d_modes_at_frequency(
+		freq_required=f_, freq=spod.freq, x1=x1, x2=x2, filename='modes.png')
+	spod.plot_2d_modes_at_frequency(
+		freq_required=f_, freq=spod.freq, x1=None, x2=None, equal_axes=True,
+		filename='modes.png', plot_max=True, coastlines='regular')
+	spod.plot_2d_modes_at_frequency(
+		freq_required=f_, freq=spod.freq, x1=None, x2=None,
+		imaginary=True, equal_axes=True, filename='modes.png',
+		plot_max=True, coastlines='centred')
+	spod.plot_2d_mode_slice_vs_time(
+		freq_required=f_, freq=spod.freq, filename='modes.png')
+	spod.plot_mode_tracers(
+		freq_required=f_, freq=spod.freq,
+		coords_list=[(10,10),(14,14)], filename='tracers.png')
 	spod.plot_2d_data(time_idx=[0,10],filename='data.png')
 	spod.plot_2d_data(time_idx=[0,10],filename='data.png',coastlines='regular')
 	spod.plot_2d_data(time_idx=[0,10],filename='data.png',coastlines='centred')

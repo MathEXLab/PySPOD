@@ -58,7 +58,7 @@ params = {
 ## --------------------------------------------------------------
 
 
-def test_standard_blockwise():
+def test_low_storage_blockwise():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
@@ -77,7 +77,7 @@ def test_standard_blockwise():
 	assert((np.max(np.abs(modes_at_freq))    < 0.28627415402845796  +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
 
-def test_standard_longtime():
+def test_low_storage_longtime():
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
@@ -140,7 +140,7 @@ def test_streaming_longtime():
 	assert((np.max(np.abs(modes_at_freq))    < 0.39376283093404596   +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.39376283093404596   -tol))
 
-def test_standard1_reuse_blocks():
+def test_low_storage_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
@@ -180,7 +180,7 @@ def test_standard1_reuse_blocks():
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
-def test_standard2_reuse_blocks():
+def test_low_ram_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)

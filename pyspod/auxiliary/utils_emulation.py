@@ -3,7 +3,7 @@ from numpy import linalg
 
 
 
-def compute_error_norm(data, data_ref, norm_type='L2'):
+def compute_error_norm(data, data_ref, dt, norm_type='L2'):
     '''
     Compute error norms of a 1D array with respect to a reference data
     '''
@@ -27,7 +27,6 @@ def compute_error_norm(data, data_ref, norm_type='L2'):
         a = np.absolute((data[:] - data_ref[:]) / data_ref[:])
         error_norm = np.amax(a)
     elif norm_type == 'H1':
-        dt = self._dt
         error_H1 = 0
         for i in range(data.shape[0]):
             if i == 0:
@@ -41,7 +40,7 @@ def compute_error_norm(data, data_ref, norm_type='L2'):
     return error_norm
 
 
-def compute_error_norm_2d(data, data_ref, norm_type='L2'):
+def compute_error_norm_2d(data, data_ref, dt, norm_type='L2'):
     '''
     Compute the error norm of a 2D data with respect to a reference data
     '''
@@ -49,12 +48,12 @@ def compute_error_norm_2d(data, data_ref, norm_type='L2'):
     data_res = np.reshape(data[:,:], [nx])
     data_ref_res = np.reshape(data_ref[:,:], [nx])
     error_norm = compute_error_norm(
-        data=data_res, data_ref=data_ref_res, norm_type=norm_type)
+        data=data_res, data_ref=data_ref_res, dt=dt, norm_type=norm_type)
     return error_norm
 
 
 def print_errors_2d(
-    data_test , data_proj, data_emul, n_snaps, n_offset=0):
+    data_test , data_proj, data_emul, n_snaps, dt, n_offset=0):
 	'''
 	Evaluate and print all the errors
 	'''
@@ -71,47 +70,43 @@ def print_errors_2d(
 	for i in range(n_snaps):
 		L2_PvsT= compute_error_norm_2d(
 			data=data_proj[n_offset+i,:,:,0],
-			data_ref=data_test[n_offset+i,:,:],
-			norm_type='L2'
-		)
+			data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L2')
 		L2_LvsP= compute_error_norm_2d(
 			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_proj[n_offset+i,:,:,0],
-			norm_type='L2'
-		)
+			data_ref=data_proj[n_offset+i,:,:,0], dt=dt, norm_type='L2')
 		L2_LvsT= compute_error_norm_2d(
 			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_test[n_offset+i,:,:],
-			norm_type='L2'
-		)
+			data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L2')
 		L1_PvsT= compute_error_norm_2d(
 			data= data_proj[n_offset+i,:,:,0],
-			data_ref= data_test[n_offset+i,:,:],
-			norm_type='L1'
-		)
+			data_ref= data_test[n_offset+i,:,:], dt=dt, norm_type='L1')
 		L1_LvsP= compute_error_norm_2d(
 			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_proj[n_offset+i,:,:,0],
-			norm_type='L1'
-		)
+			data_ref=data_proj[n_offset+i,:,:,0], dt=dt, norm_type='L1')
 		L1_LvsT= compute_error_norm_2d(
 			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_test[n_offset+i,:,:],
-			norm_type='L1'
-		)
+			data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L1')
 		Linf_PvsT= compute_error_norm_2d(
 			data= data_proj[n_offset+i,:,:,0],
-			data_ref= data_test[n_offset+i,:,:],
-			norm_type='Linf'
-		)
+			data_ref= data_test[n_offset+i,:,:], dt=dt, norm_type='Linf')
 		Linf_LvsP= compute_error_norm_2d(
 			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_proj[n_offset+i,:,:,0],
-			norm_type='Linf'
-		)
+			data_ref=data_proj[n_offset+i,:,:,0], dt=dt, norm_type='Linf')
 		Linf_LvsT= compute_error_norm_2d(
 			data=data_emul[n_offset+i,:,:,0],
-            data_ref=data_test[n_offset+i,:,:], norm_type='Linf')
+            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='Linf')
+		Linf_LvsT= compute_error_norm_2d(
+			data=data_emul[n_offset+i,:,:,0],
+            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L2rel')
+		Linf_LvsT= compute_error_norm_2d(
+			data=data_emul[n_offset+i,:,:,0],
+            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L1rel')
+		Linf_LvsT= compute_error_norm_2d(
+			data=data_emul[n_offset+i,:,:,0],
+            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='Linf_rel')
+		Linf_LvsT= compute_error_norm_2d(
+			data=data_emul[n_offset+i,:,:,0],
+            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='H1')
 		L2_PvsT_tot = L2_PvsT_tot + L2_PvsT
 		L2_LvsP_tot = L2_LvsP_tot + L2_LvsP
 		L2_LvsT_tot = L2_LvsT_tot + L2_LvsT
@@ -223,7 +218,7 @@ def normalize_data(data, normalization_vec=None):
     Normalize data given a normalization vector and a matrix of data
     '''
     data_out = np.zeros_like(data)
-    if normalization_vec.shape[0]==0:
+    if normalization_vec.shape[0] == 0:
         print('No normalization is performed')
     else:
         for j in range(data.shape[1]):

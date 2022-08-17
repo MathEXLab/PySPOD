@@ -83,12 +83,7 @@ class SPOD_Base(object):
 			self._window = SPOD_Base._hamming_window(self._n_dft)
 			self._window_name = 'hamming'
 		else:
-			self._n_dft = int(2**(np.floor(np.log2(self.nt / 10))))
-			self._window = SPOD_Base._hamming_window(self._n_dft)
-			self._window_name = 'hamming'
-			warnings.warn(
-				'Parameter `n_dft` not equal to an integer.'
-				'Using default `n_dft` = ', self._n_dft)
+			raise TypeError('n_dft must be an integer.')
 
 		# define block overlap
 		self._n_overlap = int(np.ceil(self._n_dft * self._overlap / 100))
@@ -943,12 +938,6 @@ class SPOD_Base(object):
 		return Q_reconstructed
 
 
-	def _write_distributed_array(self, d):
-		da = xr.DataArray()
-
-
-
-
 	def _store_and_save(self):
 		'''Store and save results.'''
 		if self._rank == 0:
@@ -1214,78 +1203,6 @@ class SPOD_Base(object):
 
 	# plotting methods
 	# --------------------------------------------------------------------------
-
-	def plot_2d_reconstruction(self, X_data, R, time_idx=[0], vars_idx=[0],
-		x1=None, x2=None, title='', coastlines='', figsize=(12,8),
-		path='CWD', filename=None, origin=None):
-		'''
-		Plot 2D data.
-		:param numpy.ndarray X_data: 2D data to be plotted. \
-			First dimension must be time. Last dimension must be variable.
-		:param numpy.ndarray R: 2D reconstructed data to be plotted. \
-			First dimension must be time. Last dimension must be variable.
-		:param list vars_idx: list of variables to plot. Default, \
-			first variable is plotted.
-		:param list time_idx: list of time indices to plot. Default, \
-			first time index is plotted.
-		:param numpy.ndarray x1: x-axis coordinate. Default is None.
-		:param numpy.ndarray x2: y-axis coordinate. Default is None.
-		:param str title: if specified, title of the plot. Default is ''.
-		:param str coastlines: whether to overlay coastlines. \
-			Options are `regular` (longitude from 0 to 360) \
-			and `centred` (longitude from -180 to 180) \
-			Default is '' (no coastlines).
-		:param tuple(int,int) figsize: size of the figure (width,height). \
-			Default is (12,8).
-		:param str path: if specified, the plot is saved at `path`. \
-			Default is CWD.
-		:param str filename: if specified, the plot is saved at `filename`.
-		'''
-
-		# check dimensions
-		if (X_data.ndim != 4) or (R.ndim != 4):
-			raise ValueError('Dimension of data is not 2D.')
-		if (X_data.shape != R.shape):
-			raise ValueError(
-				'Dimensions of data and reconstruction do not match.')
-
-		# vars_idx = _check_vars(vars_idx)
-		vars_idx = 1
-		# if domain dimensions have not been passed, use data dimensions
-		if x1 is None and x2 is None:
-			x1 = np.arange(X_data.shape[1])
-			x2 = np.arange(X_data.shape[2])
-		# get time index
-		if isinstance(time_idx, int):
-			time_idx = [time_idx]
-		if not isinstance(time_idx, (list,tuple)):
-			raise TypeError('`time_idx` must be a list or tuple')
-
-		# loop over variables and time indices
-		for var_id in range(vars_idx):
-			for time_id in time_idx:
-				# get 2D data
-				x = np.real(X_data[time_id,...,var_id])
-				r = np.real(R[time_id,...,var_id])
-				# check dimension axes and data
-				size_coords = x1.shape[0] * x2.shape[0]
-				if size_coords != x.size:
-					raise ValueError(
-						'Data dimension does not match coordinates dimensions.')
-					if x1.shape[0] != x.shape[1] or x2.shape[0] != x.shape[0]:
-						x = x.T
-						r = r.T
-				title_rec = 'Reconstructed, time idx = '+str(time_id)
-				title_true = 'True, time idx = '+str(time_id)
-				self.generate_2d_subplot(
-					var1=x,
-					var2=r,
-					title1=title_true,
-					title2=title_rec,
-					N_round=2,
-					path='CWD',
-					filename=None)
-
 
 	def plot_eigs(self, title='', figsize=(12,8), show_axes=True,
 		equal_axes=False, filename=None):

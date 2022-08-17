@@ -84,6 +84,12 @@ def test_lstm():
 	X_test  = X[nt_train:,:,:]
 	POD_analysis = POD_standard(params=params, variables=variables)
 	pod = POD_analysis.fit(data=X_train, nt=nt_train)
+	## test dictionary weights
+	params['normalize_weights'] = False
+	weights = {'weights_name': 'uniform', 'weights': pod.weights}
+	POD_analysis = POD_standard(params=params, variables=variables, weights=weights)
+	pod = POD_analysis.fit(data=X_train, nt=nt_train)
+	pod.get_data(t_0=0, t_end=1)
 	coeffs_train = pod.transform(data=X_train, nt=nt_train)
 	## compute test coefficients
 	X_rearrange_test = np.reshape(X_test[:,:,:], [nt_test,pod.nv*pod.nx])
@@ -107,6 +113,8 @@ def test_lstm():
 	pod_emulation = Emulation(params_emulation)
 	pod_emulation.model_initialize(data=data_train)
 	## normalize data
+	other_scaler = utils_emulation.compute_normalization_vector_real(\
+		coeffs_train['coeffs'][:,:], normalize_method='globalmax')
 	scaler = utils_emulation.compute_normalization_vector_real(\
 		coeffs_train['coeffs'][:,:], normalize_method='localmax')
 	data_train[:,:] = utils_emulation.normalize_data_real(\

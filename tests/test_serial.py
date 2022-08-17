@@ -116,6 +116,7 @@ def test_low_storage_zero():
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
+
 def test_low_storage_fft():
 	params['mean' ] = 'longtime'
 	params['n_FFT'] = 'default'
@@ -187,6 +188,7 @@ if __name__ == "__main__":
 	test_low_storage_blockwise    ()
 	test_low_storage_longtime     ()
 	test_low_storage_zero         ()
+	# test_low_storage_hamming      ()
 	test_low_storage_fft          ()
 	test_low_storage_overlap      ()
 	test_low_storage_normalization()

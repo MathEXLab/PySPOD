@@ -645,7 +645,8 @@ def plot_2d_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 				fig2.suptitle(title + ' - variable: {}'.format(var_id))
 			else:
 				fig2.suptitle('variable: {}'.format(var_id))
-			ax.set_xlabel('Mode {}'.format(mode_id), bbox=dict(facecolor='gray', alpha=0.5))
+			ax.set_xlabel('Mode {}'.format(mode_id),
+				bbox=dict(facecolor='gray', alpha=0.5))
 
 			# plots per fixed x2 vs. t
 			mode_phase_x1 = np.matmul(mode_x2, phase.conj())
@@ -675,8 +676,9 @@ def plot_2d_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 		if filename:
 			if path == 'CWD': path = CWD
 			basename, ext = splitext(filename)
-			filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
-			plt.savefig(os.path.join(path,filename),dpi=400)
+			filename = '{0}_var{1}_mode{2}{3}'.format(\
+				basename, var_id, mode_id, ext)
+			plt.savefig(os.path.join(path, filename), dpi=400)
 			plt.close()
 		if not filename:
 			plt.show()
@@ -1130,7 +1132,8 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 		for var_id in vars_idx:
 			fig = plt.figure(figsize=figsize)
 
-			x_time = X[(slice(time_limits[0],time_limits[-1]),) + idx_coords + (var_id,)]
+			x_time = X[(slice(time_limits[0],time_limits[-1]),) \
+				+ idx_coords + (var_id,)]
 
 			plt.plot(time_range, x_time, 'k-')
 			if len(title) > 1:
@@ -1143,11 +1146,13 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 			if filename:
 				if path == 'CWD': path = CWD
 				basename, ext = splitext(filename)
-				filename = '{0}_coords{1}_var{2}{3}'.format(basename, coords, var_id, ext)
+				filename = '{0}_coords{1}_var{2}{3}'.format(\
+					basename, coords, var_id, ext)
 				plt.savefig(os.path.join(path,filename),dpi=400)
 				plt.close(fig)
 			if not filename:
 				plt.show()
+
 
 
 def generate_2d_subplot(
@@ -1207,13 +1212,15 @@ def generate_2d_subplot(
 		plt.show()
 
 
+
 def plot_compare_time_series(
-	serie1, serie2, label1='', label2='',
-	legendLocation='upper left', filename=None):
+	series1, series2, label1='', label2='', figsize=(12,8),
+	legendLocation='upper left', path='CWD', filename=None):
+	fig = plt.figure(figsize=figsize)
 	ax = plt.gca()
 	ax.tick_params(axis = 'both', which='major', labelsize=18)
-	plt.plot(serie1, color = 'black')
-	plt.plot(serie2, color='gray')
+	plt.plot(series1, color = 'black')
+	plt.plot(series2, color='gray')
 	# plt.title('model loss')
 	plt.tight_layout(pad=3.)
 	plt.ylabel('Coefficient value', fontsize=20)
@@ -1222,16 +1229,15 @@ def plot_compare_time_series(
 	if filename:
 		if path == 'CWD': path = CWD
 		basename, ext = splitext(filename)
-		filename = '{0}_coords{1}_var{2}{3}'.format(\
-			basename, coords, var_id, ext)
 		plt.savefig(os.path.join(path,filename),dpi=400)
 		plt.close(fig)
 	if not filename:
 		plt.show()
 
 
-def plot_training_histories(loss, val_loss, figsize=(12,8),
-	path='CWD', filename=None):
+
+def plot_training_histories(
+	loss, val_loss, figsize=(12,8), path='CWD', filename=None):
 	fig = plt.figure(figsize=figsize)
 	ax = plt.gca()
 	ax.tick_params(axis='both', which='major', labelsize=18)
@@ -1252,6 +1258,7 @@ def plot_training_histories(loss, val_loss, figsize=(12,8),
 		plt.show()
 
 # ---------------------------------------------------------------------------
+
 
 
 
@@ -1397,17 +1404,17 @@ def _check_vars(vars_idx):
 	if isinstance(vars_idx, int):
 	  vars_idx = [vars_idx]
 	if not isinstance(vars_idx, (list,tuple)):
-	    raise TypeError('`vars_idx` must be a list or tuple')
+		raise TypeError('`vars_idx` must be a list or tuple')
 	return vars_idx
 
 def _save_show_plots(filename, path, plt):
 	# save or show plots
 	if filename:
-	    if path == 'CWD': path = CWD
-	    plt.savefig(os.path.join(path,filename), dpi=200)
-	    plt.close()
+		if path == 'CWD': path = CWD
+		plt.savefig(os.path.join(path,filename), dpi=200)
+		plt.close()
 	else:
-	    plt.show()
+		plt.show()
 
 def _set_2d_axes_limits(ax, x1, x2):
 	ax.set_xlim(np.nanmin(x1)*1.05,np.nanmax(x1)*1.05)
@@ -1417,12 +1424,12 @@ def _set_2d_axes_limits(ax, x1, x2):
 def _apply_2d_coastlines(coastlines, ax):
 	# overlay coastlines if required
 	if coastlines.lower() == 'regular':
-	    coast = loadmat(os.path.join(CFD, 'plotting_support','coast.mat'))
-	    ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
+		coast = loadmat(os.path.join(CFD, 'plotting_support','coast.mat'))
+		ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 	elif coastlines.lower() == 'centred':
-	    coast = loadmat(\
+		coast = loadmat(\
 			os.path.join(CFD,'plotting_support','coast_centred.mat'))
-	    ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
+		ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 	return ax
 
 def _apply_2d_vertical_lines(ax, x1, x2, idx1, idx2):
@@ -1439,16 +1446,17 @@ def _apply_2d_vertical_lines(ax, x1, x2, idx1, idx2):
 # ---------------------------------------------------------------------------
 
 def compute_energy_spectrum(u):
-    # transform to Fourier space
-    array_hat = np.real(np.fft.fft(u))
-    # normalizing data
-    array_new = np.copy(array_hat / float(nx))
-    # energy spectrum
-    espec = 0.5 * np.absolute(array_new)**2
-    # angle averaging
-    eplot = np.zeros(nx // 2, dtype='double')
-    for i in range(1, nx // 2):
-        eplot[i] = 0.5 * (espec[i] + espec[nx - i])
-    return eplot
+	# transform to Fourier space
+	array_hat = np.real(np.fft.fft(u))
+	# normalizing data
+	nx = u.size
+	array_new = np.copy(array_hat / float(nx))
+	# energy spectrum
+	espec = 0.5 * np.absolute(array_new)**2
+	# angle averaging
+	eplot = np.zeros(nx // 2, dtype='double')
+	for i in range(1, nx // 2):
+		eplot[i] = 0.5 * (espec[i] + espec[nx - i])
+	return eplot
 
 # ---------------------------------------------------------------------------
