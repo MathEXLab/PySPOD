@@ -31,8 +31,9 @@ from pyspod.auxiliary.emulation    import Emulation
 import pyspod.utils_weights as utils_weights
 import pyspod.auxiliary.utils_emulation as utils_emulation
 
+
 ## data ingestion
-## ----------------------------------------------------------------------------
+## -------------------------------------------------------------------------
 file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
@@ -73,10 +74,11 @@ params_emulation = {
 	'dropout'   : 0.15,
 	'savedir'   : os.path.join(CFD, 'results')
 }
-## ----------------------------------------------------------------------------
+## -------------------------------------------------------------------------
 
 
-def test_lstm():
+def test_lstm_pod():
+
 	##  training and testing database definition
 	nt_train = int(training_data_ratio * nt)
 	X_train = X[:nt_train,:,:]
@@ -87,7 +89,8 @@ def test_lstm():
 	## test dictionary weights
 	params['normalize_weights'] = False
 	weights = {'weights_name': 'uniform', 'weights': pod.weights}
-	POD_analysis = POD_standard(params=params, variables=variables, weights=weights)
+	POD_analysis = POD_standard(
+		params=params, variables=variables, weights=weights)
 	pod = POD_analysis.fit(data=X_train, nt=nt_train)
 	pod.get_data(t_0=0, t_end=1)
 	coeffs_train = pod.transform(data=X_train, nt=nt_train)
@@ -137,7 +140,7 @@ def test_lstm():
 		coeffs=coeffs, phi_tilde=coeffs_train['phi_tilde'],
 		t_mean=coeffs_train['t_mean'])
 	## assert test
-	tol = 1e-10
+	tol = 1e-6
 	save_dir = pod.save_dir
 	assert(pod.dim         ==4)
 	assert(pod.shape       ==(800, 20, 88, 1))
@@ -149,25 +152,25 @@ def test_lstm():
 	assert(pod.dt          ==0.2)
 	assert(pod.variables   ==['p'])
 	assert(pod.n_modes_save==8)
-	assert((np.real(pod.eigs[0])           <90699.72245430+1e-6) & \
-		   (np.real(pod.eigs[0])   		   >90699.72245430-1e-6))
-	assert((pod.weights[0]                 <19934.84235881+1e-6) & \
-		   (pod.weights[0]   	  		   >19934.84235881-1e-6))
-	assert((np.abs(emulation_rec[0,1,0])   <4.467810368735201+tol) & \
-		   (np.abs(emulation_rec[0,1,0])   >4.467810368735201-tol))
-	assert((np.abs(emulation_rec[100,1,0]) <4.467810376724783+tol) & \
-		   (np.abs(emulation_rec[100,1,0]) >4.467810376724783-tol))
-	assert((np.abs(emulation_rec[150,1,0]) <4.467810376761387+tol) & \
-		   (np.abs(emulation_rec[150,1,0]) >4.467810376761387-tol))
-	assert((np.abs(emulation_rec[100,10,5])<4.463844748293307+tol) & \
-		   (np.abs(emulation_rec[100,10,5])>4.463844748293307-tol))
-	assert((np.abs(emulation_rec[50,7,20]) <4.459104904890189+tol) & \
-		   (np.abs(emulation_rec[50,7,20]) >4.459104904890189-tol))
-	assert((np.abs(emulation_rec[60,8,9])  <4.463696917777508+tol) & \
-		   (np.abs(emulation_rec[60,8,9])  >4.463696917777508-tol))
+	assert((np.real(pod.eigs[0])           <90699.72245430+tol) & \
+		   (np.real(pod.eigs[0])   		   >90699.72245430-tol))
+	assert((pod.weights[0]                 <19934.84235881+tol) & \
+		   (pod.weights[0]   	  		   >19934.84235881-tol))
+	assert((np.abs(emulation_rec[0,1,0])   <4.467810376724+tol) & \
+		   (np.abs(emulation_rec[0,1,0])   >4.467810376724-tol))
+	assert((np.abs(emulation_rec[100,1,0]) <4.467810376724+tol) & \
+		   (np.abs(emulation_rec[100,1,0]) >4.467810376724-tol))
+	assert((np.abs(emulation_rec[150,1,0]) <4.467810376761+tol) & \
+		   (np.abs(emulation_rec[150,1,0]) >4.467810376761-tol))
+	assert((np.abs(emulation_rec[100,10,5])<4.463844748293+tol) & \
+		   (np.abs(emulation_rec[100,10,5])>4.463844748293-tol))
+	assert((np.abs(emulation_rec[50,7,20]) <4.459104904890+tol) & \
+		   (np.abs(emulation_rec[50,7,20]) >4.459104904890-tol))
+	assert((np.abs(emulation_rec[60,8,9])  <4.463696917777+tol) & \
+		   (np.abs(emulation_rec[60,8,9])  >4.463696917777-tol))
 	# clean up results
 	try:
-		shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CFD,'results'))
 	except OSError as e:
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
@@ -175,4 +178,4 @@ def test_lstm():
 
 
 if __name__ == "__main__":
-	test_lstm()
+	test_lstm_pod()

@@ -87,15 +87,15 @@ def test_postprocessing_2d():
 		_ = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
 		spod.generate_2d_data_video(
 			sampling=5,
-			time_limits=[0,t.shape[0]],
+			time_limits=[0,20],
 			filename='data_movie.mp4')
 		spod.generate_2d_data_video(
 			sampling=5,
-			time_limits=[0,t.shape[0]],
+			time_limits=[0,20],
 			filename='data_movie.mp4', coastlines='regular')
 		spod.generate_2d_data_video(
 			sampling=5,
-			time_limits=[0,t.shape[0]],
+			time_limits=[0,20],
 			filename='data_movie.mp4', coastlines='centred')
 	except:
 		print('[test_postprocessing]: ',

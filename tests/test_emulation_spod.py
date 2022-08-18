@@ -13,7 +13,6 @@ import sys
 import h5py
 import shutil
 import numpy as np
-
 from pathlib import Path
 
 # Current, parent and file paths import sys
@@ -24,17 +23,18 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
 
-from pyspod.spod_low_storage import SPOD_low_storage
-from pyspod.spod_low_ram     import SPOD_low_ram
-from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.utils_weights as utils_weights
-import pyspod.postprocessing as post
+from pyspod.spod_low_storage    import SPOD_low_storage
+from pyspod.spod_low_ram        import SPOD_low_ram
+from pyspod.spod_streaming      import SPOD_streaming
 from pyspod.auxiliary.emulation import Emulation
 import pyspod.auxiliary.utils_emulation as utils_emulation
+import pyspod.utils_errors   as utils_errors
+import pyspod.utils_weights  as utils_weights
+import pyspod.postprocessing as post
 
 
 ## data ingestion
-## ----------------------------------------------------------------------------
+## -------------------------------------------------------------------------
 file = os.path.join(CFD, './data/fluidmechanics_data.mat')
 variables = ['p']
 with h5py.File(file, 'r') as f:
@@ -82,10 +82,10 @@ params_emulation = {
 	'dropout'   : 0.15,
 	'savedir'   : os.path.join(CFD, 'results')
 }
-## ----------------------------------------------------------------------------
+## -------------------------------------------------------------------------
 
 
-def test_lstm():
+def test_lstm_spod():
 	## fit and transform to get coefficients
 	nt_train = int(train_data_ratio * nt)
 	X_train  = X[:nt_train,:,:]
@@ -134,7 +134,7 @@ def test_lstm():
 	proj_rec = spod.reconstruct_data(
 		coeffs=coeffs_test['coeffs'][:,:], phi_tilde=coeffs_train['phi_tilde'],
 		t_mean=coeffs_train['t_mean'], rec_idx='all')
-	emulation_rec = spod.reconstruct_data(
+	emul_rec = spod.reconstruct_data(
 		coeffs=coeffs, phi_tilde=coeffs_train['phi_tilde'],
 		t_mean=coeffs_train['t_mean'], rec_idx='all')
 	X_test = X_test[...,None]
@@ -142,40 +142,36 @@ def test_lstm():
 	post.generate_2d_subplot(
 		var1=X_test[10,...,0], title1='data',
 		var2=proj_rec[10,...,0], title2='projection',
-		var3=emulation_rec[10,...,0], title3='lstm emulation',
-		N_round=6, path='CWD', filename='emulation.png')
+		var3=emul_rec[10,...,0], title3='lstm emulation',
+		N_round=6, path=params['savedir'], filename='emulation.png')
 	post.plot_compare_time_series(
 		series1=coeffs_test['coeffs'][0,:], series2=coeffs[0,:],
 		label1='test', label2='lstm', legendLocation='upper left',
-		filename='timeseries_comparison.png')
+		path=params['savedir'], filename='timeseries_comparison.png')
 	_ = post.compute_energy_spectrum(coeffs_test['coeffs'][0,:])
-	## test compute errors
-	utils_emulation.print_errors_2d(
-		data_test=X_test, data_proj=proj_rec,
-		data_emul=emulation_rec, n_snaps=10, dt=dt, n_offset=10)
-	## assert test
-	tol = 1e-10
-	assert((np.abs(proj_rec     [0,0,0,0])  <4.467528967599+tol) & \
-		   (np.abs(proj_rec     [0,0,0,0])  >4.467528967599-tol))
-	assert((np.abs(proj_rec     [10,0,0,0]) <4.465600418067+tol) & \
-		   (np.abs(proj_rec     [10,0,0,0]) >4.465600418067-tol))
-	assert((np.abs(proj_rec     [15,5,12,0])<4.457098452307+tol) & \
-		   (np.abs(proj_rec     [15,5,12,0])>4.457098452307-tol))
-	assert((np.abs(emulation_rec[0,0,0,0])  <4.467528967599+tol) & \
-		   (np.abs(emulation_rec[0,0,0,0])  >4.467528967599-tol))
-	assert((np.abs(emulation_rec[10,0,0,0]) <4.465600418067+tol) & \
-		   (np.abs(emulation_rec[10,0,0,0]) >4.465600418067-tol))
-	assert((np.abs(emulation_rec[15,5,12,0])<4.457098452307+tol) & \
-		   (np.abs(emulation_rec[15,5,12,0])>4.457098452307-tol))
+	## assert test solutions
+	tol = 1e-6
+	assert((np.abs(proj_rec[0,0,0,0])  <4.467528967599+tol) & \
+		   (np.abs(proj_rec[0,0,0,0])  >4.467528967599-tol))
+	assert((np.abs(proj_rec[10,0,0,0]) <4.465600418067+tol) & \
+		   (np.abs(proj_rec[10,0,0,0]) >4.465600418067-tol))
+	assert((np.abs(proj_rec[15,5,12,0])<4.457098452307+tol) & \
+		   (np.abs(proj_rec[15,5,12,0])>4.457098452307-tol))
+	assert((np.abs(emul_rec[0,0,0,0])  <4.467528967599+tol) & \
+		   (np.abs(emul_rec[0,0,0,0])  >4.467528967599-tol))
+	assert((np.abs(emul_rec[10,0,0,0]) <4.465600418067+tol) & \
+		   (np.abs(emul_rec[10,0,0,0]) >4.465600418067-tol))
+	assert((np.abs(emul_rec[15,5,12,0])<4.457098452307+tol) & \
+		   (np.abs(emul_rec[15,5,12,0])>4.457098452307-tol))
 	# clean up results
 	try:
-		shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CFD,'results'))
 	except OSError as e:
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
-def test_cnn():
+def test_cnn_spod():
 	## fit and transform to get coefficients
 	nt_train = int(train_data_ratio * nt)
 	X_train  = X[:nt_train,:,:]
@@ -203,7 +199,7 @@ def test_cnn():
 	spod_emulation.model_initialize(data=data_train)
 	# clean up results
 	try:
-		shutil.rmtree(os.path.join(CWD,'results'))
+		shutil.rmtree(os.path.join(CFD,'results'))
 	except OSError as e:
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
@@ -211,5 +207,5 @@ def test_cnn():
 
 
 if __name__ == "__main__":
-	test_lstm()
-	test_cnn ()
+	test_lstm_spod()
+	test_cnn_spod ()

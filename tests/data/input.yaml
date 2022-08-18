@@ -1,0 +1,5 @@
+required:
+  - time_step   : 1
+  - n_space_dims: 2
+  - n_variables : 1
+  - n_dft       : 30

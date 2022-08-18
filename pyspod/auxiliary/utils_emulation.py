@@ -2,140 +2,6 @@ import numpy as np
 from numpy import linalg
 
 
-
-def compute_error_norm(data, data_ref, dt, norm_type='L2'):
-    '''
-    Compute error norms of a 1D array with respect to a reference data
-    '''
-    nx = data.size
-    if norm_type == 'L2':
-        a = (data[:] - data_ref[:])
-        error_norm = np.linalg.norm(a) / nx
-    elif norm_type == 'L1':
-        a = (data[:] - data_ref[:])
-        error_norm = np.linalg.norm(a,1) / nx
-    elif norm_type == 'Linf':
-        a = np.absolute(data[:] - data_ref[:])
-        error_norm = np.amax(a)
-    elif norm_type == 'L2rel':
-        a = (data[:] - data_ref[:]) / data_ref[:]
-        error_norm = np.linalg.norm(a) / nx
-    elif norm_type == 'L1rel':
-        a = (data[:] - data_ref[:]) / data_ref[:]
-        error_norm = np.linalg.norm(a,1) / nx
-    elif norm_type == 'Linf_rel':
-        a = np.absolute((data[:] - data_ref[:]) / data_ref[:])
-        error_norm = np.amax(a)
-    elif norm_type == 'H1':
-        error_H1 = 0
-        for i in range(data.shape[0]):
-            if i == 0:
-                uprime = 0
-                utrueprime = 0
-            else:
-                uprime = (data[i] - data[i-1]) / dt
-                utrueprime= (data_ref[i] - data_ref[i-1]) / dt
-            error_H1 = error_H1 + (dt*((uprime - utrueprime)**2 ))
-        error_norm = np.sqrt(error_H1)
-    return error_norm
-
-
-def compute_error_norm_2d(data, data_ref, dt, norm_type='L2'):
-    '''
-    Compute the error norm of a 2D data with respect to a reference data
-    '''
-    nx  = data[0,:].size * data[:,0].size
-    data_res = np.reshape(data[:,:], [nx])
-    data_ref_res = np.reshape(data_ref[:,:], [nx])
-    error_norm = compute_error_norm(
-        data=data_res, data_ref=data_ref_res, dt=dt, norm_type=norm_type)
-    return error_norm
-
-
-def print_errors_2d(
-    data_test , data_proj, data_emul, n_snaps, dt, n_offset=0):
-	'''
-	Evaluate and print all the errors
-	'''
-	L2_PvsT_tot = 0.0
-	L2_LvsP_tot = 0.0
-	L2_LvsT_tot = 0.0
-	L1_PvsT_tot = 0.0
-	L1_LvsP_tot = 0.0
-	L1_LvsT_tot = 0.0
-	Linf_PvsT_tot = 0.0
-	Linf_LvsP_tot = 0.0
-	Linf_LvsT_tot = 0.0
-
-	for i in range(n_snaps):
-		L2_PvsT= compute_error_norm_2d(
-			data=data_proj[n_offset+i,:,:,0],
-			data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L2')
-		L2_LvsP= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_proj[n_offset+i,:,:,0], dt=dt, norm_type='L2')
-		L2_LvsT= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L2')
-		L1_PvsT= compute_error_norm_2d(
-			data= data_proj[n_offset+i,:,:,0],
-			data_ref= data_test[n_offset+i,:,:], dt=dt, norm_type='L1')
-		L1_LvsP= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_proj[n_offset+i,:,:,0], dt=dt, norm_type='L1')
-		L1_LvsT= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L1')
-		Linf_PvsT= compute_error_norm_2d(
-			data= data_proj[n_offset+i,:,:,0],
-			data_ref= data_test[n_offset+i,:,:], dt=dt, norm_type='Linf')
-		Linf_LvsP= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-			data_ref=data_proj[n_offset+i,:,:,0], dt=dt, norm_type='Linf')
-		Linf_LvsT= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='Linf')
-		Linf_LvsT= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L2rel')
-		Linf_LvsT= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='L1rel')
-		Linf_LvsT= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='Linf_rel')
-		Linf_LvsT= compute_error_norm_2d(
-			data=data_emul[n_offset+i,:,:,0],
-            data_ref=data_test[n_offset+i,:,:], dt=dt, norm_type='H1')
-		L2_PvsT_tot = L2_PvsT_tot + L2_PvsT
-		L2_LvsP_tot = L2_LvsP_tot + L2_LvsP
-		L2_LvsT_tot = L2_LvsT_tot + L2_LvsT
-		L1_PvsT_tot = L1_PvsT_tot + L1_PvsT
-		L1_LvsP_tot = L1_LvsP_tot + L1_LvsP
-		L1_LvsT_tot = L1_LvsT_tot + L1_LvsT
-		Linf_PvsT_tot = Linf_PvsT_tot + Linf_PvsT
-		Linf_LvsP_tot = Linf_LvsP_tot + Linf_LvsP
-		Linf_LvsT_tot = Linf_LvsT_tot + Linf_LvsT
-	print('Avg L2 error projection vs true solution       :',
-		L2_PvsT_tot/n_snaps)
-	print('Avg L2 error lstm prediction vs projection     :',
-		L2_LvsP_tot/n_snaps)
-	print('Avg L2 error lstm prediction vs true solution  :',
-		L2_LvsT_tot/n_snaps)
-	print('Avg L1 error projection vs true solution       :',
-		L1_PvsT_tot/n_snaps)
-	print('Avg L1 error lstm prediction vs projection     :',
-		L1_LvsP_tot/n_snaps)
-	print('Avg L1 error lstm prediction vs true solution  :',
-		L1_LvsT_tot/n_snaps)
-	print('Avg Linf error projection vs true solution     :',
-		Linf_PvsT_tot/n_snaps)
-	print('Avg Linf error lstm prediction vs projection   :',
-		Linf_LvsP_tot/n_snaps)
-	print('Avg Linf error lstm prediction vs true solution:',
-		Linf_LvsT_tot/n_snaps)
-
-
 def compute_normalization_vector_real(data, normalize_method=''):
     '''
     Evaluate a normalization vector
@@ -222,8 +88,8 @@ def normalize_data(data, normalization_vec=None):
         print('No normalization is performed')
     else:
         for j in range(data.shape[1]):
-            data_out.real[:,j]= data[:,j].real / normalization_vec.real
-            data_out.imag[:,j]= data[:,j].imag / normalization_vec.imag
+            data_out.real[:,j] = data[:,j].real / normalization_vec.real
+            data_out.imag[:,j] = data[:,j].imag / normalization_vec.imag
     return data_out
 
 
@@ -232,10 +98,10 @@ def denormalize_data(data, normalization_vec=None):
     Denormalize data given a normalization vector and a matrix of data
     '''
     data_out = np.zeros_like(data)
-    if normalization_vec.shape[0]==0:
+    if normalization_vec.shape[0] == 0:
         print('No normalization is performed')
     else:
         for j in range(data.shape[1]):
-            data_out.real[:,j]= data[:,j].real*normalization_vec.real
-            data_out.imag[:,j]= data[:,j].imag*normalization_vec.imag
+            data_out.real[:,j] = data[:,j].real*normalization_vec.real
+            data_out.imag[:,j] = data[:,j].imag*normalization_vec.imag
     return data_out

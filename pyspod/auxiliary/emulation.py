@@ -61,7 +61,7 @@ class Emulation():
 		'''
 		def coeff_determination(y_pred, y_true):
 			SS_res = K.sum(K.square(y_true-y_pred), axis=0)
-			SS_tot = K.sum(K.square(y_true - K.mean(y_true,axis=0)), axis=0 )
+			SS_tot = K.sum(K.square(y_true - K.mean(y_true,axis=0)), axis=0)
 			return K.mean(1 - SS_res/(SS_tot + K.epsilon()) )
 		self.model = Sequential()
 		self.model.add(LSTM(self._n_neurons,
@@ -83,7 +83,7 @@ class Emulation():
 		'''
 		def coeff_determination(y_pred, y_true):
 			SS_res =  K.sum(K.square(y_true-y_pred), axis=0)
-			SS_tot = K.sum(K.square(y_true - K.mean(y_true,axis=0)), axis=0 )
+			SS_tot = K.sum(K.square(y_true - K.mean(y_true,axis=0)), axis=0)
 			return K.mean(1 - SS_res/(SS_tot + K.epsilon()) )
 		self.model = Sequential()
 		## to be added ...
@@ -113,7 +113,6 @@ class Emulation():
 			y[cnt,:] = np.reshape(states[idx_y[cnt],:],
 				[self._n_seq_out*self.n_features])
 			cnt = cnt + 1
-
 		print('**********************************')
 		print('* DATA LAYOUT                    *')
 		print('**********************************')
@@ -121,7 +120,6 @@ class Emulation():
 		print('x.shape = ', x.shape)
 		print('y.shape = ', y.shape)
 		print('**********************************')
-
 		return x, y
 
 
@@ -227,8 +225,8 @@ class Emulation():
 				validation_data=(valid_data_ip, valid_data_op),
 				epochs= self._epochs,
 				batch_size=self._batch_size,
-				callbacks=self.callbacks_list
-			)
+				callbacks=self.callbacks_list)
+
 
 
 	def model_inference(self, idx, data_input):
@@ -238,7 +236,8 @@ class Emulation():
 		# number of time snapshots
 		nt = data_input.shape[1]
 		# check the size of the input array
-		if nt < self._n_seq_in: raise ValueError(network.lower(), 'data input error.')
+		if nt < self._n_seq_in:
+			raise ValueError(network.lower(), 'data input error.')
 
 		# initialization of variables and vectors
 		input_batch = np.zeros([1,  self._n_seq_in , self.n_features])
@@ -289,5 +288,4 @@ class Emulation():
 			coeffs[:, (self._n_seq_out*i)+\
 				self._n_seq_in:self._n_seq_in+\
 				(self._n_seq_out*(i+1))] = np.transpose(coeffs_tmp[:,i,:])
-
 		return coeffs

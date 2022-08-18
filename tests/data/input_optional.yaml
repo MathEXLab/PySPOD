@@ -1,0 +1,16 @@
+required:
+  - time_step   : 1
+  - n_space_dims: 2
+  - n_variables : 1
+  - n_dft       : 30
+
+optional:
+  - overlap          : 0
+  - mean_type        : 'blockwise'
+  - normalize_weights: False
+  - normalize_data   : False
+  - n_modes_save     : 3
+  - conf_level       : 0.95
+  - reuse_blocks     : False
+  - savefft          : False
+  - savedir          : 'spod_results'

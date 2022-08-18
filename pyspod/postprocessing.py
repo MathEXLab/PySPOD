@@ -1204,10 +1204,9 @@ def generate_2d_subplot(
 		ax3.set_xlabel('x', fontsize=16, **csfont)
 		ax3.set_ylabel('y',fontsize=16, **csfont)
 	if filename:
-		if path == 'CWD':
-			path = CWD
-			plt.savefig(os.path.join(path,filename), dpi=300)
-			plt.close(fig)
+		if path == 'CWD': path = CWD
+		plt.savefig(os.path.join(path,filename), dpi=300)
+		plt.close(fig)
 	if not filename:
 		plt.show()
 
