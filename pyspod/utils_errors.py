@@ -8,15 +8,9 @@ def compute_l_errors(data, data_ref, norm_type='l2'):
     Compute error norms of a 1D array with respect to a reference data
     '''
     nx = data.size
-    print('nx = ', nx)
     e = np.abs(data - data_ref)
-    import pdb
-    # pdb.set_trace()
     ef = e.flatten('C')
-    print(e.shape)
-    print(ef.shape)
     e_rel = ef / data_ref.flatten('C')
-    print(e_rel.shape)
     if   norm_type == 'l1'  : error_norm = np.linalg.norm(ef, 1) / nx
     elif norm_type == 'l2'  : error_norm = np.linalg.norm(ef) / nx
     elif norm_type == 'linf': error_norm = np.amax(ef)

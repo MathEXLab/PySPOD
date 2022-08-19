@@ -29,7 +29,7 @@ def normalize_data_real(data, normalization_vec=None):
     Normalize data given a normalization vector and a matrix of data
     '''
     data_out = np.zeros_like(data)
-    if normalization_vec.shape[0]==0:
+    if normalization_vec.shape[0] == 0:
         print('No normalization is performed')
     else:
         for j in range(data.shape[1]):
@@ -42,7 +42,7 @@ def denormalize_data_real(data, normalization_vec=None):
     Denormalize data given a normalization vector and a matrix of data
     '''
     data_out = np.zeros_like(data)
-    if normalization_vec.shape[0]==0:
+    if normalization_vec.shape[0] == 0:
         print('No normalization is performed')
     else:
         for j in range(data.shape[1]):

@@ -52,7 +52,7 @@ params = {
 
 
 def test_low_storage_blockwise():
-	params['mean'] = 'blockwise'
+	params['mean_type'] = 'blockwise'
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
 	spod.plot_2d_data(time_idx=[1,2], filename='tmp.png')
@@ -61,12 +61,33 @@ def test_low_storage_blockwise():
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/10, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	tol = 1e-10
-	assert((np.abs(modes_at_freq[5,10,0,0])<0.01006851575930816 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,0])>0.01006851575930816 -tol))
-	assert((np.abs(modes_at_freq[0,0,0,0]) <0.01218020815439361 +tol) & \
-		   (np.abs(modes_at_freq[0,0,0,0]) >0.01218020815439361 -tol))
-	assert((np.max(np.abs(modes_at_freq))  <0.02991911832816262 +tol) & \
-		   (np.max(np.abs(modes_at_freq))  >0.02991911832816262 -tol))
+	q_hat_f = spod.Q_hat_f['0']['0']
+	assert(spod.dt          ==1)
+	assert(spod.dim         ==4)
+	assert(spod.shape       ==(1,50,100,1))
+	assert(spod.nt          ==1000)
+	assert(spod.comm        ==None)
+	assert(spod.nx          ==5000)
+	assert(spod.nv          ==1)
+	assert(spod.xdim        ==2)
+	assert(spod.xshape      ==(50,100))
+	assert(spod.n_freq      ==51)
+	assert(spod.freq[0]     ==0.0)
+	assert(spod.n_dft       ==100)
+	assert(spod.variables   ==['p'])
+	assert(spod.n_blocks    ==10)
+	assert(spod.n_modes     ==10)
+	assert(spod.n_modes_save==3)
+	assert(spod.modes[0]    =='modes_freq00000000.npy')
+	assert(spod.weights[0]  ==1.)
+	assert((np.abs(modes_at_freq[5,10,0,0])<0.010068515759308+tol) & \
+		   (np.abs(modes_at_freq[5,10,0,0])>0.010068515759308-tol))
+	assert((np.abs(modes_at_freq[0,0,0,0]) <0.012180208154393+tol) & \
+		   (np.abs(modes_at_freq[0,0,0,0]) >0.012180208154393-tol))
+	assert((np.max(np.abs(modes_at_freq))  <0.029919118328162+tol) & \
+		   (np.max(np.abs(modes_at_freq))  >0.029919118328162-tol))
+	assert((np.real(spod.eigs[0][0])       < 550.171024815639+tol) & \
+		   (np.real(spod.eigs[0][0])       < 550.171024815639+tol))
 	# clean up results
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
@@ -76,7 +97,7 @@ def test_low_storage_blockwise():
 
 
 def test_low_storage_longtime():
-	params['mean'] = 'longtime'
+	params['mean_type'] = 'longtime'
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/10, freq=spod.freq)
@@ -97,7 +118,7 @@ def test_low_storage_longtime():
 
 
 def test_low_storage_zero():
-	params['mean' ] = 'zero'
+	params['mean_type' ] = 'zero'
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/10, freq=spod.freq)
@@ -116,30 +137,9 @@ def test_low_storage_zero():
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
-
-def test_low_storage_fft():
-	params['mean' ] = 'longtime'
-	params['n_FFT'] = 'default'
-	spod = SPOD_low_storage(params=params, variables=['p'])
-	spod.fit(p_var, t.shape[0])
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/10, freq=spod.freq)
-	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-	tol = 1e-10
-	assert((np.abs(modes_at_freq[5,10,0,0])<0.01006851575930816 +tol) & \
-		   (np.abs(modes_at_freq[5,10,0,0])>0.01006851575930816 -tol))
-	assert((np.abs(modes_at_freq[0,0,0,0]) <0.01218020815439361 +tol) & \
-		   (np.abs(modes_at_freq[0,0,0,0]) >0.01218020815439361 -tol))
-	assert((np.max(np.abs(modes_at_freq))  <0.02991911832816262 +tol) & \
-		   (np.max(np.abs(modes_at_freq))  >0.02991911832816262 -tol))
-	# clean up results
-	try:
-		shutil.rmtree(os.path.join(CWD,'results'))
-	except OSError as e:
-		pass
-		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 def test_low_storage_overlap():
-	params['mean'   ] = 'longtime'
+	params['mean_type'   ] = 'longtime'
 	params['overlap'] = 20
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
@@ -160,8 +160,8 @@ def test_low_storage_overlap():
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 def test_low_storage_normalization():
-	params['mean'   ] = 'longtime'
-	params['overlap'] = 0
+	params['mean_type'        ] = 'longtime'
+	params['overlap'          ] = 0
 	params['normalize_weights'] = True
 	params['normalize_data'   ] = True
 	spod = SPOD_low_storage(params=params, variables=['p'])
@@ -188,7 +188,5 @@ if __name__ == "__main__":
 	test_low_storage_blockwise    ()
 	test_low_storage_longtime     ()
 	test_low_storage_zero         ()
-	# test_low_storage_hamming      ()
-	test_low_storage_fft          ()
 	test_low_storage_overlap      ()
 	test_low_storage_normalization()

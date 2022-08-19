@@ -206,12 +206,12 @@ class SPOD_streaming(SPOD_Base):
 		self._eigs = self._eigs.T
 
 		## save results into files
-		file = os.path.join(self._save_dir_simulation,'spod_energy')
+		file = os.path.join(self._save_dir_sim,'spod_energy')
 		if self._rank == 0:
 			np.savez(file, eigs=self._eigs, f=self._freq)
 		for i_freq in range(0,n_freq):
 			Psi = x_spod[i_freq,...]
-			file_psi = os.path.join(self._save_dir_simulation,
+			file_psi = os.path.join(self._save_dir_sim,
 				'modes_freq{:08d}.npy'.format(i_freq))
 			self._modes[i_freq] = file_psi
 			if self._rank == 0:

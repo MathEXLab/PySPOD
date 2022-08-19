@@ -473,14 +473,10 @@ def plot_2d_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 
 			# save or show plots
 			if filename:
-				if path == 'CWD': path = CWD
 				basename, ext = splitext(filename)
 				filename = '{0}_var{1}_mode{2}{3}'.format(
 					basename, var_id, mode_id, ext)
-				plt.savefig(os.path.join(path,filename),dpi=400)
-				plt.close(fig)
-			if not filename:
-				plt.show()
+			_save_show_plots(filename, path, plt)
 
 
 
@@ -674,14 +670,10 @@ def plot_2d_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 
 		# save or show plots
 		if filename:
-			if path == 'CWD': path = CWD
 			basename, ext = splitext(filename)
 			filename = '{0}_var{1}_mode{2}{3}'.format(\
 				basename, var_id, mode_id, ext)
-			plt.savefig(os.path.join(path, filename), dpi=400)
-			plt.close()
-		if not filename:
-			plt.show()
+		_save_show_plots(filename, path, plt)
 
 
 
@@ -868,13 +860,9 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 
 			# save or show plots
 			if filename:
-				if path == 'CWD': path = CWD
 				basename, ext = splitext(filename)
 				filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
-				plt.savefig(os.path.join(path,filename),dpi=200)
-				plt.close(fig)
-			if not filename:
-				plt.show()
+			_save_show_plots(filename, path, plt)
 
 
 
@@ -977,14 +965,10 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 
 			# save or show plots
 			if filename:
-				if path == 'CWD': path = CWD
 				basename, ext = splitext(filename)
 				filename = '{0}_coords{1}_var{2}_mode{3}{4}'.format(
 					basename, coords, var_id, mode_id, ext)
-				plt.savefig(os.path.join(path,filename), dpi=200)
-				plt.close(fig)
-			if not filename:
-				plt.show()
+			_save_show_plots(filename, path, plt)
 
 
 
@@ -1063,21 +1047,22 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 			# overlay coastlines if required
 			if coastlines.lower() == 'regular':
-				coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
-				plt.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
+				coast = loadmat(os.path.join(
+					CFD,'plotting_support','coast.mat'))
+				plt.scatter(coast['coastlon'], coast['coastlat'],
+					marker='.', c='k', s=1)
 			elif coastlines.lower() == 'centred':
-				coast = loadmat(os.path.join(CFD,'plotting_support','coast_centred.mat'))
-				plt.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
+				coast = loadmat(os.path.join(
+					CFD,'plotting_support','coast_centred.mat'))
+				plt.scatter(coast['coastlon'], coast['coastlat'],
+					marker='.', c='k', s=1)
 
 			# save or show plots
 			if filename:
-				if path == 'CWD': path = CWD
 				basename, ext = splitext(filename)
-				filename = '{0}_var{1}_time{2}{3}'.format(basename, var_id, time_id, ext)
-				plt.savefig(os.path.join(path,filename), dpi=200)
-				plt.close(fig)
-			if not filename:
-				plt.show()
+				filename = '{0}_var{1}_time{2}{3}'.format(
+					basename, var_id, time_id, ext)
+			_save_show_plots(filename, path, plt)
 
 
 
@@ -1097,7 +1082,8 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 	:param str title: if specified, title of the plot. Default is ''.
 	:param tuple(int,int) figsize: size of the figure (width,height).
 		Default is (12,8).
-	:param str path: if specified, the plot is saved at `path`. Default is CWD.
+	:param str path: if specified, the plot is saved at `path`.
+		Default is CWD.
 	:param str filename: if specified, the plot is saved at `filename`.
 		Default is None.
 	'''
@@ -1144,14 +1130,10 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 
 			# save or show plots
 			if filename:
-				if path == 'CWD': path = CWD
 				basename, ext = splitext(filename)
 				filename = '{0}_coords{1}_var{2}{3}'.format(\
 					basename, coords, var_id, ext)
-				plt.savefig(os.path.join(path,filename),dpi=400)
-				plt.close(fig)
-			if not filename:
-				plt.show()
+			_save_show_plots(filename, path, plt)
 
 
 
@@ -1203,12 +1185,7 @@ def generate_2d_subplot(
 		ax3.set_title(title3, fontsize=18, **csfont)
 		ax3.set_xlabel('x', fontsize=16, **csfont)
 		ax3.set_ylabel('y',fontsize=16, **csfont)
-	if filename:
-		if path == 'CWD': path = CWD
-		plt.savefig(os.path.join(path,filename), dpi=300)
-		plt.close(fig)
-	if not filename:
-		plt.show()
+	_save_show_plots(filename, path, plt)
 
 
 
@@ -1225,13 +1202,7 @@ def plot_compare_time_series(
 	plt.ylabel('Coefficient value', fontsize=20)
 	plt.xlabel('Index', fontsize=20)
 	plt.legend([label1, label2], loc=legendLocation, fontsize=18)
-	if filename:
-		if path == 'CWD': path = CWD
-		basename, ext = splitext(filename)
-		plt.savefig(os.path.join(path,filename),dpi=400)
-		plt.close(fig)
-	if not filename:
-		plt.show()
+	_save_show_plots(filename, path, plt)
 
 
 
@@ -1248,13 +1219,9 @@ def plot_training_histories(
 	plt.xlabel('epoch', fontsize=20)
 	plt.legend(['train', 'validation'], loc='upper right', fontsize=18)
 	if filename:
-		if path == 'CWD': path = CWD
 		basename, ext = splitext(filename)
 		filename = '{0}_history{1}'.format(basename, ext)
-		plt.savefig(os.path.join(path,filename),dpi=400)
-		plt.close(fig)
-	if not filename:
-		plt.show()
+	_save_show_plots(filename, path, plt)
 
 # ---------------------------------------------------------------------------
 
@@ -1311,7 +1278,7 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
 			'Data dimension does not match coordinates dimensions.')
 
 	transpose = False
-	if x1.shape[0] != X.shape[1] or x2.shape[0] != X.shape[0]:
+	if x1.shape[0] != X.shape[2] or x2.shape[0] != X.shape[1]:
 		transpose = True
 
 	# overlay coastlines if required
@@ -1331,6 +1298,9 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
 	#vmin = np.nanmin(X)
 	#vmax = np.nanmax(X)
 	vmean = np.nanmean(X)
+	print('X.shape = ', X.shape)
+	print('x1.shape = ', x1.shape)
+	print('x2.shape = ', x2.shape)
 	for i in vars_idx:
 		fig = plt.figure()
 		# generate movie
@@ -1376,12 +1346,19 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
 				]
 		a = animation.ArtistAnimation(
 			fig, frames, interval=70, blit=False, repeat=False)
-		Writer = animation.writers['ffmpeg']
-		writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 		if path == 'CWD': path = CWD
 		filename = '{0}_var{1}{2}'.format(basename, i, ext)
-		a.save(os.path.join(path,filename), writer=writer)
-		plt.close('all')
+		try:
+			bashCmd = ["which", "ffmpeg"]
+			print(subprocess.check_output(bashCmd))
+			Writer = animation.writers['ffmpeg']
+			writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+			a.save(os.path.join(path,filename), writer=writer)
+			plt.close('all')
+		except:
+			print('Skipping saving ffmpeg video as `ffmpeg` not present.')
+			plt.close('all')
+			return
 
 # ---------------------------------------------------------------------------
 

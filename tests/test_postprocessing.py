@@ -17,7 +17,7 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-
+import pyspod.postprocessing as post
 
 
 def test_postprocessing_2d():
@@ -58,48 +58,72 @@ def test_postprocessing_2d():
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-	spod.plot_eigs             (filename='eigs.png')
-	spod.plot_eigs_vs_frequency(filename='eigs.png')
+	spod.plot_eigs(filename='eigs.png', equal_axes=True, title='eigs')
+	spod.plot_eigs_vs_frequency(
+		filename='eigs.png', equal_axes=True, title='eigs_vs_freq')
 	spod.plot_eigs_vs_period(
-		filename='eigs.png', xticks=[1, 10, 20], yticks=[1, 2, 10])
+		filename='eigs.png', xticks=[1, 10, 20], yticks=[1, 2, 10],
+		equal_axes=True, title='eigs_vs_period')
 	spod.plot_2d_modes_at_frequency(
 		freq_required=f_, freq=spod.freq, x1=x1, x2=x2, filename='modes.png')
 	spod.plot_2d_modes_at_frequency(
 		freq_required=f_, freq=spod.freq, x1=None, x2=None, equal_axes=True,
-		filename='modes.png', plot_max=True, coastlines='regular')
+		modes_idx=0, filename='modes.png', plot_max=True, coastlines='regular')
 	spod.plot_2d_modes_at_frequency(
 		freq_required=f_, freq=spod.freq, x1=None, x2=None,
-		imaginary=True, equal_axes=True, filename='modes.png',
-		plot_max=True, coastlines='centred')
+		imaginary=True, filename='modes.png', plot_max=True,
+		coastlines='centred', fftshift=True, equal_axes=True,
+		title='modes')
 	spod.plot_2d_mode_slice_vs_time(
-		freq_required=f_, freq=spod.freq, filename='modes.png')
+		freq_required=f_, freq=spod.freq, modes_idx=0, fftshift=True,
+		equal_axes=True, max_each_mode=True, title='modes_time',
+		filename='modes1.png')
+	spod.plot_2d_mode_slice_vs_time(
+		freq_required=f_, freq=spod.freq, modes_idx=0, fftshift=True,
+		equal_axes=True, max_each_mode=True, filename='modes2.png')
 	spod.plot_mode_tracers(
-		freq_required=f_, freq=spod.freq,
+		freq_required=f_, freq=spod.freq, modes_idx=0, fftshift=True,
 		coords_list=[(10,10),(14,14)], filename='tracers.png')
-	spod.plot_2d_data(time_idx=[0,10],filename='data.png')
+	spod.plot_mode_tracers(
+		freq_required=f_, freq=spod.freq, modes_idx=0, fftshift=True,
+		coords_list=[(10,10),(14,14)], title='tracers', filename='tracers.png')
+	spod.plot_2d_data(time_idx=0,filename='data.png', title='data_plot')
 	spod.plot_2d_data(time_idx=[0,10],filename='data.png',coastlines='regular')
 	spod.plot_2d_data(time_idx=[0,10],filename='data.png',coastlines='centred')
 	spod.plot_data_tracers(
+		coords_list=[(10,10), (14,14)],
+		title='data_tracers', filename='data_tracers.png')
+	spod.plot_data_tracers(
 		coords_list=[(10,10), (14,14)], filename='data_tracers.png')
 	coords, idx_coords = spod.find_nearest_coords(coords=(10,10), x=[x1,x2])
-	try:
-		bashCmd = ["ffmpeg", " --version"]
-		_ = subprocess.Popen(bashCmd, stdin=subprocess.PIPE)
-		spod.generate_2d_data_video(
-			sampling=5,
-			time_limits=[0,20],
-			filename='data_movie.mp4')
-		spod.generate_2d_data_video(
-			sampling=5,
-			time_limits=[0,20],
-			filename='data_movie.mp4', coastlines='regular')
-		spod.generate_2d_data_video(
-			sampling=5,
-			time_limits=[0,20],
-			filename='data_movie.mp4', coastlines='centred')
-	except:
-		print('[test_postprocessing]: ',
-			  'Skipping video making as `ffmpeg` not present.')
+	# try:
+	# 	bashCmd = ["which", "ffmpeg"]
+	# 	_ = subprocess.check_output(bashCmd, stdin=subprocess.PIPE)
+	spod.generate_2d_data_video(
+		sampling=5,
+		time_limits=[0,20],
+		filename='data_movie1.mp4')
+	spod.generate_2d_data_video(
+		sampling=5,
+		time_limits=[0,20],
+		filename='data_movie2.mp4', coastlines='regular')
+	spod.generate_2d_data_video(
+		sampling=5,
+		time_limits=[0,20],
+		filename='data_movie3.mp4', coastlines='centred')
+	## post
+	post.generate_2d_subplot(
+		var1=X[10,...], title1='data',
+		N_round=6, path=params['savedir'], filename='subplot1.png')
+	post.generate_2d_subplot(
+		var1=X[10,...], title1='data1',
+		var2=X[10,...], title2='data2',
+		N_round=6, path=params['savedir'], filename='subplot2.png')
+	post.generate_2d_subplot(
+		var1=X[10,...], title1='data1',
+		var2=X[10,...], title2='data2',
+		var3=X[10,...], title3='data3',
+		N_round=6, path=params['savedir'], filename='subplot3.png')
 	assert((np.abs(modes_at_freq[0,1,0,0])  <8.574136171525e-05+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])  >8.574136171525e-05-tol))
 	assert((np.abs(modes_at_freq[10,3,0,2]) <0.0008816145245031+tol) & \
@@ -123,11 +147,11 @@ def test_postprocessing_3d():
 	## --------------------------------------------------------------
 	## get data
 	variables = ['p']
-	x1 = np.linspace(0,10,100)
+	x1 = np.linspace(0, 6, 60)
 	x2 = np.linspace(0, 5, 50)
 	x3 = np.linspace(0, 2, 20)
 	xx1, xx2, xx3 = np.meshgrid(x1, x2, x3)
-	t = np.linspace(0, 200, 1000)
+	t = np.linspace(0, 200, 500)
 	s_component = np.sin(xx1 * xx2 * xx3) + np.cos(xx1)**2 + \
 		np.sin(0.1*xx2) + np.sin(0.5*xx3)**2
 	t_component = np.sin(0.1 * t)**2 + np.cos(t) * np.sin(0.5*t)
@@ -166,8 +190,8 @@ def test_postprocessing_3d():
 	spod.plot_eigs_vs_frequency(filename='eigs.png')
 	spod.plot_eigs_vs_period   (filename='eigs.png')
 	spod.plot_3d_modes_slice_at_frequency(
-		freq_required=f_, freq=spod.freq, x1=x1, x2=x2, x3=x3,
-		imaginary=True, filename='modes.png', plot_max=True)
+		freq_required=f_, freq=spod.freq, modes_idx=0, x1=x1, x2=x2, x3=x3,
+		imaginary=True, title='modes', filename='modes.png', plot_max=True)
 	spod.plot_3d_modes_slice_at_frequency(
 		freq_required=f_, freq=spod.freq, x1=x1, x2=x2, x3=x3,
 		imaginary=False, filename='modes.png', title='sim 1')

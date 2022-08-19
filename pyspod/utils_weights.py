@@ -2,7 +2,7 @@
 
 # import standard python packages
 import numpy as np
-
+from mpi4py import MPI
 
 
 def uniform_2D(x1_dim, x2_dim, n_vars, **kwargs):
@@ -104,7 +104,8 @@ def custom(**kwargs):
 	pass
 
 
-def apply_normalization(data, weights, n_variables, comm, method='variance'):
+def apply_normalization(
+	data, t_mean, weights, n_variables, comm, method='variance'):
 	'''Normalization of weights if required.'''
 
 	# variable-wise normalization by variance via weight matrix
@@ -116,13 +117,38 @@ def apply_normalization(data, weights, n_variables, comm, method='variance'):
 				print('-------------------------')
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			print(axis)
-
 			for i in range(0, n_variables):
-				sigma2 = np.nanvar(data[...,i], axis=axis) #### how do we make this parallel?
-				print('variable = ', i, ',  variance = ', sigma2)
+				# sigma2 = np.nanvar(data[...,i], axis=axis)
+				d = data.reshape([data.shape[0],data[0,...,0].size,data.shape[-1]])
+				print(f'{comm.rank = :}  {d.shape = :}')
+				print(f'{comm.rank = :}  {t_mean.shape = :}')
+				var = np.abs(d[...,i] - t_mean)**2
+				var = np.array(var)
+				print(f'{comm.rank = :}  {var.shape = :}')
 				comm.Barrier()
-				comm.all_reduce()
-				weights[...,i] = weights[...,i] / sigma2
+				var_reduced = np.zeros_like(var)
+				print(f'{var.dtype = :} {var.shape = :}')
+				# comm.Allreduce(var, var_reduced, op=MPI.SUM)
+				print(memoryview(var).format)
+				comm.Allreduce(
+					[var, MPI.DOUBLE],
+					[var_reduced, MPI.DOUBLE],
+					op=MPI.SUM
+				)
+				print(f'{np.sum(var_reduced) = :}')
+				print(f'{var_reduced.size = :}')
+				var = np.sum(var_reduced) / var_reduced.size
+				v = np.zeros_like(var)
+				comm.Allreduce(
+					[var, MPI.DOUBLE],
+					[v, MPI.DOUBLE],
+					op=MPI.SUM
+				)
+				print('mean var = ', v)
+				exit(0)
+
+				# weights[...,i] = weights[...,i] / var
+				exit(0)
 		else:
 			if comm.rank:
 				print('')
@@ -136,11 +162,9 @@ def apply_normalization(data, weights, n_variables, comm, method='variance'):
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			for i in range(0, n_variables):
 				sigma2 = np.nanvar(data[...,i], axis=axis)
-				print('variable = ', i, ',  variance = ', sigma2)
 				weights[...,i] = weights[...,i] / sigma2
 		else:
 			print('')
 			print('No normalization performed')
 			print('--------------------------')
-
 	return weights

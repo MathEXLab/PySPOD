@@ -102,6 +102,6 @@ class SPOD_parallel(SPOD_Base):
 		self._store_and_save()
 		self._pr0(f'------------------------------------')
 		self._pr0(f' ')
-		self._pr0(f'Results saved in folder {self._save_dir_simulation}')
+		self._pr0(f'Results saved in folder {self._save_dir_sim}')
 		self._pr0(f'Elapsed time: {time.time() - start} s.')
 		return self
