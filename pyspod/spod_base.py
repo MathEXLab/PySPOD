@@ -432,7 +432,6 @@ class SPOD_Base(object):
 			self._pr0('- normalizing weights')
 			self._weights = utils_weights.apply_normalization(
 				data=self._data,
-				t_mean=self._t_mean,
 				weights=self._weights,
 				n_variables=self._nv,
 				comm=self._comm,

@@ -71,7 +71,7 @@ def test_parallel_blockwise():
 	comm = MPI.COMM_WORLD
 	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
-	latent_space = spod.transform(data, nt=nt, rec_idx='all', svd=True)
+	latent_space = spod.transform(X, nt=nt, rec_idx='all', svd=True)
 	# latent_space = spod.transform(data, nt=nt, svd=False, T_lb=24, T_ub=24)
 	T_ = 12.5; 	tol = 1e-10
 	if comm.rank == 0:

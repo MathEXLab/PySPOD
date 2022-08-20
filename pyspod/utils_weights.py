@@ -105,7 +105,7 @@ def custom(**kwargs):
 
 
 def apply_normalization(
-	data, t_mean, weights, n_variables, comm, method='variance'):
+	data, weights, n_variables, comm, method='variance'):
 	'''Normalization of weights if required.'''
 
 	# variable-wise normalization by variance via weight matrix
@@ -113,42 +113,14 @@ def apply_normalization(
 		if method.lower() == 'variance':
 			if comm.rank == 0:
 				print('')
-				print('Normalization by variance')
+				print('Normalization by variance - parallel')
 				print('-------------------------')
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			print(axis)
 			for i in range(0, n_variables):
-				# sigma2 = np.nanvar(data[...,i], axis=axis)
-				d = data.reshape([data.shape[0],data[0,...,0].size,data.shape[-1]])
-				print(f'{comm.rank = :}  {d.shape = :}')
-				print(f'{comm.rank = :}  {t_mean.shape = :}')
-				var = np.abs(d[...,i] - t_mean)**2
-				var = np.array(var)
-				print(f'{comm.rank = :}  {var.shape = :}')
-				comm.Barrier()
-				var_reduced = np.zeros_like(var)
-				print(f'{var.dtype = :} {var.shape = :}')
-				# comm.Allreduce(var, var_reduced, op=MPI.SUM)
-				print(memoryview(var).format)
-				comm.Allreduce(
-					[var, MPI.DOUBLE],
-					[var_reduced, MPI.DOUBLE],
-					op=MPI.SUM
-				)
-				print(f'{np.sum(var_reduced) = :}')
-				print(f'{var_reduced.size = :}')
-				var = np.sum(var_reduced) / var_reduced.size
-				v = np.zeros_like(var)
-				comm.Allreduce(
-					[var, MPI.DOUBLE],
-					[v, MPI.DOUBLE],
-					op=MPI.SUM
-				)
-				print('mean var = ', v)
-				exit(0)
-
-				# weights[...,i] = weights[...,i] / var
-				exit(0)
+				var = pvar(data[...,i], comm=comm)
+				print(f'{i = :} {var = :}')
+				weights[...,i] = weights[...,i] / var
 		else:
 			if comm.rank:
 				print('')
@@ -157,14 +129,39 @@ def apply_normalization(
 	else:
 		if method.lower() == 'variance':
 			print('')
-			print('Normalization by variance')
+			print('Normalization by variance - serial')
 			print('-------------------------')
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			for i in range(0, n_variables):
-				sigma2 = np.nanvar(data[...,i], axis=axis)
-				weights[...,i] = weights[...,i] / sigma2
+				var = np.nanvar(data[...,i], axis=axis)
+				print(f'{i = :} {var = :}')
+				weights[...,i] = weights[...,i] / var
 		else:
 			print('')
 			print('No normalization performed')
 			print('--------------------------')
 	return weights
+
+
+
+def pvar(x, comm):
+	"""
+	Parallel computation of mean and variance.
+	"""
+	n = np.size(x)
+	m = np.mean(x)
+	d = x - m
+	d *= d
+	v = np.sum(d)/n
+
+	def op_stat(a, b):
+		na, ma, va = a
+		nb, mb, vb = b
+		n = na + nb
+		m = (na*ma + nb*mb)/n
+		v = (na*va + nb*vb + na*nb*(ma-mb)**2/n)/n
+		return ((n, m, v))
+
+	(n, m, v) = comm.allreduce((n, m, v), op=op_stat)
+
+	return v
