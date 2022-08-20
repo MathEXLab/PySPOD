@@ -96,7 +96,7 @@ class SPOD_Base(object):
 	# --------------------------------------------------------------------------
 
 	@property
-	def save_dir_simulation(self):
+	def save_dir_sim(self):
 		'''
 		Get the directory where results are saved.
 
@@ -1084,6 +1084,7 @@ class SPOD_Base(object):
 			else:
 				mode_path = os.path.join(
 					self._modes_folder, self.modes[freq_idx])
+				print('mode_path = ', mode_path)
 				m = post.get_data_from_file(mode_path)
 		else:
 			if self._rank == 0:
@@ -1159,7 +1160,7 @@ class SPOD_Base(object):
 		'''
 		post.plot_eigs(self.eigs, title=title, figsize=figsize,
 			show_axes=show_axes, equal_axes=equal_axes,
-			path=self.save_dir_simulation, filename=filename)
+			path=self.save_dir_sim, filename=filename)
 
 
 	def plot_eigs_vs_frequency(self, freq=None, title='', xticks=None,
@@ -1172,7 +1173,7 @@ class SPOD_Base(object):
 		post.plot_eigs_vs_frequency(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			show_axes=show_axes, equal_axes=equal_axes, figsize=figsize,
-			path=self.save_dir_simulation, filename=filename)
+			path=self.save_dir_sim, filename=filename)
 
 
 	def plot_eigs_vs_period(self, freq=None, title='', xticks=None,
@@ -1185,7 +1186,7 @@ class SPOD_Base(object):
 		post.plot_eigs_vs_period(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			figsize=figsize, show_axes=show_axes, equal_axes=equal_axes,
-			path=self.save_dir_simulation, filename=filename)
+			path=self.save_dir_sim, filename=filename)
 
 
 	def plot_2d_modes_at_frequency(self, freq_required, freq, vars_idx=[0],
@@ -1197,11 +1198,11 @@ class SPOD_Base(object):
 		'''
 		post.plot_2d_modes_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
-			modes_path=self._save_dir_sim, vars_idx=vars_idx,
+			modes_path=self._modes_folder, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift,
 			imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
 			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir_simulation,
+			equal_axes=equal_axes, path=self.save_dir_sim,
 			filename=filename)
 
 
@@ -1213,10 +1214,10 @@ class SPOD_Base(object):
 		'''
 		post.plot_2d_mode_slice_vs_time(
 			self.modes, freq_required=freq_required, freq=freq,
-			modes_path=self._save_dir_sim, vars_idx=vars_idx,
+			modes_path=self._modes_folder, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
 			fftshift=fftshift, title=title, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir_simulation,
+			equal_axes=equal_axes, path=self.save_dir_sim,
 			filename=filename)
 
 
@@ -1230,12 +1231,12 @@ class SPOD_Base(object):
 		'''
 		post.plot_3d_modes_slice_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
-			modes_path=self._save_dir_sim, vars_idx=vars_idx,
+			modes_path=self._modes_folder, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, x3=x3, slice_dim=slice_dim,
 			slice_id=slice_id, fftshift=fftshift, imaginary=imaginary,
 			plot_max=plot_max, coastlines=coastlines, title=title,
 			xticks=xticks, yticks=yticks, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir_simulation,
+			equal_axes=equal_axes, path=self.save_dir_sim,
 			filename=filename)
 
 
@@ -1247,9 +1248,9 @@ class SPOD_Base(object):
 		'''
 		post.plot_mode_tracers(
 			self.modes, freq_required=freq_required, freq=freq,
-			coords_list=coords_list, modes_path=self._save_dir_sim,
+			coords_list=coords_list, modes_path=self._modes_folder,
 			x=x, vars_idx=vars_idx, modes_idx=modes_idx, fftshift=fftshift,
-			title=title, figsize=figsize, path=self.save_dir_simulation,
+			title=title, figsize=figsize, path=self.save_dir_sim,
 			filename=filename)
 
 
@@ -1263,7 +1264,7 @@ class SPOD_Base(object):
 			X=self.get_data(t_0=0, t_end=max_time_idx+1),
 			time_idx=time_idx, vars_idx=vars_idx, x1=x1, x2=x2,
 			title=title, coastlines=coastlines, figsize=figsize,
-			path=self.save_dir_simulation, filename=filename)
+			path=self.save_dir_sim, filename=filename)
 
 
 	def plot_data_tracers(self, coords_list, x=None, time_limits=[0,10],
@@ -1275,7 +1276,7 @@ class SPOD_Base(object):
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			coords_list=coords_list, x=x, time_limits=time_limits,
 			vars_idx=vars_idx, title=title, figsize=figsize,
-			path=self.save_dir_simulation, filename=filename)
+			path=self.save_dir_sim, filename=filename)
 
 	# --------------------------------------------------------------------------
 
@@ -1294,6 +1295,6 @@ class SPOD_Base(object):
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			time_limits=[0,time_limits[-1]], vars_idx=vars_idx,
 			sampling=sampling, x1=x1, x2=x2, coastlines=coastlines,
-			figsize=figsize, path=self.save_dir_simulation, filename=filename)
+			figsize=figsize, path=self.save_dir_sim, filename=filename)
 
 	# --------------------------------------------------------------------------
