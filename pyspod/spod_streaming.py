@@ -163,7 +163,7 @@ class SPOD_streaming(SPOD_Base):
 						K_1 = np.hstack((np.sqrt(block_i+2) * S, Ux))
 						K_2 = np.hstack((z, abs_up))
 						K = np.vstack((K_1, K_2))
-						K = np.sqrt((block_i+1)/ (block_i+2)**2) * K
+						K = np.sqrt((block_i+1) / (block_i+2)**2) * K
 
 						## calculate partial svd
 						Up, Sp, _ = la.svd(K, full_matrices=False)

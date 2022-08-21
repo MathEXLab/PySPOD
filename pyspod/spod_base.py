@@ -631,6 +631,7 @@ class SPOD_Base(object):
 		idx = np.argsort(L)[::-1]
 		L = L[idx]
 		V = V[:,idx]
+		print(f'{self._rank = :} {idx = :}')
 
 		# compute spatial modes for given frequency
 		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
@@ -668,7 +669,8 @@ class SPOD_Base(object):
 
 
 	def transform(
-		self, data, nt, rec_idx=None, svd=True, T_lb=None, T_ub=None):
+		self, data, nt, rec_idx=None, tol=1e-16, svd=True,
+		T_lb=None, T_ub=None):
 
 		## override class variables self._data
 		self._data = data
@@ -679,7 +681,7 @@ class SPOD_Base(object):
 
 		# compute coeffs
 		coeffs, phi_tilde, t_mean = self.compute_coeffs(
-			svd=svd, T_lb=T_lb, T_ub=T_ub)
+			tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub)
 		# coeffs = np.real_if_close(coeffs, tol=1000000)
 
 		reconstructed_data = self.reconstruct_data(
@@ -697,7 +699,7 @@ class SPOD_Base(object):
 		return dict_return
 
 
-	def compute_coeffs(self, svd=True, T_lb=None, T_ub=None):
+	def compute_coeffs(self, tol=1e-16, svd=True, T_lb=None, T_ub=None):
 		'''
 		Compute coefficients through oblique projection.
 		'''
@@ -719,6 +721,7 @@ class SPOD_Base(object):
 				freq_required=1/T_lb, freq=self._freq)
 		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
 		self._pr0(f'- identified frequencies: {time.time() - st} s.')
+		print(f'{self._n_freq_r = :}  {self._freq_idx_lb = :}  {self._freq_idx_ub = :}')
 		st = time.time()
 
 		## initialize coeffs matrix
@@ -733,7 +736,7 @@ class SPOD_Base(object):
 			if mem_coeffs > vram_avail:
 				raise ValueError('Not enough RAM memory to compute coeffs.')
 
-		coeffs = np.zeros(shape_tmp, dtype=complex)  ########### how to initialize distributed?
+		coeffs = np.zeros(shape_tmp, dtype=complex)
 		self._pr0(f'- initialized coeff matrix: {time.time() - st} s.')
 		st = time.time()
 
@@ -755,6 +758,7 @@ class SPOD_Base(object):
 
 		## compute time mean and subtract from data
 		t_mean = np.mean(self._data, axis=0) ###### should we reuse the time mean from fit?
+		print(f'{self._rank = :} {np.sum(t_mean) = :}')
 		self._data = self._data - t_mean
 		self._pr0(f'- data and time mean: {time.time() - st} s.');
 		st = time.time()
@@ -785,7 +789,7 @@ class SPOD_Base(object):
 
 		# evaluate the coefficients by oblique projection
 		coeffs = self._oblique_projection(
-			phi_tilde, weights_phi, self._weights, self._data, svd=svd)
+			phi_tilde, weights_phi, self._weights, self._data, tol=tol, svd=svd)
 		self._pr0(f'- oblique projection done: {time.time() - st} s.')
 		st = time.time()
 
@@ -804,25 +808,39 @@ class SPOD_Base(object):
 
 
 	def _oblique_projection(
-		self, phi_tilde, weights_phi, weights, data, svd=True):
+		self, phi_tilde, weights_phi, weights, data, tol, svd=True):
 		'''Compute oblique projection for time coefficients.'''
 		data = data.T
+		print(f'{self._rank = :} {data.shape = :}')
+		print(f'{self._rank = :} {weights.shape = :}')
+		print(f'{self._rank = :} {weights_phi.shape = :}')
 		M = phi_tilde.conj().T @ (weights_phi * phi_tilde)
 		Q = phi_tilde.conj().T @ (weights * data)
+		print(f'{self._rank = :} {M.shape = :}')
+		print(f'{self._rank = :} {Q.shape = :}')
 		if self._comm:
 			M = self._allreduce(M)
 			Q = self._allreduce(Q)
 		if svd:
 			u, l, v = np.linalg.svd(M)
 			l_inv = np.zeros([len(l),len(l)], dtype=complex)
+			l_max = np.max(l)
 			for i in range(len(l)):
-				if (l[i] > 1e-10):
+				if (l[i] > tol * l_max):
 					l_inv[i,i] = 1 / l[i]
 			M_inv = (v.conj().T @ l_inv) @ u.conj().T
 			coeffs = M_inv @ Q
+			print(f'{self._rank = :}   {np.min(np.abs(coeffs)) = :}')
+			print(f'{self._rank = :}   {np.max(np.abs(coeffs)) = :}')
 		else:
-			tmp1_inv = np.linalg.pinv(M)
+			tmp1_inv = np.linalg.pinv(M, tol)
+			print(f'{self._rank = :}   {np.min(np.abs(tmp1_inv)) = :}')
+			print(f'{self._rank = :}   {np.max(np.abs(tmp1_inv)) = :}')
+			print(f'{self._rank = :}   {np.min(np.abs(M)) = :}')
+			print(f'{self._rank = :}   {np.max(np.abs(M)) = :}')
 			coeffs = tmp1_inv @ Q
+			print(f'{self._rank = :}   {np.min(np.abs(coeffs)) = :}')
+			print(f'{self._rank = :}   {np.max(np.abs(coeffs)) = :}')
 		return coeffs
 
 
@@ -983,7 +1001,6 @@ class SPOD_Base(object):
 
 	def _allreduce(self, d):
 		d_reduced = np.zeros_like(d)
-		self._comm.Barrier()
 		self._comm.Allreduce(d, d_reduced, op=MPI.SUM)
 		return d_reduced
 

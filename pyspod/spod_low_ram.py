@@ -4,16 +4,10 @@
 import os
 import sys
 import time
-import pickle
+import shutil
 import numpy as np
 from tqdm import tqdm
-import shutil
-
-
-# Import PySPOD base class for SPOD_low_ram
 from pyspod.spod_base import SPOD_Base
-
-CWD = os.getcwd()
 BYTE_TO_GB = 9.3132257461548e-10
 
 
