@@ -7,20 +7,20 @@ import time
 import psutil
 import numpy as np
 from tqdm import tqdm
-from pyspod.spod_base import SPOD_Base
+from pyspod.spod.base import Base
 BYTE_TO_GB = 9.3132257461548e-10
 
 
 
-class SPOD_low_storage(SPOD_Base):
+class Low_Storage(Base):
 	'''
 	Class that implements the Spectral Proper Orthogonal Decomposition
 	to the input data using RAM to reduce the amount of I/O
 	and disk storage (for small datasets / large RAM machines).
 
 	The computation is performed on the data *X* passed to the
-	constructor of the `SPOD_low_storage` class, derived from
-	the `SPOD_Base` class.
+	constructor of the `Low_Storage` class, derived from
+	the `Base` class.
 	'''
 
 	def fit(self, data, nt):
@@ -121,6 +121,6 @@ class SPOD_low_storage(SPOD_Base):
 		self._store_and_save()
 		self._pr0(f'--------------------------------------')
 		self._pr0(f' ')
-		self._pr0(f'Results saved in folder: {self._save_dir_sim}')
+		self._pr0(f'Results saved in folder: {self._savedir_sim}')
 		self._pr0(f'Elapsed time: {time.time() - start} s.')
 		return self

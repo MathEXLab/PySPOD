@@ -1,59 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
-	This file is subject to the terms and conditions defined in
-	file 'LICENSE.txt', which is part of this source code package.
-
-	Written by Dr. Gianmarco Mengaldo, May 2020.
-'''
-
-# python libraries
 import os
 import sys
 import time
 import h5py
 import shutil
 import numpy as np
-
 from pathlib import Path
 import matplotlib.pyplot as plt
-
-# Current, parent and file paths import sys
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
-
-# Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
-
-from pyspod.auxiliary.pod_standard import POD_standard
-from pyspod.auxiliary.emulation    import Emulation
-import pyspod.auxiliary.utils_emulation as utils_emulation
-import pyspod.utils_weights as utils_weights
-import pyspod.postprocessing as post
+from pyspod.pod.standard          import Standard    as pod_standard
+from pyspod.emulation.neural_nets import Neural_Nets as emulation_nn
+import pyspod.postprocessing.postprocessing as post
+import pyspod.utils.io as utils_io
 
 
 ## data ingestion
 ## -------------------------------------------------------------------------
-file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
-variables = ['p']
-with h5py.File(file, 'r') as f:
-	data_arrays = dict()
-	for k, v in f.items():
-		data_arrays[k] = np.array(v)
-# definition of global variables
-dt = data_arrays['dt'][0,0]
-X = data_arrays[variables[0]].T
-t = dt * np.arange(0,X.shape[0]); t = t.T
+data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
+data_dict = utils_io.read_data(data_file=data_file)
+data = data_dict['p'].T
+dt = data_dict['dt'][0,0]
+t = dt * np.arange(0,data.shape[0]).T
 nt = t.shape[0]
-x1 = data_arrays['r'].T; x1 = x1[:,0]
-x2 = data_arrays['x'].T; x2 = x2[0,:]
-
-training_data_ratio = 0.8
-testing_data_ratio = (1 - training_data_ratio)
+train_ratio = 0.8
+test_ratio = (1 - train_ratio)
 
 # parameters
-params = {
+params_pod = {
 	# -- required parameters
 	'time_step'   : dt,
 	'n_space_dims': 2,
@@ -61,12 +38,14 @@ params = {
 	# -- optional parameters
 	'overlap'          : 50,
 	'normalize_weights': True,
-	'normalize_data'   : True,
+	'scale_data'       : True,
 	'n_modes_save'     : 8,
 	'savedir'          : os.path.join(CFD, 'results')
 }
 params_emulation = {
 	'network'   : 'lstm',
+	'scaler'    : 'localmax',
+	'data_type' : 'real',
 	'epochs'    : 10,
 	'batch_size': 32,
 	'n_seq_in'  : 60,
@@ -81,29 +60,25 @@ params_emulation = {
 def test_lstm_pod():
 
 	##  training and testing database definition
-	nt_train = int(training_data_ratio * nt)
-	X_train = X[:nt_train,:,:]
+	nt_train = int(train_ratio * nt)
+	d_train = data[:nt_train,:,:]
 	nt_test = nt - nt_train
-	X_test  = X[nt_train:,:,:]
-	POD_analysis = POD_standard(params=params, variables=variables)
-	pod = POD_analysis.fit(data=X_train, nt=nt_train)
-	## test dictionary weights
-	params['normalize_weights'] = False
-	weights = {'weights_name': 'uniform', 'weights': pod.weights}
-	POD_analysis = POD_standard(
-		params=params, variables=variables, weights=weights)
-	pod = POD_analysis.fit(data=X_train, nt=nt_train)
-	pod.get_data(t_0=0, t_end=1)
-	coeffs_train = pod.transform(data=X_train, nt=nt_train)
+	d_test  = data[nt_train:,:,:]
+
+	## fit and transform pod
+	pod_class = pod_standard(params=params_pod, variables=['p'])
+	pod = pod_class.fit(data=d_train, nt=nt_train)
+	coeffs_train = pod.transform(data=d_train, nt=nt_train)
+
 	## compute test coefficients
-	X_rearrange_test = np.reshape(X_test[:,:,:], [nt_test,pod.nv*pod.nx])
+	d_r_test = np.reshape(d_test[:,:,:], [nt_test,pod.nv*pod.nx])
 	for i in range(nt_test):
-		X_rearrange_test[i,:] = \
-			np.squeeze(X_rearrange_test[i,:]) - \
-			np.squeeze(coeffs_train['t_mean'])
-	coeffs_test = np.transpose(coeffs_train['phi_tilde']) @ X_rearrange_test.T
+		d_r_test[i,:] = \
+			np.squeeze(d_r_test[i,:]) - np.squeeze(coeffs_train['t_mean'])
+	coeffs_test = np.transpose(coeffs_train['phi_tilde']) @ d_r_test.T
+
 	## initialization of variables and structures
-	n_modes = params['n_modes_save']
+	n_modes = params_pod['n_modes_save']
 	dim1_train = coeffs_train['coeffs'].shape[1]
 	dim0_test  = coeffs_test           .shape[0]
 	dim1_test  = coeffs_test           .shape[1]
@@ -111,44 +86,47 @@ def test_lstm_pod():
 	data_test  = np.zeros([n_modes  , dim1_test] , dtype=float)
 	coeffs     = np.zeros([dim0_test, dim1_test] , dtype=float)
 	coeffs_tmp = np.zeros([n_modes  , dim1_test] , dtype=float)
+
 	## select lstm
 	params_emulation['network'] = 'lstm'
+
 	## initialization Emulation class and run
-	pod_emulation = Emulation(params_emulation)
-	pod_emulation.model_initialize(data=data_train)
+	emulation = emulation_nn(params_emulation)
+	emulation.model_initialize(data=data_train)
+
 	## normalize data
-	other_scaler = utils_emulation.compute_normalization_vector_real(\
-		coeffs_train['coeffs'][:,:], normalize_method='globalmax')
-	scaler = utils_emulation.compute_normalization_vector_real(\
-		coeffs_train['coeffs'][:,:], normalize_method='localmax')
-	data_train[:,:] = utils_emulation.normalize_data_real(\
-		coeffs_train['coeffs'][:,:], normalization_vec=scaler)
-	data_test[:,:] = utils_emulation.normalize_data_real(\
-		coeffs_test[:,:], normalization_vec=scaler)
+	c_train = coeffs_train['coeffs'][:,:]
+	c_test = coeffs_test[:,:]
+	scaler1 = emulation.scaler(data=c_train)
+	scaler2 = emulation.scaler(data=c_train)
+	data_train[:,:] = emulation.scale_data(c_train, vec=scaler1)
+	data_test [:,:] = emulation.scale_data(c_test , vec=scaler1)
+
 	## train model
-	pod_emulation.model_train(
-		idx=0, data_train=data_train, data_valid=data_test, plot_history=False)
-	coeffs_tmp = pod_emulation.model_inference(idx=0, data_input=data_test)
+	emulation.model_train(data_train=data_train, data_valid=data_test)
+	coeffs_tmp = emulation.model_inference(data_in=data_test)
+
 	## denormalize data
-	coeffs[:,:] = utils_emulation.denormalize_data_real(coeffs_tmp, scaler)
-	train_loss = pod_emulation.train_history.history['loss']
-	valid_loss = pod_emulation.train_history.history['val_loss']
+	coeffs[:,:] = emulation.descale_data(coeffs_tmp, scaler1)
+
+	## plot training history
+	train_loss = emulation.train_history.history['loss']
+	valid_loss = emulation.train_history.history['val_loss']
 	post.plot_training_histories(
 		train_loss, valid_loss,
-		path=params['savedir'],
+		path=params_pod['savedir'],
 		filename='history.png')
+
 	# reconstruct solutions
-	phi_tilde = coeffs_train['phi_tilde']
+	phi_t = coeffs_train['phi_tilde']
 	t_mean = coeffs_train['t_mean']
-	proj_rec =pod.reconstruct_data(
-		coeffs=coeffs_test[:,:], phi_tilde=coeffs_train['phi_tilde'],
-		t_mean=coeffs_train['t_mean'])
-	emulation_rec =pod.reconstruct_data(
-		coeffs=coeffs, phi_tilde=coeffs_train['phi_tilde'],
-		t_mean=coeffs_train['t_mean'])
+	p_rec =pod.reconstruct_data(coeffs=c_test, phi_tilde=phi_t, t_mean=t_mean)
+	e_rec = pod.reconstruct_data(coeffs=coeffs, phi_tilde=phi_t, t_mean=t_mean)
+	pod.get_data(t_0=0, t_end=1)
+
 	## assert test
 	tol = 1e-6
-	save_dir = pod.save_dir
+	savedir = pod._savedir
 	assert(pod.dim         ==4)
 	assert(pod.shape       ==(800, 20, 88, 1))
 	assert(pod.nt          ==800)
@@ -159,28 +137,27 @@ def test_lstm_pod():
 	assert(pod.dt          ==0.2)
 	assert(pod.variables   ==['p'])
 	assert(pod.n_modes_save==8)
-	assert((np.real(pod.eigs[0])           <90699.72245430+tol) & \
-		   (np.real(pod.eigs[0])   		   >90699.72245430-tol))
-	assert((pod.weights[0]                 <19934.84235881+tol) & \
-		   (pod.weights[0]   	  		   >19934.84235881-tol))
-	assert((np.abs(emulation_rec[0,1,0])   <4.467810376724+tol) & \
-		   (np.abs(emulation_rec[0,1,0])   >4.467810376724-tol))
-	assert((np.abs(emulation_rec[100,1,0]) <4.467810376724+tol) & \
-		   (np.abs(emulation_rec[100,1,0]) >4.467810376724-tol))
-	assert((np.abs(emulation_rec[150,1,0]) <4.467810376761+tol) & \
-		   (np.abs(emulation_rec[150,1,0]) >4.467810376761-tol))
-	assert((np.abs(emulation_rec[100,10,5])<4.463844748293+tol) & \
-		   (np.abs(emulation_rec[100,10,5])>4.463844748293-tol))
-	assert((np.abs(emulation_rec[50,7,20]) <4.459104904890+tol) & \
-		   (np.abs(emulation_rec[50,7,20]) >4.459104904890-tol))
-	assert((np.abs(emulation_rec[60,8,9])  <4.463696917777+tol) & \
-		   (np.abs(emulation_rec[60,8,9])  >4.463696917777-tol))
+	assert((np.real(pod.eigs[0])   <90699.72245430+tol) & \
+		   (np.real(pod.eigs[0])   >90699.72245430-tol))
+	assert((pod.weights[0]         <19934.84235881+tol) & \
+		   (pod.weights[0]   	   >19934.84235881-tol))
+	assert((np.abs(e_rec[0,1,0])   <4.467810376724+tol) & \
+		   (np.abs(e_rec[0,1,0])   >4.467810376724-tol))
+	assert((np.abs(e_rec[100,1,0]) <4.467810376724+tol) & \
+		   (np.abs(e_rec[100,1,0]) >4.467810376724-tol))
+	assert((np.abs(e_rec[150,1,0]) <4.467810376761+tol) & \
+		   (np.abs(e_rec[150,1,0]) >4.467810376761-tol))
+	assert((np.abs(e_rec[100,10,5])<4.463844748293+tol) & \
+		   (np.abs(e_rec[100,10,5])>4.463844748293-tol))
+	assert((np.abs(e_rec[50,7,20]) <4.459104904890+tol) & \
+		   (np.abs(e_rec[50,7,20]) >4.459104904890-tol))
+	assert((np.abs(e_rec[60,8,9])  <4.463696917777+tol) & \
+		   (np.abs(e_rec[60,8,9])  >4.463696917777-tol))
 	# clean up results
 	try:
 		shutil.rmtree(os.path.join(CFD,'results'))
 	except OSError as e:
 		pass
-		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
 

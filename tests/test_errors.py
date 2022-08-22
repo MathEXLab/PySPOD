@@ -22,7 +22,7 @@ CFD = os.path.dirname(CF)
 
 # Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
-import pyspod.utils_errors   as utils_errors
+import pyspod.utils.errors as utils_errors
 
 ## data ingestion
 ## ----------------------------------------------------------------------------

@@ -23,7 +23,7 @@ def compute_l_errors(data, data_ref, norm_type='l2'):
 
 
 def compute_h_errors(data, data_ref, dt, norm_type='h1'):
-    warnings.warn("warning: for h1 calculation, dim0 must be time.")
+    # warnings.warn("warning: for h1 calculation, dim0 must be time.")
     if norm_type == 'h1':
         err_h1 = 0
         for i in range(data.shape[0]):

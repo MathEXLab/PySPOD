@@ -3,14 +3,36 @@ import io
 import os
 import sys
 import yaml
+import h5py
 import argparse
 import numpy as np
+import xarray as xr
 from mpi4py import MPI
 from mpi4py.util import dtlib
+from os.path import splitext
 
 
 
-def parse_input_file(parsed_file=None):
+def read_data(data_file, format=None):
+	if not format:
+		_, format = splitext(data_file)
+	print(f'reading data with {format = :}')
+	format = format.lower()
+	if format == '.npy' or format == 'npy':
+		d = npy_load(data_file)
+	elif format == '.nc' or format == 'nc':
+		d = xr.open_dataset(data_file)
+	elif format == '.mat' or format == 'mat':
+		with h5py.File(data_file, 'r') as f:
+			d = dict()
+			for k, v in f.items():
+				d[k] = np.array(v)
+	else:
+		raise ValueError(format, ' format not supported')
+	return d
+
+
+def read_config(parsed_file=None):
 	## parse command line
 	parser = argparse.ArgumentParser(description='Config file.')
 	parser.add_argument('--config_file', help='Configuration file.')

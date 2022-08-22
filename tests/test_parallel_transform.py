@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
-	This file is subject to the terms and conditions defined in
-	file 'LICENSE.txt', which is part of this source code package.
-
-	Written by Dr. Gianmarco Mengaldo, May 2020.
-'''
-
-
-# python libraries
 import os
 import sys
 import h5py
@@ -17,9 +8,6 @@ import shutil
 import numpy as np
 from mpi4py import MPI
 from pathlib import Path
-
-
-# Current, parent and file paths import sys
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
@@ -31,6 +19,7 @@ from pyspod.spod_parallel import SPOD_parallel
 import pyspod.utils_weights as utils_weights
 import pyspod.utils_errors  as utils_errors
 import pyspod.postprocessing as post
+
 ## --------------------------------------------------------------
 ## get data
 file = os.path.join(CFD,'data','fluidmechanics_data.mat')

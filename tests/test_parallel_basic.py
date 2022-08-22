@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
-	This file is subject to the terms and conditions defined in
-	file 'LICENSE.txt', which is part of this source code package.
-
-	Written by Dr. Gianmarco Mengaldo, May 2020.
-'''
-
-
-# python libraries
 import os
 import sys
 import h5py
@@ -26,24 +17,21 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.append(os.path.join(CFD,"../"))
 sys.path.append(os.path.join(CFD,"../pyspod"))
-from pyspod.spod_parallel import SPOD_parallel
-import pyspod.utils_weights as utils_weights
+from pyspod.spod.standard import Standard as SPOD_standard
+import pyspod.utils.weights as utils_weights
+import pyspod.utils.io      as utils_io
 
 ## --------------------------------------------------------------
 ## get data
-file = os.path.join(CFD,'data','fluidmechanics_data.mat')
-variables = ['p']
-with h5py.File(file, 'r') as f:
-	data_arrays = dict()
-	for k, v in f.items():
-		data_arrays[k] = np.array(v)
-dt = data_arrays['dt'][0,0]
-block_dimension = 64 * dt
-X = data_arrays[variables[0]].T
-t = dt * np.arange(0,X.shape[0]); t = t.T
-x1 = data_arrays['r'].T; x1 = x1[:,0]
-x2 = data_arrays['x'].T; x2 = x2[0,:]
+data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
+data_dict = utils_io.read_data(data_file=data_file)
+data = data_dict['p'].T
+dt = data_dict['dt'][0,0]
+x1 = data_dict['r'].T; x1 = x1[:,0]
+x2 = data_dict['x'].T; x2 = x2[0,:]
+t = dt * np.arange(0,data.shape[0]).T
 nt = t.shape[0]
+
 
 ## define the required parameters into a dictionary
 params = {
@@ -51,7 +39,7 @@ params = {
 	'time_step'   	   : dt,
 	'n_space_dims'	   : 2,
 	'n_variables' 	   : 1,
-	'n_dft'       	   : np.ceil(block_dimension / dt),
+	'n_dft'       	   : np.ceil(64 * dt / dt),
 	##-- optional
 	'overlap'          : 50,
 	'normalize_weights': False,
@@ -69,10 +57,8 @@ def test_parallel_blockwise():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	comm = MPI.COMM_WORLD
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
-	latent_space = spod.transform(X, nt=nt, rec_idx='all', svd=True)
-	# latent_space = spod.transform(data, nt=nt, svd=False, T_lb=24, T_ub=24)
+	spod_class = SPOD_standard(params=params, variables=['p'], comm=comm)
+	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -93,8 +79,8 @@ def test_parallel_longtime():
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
 	comm = MPI.COMM_WORLD
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod_class = SPOD_standard(params=params, variables=['p'], comm=comm)
+	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -115,8 +101,8 @@ def test_parallel_postprocessing():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	comm = MPI.COMM_WORLD
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
-	spod = SPOD_analysis.fit(data=X, nt=nt)
+	spod_class = SPOD_standard(params=params, variables=['p'], comm=comm)
+	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)

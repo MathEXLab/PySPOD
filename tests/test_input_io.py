@@ -26,8 +26,8 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod_low_storage import SPOD_low_storage
 from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.utils_weights as utils_weights
-import pyspod.utils_io as utils_io
+import pyspod.utils.weights as utils_weights
+import pyspod.utils.io as utils_io
 
 
 

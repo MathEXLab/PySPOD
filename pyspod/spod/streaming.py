@@ -5,21 +5,19 @@ import os
 import time
 import numpy as np
 from numpy import linalg as la
-
-# import PySPOD base class for SSPOD
-from pyspod.spod_base import SPOD_Base
+from pyspod.spod.base import Base
 
 
 
-class SPOD_streaming(SPOD_Base):
+class Streaming(Base):
 	'''
 	Class that implements the Spectral Proper Orthogonal Decomposition
 	to the input `data` using a streaming algorithn to reduce the amount
 	of I/O and disk storage (for small datasets / large RAM machines).
 
 	The computation is performed on the `data` passed to the
-	constructor of the `SPOD_streaming` class, derived from
-	the `SPOD_Base` class.
+	constructor of the `Streaming` class, derived from
+	the `Base` class.
 	'''
 
 	def fit(self, data, nt):
@@ -206,12 +204,12 @@ class SPOD_streaming(SPOD_Base):
 		self._eigs = self._eigs.T
 
 		## save results into files
-		file = os.path.join(self._save_dir_sim,'spod_energy')
+		file = os.path.join(self._savedir_sim,'spod_energy')
 		if self._rank == 0:
 			np.savez(file, eigs=self._eigs, f=self._freq)
 		for i_freq in range(0,n_freq):
 			Psi = x_spod[i_freq,...]
-			file_psi = os.path.join(self._save_dir_sim,
+			file_psi = os.path.join(self._savedir_sim,
 				'modes_freq{:08d}.npy'.format(i_freq))
 			self._modes[i_freq] = file_psi
 			if self._rank == 0:

@@ -11,16 +11,16 @@ import time
 import yaml
 import psutil
 import warnings
-import scipy
 import numpy as np
 import scipy.special as sc
 from numpy import linalg as la
 from mpi4py import MPI
 
 # Import custom Python packages
-import pyspod.utils_io as utils_io
-import pyspod.utils_weights as utils_weights
-import pyspod.postprocessing as post
+import pyspod.utils.parallel as utils_par
+import pyspod.utils.io       as utils_io
+import pyspod.utils.weights  as utils_weights
+import pyspod.postprocessing.postprocessing as post
 
 # Current file path
 CWD = os.getcwd()
@@ -31,7 +31,7 @@ BYTE_TO_GB = 9.3132257461548e-10
 
 
 
-class SPOD_Base(object):
+class Base():
 	'''
 	Spectral Proper Orthogonal Decomposition base class.
 	'''
@@ -61,7 +61,7 @@ class SPOD_Base(object):
 		# default is all (large number)
 		self._n_modes_save = params.get('n_modes_save', 1e10)
 		# where to save data
-		self._save_dir = params.get('savedir', os.path.join(CWD,'spod_results'))
+		self._savedir = params.get('savedir', os.path.join(CWD,'spod_results'))
 
 		## parse other inputs
 		self._variables = variables
@@ -80,7 +80,7 @@ class SPOD_Base(object):
 		# get default spectral estimation parameters and options
 		# define default spectral estimation parameters
 		if isinstance(self._n_dft, int):
-			self._window = SPOD_Base._hamming_window(self._n_dft)
+			self._window = Base._hamming_window(self._n_dft)
 			self._window_name = 'hamming'
 		else:
 			raise TypeError('n_dft must be an integer.')
@@ -96,14 +96,14 @@ class SPOD_Base(object):
 	# --------------------------------------------------------------------------
 
 	@property
-	def save_dir_sim(self):
+	def savedir_sim(self):
 		'''
 		Get the directory where results are saved.
 
 		:return: path to directory where results are saved.
 		:rtype: str
 		'''
-		return self._save_dir_sim
+		return self._savedir_sim
 
 	@property
 	def file_coeffs(self):
@@ -414,8 +414,17 @@ class SPOD_Base(object):
 
 		## distribute data and weights
 		if self._comm:
-			self._distribute_data(self._comm)
-			self._weights = self._distribute_field(self._comm, self._weights)
+			self._data, \
+			self._maxdim_idx, \
+			self._maxdim_val, \
+			self._global_shape = \
+				utils_par.distribute_time_space_data(\
+					data=self._data, comm=self._comm)
+			self._comm.Barrier()
+			self._weights = utils_par.distribute_space_data(\
+				data=self._weights,
+				maxdim_val=self._maxdim_val,
+				maxdim_idx=self._maxdim_idx, comm=self._comm)
 			self._comm.Barrier()
 
 		## get data and add axis for single variable
@@ -464,8 +473,6 @@ class SPOD_Base(object):
 
 		# import pdb; pdb.set_trace()
 
-
-
 		# get frequency axis
 		self.get_freq_axis()
 
@@ -475,17 +482,17 @@ class SPOD_Base(object):
 		self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype='complex_')
 
 		# create folder to save results
-		self._save_dir_sim = os.path.join(self._save_dir,
+		self._savedir_sim = os.path.join(self._savedir,
 			'nfft'+str(self._n_dft)
 			+'_novlp'+str(self._n_overlap) \
 			+'_nblks'+str(self._n_blocks)  \
 		)
-		self._blocks_folder = os.path.join(self._save_dir_sim, 'blocks')
+		self._blocks_folder = os.path.join(self._savedir_sim, 'blocks')
 		self._modes_folder = os.path.join(
-			self._save_dir_sim, 'modes'+str(self._n_modes_save))
+			self._savedir_sim, 'modes'+str(self._n_modes_save))
 		if self._rank == 0:
-			if not os.path.exists(self._save_dir_sim):
-				os.makedirs(self._save_dir_sim)
+			if not os.path.exists(self._savedir_sim):
+				os.makedirs(self._savedir_sim)
 			if not os.path.exists(self._blocks_folder):
 				os.makedirs(self._blocks_folder)
 			if not os.path.exists(self._modes_folder):
@@ -619,11 +626,9 @@ class SPOD_Base(object):
 		M = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
 
 		if self._comm:
-			M_reduced = np.zeros_like(M)
-			self._comm.Barrier()
-			self._comm.Allreduce(M, M_reduced, op=MPI.SUM)
-			M = M_reduced
+			M = utils_par.allreduce(data=M, comm=self._comm)
 
+		## compute eigenvalues and eigenvectors
 		L,V = la.eig(M)
 		L = np.real_if_close(L, tol=1000000)
 
@@ -634,30 +639,37 @@ class SPOD_Base(object):
 
 		# compute spatial modes for given frequency
 		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
-		Phi = np.matmul(Q_hat_f, V * L_diag[None,:])
-
-		# Phi = np.matmul(Q_hat_f, np.matmul(\
-			# V, np.diag(1. / np.sqrt(L) / np.sqrt(self._n_blocks))))
-
-		if self._comm:
-			Phi = self._gather(Phi, root=0)
-			# Phi_0 = self._comm.gather(Phi, root=0)
-			# if self._rank == 0:
-				# for p in Phi_0:
-					# shape = list(self._global_shape)
-					# shape[self._maxdim_idx] = -1
-					# p.shape = shape
-				# Phi = np.concatenate(Phi_0, axis=self._maxdim_idx)
-				# Phi.shape = list(self._xshape + (self._n_blocks,))
+		psi = np.matmul(Q_hat_f, V * L_diag[None,:])
+		psi = psi[...,0:self._n_modes_save]
 
 		## save modes
 		file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
 		path_psi = os.path.join(self._modes_folder, file_psi)
 		self._modes[i_freq] = file_psi
-		if self._rank == 0:
-			Phi = Phi[...,0:self._n_modes_save]
-			Phi = Phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-			np.save(path_psi, Phi)
+		shape = [*self._xshape,self._nv,self._n_modes_save]
+		if self._comm:
+			shape[self._maxdim_idx] = -1
+		psi.shape = shape
+		if self._comm:
+			utils_io.npy_save(self._comm, path_psi, psi, axis=self._maxdim_idx)
+		else:
+			np.save(path_psi, psi)
+		# if self._comm:
+		# 	psi = self._gather(psi, root=0)
+			# psi_0 = self._comm.gather(psi, root=0)
+			# if self._rank == 0:
+				# for p in psi_0:
+					# shape = list(self._global_shape)
+					# shape[self._maxdim_idx] = -1
+					# p.shape = shape
+				# psi = np.concatenate(psi_0, axis=self._maxdim_idx)
+				# psi.shape = list(self._xshape + (self._n_blocks,))
+
+		## save modes
+		# if self._rank == 0:
+		# 	psi = psi[...,0:self._n_modes_save]
+		# 	psi = psi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
+		# 	np.save(path_psi, psi)
 
 		# get eigenvalues and confidence intervals
 		self._eigs[i_freq,:] = abs(L)
@@ -742,7 +754,12 @@ class SPOD_Base(object):
 		## note: weights are already distributed from fit()
 		## it is assumed that one runs fit and transform within the same main
 		if self._comm:
-			self._distribute_data(self._comm)
+			self._data, \
+			self._maxdim_idx, \
+			self._maxdim_val, \
+			self._global_shape = \
+				utils_par.distribute_time_space_data(\
+					data=self._data, comm=self._comm)
 			self._comm.Barrier()
 
 		## add axis for single variable
@@ -774,7 +791,11 @@ class SPOD_Base(object):
 		for i_freq in range(self._freq_idx_lb, self._freq_idx_ub+1):
 			modes = self.get_modes_at_freq(i_freq)
 			if self._comm:
-				modes = self._distribute_field(self._comm, modes)
+				modes = utils_par.distribute_space_data(\
+					data=modes,
+					maxdim_val=self._maxdim_val,
+					maxdim_idx=self._maxdim_idx, comm=self._comm)
+
 			modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
 			for i_mode in range(self._n_modes_save):
 				jump_freq = self.n_modes_save*cnt_freq+i_mode
@@ -791,7 +812,7 @@ class SPOD_Base(object):
 		st = time.time()
 
 		# save coefficients
-		file_coeffs = os.path.join(self._save_dir_sim,
+		file_coeffs = os.path.join(self._savedir_sim,
 			'coeffs_freq{:08f}to{:08f}.npy'.format(
 				self._freq_found_lb, self._freq_found_ub))
 		if self._rank == 0:
@@ -811,8 +832,8 @@ class SPOD_Base(object):
 		M = phi_tilde.conj().T @ (weights_phi * phi_tilde)
 		Q = phi_tilde.conj().T @ (weights * data)
 		if self._comm:
-			M = self._allreduce(M)
-			Q = self._allreduce(Q)
+			M = utils_par.allreduce(data=M, comm=self._comm)
+			Q = utils_par.allreduce(data=Q, comm=self._comm)
 		if svd:
 			u, l, v = np.linalg.svd(M)
 			l_inv = np.zeros([len(l),len(l)], dtype=complex)
@@ -855,7 +876,7 @@ class SPOD_Base(object):
 		st = time.time()
 
 		## reshape and save
-		file_dynamics = os.path.join(self._save_dir_sim,
+		file_dynamics = os.path.join(self._savedir_sim,
 			'reconstructed_data_freq{:08f}to{:08f}.npy'.format(
 				self._freq_found_lb, self._freq_found_ub))
 		shape = [*self._xshape,self._nv,len(rec_idx)]
@@ -898,7 +919,7 @@ class SPOD_Base(object):
 				yaml.dump(self._modes, file)
 			self._eigs_c_u = self._eigs_c[:,:,0]
 			self._eigs_c_l = self._eigs_c[:,:,1]
-			file = os.path.join(self._save_dir_sim, 'spod_energy')
+			file = os.path.join(self._savedir_sim, 'spod_energy')
 			np.savez(file,
 				eigs=self._eigs,
 				eigs_c_u=self._eigs_c_u,
@@ -906,87 +927,6 @@ class SPOD_Base(object):
 				f=self._freq,
 				weights=self._weights)
 			self._n_modes = self._eigs.shape[-1]
-
-
-	def _distribute_data(self, comm):
-		"""
-		Distribute largest spatial dimension of data, assuming time
-		dimensions appear as first coordinate of the array and spatial
-		dimensions follow.
-		"""
-		## distribute largest spatial dimension
-		shape = self._data[0,...].shape
-		maxdim_idx = np.argmax(shape)
-		maxdim_val = shape[maxdim_idx]
-		perrank = maxdim_val // self._size
-		remaind = maxdim_val  % self._size
-		# idx = [slice(None)] * self._dim
-		# idx[axis] = maxdim_idx + 1
-		# A[tuple(idx)] = ...
-		if maxdim_idx == 0:
-			if self._rank == self._size - 1:
-				self._data = self._data[:,self._rank*perrank:,...]
-			else:
-				self._data = self._data[\
-					:,self._rank*perrank:(self._rank+1)*perrank,...]
-		elif maxdim_idx == 1:
-			if self._rank == self._size - 1:
-				self._data = self._data[:,:,self._rank*perrank:,...]
-			else:
-				self._data = self._data[\
-					:,:,self._rank*perrank:(self._rank+1)*perrank,...]
-		elif maxdim_idx == 2:
-			if self._rank == self._size - 1:
-				self._data = self._data[:,:,:,self._rank*perrank:,...]
-			else:
-				self._data = self._data[\
-					:,:,:,self._rank*perrank:(self._rank+1)*perrank,...]
-		else:
-			raise ValueError('MPI distribution planned on 3D problems.')
-		self._maxdim_idx = maxdim_idx
-		self._maxdim_val = maxdim_val
-		self._global_shape = shape
-
-
-	def _distribute_field(self, comm, field):
-		"""
-		Distribute largest spatial dimension, assuming spatial
-		dimensions appear as first coordinates of the array.
-		This is typically the case for `weights` and `modes`.
-		"""
-		## distribute largest spatial dimension based on data
-		if (not hasattr(self, '_maxdim_idx')):
-			raise ValueError(
-				'distribution of field requires distribution of data first')
-		perrank = self._maxdim_val // self._size
-		remaind = self._maxdim_val  % self._size
-		# self._pr0(f'field')
-		# self._pr0(f'{self._maxdim_val = :};  {self._maxdim_idx = :}')
-		# self._pr0(f'{perrank = :};   {remaind = :}')
-		if self._maxdim_idx == 0:
-			if self._rank == self._size - 1:
-				field = field[self._rank*perrank:,...]
-			else:
-				field = field[self._rank*perrank:(self._rank+1)*perrank,...]
-		elif self._maxdim_idx == 1:
-			if self._rank == self._size - 1:
-				field = field[:,self._rank*perrank:,...]
-			else:
-				field = field[:,self._rank*perrank:(self._rank+1)*perrank,...]
-		elif self._maxdim_idx == 2:
-			if self._rank == self._size - 1:
-				field = field[:,:,self._rank*perrank:,...]
-			else:
-				field = field[:,:,self._rank*perrank:(self._rank+1)*perrank,...]
-		else:
-			raise ValueError('MPI distribution planned on 3D problems.')
-		return field
-
-
-	def _allreduce(self, d):
-		d_reduced = np.zeros_like(d)
-		self._comm.Allreduce(d, d_reduced, op=MPI.SUM)
-		return d_reduced
 
 
 	def _gather(self, d, root):
@@ -1002,11 +942,10 @@ class SPOD_Base(object):
 
 
 	def _pr0(self, fstring):
-		if self._rank == 0: print(fstring)
+		utils_par.pr0(fstring=fstring, comm=self._comm)
 
 
 	def _print_parameters(self):
-
 		# display parameter summary
 		self._pr0(f'SPOD parameters')
 		self._pr0(f'------------------------------------')
@@ -1026,7 +965,7 @@ class SPOD_Base(object):
 		self._pr0(f'Normalization data       : {self._normalize_data}')
 		self._pr0(f'No. modes to be saved    : {self._n_modes_save}')
 		self._pr0(f'Confidence level for eigs: {self._c_level}')
-		self._pr0(f'Results to be saved in   : {self._save_dir}')
+		self._pr0(f'Results to be saved in   : {self._savedir}')
 		self._pr0(f'Save FFT blocks          : {self._savefft}')
 		self._pr0(f'Reuse FFT blocks         : {self._reuse_blocks}')
 		if self._isrealx and (not self._fullspectrum):
@@ -1112,20 +1051,20 @@ class SPOD_Base(object):
 	# --------------------------------------------------------------------------
 
 	@staticmethod
-	def _are_blocks_present(n_blocks, n_freq, save_dir, rank):
+	def _are_blocks_present(n_blocks, n_freq, savedir, rank):
 		if rank == 0:
 			print(f'Checking if blocks are already present ...')
 		all_blocks_exist = 0
 		for i_blk in range(0,n_blocks):
 			all_freq_exist = 0
 			for i_freq in range(0,n_freq):
-				file = os.path.join(save_dir,
+				file = os.path.join(savedir,
 					'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq))
 				if os.path.exists(file):
 					all_freq_exist = all_freq_exist + 1
 			if (all_freq_exist == n_freq):
 				if rank == 0:
-					print(f'block {i_blk+1}/{n_blocks} present in: {save_dir}')
+					print(f'block {i_blk+1}/{n_blocks} present in: {savedir}')
 				all_blocks_exist = all_blocks_exist + 1
 		if all_blocks_exist == n_blocks:
 			if rank == 0:
@@ -1160,7 +1099,7 @@ class SPOD_Base(object):
 		'''
 		post.plot_eigs(self.eigs, title=title, figsize=figsize,
 			show_axes=show_axes, equal_axes=equal_axes,
-			path=self.save_dir_sim, filename=filename)
+			path=self.savedir_sim, filename=filename)
 
 
 	def plot_eigs_vs_frequency(self, freq=None, title='', xticks=None,
@@ -1173,7 +1112,7 @@ class SPOD_Base(object):
 		post.plot_eigs_vs_frequency(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			show_axes=show_axes, equal_axes=equal_axes, figsize=figsize,
-			path=self.save_dir_sim, filename=filename)
+			path=self.savedir_sim, filename=filename)
 
 
 	def plot_eigs_vs_period(self, freq=None, title='', xticks=None,
@@ -1186,7 +1125,7 @@ class SPOD_Base(object):
 		post.plot_eigs_vs_period(
 			self.eigs, freq=freq, title=title, xticks=xticks, yticks=yticks,
 			figsize=figsize, show_axes=show_axes, equal_axes=equal_axes,
-			path=self.save_dir_sim, filename=filename)
+			path=self.savedir_sim, filename=filename)
 
 
 	def plot_2d_modes_at_frequency(self, freq_required, freq, vars_idx=[0],
@@ -1202,7 +1141,7 @@ class SPOD_Base(object):
 			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift,
 			imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
 			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir_sim,
+			equal_axes=equal_axes, path=self.savedir_sim,
 			filename=filename)
 
 
@@ -1217,7 +1156,7 @@ class SPOD_Base(object):
 			modes_path=self._modes_folder, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
 			fftshift=fftshift, title=title, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir_sim,
+			equal_axes=equal_axes, path=self.savedir_sim,
 			filename=filename)
 
 
@@ -1236,7 +1175,7 @@ class SPOD_Base(object):
 			slice_id=slice_id, fftshift=fftshift, imaginary=imaginary,
 			plot_max=plot_max, coastlines=coastlines, title=title,
 			xticks=xticks, yticks=yticks, figsize=figsize,
-			equal_axes=equal_axes, path=self.save_dir_sim,
+			equal_axes=equal_axes, path=self.savedir_sim,
 			filename=filename)
 
 
@@ -1250,7 +1189,7 @@ class SPOD_Base(object):
 			self.modes, freq_required=freq_required, freq=freq,
 			coords_list=coords_list, modes_path=self._modes_folder,
 			x=x, vars_idx=vars_idx, modes_idx=modes_idx, fftshift=fftshift,
-			title=title, figsize=figsize, path=self.save_dir_sim,
+			title=title, figsize=figsize, path=self.savedir_sim,
 			filename=filename)
 
 
@@ -1264,7 +1203,7 @@ class SPOD_Base(object):
 			X=self.get_data(t_0=0, t_end=max_time_idx+1),
 			time_idx=time_idx, vars_idx=vars_idx, x1=x1, x2=x2,
 			title=title, coastlines=coastlines, figsize=figsize,
-			path=self.save_dir_sim, filename=filename)
+			path=self.savedir_sim, filename=filename)
 
 
 	def plot_data_tracers(self, coords_list, x=None, time_limits=[0,10],
@@ -1276,7 +1215,7 @@ class SPOD_Base(object):
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			coords_list=coords_list, x=x, time_limits=time_limits,
 			vars_idx=vars_idx, title=title, figsize=figsize,
-			path=self.save_dir_sim, filename=filename)
+			path=self.savedir_sim, filename=filename)
 
 	# --------------------------------------------------------------------------
 
@@ -1295,6 +1234,6 @@ class SPOD_Base(object):
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
 			time_limits=[0,time_limits[-1]], vars_idx=vars_idx,
 			sampling=sampling, x1=x1, x2=x2, coastlines=coastlines,
-			figsize=figsize, path=self.save_dir_sim, filename=filename)
+			figsize=figsize, path=self.savedir_sim, filename=filename)
 
 	# --------------------------------------------------------------------------

@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
-	This file is subject to the terms and conditions defined in
-	file 'LICENSE.txt', which is part of this source code package.
-
-	Written by Dr. Gianmarco Mengaldo, May 2020.
-'''
-# python libraries
 import os
 import sys
 import shutil
@@ -23,11 +16,7 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.append(os.path.join(CFD,"../"))
 sys.path.append(os.path.join(CFD,"../pyspod"))
-from pyspod.spod_low_storage import SPOD_low_storage
-from pyspod.spod_low_ram     import SPOD_low_ram
-from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.utils_weights as utils_weights
-import pyspod.utils_io as utils_io
+import pyspod.utils.io as utils_io
 
 
 
