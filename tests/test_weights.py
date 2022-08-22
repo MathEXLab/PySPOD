@@ -12,10 +12,10 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.append(os.path.join(CFD,"../"))
 sys.path.append(os.path.join(CFD,"../pyspod"))
-from pyspod.spod_low_storage import SPOD_low_storage
-from pyspod.spod_low_ram     import SPOD_low_ram
-from pyspod.spod_streaming   import SPOD_streaming
-import pyspod.utils_weights as utils_weights
+from pyspod.spod.low_storage import Low_Storage as SPOD_low_storage
+from pyspod.spod.low_ram     import Low_Ram     as SPOD_low_ram
+from pyspod.spod.streaming   import Streaming   as SPOD_streaming
+import pyspod.utils.weights as utils_weights
 
 
 
