@@ -28,8 +28,9 @@ sys.path.insert(0, os.path.join(CFD, "../"))
 
 from pyspod.auxiliary.pod_standard import POD_standard
 from pyspod.auxiliary.emulation    import Emulation
-import pyspod.utils_weights as utils_weights
 import pyspod.auxiliary.utils_emulation as utils_emulation
+import pyspod.utils_weights as utils_weights
+import pyspod.postprocessing as post
 
 
 ## data ingestion
@@ -130,6 +131,12 @@ def test_lstm_pod():
 	coeffs_tmp = pod_emulation.model_inference(idx=0, data_input=data_test)
 	## denormalize data
 	coeffs[:,:] = utils_emulation.denormalize_data_real(coeffs_tmp, scaler)
+	train_loss = pod_emulation.train_history.history['loss']
+	valid_loss = pod_emulation.train_history.history['val_loss']
+	post.plot_training_histories(
+		train_loss, valid_loss,
+		path=params['savedir'],
+		filename='history.png')
 	# reconstruct solutions
 	phi_tilde = coeffs_train['phi_tilde']
 	t_mean = coeffs_train['t_mean']

@@ -1218,9 +1218,6 @@ def plot_training_histories(
 	plt.ylabel('loss', fontsize=20)
 	plt.xlabel('epoch', fontsize=20)
 	plt.legend(['train', 'validation'], loc='upper right', fontsize=18)
-	if filename:
-		basename, ext = splitext(filename)
-		filename = '{0}_history{1}'.format(basename, ext)
 	_save_show_plots(filename, path, plt)
 
 # ---------------------------------------------------------------------------

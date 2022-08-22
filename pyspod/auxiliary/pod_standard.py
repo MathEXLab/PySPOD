@@ -21,7 +21,6 @@ import pyspod.postprocessing as post
 CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
-
 BYTE_TO_GB = 9.3132257461548e-10
 
 

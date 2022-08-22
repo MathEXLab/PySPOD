@@ -147,37 +147,50 @@ def test_low_ram_freq():
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	latent_space = spod.transform(
-		data=X, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
-	T_ = 12.5; 	tol = 1e-10
+		data=X, nt=nt, rec_idx='all', tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
+	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	spod.file_coeffs
 	coeffs = np.load(spod.file_coeffs)
 	recons = np.load(spod.file_dynamics)
 	## fit
-	assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol) & \
-		   (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol))
-	assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol) & \
-		   (np.max(np.abs(modes_at_freq))>0.1874697574930-tol))
+	assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) & \
+		   (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol2))
+	assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
+		   (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
 	## transform
-	assert((np.real(np.max(coeffs))<5516.077054291964+tol) & \
-		   (np.real(np.max(coeffs))>5516.077054291964-tol))
-	assert((np.real(np.max(recons))<4.498073703685379+tol) & \
-		   (np.real(np.max(recons))>4.498073703685379-tol))
+	print(f'{np.real(np.min(recons)) = :}')
+	print(f'{np.real(np.min(coeffs)) = :}')
+	print(f'{np.real(np.max(recons)) = :}')
+	print(f'{np.real(np.max(coeffs)) = :}')
+	assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) & \
+		   (np.real(np.min(coeffs))>-101.6470600168104-tol1))
+	assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) & \
+		   (np.real(np.max(coeffs))> 117.3492244840017-tol1))
+	assert((np.real(np.min(recons))< 4.340606772197322+tol1) & \
+		   (np.real(np.min(recons))> 4.340606772197322-tol1))
+	assert((np.real(np.max(recons))< 4.498677772159833+tol1) & \
+		   (np.real(np.max(recons))> 4.498677772159833-tol1))
 	l1 = utils_errors.compute_l_errors(recons, X, norm_type='l1')
 	l2 = utils_errors.compute_l_errors(recons, X, norm_type='l2')
 	li = utils_errors.compute_l_errors(recons, X, norm_type='linf')
 	l1_r = utils_errors.compute_l_errors(recons, X, norm_type='l1_rel')
 	l2_r = utils_errors.compute_l_errors(recons, X, norm_type='l2_rel')
 	li_r = utils_errors.compute_l_errors(recons, X, norm_type='linf_rel')
-
 	## errors
-	assert((l1  <0.000850561699326+tol) & (l1  >0.000850561699326-tol))
-	assert((l2  <9.27231874349e-07+tol) & (l2  >9.27231874349e-07-tol))
-	assert((li  <0.015064380898017+tol) & (li  >0.015064380898017-tol))
-	assert((l1_r<0.000190777513892+tol) & (l1_r>0.000190777513892-tol))
-	assert((l2_r<2.08015873457e-07+tol) & (l2_r>2.08015873457e-07-tol))
-	assert((li_r<0.003391110816781+tol) & (li_r>0.003391110816781-tol))
+	print(f'{l1 = :}')
+	print(f'{l2 = :}')
+	print(f'{li = :}')
+	print(f'{l1_r = :}')
+	print(f'{l2_r = :}')
+	print(f'{li_r = :}')
+	assert((l1  <0.00104122273134+tol2) & (l1  >0.00104122273134-tol2))
+	assert((l2  <1.1276085475e-06+tol2) & (l2  >1.1276085475e-06-tol2))
+	assert((li  <0.01784020507579+tol2) & (li  >0.01784020507579-tol2))
+	assert((l1_r<0.00023355591009+tol2) & (l1_r>0.00023355591009-tol2))
+	assert((l2_r<2.5299012083e-07+tol2) & (l2_r>2.5299012083e-07-tol2))
+	assert((li_r<0.00403310279450+tol2) & (li_r>0.00403310279450-tol2))
 
 
 def test_low_ram_normalize():

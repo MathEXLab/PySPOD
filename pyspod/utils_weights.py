@@ -3,21 +3,7 @@
 # import standard python packages
 import numpy as np
 from mpi4py import MPI
-import utils_stats
-
-def uniform_2D(x1_dim, x2_dim, n_vars, **kwargs):
-	nx = x1_dim * x2_dim * x3_dim
-	dA = np.ones([int(nx * n_vars), 1])
-	w = { 'weights_name': 'uniform', 'weights': dA }
-	return w
-
-
-
-def uniform_3D(x1_dim, x2_dim, x3_dim, n_vars, **kwargs):
-	nx = x1_dim * x2_dim * x3_dim
-	dA = np.ones([int(nx * n_vars), 1])
-	w = { 'weights_name': 'uniform', 'weights': dA }
-	return w
+import pyspod.utils_stats as utils_stats
 
 
 
@@ -114,7 +100,7 @@ def apply_normalization(
 			if comm.rank == 0:
 				print('')
 				print('Normalization by variance - parallel')
-				print('-------------------------')
+				print('------------------------------------')
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			print(axis)
 			for i in range(0, n_variables):
@@ -130,7 +116,7 @@ def apply_normalization(
 		if method.lower() == 'variance':
 			print('')
 			print('Normalization by variance - serial')
-			print('-------------------------')
+			print('----------------------------------')
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			for i in range(0, n_variables):
 				var = np.nanvar(data[...,i], axis=axis)
@@ -141,27 +127,3 @@ def apply_normalization(
 			print('No normalization performed')
 			print('--------------------------')
 	return weights
-
-
-
-def pvar(x, comm):
-	"""
-	Parallel computation of mean and variance.
-	"""
-	n = np.size(x)
-	m = np.mean(x)
-	d = x - m
-	d *= d
-	v = np.sum(d)/n
-
-	def op_stat(a, b):
-		na, ma, va = a
-		nb, mb, vb = b
-		n = na + nb
-		m = (na*ma + nb*mb)/n
-		v = (na*va + nb*vb + na*nb*(ma-mb)**2/n)/n
-		return ((n, m, v))
-
-	(n, m, v) = comm.allreduce((n, m, v), op=op_stat)
-
-	return v

@@ -45,14 +45,14 @@ class Emulation():
 	from the `SPOD_Base` class.
 	'''
 	def __init__(self, params):
-		self._network    = params.get('network', 'lstm')
-		self._n_neurons  = params.get('n_neurons',20)
-		self._epochs     = params.get('epochs', 20)
+		self._network    = params.get('network'  , 'lstm')
+		self._n_neurons  = params.get('n_neurons', 20)
+		self._epochs     = params.get('epochs'   , 20)
 		self._batch_size = params.get('batch_size',32)
-		self._n_seq_in   = params.get('n_seq_in', 1)
+		self._n_seq_in   = params.get('n_seq_in' , 1)
 		self._n_seq_out  = params.get('n_seq_out', 1)
-		self._save_dir   = params.get('savedir', os.path.join(CWD, 'results'))
-		self._dropout    = params.get('dropout', 0)
+		self._save_dir   = params.get('savedir'  , os.path.join(CWD,'results'))
+		self._dropout    = params.get('dropout'  , 0)
 
 
 	def build_lstm(self):
@@ -128,7 +128,6 @@ class Emulation():
 		Initialization of a network
 		'''
 		self.n_features = data.shape[0]
-
 		# construct the neural network model
 		if self._network.lower() == 'lstm':
 			self.build_lstm()
@@ -181,12 +180,6 @@ class Emulation():
 			batch_size=self._batch_size,
 			callbacks=self.callbacks_list,)
 
-		if plot_history == True:
-			post.plot_training_histories(
-				self.train_history.history['loss'],
-				self.train_history.history['val_loss'],
-				filename='emulation1.png')
-
 		# repeat for imaginary components
 		if not np.isreal(data_train).all():
 
@@ -226,7 +219,6 @@ class Emulation():
 				epochs= self._epochs,
 				batch_size=self._batch_size,
 				callbacks=self.callbacks_list)
-
 
 
 	def model_inference(self, idx, data_input):

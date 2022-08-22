@@ -159,7 +159,7 @@ def test_parallel_freq():
 	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	latent_space = spod.transform(
-		data=X, nt=nt, rec_idx='all', tol=1e-15, svd=False, T_lb=0.5, T_ub=1.1)
+		data=X, nt=nt, rec_idx='all', tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -172,14 +172,18 @@ def test_parallel_freq():
 		assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
 			   (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
 		## transform
-		print(f'{np.real(np.min(recons)) = :}')
-		print(f'{np.real(np.min(coeffs)) = :}')
-		print(f'{np.real(np.max(recons)) = :}')
-		print(f'{np.real(np.max(coeffs)) = :}')
-		# assert((np.real(np.max(coeffs))<991.3015308380127+tol1) & \
-		# 	   (np.real(np.max(coeffs))>991.3015308380127-tol1))
-		# assert((np.real(np.max(recons))<4.498841157131089+tol1) & \
-		# 	   (np.real(np.max(recons))>4.498841157131089-tol1))
+		# print(f'{np.real(np.min(recons)) = :}')
+		# print(f'{np.real(np.min(coeffs)) = :}')
+		# print(f'{np.real(np.max(recons)) = :}')
+		# print(f'{np.real(np.max(coeffs)) = :}')
+		assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) & \
+			   (np.real(np.min(coeffs))>-101.6470600168104-tol1))
+		assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) & \
+			   (np.real(np.max(coeffs))> 117.3492244840017-tol1))
+		assert((np.real(np.min(recons))< 4.340606772197322+tol1) & \
+			   (np.real(np.min(recons))> 4.340606772197322-tol1))
+		assert((np.real(np.max(recons))< 4.498677772159833+tol1) & \
+			   (np.real(np.max(recons))> 4.498677772159833-tol1))
 		l1 = utils_errors.compute_l_errors(recons, X, norm_type='l1')
 		l2 = utils_errors.compute_l_errors(recons, X, norm_type='l2')
 		li = utils_errors.compute_l_errors(recons, X, norm_type='linf')
@@ -187,18 +191,18 @@ def test_parallel_freq():
 		l2_r = utils_errors.compute_l_errors(recons, X, norm_type='l2_rel')
 		li_r = utils_errors.compute_l_errors(recons, X, norm_type='linf_rel')
 		## errors
-		print(f'{l1 = :}')
-		print(f'{l2 = :}')
-		print(f'{li = :}')
-		print(f'{l1_r = :}')
-		print(f'{l2_r = :}')
-		print(f'{li_r = :}')
-		assert((l1  <0.00085056169932+tol2) & (l1  >0.00085056169932-tol2))
-		assert((l2  <9.2723187434e-07+tol2) & (l2  >9.2723187434e-07-tol2))
-		assert((li  <0.01506438089801+tol2) & (li  >0.01506438089801-tol2))
-		assert((l1_r<0.00019077751389+tol2) & (l1_r>0.00019077751389-tol2))
-		assert((l2_r<2.0801587345e-07+tol2) & (l2_r>2.0801587345e-07-tol2))
-		assert((li_r<0.00339111081678+tol2) & (li_r>0.00339111081678-tol2))
+		# print(f'{l1 = :}')
+		# print(f'{l2 = :}')
+		# print(f'{li = :}')
+		# print(f'{l1_r = :}')
+		# print(f'{l2_r = :}')
+		# print(f'{li_r = :}')
+		assert((l1  <0.00104122273134+tol2) & (l1  >0.00104122273134-tol2))
+		assert((l2  <1.1276085475e-06+tol2) & (l2  >1.1276085475e-06-tol2))
+		assert((li  <0.01784020507579+tol2) & (li  >0.01784020507579-tol2))
+		assert((l1_r<0.00023355591009+tol2) & (l1_r>0.00023355591009-tol2))
+		assert((l2_r<2.5299012083e-07+tol2) & (l2_r>2.5299012083e-07-tol2))
+		assert((li_r<0.00403310279450+tol2) & (li_r>0.00403310279450-tol2))
 
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
@@ -212,8 +216,8 @@ def test_parallel_normalize():
 	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	latent_space = spod.transform(
-		data=X, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
-	T_ = 12.5; 	tol = 1e-10
+		data=X, nt=nt, rec_idx='all', tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
+	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -221,15 +225,23 @@ def test_parallel_normalize():
 		coeffs = np.load(spod.file_coeffs)
 		recons = np.load(spod.file_dynamics)
 		## fit
-		assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol) & \
-			   (np.min(np.abs(modes_at_freq))>1.600183827320e-09-tol))
-		assert((np.max(np.abs(modes_at_freq))<0.0071528728753325+tol) & \
-			   (np.max(np.abs(modes_at_freq))>0.0071528728753325-tol))
+		assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol2) & \
+			   (np.min(np.abs(modes_at_freq))>1.600183827320e-09-tol2))
+		assert((np.max(np.abs(modes_at_freq))<0.0071528728753325+tol2) & \
+			   (np.max(np.abs(modes_at_freq))>0.0071528728753325-tol2))
 		## transform
-		assert((np.real(np.max(coeffs))<2156.676391925318+tol) & \
-			   (np.real(np.max(coeffs))>2156.676391925318-tol))
-		assert((np.real(np.max(recons))<4.474232181561473+tol) & \
-			   (np.real(np.max(recons))>4.474232181561473-tol))
+		# print(f'{np.real(np.min(recons)) = :}')
+		# print(f'{np.real(np.min(coeffs)) = :}')
+		# print(f'{np.real(np.max(recons)) = :}')
+		# print(f'{np.real(np.max(coeffs)) = :}')
+		assert((np.real(np.min(coeffs))<-2048.642608995587+tol1) & \
+			   (np.real(np.min(coeffs))>-2048.642608995587-tol1))
+		assert((np.real(np.max(coeffs))< 2156.676395815888+tol1) & \
+			   (np.real(np.max(coeffs))> 2156.676395815888-tol1))
+		assert((np.real(np.min(recons))< 4.443797587890663+tol1) & \
+			   (np.real(np.min(recons))> 4.443797587890663-tol1))
+		assert((np.real(np.max(recons))< 4.474232181561583+tol1) & \
+			   (np.real(np.max(recons))> 4.474232181561583-tol1))
 		l1 = utils_errors.compute_l_errors(recons, X, norm_type='l1')
 		l2 = utils_errors.compute_l_errors(recons, X, norm_type='l2')
 		li = utils_errors.compute_l_errors(recons, X, norm_type='linf')
@@ -237,18 +249,24 @@ def test_parallel_normalize():
 		l2_r = utils_errors.compute_l_errors(recons, X, norm_type='l2_rel')
 		li_r = utils_errors.compute_l_errors(recons, X, norm_type='linf_rel')
 		## errors
-		assert((l1  <0.003262458870240+tol) & (l1  >0.003262458870240-tol))
-		assert((l2  <3.85087739991e-06+tol) & (l2  >3.85087739991e-06-tol))
-		assert((li  <0.111822437047942+tol) & (li  >0.111822437047942-tol))
-		assert((l1_r<0.000732038850593+tol) & (l1_r>0.000732038850593-tol))
-		assert((l2_r<8.64671493204e-07+tol) & (l2_r>8.64671493204e-07-tol))
-		assert((li_r<0.025767738920132+tol) & (li_r>0.025767738920132-tol))
+		# print(f'{l1 = :}')
+		# print(f'{l2 = :}')
+		# print(f'{li = :}')
+		# print(f'{l1_r = :}')
+		# print(f'{l2_r = :}')
+		# print(f'{li_r = :}')
+		assert((l1  <0.00326245887024+tol2) & (l1  >0.00326245887024-tol2))
+		assert((l2  <3.8508773999e-06+tol2) & (l2  >3.8508773999e-06-tol2))
+		assert((li  <0.11182243704809+tol2) & (li  >0.11182243704809-tol2))
+		assert((l1_r<0.00073203885059+tol2) & (l1_r>0.00073203885059-tol2))
+		assert((l2_r<8.6467149320e-07+tol2) & (l2_r>8.6467149320e-07-tol2))
+		assert((li_r<0.02576773892016+tol2) & (li_r>0.02576773892016-tol2))
 
 
 
 
 if __name__ == "__main__":
-	# test_parallel_svd()
-	# test_parallel_inv()
+	test_parallel_svd()
+	test_parallel_inv()
 	test_parallel_freq()
-	# test_parallel_normalize()
+	test_parallel_normalize()

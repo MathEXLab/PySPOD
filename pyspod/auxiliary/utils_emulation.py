@@ -1,5 +1,4 @@
 import numpy as np
-from numpy import linalg
 
 
 def compute_normalization_vector_real(data, normalize_method=''):
