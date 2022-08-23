@@ -107,11 +107,14 @@ class Streaming(Base):
 
 			## update incomplete dft sums, eqn (17)
 			update = False
+			window = self._window
 			for block_j in range(0,n_blocks_par):
 				if t_idx[block_j] > -1:
-					x_sum[:,:,block_j] = x_sum[:,:,block_j] + \
-						self._window[t_idx[block_j]] * \
+					x_sum[:,:,block_j] = \
+						x_sum[:,:,block_j] + window[t_idx[block_j]] * \
 						dft[t_idx[block_j],:] * x_new
+					if self._comm:
+						utils_par.allreduce(x_sum, comm=self._comm)
 					# print(f'{self._rank = :}  {x_sum.shape = :}')
 
 				## check if sum is completed, and if so, initiate update
@@ -131,9 +134,13 @@ class Streaming(Base):
 
 				## subtract mean contribution to dft sum
 				for row_idx in range(0,self._n_dft):
-					x_hat = x_hat - (self._window[row_idx] \
-						* dft[row_idx,:]) * mu
-					# print(f'{self._rank = :}  {x_hat.shape = :}')
+					x_hat = x_hat - (window[row_idx] * dft[row_idx,:]) * mu
+					print(f'{self._rank = :}  {x_hat.shape = :}')
+					print(f'{self._rank = :}  {window[row_idx].shape = :}')
+					print(f'{self._rank = :}  {dft[row_idx,:].shape = :}')
+					print(f'{self._rank = :}  {mu.shape = :}')
+					if self._comm:
+						utils_par.allreduce(x_sum, comm=self._comm)
 
 				## correct for windowing function and apply
 				## 1/self._n_dft factor
