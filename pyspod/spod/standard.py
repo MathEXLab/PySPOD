@@ -6,7 +6,6 @@ import sys
 import time
 import numpy as np
 from tqdm import tqdm
-from mpi4py import MPI
 from pyspod.spod.base import Base
 
 

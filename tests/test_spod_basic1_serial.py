@@ -1,21 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
-	This file is subject to the terms and conditions defined in
-	file 'LICENSE.txt', which is part of this source code package.
-
-	Written by Dr. Gianmarco Mengaldo, May 2020.
-'''
-# python libraries
 import os
 import sys
 import shutil
-import subprocess
 import numpy as np
 import xarray as xr
-from pathlib import Path
 
-# Current, parent and file paths import sys
+# Current, parent and file paths
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
@@ -26,7 +17,7 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod.low_storage import Low_Storage as SPOD_low_storage
 from pyspod.spod.low_ram     import Low_Ram     as SPOD_low_ram
 from pyspod.spod.streaming   import Streaming   as SPOD_streaming
-
+import pyspod.utils.errors   as utils_errors
 
 ## --------------------------------------------------------------
 ## get data
@@ -63,8 +54,8 @@ def test_low_storage_blockwise():
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
@@ -77,13 +68,14 @@ def test_low_storage_blockwise():
 	assert((np.max(np.abs(modes_at_freq))    < 0.28627415402845796  +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.28627415402845796  -tol))
 
+
 def test_low_storage_longtime():
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.199535402742477e-05+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.199535402742477e-05-tol))
@@ -96,14 +88,15 @@ def test_low_storage_longtime():
 	assert((np.max(np.abs(modes_at_freq))    < 0.41125867028788443  +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.41125867028788443  -tol))
 
+
 def test_streaming_blockwise():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	params['fullspectrum'] = True
 	SPOD_analysis = SPOD_streaming(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.431079214861435e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.431079214861435e-05 -tol))
@@ -115,6 +108,7 @@ def test_streaming_blockwise():
 		   (np.min(np.abs(modes_at_freq))    > 6.925964362816273e-10 -tol))
 	assert((np.max(np.abs(modes_at_freq))    < 0.39376283093404596   +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.39376283093404596   -tol))
+
 
 def test_streaming_longtime():
 	params['mean_type'] = 'longtime'
@@ -126,8 +120,8 @@ def test_streaming_longtime():
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 
 	# Test results
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.431079214861435e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.431079214861435e-05 -tol))
@@ -140,13 +134,14 @@ def test_streaming_longtime():
 	assert((np.max(np.abs(modes_at_freq))    < 0.39376283093404596   +tol) & \
 		   (np.max(np.abs(modes_at_freq))    > 0.39376283093404596   -tol))
 
+
 def test_low_storage_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
@@ -161,8 +156,8 @@ def test_low_storage_reuse_blocks():
 	params['reuse_blocks'] = True
 	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
@@ -179,14 +174,15 @@ def test_low_storage_reuse_blocks():
 	except OSError as e:
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+
 
 def test_low_ram_reuse_blocks():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
@@ -201,8 +197,8 @@ def test_low_ram_reuse_blocks():
 	params['reuse_blocks'] = True
 	SPOD_analysis = SPOD_low_ram(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])   < 8.57413617152583e-05 +tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])   > 8.57413617152583e-05 -tol))
@@ -221,11 +217,37 @@ def test_low_ram_reuse_blocks():
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
 
 
+def test_low_storage_zero():
+	params['mean_type'] = 'zero'
+	params['reuse_blocks'] = False
+	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
+	spod = SPOD_analysis.fit(data=da, nt=nt)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
+	# print(np.abs(modes_at_freq[0,1,0,0]))
+	# print(np.abs(modes_at_freq[10,3,0,2]))
+	# print(np.abs(modes_at_freq[14,15,0,1]))
+	# print(np.min(np.abs(modes_at_freq)))
+	# print(np.max(np.abs(modes_at_freq)))
+	assert((np.abs(modes_at_freq[0,1,0,0])   < 0.011466108395026+tol) & \
+		   (np.abs(modes_at_freq[0,1,0,0])   > 0.011466108395026-tol))
+	assert((np.abs(modes_at_freq[10,3,0,2])  < 0.005621706481738+tol) & \
+		   (np.abs(modes_at_freq[10,3,0,2])  > 0.005621706481738-tol))
+	assert((np.abs(modes_at_freq[14,15,0,1]) < 0.006813135464513+tol) & \
+		   (np.abs(modes_at_freq[14,15,0,1]) > 0.006813135464513-tol))
+	assert((np.min(np.abs(modes_at_freq))    < 3.00044739787e-09+tol) & \
+		   (np.min(np.abs(modes_at_freq))    > 3.00044739787e-09-tol))
+	assert((np.max(np.abs(modes_at_freq))    < 0.271816682460917+tol) & \
+		   (np.max(np.abs(modes_at_freq))    > 0.271816682460917-tol))
+
+
 
 if __name__ == "__main__":
-	test_low_storage_blockwise   ()
-	test_low_storage_longtime    ()
-	test_streaming_blockwise     ()
-	test_streaming_longtime      ()
-	test_low_storage_reuse_blocks()
-	test_low_ram_reuse_blocks    ()
+	test_low_storage_blockwise    ()
+	test_low_storage_longtime     ()
+	test_streaming_blockwise      ()
+	test_streaming_longtime       ()
+	test_low_storage_reuse_blocks ()
+	test_low_ram_reuse_blocks     ()
+	test_low_storage_zero         ()

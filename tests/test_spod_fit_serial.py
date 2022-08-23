@@ -5,9 +5,8 @@ import sys
 import h5py
 import shutil
 import numpy as np
-from pathlib import Path
 
-# Current, parent and file paths import sys
+# Current, parent and file paths
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)

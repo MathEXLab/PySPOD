@@ -85,8 +85,8 @@ way. The structure of the library and the use of Python enable efficient
 interfacing with low level and highly optimized libraries (written in C 
 or Fortran) for the calculation of e.g. the fast Fourier transform, eigenvalue 
 decomposition, and other linear algebra operations. Users can also take advantage 
-of the ready-to-use postprocessing tools offered, and they can easily extend 
-the postprocessing functionalities to suit their own needs. 
+of the ready-to-use postproc tools offered, and they can easily extend 
+the postproc functionalities to suit their own needs. 
 
 `PySPOD` is designed to be used in different fields of engineering and applied 
 science, including weather and climate, fluid mechanics, seismology, among others.

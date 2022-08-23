@@ -1,23 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
-	This file is subject to the terms and conditions defined in
-	file 'LICENSE.txt', which is part of this source code package.
-
-	Written by Dr. Gianmarco Mengaldo, May 2020.
-'''
-
-
-# python libraries
 import os
 import sys
 import h5py
-import pytest
 import shutil
 import numpy as np
-from pathlib import Path
 
-# Current, parent and file paths import sys
+# Current, parent and file paths
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
@@ -25,12 +14,14 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.append(os.path.join(CFD,"../"))
 sys.path.append(os.path.join(CFD,"../pyspod"))
-from pyspod.spod_parallel    import SPOD_parallel
-from pyspod.spod_low_storage import SPOD_low_storage
-from pyspod.spod_low_ram     import SPOD_low_ram
-import pyspod.utils_weights  as utils_weights
-import pyspod.utils_errors   as utils_errors
-import pyspod.postprocessing as post
+from pyspod.spod.standard    import Standard    as SPOD_standard
+from pyspod.spod.low_storage import Low_Storage as SPOD_low_storage
+from pyspod.spod.low_ram     import Low_Ram     as SPOD_low_ram
+import pyspod.utils.weights  as utils_weights
+import pyspod.utils.errors   as utils_errors
+import pyspod.utils.postproc as post
+
+
 ## --------------------------------------------------------------
 ## get data
 file = os.path.join(CFD,'data','fluidmechanics_data.mat')
@@ -70,7 +61,7 @@ params = {
 def test_parallel_svd():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables)
+	SPOD_analysis = SPOD_standard(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	spod.transform(X, nt=nt, rec_idx='all', svd=True)
 	T_ = 12.5; 	tol = 1e-10

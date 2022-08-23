@@ -1,7 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 import sys
 import shutil
-import subprocess
 import numpy as np
 
 # Current, parent and file paths
@@ -139,8 +140,8 @@ def test_low_storage_zero():
 
 
 def test_low_storage_overlap():
-	params['mean_type'   ] = 'longtime'
-	params['overlap'] = 20
+	params['mean_type'] = 'longtime'
+	params['overlap'  ] = 20
 	spod = SPOD_low_storage(params=params, variables=['p'])
 	spod.fit(p_var, t.shape[0])
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/10, freq=spod.freq)
@@ -158,6 +159,7 @@ def test_low_storage_overlap():
 	except OSError as e:
 		pass
 		# print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+
 
 def test_low_storage_normalization():
 	params['mean_type'        ] = 'longtime'

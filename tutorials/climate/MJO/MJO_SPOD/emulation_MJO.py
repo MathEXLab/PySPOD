@@ -18,7 +18,7 @@ from pyspod.spod_low_ram     import SPOD_low_ram
 from pyspod.spod_streaming   import SPOD_streaming
 from pyspod.auxiliary.emulation     import Emulation
 import pyspod.utils_weights as utils_weights
-import pyspod.postprocessing as post
+import pyspod.utils.postproc as post
 import pyspod.auxiliary.utils_emulation as utils_emulation  
 import mjo_plotting_utils as mjo_plot
 

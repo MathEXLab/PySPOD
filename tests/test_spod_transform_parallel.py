@@ -7,7 +7,8 @@ import pytest
 import shutil
 import numpy as np
 from mpi4py import MPI
-from pathlib import Path
+
+# Current, parent and file paths
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
@@ -15,10 +16,11 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.append(os.path.join(CFD,"../"))
 sys.path.append(os.path.join(CFD,"../pyspod"))
-from pyspod.spod_parallel import SPOD_parallel
-import pyspod.utils_weights as utils_weights
-import pyspod.utils_errors  as utils_errors
-import pyspod.postprocessing as post
+from pyspod.spod.standard import Standard as SPOD_standard
+import pyspod.utils.weights  as utils_weights
+import pyspod.utils.errors   as utils_errors
+import pyspod.utils.postproc as post
+
 
 ## --------------------------------------------------------------
 ## get data
@@ -61,10 +63,9 @@ def test_parallel_svd():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	comm = MPI.COMM_WORLD
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
+	SPOD_analysis = SPOD_standard(params=params, variables=variables, comm=comm)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	spod.transform(X, nt=nt, rec_idx='all', svd=True)
-	# latent_space = spod.transform(data, nt=nt, svd=False, T_lb=24, T_ub=24)
 	T_ = 12.5; 	tol = 1e-10
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -103,7 +104,7 @@ def test_parallel_inv():
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
 	comm = MPI.COMM_WORLD
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
+	SPOD_analysis = SPOD_standard(params=params, variables=variables, comm=comm)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	spod.transform(X, nt=nt, rec_idx='all', svd=False)
 	# latent_space = spod.transform(data, nt=nt, svd=False, T_lb=24, T_ub=24)
@@ -145,7 +146,7 @@ def test_parallel_freq():
 	params['mean_type'] = 'longtime'
 	params['reuse_blocks'] = False
 	comm = MPI.COMM_WORLD
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
+	SPOD_analysis = SPOD_standard(params=params, variables=variables, comm=comm)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	latent_space = spod.transform(
 		data=X, nt=nt, rec_idx='all', tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
@@ -202,7 +203,7 @@ def test_parallel_normalize():
 	params['normalize_weights'] = True
 	params['normalize_data'   ] = True
 	comm = MPI.COMM_WORLD
-	SPOD_analysis = SPOD_parallel(params=params, variables=variables, comm=comm)
+	SPOD_analysis = SPOD_standard(params=params, variables=variables, comm=comm)
 	spod = SPOD_analysis.fit(data=X, nt=nt)
 	latent_space = spod.transform(
 		data=X, nt=nt, rec_idx='all', tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)

@@ -16,7 +16,7 @@ from os.path import splitext
 CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
-
+plot_support = os.path.join(CFD, '../', 'plotting_support')
 
 
 # getters
@@ -1047,13 +1047,11 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 			# overlay coastlines if required
 			if coastlines.lower() == 'regular':
-				coast = loadmat(os.path.join(
-					CFD,'plotting_support','coast.mat'))
+				coast = loadmat(os.path.join(plot_support,'coast.mat'))
 				plt.scatter(coast['coastlon'], coast['coastlat'],
 					marker='.', c='k', s=1)
 			elif coastlines.lower() == 'centred':
-				coast = loadmat(os.path.join(
-					CFD,'plotting_support','coast_centred.mat'))
+				coast = loadmat(os.path.join(plot_support, 'coast_centred.mat'))
 				plt.scatter(coast['coastlon'], coast['coastlat'],
 					marker='.', c='k', s=1)
 
@@ -1281,11 +1279,10 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
 	# overlay coastlines if required
 	cst = False
 	if coastlines.lower() == 'regular':
-		coast = loadmat(os.path.join(CFD,'plotting_support','coast.mat'))
+		coast = loadmat(os.path.join(plot_support,'coast.mat'))
 		cst = True
 	elif coastlines.lower() == 'centred':
-		coast = loadmat(os.path.join(\
-			CFD,'plotting_support','coast_centred.mat'))
+		coast = loadmat(os.path.join(plot_support,'coast_centred.mat'))
 		cst = True
 
 	# filename
@@ -1397,11 +1394,11 @@ def _set_2d_axes_limits(ax, x1, x2):
 def _apply_2d_coastlines(coastlines, ax):
 	# overlay coastlines if required
 	if coastlines.lower() == 'regular':
-		coast = loadmat(os.path.join(CFD, 'plotting_support','coast.mat'))
+		coast = loadmat(os.path.join(plot_support,'coast.mat'))
 		ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 	elif coastlines.lower() == 'centred':
 		coast = loadmat(\
-			os.path.join(CFD,'plotting_support','coast_centred.mat'))
+			os.path.join(plot_support,'coast_centred.mat'))
 		ax.scatter(coast['coastlon'], coast['coastlat'], marker='.', c='k', s=1)
 	return ax
 

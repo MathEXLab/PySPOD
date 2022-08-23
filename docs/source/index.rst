@@ -65,7 +65,7 @@ in `weights.py` :ref:`Weights`. For additional details regarding the usage
 of weights in the context of SPOD, one can refer to `(Schmidt & Colonius 2020) <https://doi.org/10.2514/1.J058809>`_.
 
 We finally also provide some post-processing capabilities to visualize 
-the results. These are implemented in `postprocessing.py` :ref:`Postprocessing module`.
+the results. These are implemented in `postproc.py` :ref:`Postprocessing module`.
 The functions in post-processing can be accessed directly from the base 
 class, and in particular from the `SPOD object` returned by the `fit()`
 function. They can also be accessed separately from the base class, as 
@@ -147,11 +147,11 @@ to the SPOD base class.
 Postprocessing module
 =====================
 
-The postprocessing module is intended to provide some limited
+The postproc module is intended to provide some limited
 support to post-process the data and results produced by **pyspod**.
 The key routines implemented are
 
-.. automodule:: pyspod.postprocessing
+.. automodule:: pyspod.utils.postproc
 	:members: find_nearest_freq,
 			  find_nearest_coords,
 			  get_modes_at_freq,

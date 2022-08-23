@@ -2,8 +2,7 @@
 
 # import standard python packages
 import numpy as np
-from mpi4py import MPI
-import pyspod.utils.parallel as utils_parallel
+import pyspod.utils.parallel as utils_par
 
 
 
@@ -104,7 +103,7 @@ def apply_normalization(
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			print(axis)
 			for i in range(0, n_variables):
-				var = utils_parallel.pvar(data[...,i], comm=comm)
+				var, _, _ = utils_par.pvar(data[...,i], comm=comm)
 				print(f'{i = :} {var = :}')
 				weights[...,i] = weights[...,i] / var
 		else:

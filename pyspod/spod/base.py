@@ -14,13 +14,12 @@ import warnings
 import numpy as np
 import scipy.special as sc
 from numpy import linalg as la
-from mpi4py import MPI
 
 # Import custom Python packages
 import pyspod.utils.parallel as utils_par
 import pyspod.utils.io       as utils_io
 import pyspod.utils.weights  as utils_weights
-import pyspod.postprocessing.postprocessing as post
+import pyspod.utils.postproc as post
 
 # Current file path
 CWD = os.getcwd()
@@ -423,8 +422,9 @@ class Base():
 			self._comm.Barrier()
 			self._weights = utils_par.distribute_space_data(\
 				data=self._weights,
+				maxdim_idx=self._maxdim_idx,
 				maxdim_val=self._maxdim_val,
-				maxdim_idx=self._maxdim_idx, comm=self._comm)
+				comm=self._comm)
 			self._comm.Barrier()
 
 		## get data and add axis for single variable
@@ -639,37 +639,38 @@ class Base():
 
 		# compute spatial modes for given frequency
 		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
-		psi = np.matmul(Q_hat_f, V * L_diag[None,:])
-		psi = psi[...,0:self._n_modes_save]
+		phi = np.matmul(Q_hat_f, V * L_diag[None,:])
+		phi = phi[...,0:self._n_modes_save]
 
 		## save modes
-		file_psi = 'modes_freq{:08d}.npy'.format(i_freq)
-		path_psi = os.path.join(self._modes_folder, file_psi)
-		self._modes[i_freq] = file_psi
+		file_modes = 'modes_freq{:08d}.npy'.format(i_freq)
+		path_modes = os.path.join(self._modes_folder, file_modes)
+		self._modes[i_freq] = file_modes
 		shape = [*self._xshape,self._nv,self._n_modes_save]
 		if self._comm:
 			shape[self._maxdim_idx] = -1
-		psi.shape = shape
+		phi.shape = shape
 		if self._comm:
-			utils_io.npy_save(self._comm, path_psi, psi, axis=self._maxdim_idx)
+			utils_par.npy_save(
+				self._comm, path_modes, phi, axis=self._maxdim_idx)
 		else:
-			np.save(path_psi, psi)
+			np.save(path_modes, phi)
 		# if self._comm:
-		# 	psi = self._gather(psi, root=0)
-			# psi_0 = self._comm.gather(psi, root=0)
+		# 	phi = self._gather(phi, root=0)
+			# phi_0 = self._comm.gather(phi, root=0)
 			# if self._rank == 0:
-				# for p in psi_0:
+				# for p in phi_0:
 					# shape = list(self._global_shape)
 					# shape[self._maxdim_idx] = -1
 					# p.shape = shape
-				# psi = np.concatenate(psi_0, axis=self._maxdim_idx)
-				# psi.shape = list(self._xshape + (self._n_blocks,))
+				# phi = np.concatenate(phi_0, axis=self._maxdim_idx)
+				# phi.shape = list(self._xshape + (self._n_blocks,))
 
 		## save modes
 		# if self._rank == 0:
-		# 	psi = psi[...,0:self._n_modes_save]
-		# 	psi = psi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-		# 	np.save(path_psi, psi)
+		# 	phi = phi[...,0:self._n_modes_save]
+		# 	phi = phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
+		# 	np.save(path_modes, phi)
 
 		# get eigenvalues and confidence intervals
 		self._eigs[i_freq,:] = abs(L)
@@ -793,8 +794,9 @@ class Base():
 			if self._comm:
 				modes = utils_par.distribute_space_data(\
 					data=modes,
+					maxdim_idx=self._maxdim_idx,
 					maxdim_val=self._maxdim_val,
-					maxdim_idx=self._maxdim_idx, comm=self._comm)
+					comm=self._comm)
 
 			modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
 			for i_mode in range(self._n_modes_save):
@@ -885,7 +887,7 @@ class Base():
 		Q_reconstructed.shape = shape
 		Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
 		if self._comm:
-			utils_io.npy_save(
+			utils_par.npy_save(
 				self._comm, file_dynamics, Q_reconstructed,
 				axis=self._maxdim_idx+1)
 
@@ -984,7 +986,7 @@ class Base():
 
 	def find_nearest_freq(self, freq_required, freq=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		if not isinstance(freq, (list,np.ndarray,tuple)):
 			if not freq:
@@ -998,7 +1000,7 @@ class Base():
 
 	def find_nearest_coords(self, coords, x):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		xi, idx = post.find_nearest_coords(
 			coords=coords, x=x, data_space_dim=self.xshape)
@@ -1007,7 +1009,7 @@ class Base():
 
 	def get_modes_at_freq(self, freq_idx):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		if self._modes is None:
 			raise ValueError('Modes not found. Consider running fit()')
@@ -1095,7 +1097,7 @@ class Base():
 	def plot_eigs(self, title='', figsize=(12,8), show_axes=True,
 		equal_axes=False, filename=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		post.plot_eigs(self.eigs, title=title, figsize=figsize,
 			show_axes=show_axes, equal_axes=equal_axes,
@@ -1106,7 +1108,7 @@ class Base():
 		yticks=None, show_axes=True, equal_axes=False, figsize=(12,8),
 		filename=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		if freq is None: freq = self.freq
 		post.plot_eigs_vs_frequency(
@@ -1119,7 +1121,7 @@ class Base():
 		yticks=None, show_axes=True, equal_axes=False, figsize=(12,8),
 		filename=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		if freq is None: freq = self.freq
 		post.plot_eigs_vs_period(
@@ -1133,7 +1135,7 @@ class Base():
 		plot_max=False, coastlines='', title='', xticks=None, yticks=None,
 		figsize=(12,8), equal_axes=False, filename=None, origin=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		post.plot_2d_modes_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
@@ -1149,7 +1151,7 @@ class Base():
 		modes_idx=[0], x1=None, x2=None, max_each_mode=False, fftshift=False,
 		title='', figsize=(12,8), equal_axes=False, filename=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		post.plot_2d_mode_slice_vs_time(
 			self.modes, freq_required=freq_required, freq=freq,
@@ -1166,7 +1168,7 @@ class Base():
 		coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
 		equal_axes=False, filename=None, origin=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		post.plot_3d_modes_slice_at_frequency(
 			self.modes, freq_required=freq_required, freq=freq,
@@ -1183,7 +1185,7 @@ class Base():
 		x=None, vars_idx=[0], modes_idx=[0], fftshift=False, title='',
 		figsize=(12,8), filename=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		post.plot_mode_tracers(
 			self.modes, freq_required=freq_required, freq=freq,
@@ -1196,7 +1198,7 @@ class Base():
 	def plot_2d_data(self, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 		title='', coastlines='', figsize=(12,8), filename=None, origin=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		max_time_idx = np.max(time_idx)
 		post.plot_2d_data(
@@ -1209,7 +1211,7 @@ class Base():
 	def plot_data_tracers(self, coords_list, x=None, time_limits=[0,10],
 		vars_idx=[0], title='', figsize=(12,8), filename=None):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		post.plot_data_tracers(
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
@@ -1228,7 +1230,7 @@ class Base():
 		sampling=1, x1=None, x2=None, coastlines='', figsize=(12,8),
 		filename='data_video.mp4'):
 		'''
-		See method implementation in the postprocessing module.
+		See method implementation in the postproc module.
 		'''
 		post.generate_2d_data_video(
 			X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),

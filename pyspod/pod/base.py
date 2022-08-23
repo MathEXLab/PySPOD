@@ -208,11 +208,10 @@ class Base():
 	# main methods
 	# -------------------------------------------------------------------------
 
-	def initialize(self, data, nt, comm=None):
+	def _initialize(self, data, nt):
 
 		self._nt = nt
 		self._data = data
-		self._comm = comm
 
 		print('- correcting data dimension for single-variable data')
 		## correct last dimension for single variable data
@@ -236,8 +235,18 @@ class Base():
 
 		## distribute data and weights
 		if self._comm:
-			self._distribute_data(self._comm)
-			self._weights = self._distribute_field(self._comm, self._weights)
+			self._data, \
+			self._maxdim_idx, \
+			self._maxdim_val, \
+			self._global_shape = \
+				utils_par.distribute_time_space_data(\
+					data=self._data, comm=self._comm)
+			self._comm.Barrier()
+			self._weights = utils_par.distribute_space_data(\
+				data=self._weights,
+				maxdim_idx=self._maxdim_idx,
+				maxdim_val=self._maxdim_val,
+				comm=self._comm)
 			self._comm.Barrier()
 
 		## get data and add axis for single variable
@@ -246,12 +255,12 @@ class Base():
 			self._data = self._data[...,np.newaxis]
 
 		# apply mean
-		utils_par.pr0(f'- computing time mean', comm=self._comm)
+		self._pr0(f'- computing time mean')
 		self.select_mean()
 
 		## normalize weigths if required
 		if self._normalize_weights:
-			utils_par.pr0('- normalizing weights', comm=self._comm)
+			self._pr0('- normalizing weights')
 			self._weights = utils_weights.apply_normalization(
 				data=self._data,
 				weights=self._weights,
@@ -285,7 +294,7 @@ class Base():
 
 	def define_weights(self):
 		'''Define and check weights.'''
-		utils_par.pr0('- checking weight dimensions', comm=self._comm)
+		self._pr0('- checking weight dimensions')
 		if isinstance(self._weights_tmp, dict):
 			self._weights = self._weights_tmp['weights']
 			self._weights_name = self._weights_tmp['weights_name']
@@ -339,38 +348,28 @@ class Base():
 		t_mean = np.reshape(t_mean, shape_sxv)
 		return t_mean
 
+
+	def _pr0(self, fstring):
+		utils_par.pr0(fstring=fstring, comm=self._comm)
+
+
 	def print_parameters(self):
 		# display parameter summary
-		utils_par.pr0(f'',
-			comm=self._comm)
-		utils_par.pr0(f'POD parameters',
-			comm=self._comm)
-		utils_par.pr0(f'------------------------------------',
-			comm=self._comm)
-		utils_par.pr0(f'Problem size        : {self._pb_size} GB. (double)',
-			comm=self._comm)
-		utils_par.pr0(f'Time-step           : {self._dt}',
-			comm=self._comm)
-		utils_par.pr0(f'Time snapshots      : {self._nt}',
-			comm=self._comm)
-		utils_par.pr0(f'Space dimensions    : {self._xdim}',
-			comm=self._comm)
-		utils_par.pr0(f'Number of variables : {self._nv}',
-			comm=self._comm)
-		utils_par.pr0(f'Mean                : {self._mean_type}',
-			comm=self._comm)
-		utils_par.pr0(f'Normalizatio weights: {self._normalize_weights}',
-			comm=self._comm)
-		utils_par.pr0(f'Normalization data  : {self._normalize_data}',
-			comm=self._comm)
-		utils_par.pr0(f'No. of modes saved  : {self._n_modes_save}',
-			comm=self._comm)
-		utils_par.pr0(f'Results saved in    : {self._savedir}',
-			comm=self._comm)
-		utils_par.pr0(f'------------------------------------',
-			comm=self._comm)
-		utils_par.pr0(f'',
-			comm=self._comm)
+		self._pr0(f'')
+		self._pr0(f'POD parameters')
+		self._pr0(f'------------------------------------')
+		self._pr0(f'Problem size        : {self._pb_size} GB. (double)')
+		self._pr0(f'Time-step           : {self._dt}')
+		self._pr0(f'Time snapshots      : {self._nt}')
+		self._pr0(f'Space dimensions    : {self._xdim}')
+		self._pr0(f'Number of variables : {self._nv}')
+		self._pr0(f'Mean                : {self._mean_type}')
+		self._pr0(f'Normalizatio weights: {self._normalize_weights}')
+		self._pr0(f'Normalization data  : {self._normalize_data}')
+		self._pr0(f'No. of modes saved  : {self._n_modes_save}')
+		self._pr0(f'Results saved in    : {self._savedir}')
+		self._pr0(f'------------------------------------')
+		self._pr0(f'')
 
 	# -------------------------------------------------------------------------
 

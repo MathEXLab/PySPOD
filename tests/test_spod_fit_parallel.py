@@ -7,9 +7,8 @@ import pytest
 import shutil
 import numpy as np
 from mpi4py import MPI
-from pathlib import Path
 
-# Current, parent and file paths import sys
+# Current, parent and file paths
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
@@ -20,6 +19,7 @@ sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod.standard import Standard as SPOD_standard
 import pyspod.utils.weights as utils_weights
 import pyspod.utils.io      as utils_io
+
 
 ## --------------------------------------------------------------
 ## get data
@@ -97,7 +97,7 @@ def test_parallel_longtime():
 			   (np.max(np.abs(modes_at_freq))   >0.11868012076745382-tol))
 
 @pytest.mark.mpi(minsize=3, maxsize=3)
-def test_parallel_postprocessing():
+def test_parallel_postproc():
 	params['mean_type'] = 'blockwise'
 	params['reuse_blocks'] = False
 	comm = MPI.COMM_WORLD
@@ -148,6 +148,6 @@ def test_parallel_postprocessing():
 
 
 if __name__ == "__main__":
-	test_parallel_blockwise     ()
-	test_parallel_longtime      ()
-	test_parallel_postprocessing()
+	test_parallel_blockwise()
+	test_parallel_longtime ()
+	test_parallel_postproc ()

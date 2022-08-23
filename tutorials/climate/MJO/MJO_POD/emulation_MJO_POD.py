@@ -16,7 +16,7 @@ sys.path.append(os.path.join(CFD, "../../../../"))
 from pyspod.auxiliary.pod_standard import POD_standard
 from pyspod.auxiliary.emulation     import Emulation
 import pyspod.utils_weights as utils_weights
-import pyspod.postprocessing as post
+import pyspod.utils.postproc as post
 import pyspod.auxiliary.utils_emulation as utils_emulation  
 import mjo_plotting_utils as mjo_plot
 
