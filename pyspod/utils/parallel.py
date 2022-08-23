@@ -90,6 +90,7 @@ def distribute_space_data(data, maxdim_idx, maxdim_val, comm):
 
 
 def allreduce(data, comm):
+	data = data.newbyteorder('=')
 	data_reduced = np.zeros_like(data)
 	comm.Barrier()
 	comm.Allreduce(data, data_reduced, op=MPI.SUM)

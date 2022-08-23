@@ -282,8 +282,10 @@ class Base():
 		# create folder to save results
 		self._savedir_modes = os.path.join(
 			self._savedir, 'modes'+str(self._n_modes_save))
-		if not os.path.exists(self._savedir_modes):
-		 	os.makedirs(self._savedir_modes)
+		if self._rank == 0:
+			if not os.path.exists(self._savedir_modes):
+		 		os.makedirs(self._savedir_modes)
+		if self._comm: self._comm.Barrier()
 
 		# # compute approx problem size (assuming double)
 		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB

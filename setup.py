@@ -13,25 +13,21 @@ EMAIL = pyspod.__email__
 VERSION = pyspod.__version__
 KEYWORDS='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
-	"numpy",
 	"psutil",
-	"scipy",
-	"tensorflow",
-	"Sphinx",
-	"xarray",
-	"cdsapi",
-	"opt_einsum",
 	"tqdm",
-	"sphinx_rtd_theme",
+	"numpy",
+	"scipy",
 	"h5py",
-	"matplotlib",
 	"netcdf4",
-	"ecmwf_api_client",
-	"future",
-	"pytest",
+	"xarray",
+	"opt_einsum",
+	"matplotlib"
 ]
 EXTRAS = {
+	'ai' : ['tensorflow'],
+	'mpi' : ['mpi4py'],
 	'docs': ['Sphinx==3.2.1', 'sphinx_rtd_theme'],
+	'test': ['pytest']
 }
 DESCR = (
 	"PySPOD is a Python package that implements the Spectral Proper Orthogonal"
@@ -108,9 +104,9 @@ setup(
 		'plotting_support/coast.mat',
 		'plotting_support/coast_centred.mat'
 	]},
-	data_files=[
-		('pyspod',['pyspod/plotting_support/coast.mat']),
-		('pyspod',['pyspod/plotting_support/coast_centred.mat'])],
+	# data_files=[
+	# 	('pyspod',['pyspod/plotting_support/coast.mat']),
+	# 	('pyspod',['pyspod/plotting_support/coast_centred.mat'])],
 	# package_dir={NAME: NAME},
 	# package_data={NAME: [
 	#     'pyspod/plotting_support/*.mat',

@@ -797,7 +797,6 @@ class Base():
 					maxdim_idx=self._maxdim_idx,
 					maxdim_val=self._maxdim_val,
 					comm=self._comm)
-
 			modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
 			for i_mode in range(self._n_modes_save):
 				jump_freq = self.n_modes_save*cnt_freq+i_mode
@@ -867,8 +866,7 @@ class Base():
 		else: rec_idx = rec_idx
 
 		## phi x coeffs
-		nt = coeffs.shape[1]
-		Q_reconstructed = np.matmul(phi_tilde, coeffs[:,rec_idx])
+		Q_reconstructed = phi_tilde @ coeffs[:,rec_idx]
 		self._pr0(f'- phi x coeffs completed: {time.time() - st} s.')
 		st = time.time()
 
@@ -890,15 +888,6 @@ class Base():
 			utils_par.npy_save(
 				self._comm, file_dynamics, Q_reconstructed,
 				axis=self._maxdim_idx+1)
-
-			# d_0 = self._comm.gather(Q_reconstructed, root=0)
-			# if self._rank == 0:
-			# 	for e in d_0:
-			# 		shape = list(self._global_shape)
-			# 		shape[self._maxdim_idx] = -1
-			# 		e.shape = shape
-				# Q_reconstructed = np.concatenate(d_0, axis=self._maxdim_idx)
-				# Q_reconstructed.shape = [*self._xshape,len(rec_idx)]
 		else:
 			np.save(file_dynamics, Q_reconstructed)
 
@@ -921,7 +910,7 @@ class Base():
 				yaml.dump(self._modes, file)
 			self._eigs_c_u = self._eigs_c[:,:,0]
 			self._eigs_c_l = self._eigs_c[:,:,1]
-			file = os.path.join(self._savedir_sim, 'spod_energy')
+			file = os.path.join(self._savedir_sim, 'eigs')
 			np.savez(file,
 				eigs=self._eigs,
 				eigs_c_u=self._eigs_c_u,
