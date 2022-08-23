@@ -192,8 +192,6 @@ class Standard(Base):
 			shape[self._maxdim_idx] = -1
 		Q_reconstructed.shape = shape
 		Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
-		# Q_reconstructed = np.reshape(Q_reconstructed.T[:,:], \
-		#  	((nt,) + self._xshape + (self._nv,)))
 		if self._comm:
 			utils_par.npy_save(
 				self._comm, self._file_dynamics, Q_reconstructed,

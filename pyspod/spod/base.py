@@ -655,23 +655,8 @@ class Base():
 				self._comm, path_modes, phi, axis=self._maxdim_idx)
 		else:
 			np.save(path_modes, phi)
-		# if self._comm:
-		# 	phi = self._gather(phi, root=0)
-			# phi_0 = self._comm.gather(phi, root=0)
-			# if self._rank == 0:
-				# for p in phi_0:
-					# shape = list(self._global_shape)
-					# shape[self._maxdim_idx] = -1
-					# p.shape = shape
-				# phi = np.concatenate(phi_0, axis=self._maxdim_idx)
-				# phi.shape = list(self._xshape + (self._n_blocks,))
-
-		## save modes
-		# if self._rank == 0:
-		# 	phi = phi[...,0:self._n_modes_save]
-		# 	phi = phi.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-		# 	np.save(path_modes, phi)
-
+		self._pr0(f'Modes saved in folder: {self._modes_folder}')
+		
 		# get eigenvalues and confidence intervals
 		self._eigs[i_freq,:] = abs(L)
 		self._eigs_c[i_freq,:,0] = \
@@ -918,18 +903,7 @@ class Base():
 				f=self._freq,
 				weights=self._weights)
 			self._n_modes = self._eigs.shape[-1]
-
-
-	def _gather(self, d, root):
-		d_0 = self._comm.gather(d, root=root)
-		if self._rank == 0:
-			for e in d_0:
-				shape = list(self._global_shape)
-				shape[self._maxdim_idx] = -1
-				e.shape = shape
-			d = np.concatenate(d_0, axis=self._maxdim_idx)
-			d.shape = list(self._xshape + (self._n_blocks,))
-		return d
+		self._pr0(f'Eigenvalues saved in: {file}')
 
 
 	def _pr0(self, fstring):

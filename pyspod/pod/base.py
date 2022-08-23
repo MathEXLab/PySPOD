@@ -213,13 +213,13 @@ class Base():
 		self._nt = nt
 		self._data = data
 
-		print('- correcting data dimension for single-variable data')
+		self._pr0('- correcting data dimension for single-variable data')
 		## correct last dimension for single variable data
 		if self._nv == 1 and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
 
 		## get data dimensions and store in class
-		print('- getting data dimensions')
+		self._pr0('- getting data dimensions')
 		self._nx     = self._data[0,...,0].size
 		self._dim    = self._data.ndim
 		self._shape  = self._data.shape

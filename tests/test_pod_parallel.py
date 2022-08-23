@@ -36,7 +36,7 @@ def test_standard():
 		'n_space_dims': 2,
 		'n_variables' : 1,
 		# -- optional parameters
-		'normalize_weights': True,
+		'normalize_weights': False,
 		'n_modes_save'     : 8,
 		'savedir'          : os.path.join(CFD, 'results')
 	}
@@ -69,30 +69,37 @@ def test_standard():
 	tol1 = 1e-6; tol2 = 1e-10
 	if comm.rank == 0:
 		## fit
+		# print(np.real(pod.eigs[0]))
+		# print(pod.weights[0])
+		# print(np.abs(modes[0,1,0,0]))
+		# print(np.abs(modes[10,3,0,2]))
+		# print(np.abs(modes[14,15,0,1]))
+		# print(np.min(np.abs(modes)))
+		# print(np.max(np.abs(modes)))
+		assert(modes.shape==(20, 88, 1, 8))
+		assert((np.real(pod.eigs[0])    <5.507017010287017+tol1) & \
+			   (np.real(pod.eigs[0])    >5.507017010287017-tol1))
+		assert((pod.weights[0]          <1.    +tol1) & \
+			   (pod.weights[0]   	    >1.    -tol1))
+		assert((np.abs(modes[0,1,0,0])  <0.00083357978228883+tol2) & \
+			   (np.abs(modes[0,1,0,0])  >0.00083357978228883-tol2))
+		assert((np.abs(modes[10,3,0,2]) <3.9895843115101e-05+tol2) & \
+			   (np.abs(modes[10,3,0,2]) >3.9895843115101e-05-tol2))
+		assert((np.abs(modes[14,15,0,1])<5.6967220942460e-05+tol2) & \
+			   (np.abs(modes[14,15,0,1])>5.6967220942460e-05-tol2))
+		assert((np.min(np.abs(modes))   <3.7644953502612e-08+tol2) & \
+			   (np.min(np.abs(modes))   >3.7644953502612e-08-tol2))
+		assert((np.max(np.abs(modes))   <0.13122305680422694+tol2) & \
+			   (np.max(np.abs(modes))   >0.13122305680422694-tol2))
+		## transform
 		# print(np.real(np.max(coeffs)))
 		# print(np.real(np.max(recons)))
-		assert(modes.shape==(20, 88, 1, 8))
-		assert((np.real(pod.eigs[0])    <107369.32592652942+tol1) & \
-			   (np.real(pod.eigs[0])    >107369.32592652942-tol1))
-		assert((pod.weights[0]          <19496.82118758    +tol1) & \
-			   (pod.weights[0]   	    >19496.82118758    -tol1))
-		assert((np.abs(modes[0,1,0,0])  <5.969875420458e-06+tol2) & \
-			   (np.abs(modes[0,1,0,0])  >5.969875420458e-06-tol2))
-		assert((np.abs(modes[10,3,0,2]) <2.857233563618e-07+tol2) & \
-			   (np.abs(modes[10,3,0,2]) >2.857233563618e-07-tol2))
-		assert((np.abs(modes[14,15,0,1])<4.079839978152e-07+tol2) & \
-			   (np.abs(modes[14,15,0,1])>4.079839978152e-07-tol2))
-		assert((np.min(np.abs(modes))   <2.696030870647e-10+tol2) & \
-			   (np.min(np.abs(modes))   >2.696030870647e-10-tol2))
-		assert((np.max(np.abs(modes))   <0.0009397844312580+tol2) & \
-			   (np.max(np.abs(modes))   >0.0009397844312580-tol2))
-		## transform
 		assert(coeffs.shape==(8, 1000))
 		assert(recons.shape==(1000, 20, 88, 1))
-		assert((np.real(np.max(coeffs))<0.00174941480689+tol2) & \
-			   (np.real(np.max(coeffs))>0.00174941480689-tol2))
-		assert((np.real(np.max(recons))<4.46783659944244+tol2) & \
-			   (np.real(np.max(recons))>4.46783659944244-tol2))
+		assert((np.real(np.max(coeffs))<0.244272570390476+tol2) & \
+			   (np.real(np.max(coeffs))>0.244272570390476-tol2))
+		assert((np.real(np.max(recons))<4.495997223290585+tol2) & \
+			   (np.real(np.max(recons))>4.495997223290585-tol2))
 		x = data[...,None]
 		l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
 		l2 = utils_errors.compute_l_errors(recons, x, norm_type='l2')
@@ -107,16 +114,12 @@ def test_standard():
 		# print(f'{l1_r = :}')
 		# print(f'{l2_r = :}')
 		# print(f'{li_r = :}')
-		assert((l1  <0.003086882037686+tol2) & (l1  >0.003086882037686-tol2))
-		assert((l2  <3.97098596957e-06+tol2) & (l2  >3.97098596957e-06-tol2))
-		assert((li  <0.114417941880113+tol2) & (li  >0.114417941880113-tol2))
-		assert((l1_r<0.000692767886443+tol2) & (l1_r>0.000692767886443-tol2))
-		assert((l2_r<8.91680580056e-07+tol2) & (l2_r>8.91680580056e-07-tol2))
-		assert((li_r<0.026365832582254+tol2) & (li_r>0.026365832582254-tol2))
-		post.generate_2d_subplot(
-			var1=x     [10,...,0], title1='data1',
-			var2=recons[10,...,0], title2='data2',
-			N_round=6)
+		assert((l1  <0.002285731618209+tol2) & (l1  >0.002285731618209-tol2))
+		assert((l2  <2.85867239211e-06+tol2) & (l2  >2.85867239211e-06-tol2))
+		assert((li  <0.095300914161469+tol2) & (li  >0.095300914161469-tol2))
+		assert((l1_r<0.000512977176726+tol2) & (l1_r>0.000512977176726-tol2))
+		assert((l2_r<6.41990505721e-07+tol2) & (l2_r>6.41990505721e-07-tol2))
+		assert((li_r<0.021960611302988+tol2) & (li_r>0.021960611302988-tol2))
 		## clean up results
 		try:
 			shutil.rmtree(os.path.join(CFD,'results'))
@@ -139,8 +142,8 @@ def test_standard_convergence():
 		'n_space_dims': 2,
 		'n_variables' : 1,
 		# -- optional parameters
-		'normalize_weights': True,
-		'n_modes_save'     : 1000,
+		'normalize_weights': False,
+		'n_modes_save'     : 300,
 		'savedir'          : os.path.join(CFD, 'results')
 	}
 	## -------------------------------------------------------------------------
@@ -157,8 +160,6 @@ def test_standard_convergence():
 	modes = np.load(pod._file_modes)
 	coeffs = np.load(pod._file_coeffs)
 	recons = np.load(pod._file_dynamics)
-	print(coeffs.shape)
-	print(recons.shape)
 	tol1 = 1e-6; tol2 = 1e-10
 	if comm.rank == 0:
 		x = data[...,None]
@@ -175,11 +176,11 @@ def test_standard_convergence():
 		print(f'{l1_r = :}')
 		print(f'{l2_r = :}')
 		print(f'{li_r = :}')
-
 		post.generate_2d_subplot(
 			var1=x     [10,...,0], title1='data1',
 			var2=recons[10,...,0], title2='data2',
-			N_round=6)
+			N_round=6, path=params_pod['savedir'],
+			filename='rec.png')
 		## clean up results
 		try:
 			shutil.rmtree(os.path.join(CFD,'results'))
@@ -188,5 +189,5 @@ def test_standard_convergence():
 
 
 if __name__ == "__main__":
-	# test_standard ()
+	test_standard ()
 	test_standard_convergence()

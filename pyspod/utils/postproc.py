@@ -1292,9 +1292,6 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
 	#vmin = np.nanmin(X)
 	#vmax = np.nanmax(X)
 	vmean = np.nanmean(X)
-	print('X.shape = ', X.shape)
-	print('x1.shape = ', x1.shape)
-	print('x2.shape = ', x2.shape)
 	for i in vars_idx:
 		fig = plt.figure()
 		# generate movie

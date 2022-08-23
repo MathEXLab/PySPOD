@@ -10,10 +10,11 @@ from os.path import splitext
 
 
 
-def read_data(data_file, format=None):
+def read_data(data_file, format=None, comm=None):
 	if not format:
 		_, format = splitext(data_file)
-	print(f'reading data with {format = :}')
+	if comm:
+		if comm.rank == 0: print(f'reading data with {format = :}')
 	format = format.lower()
 	if format == '.npy' or format == 'npy':
 		d = npy_load(data_file)
