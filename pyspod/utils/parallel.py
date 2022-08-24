@@ -89,6 +89,37 @@ def distribute_space_data(data, maxdim_idx, maxdim_val, comm):
 	return data
 
 
+def _blockdist(N, size, rank):
+    q, r = divmod(N, size)
+    n = q + (1 if r > rank else 0)
+    s = rank * q + min(rank, r)
+    return (n, s)
+
+
+def distribute_dimension(data, maxdim_idx, comm):
+	"""
+	Distribute desired spatial dimension, splitting partitions
+	by value // comm.size, with remaind = value % comm.size
+	"""
+	## distribute largest spatial dimension based on data
+	size = comm.size
+	rank = comm.rank
+	shape = data.shape
+	print(f'{shape = :}')
+	index = [np.s_[:]] * len(shape)
+	print(f'{index = :}')
+	N = shape[maxdim_idx]
+	print(f'{N = :}')
+	n, s = _blockdist(N, size, rank)
+	print(f'{n = :},  {s = :}')
+
+	index[maxdim_idx] = np.s_[s:s+n]
+	print(f'{index = :}')
+	data = data[index]
+	print(f'{data = :}')
+	return data[index]
+
+
 def allreduce(data, comm):
 	data = data.newbyteorder('=')
 	data_reduced = np.zeros_like(data)

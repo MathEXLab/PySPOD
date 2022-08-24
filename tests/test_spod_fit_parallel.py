@@ -46,6 +46,7 @@ params = {
 	'normalize_data'   : False,
 	'n_modes_save'     : 3,
 	'conf_level'       : 0.95,
+	'savefft'          : True,
 	'savedir'          : os.path.join(CWD, 'results'),
 	'fullspectrum'     : True
 }
@@ -53,9 +54,9 @@ params = {
 
 
 @pytest.mark.mpi(minsize=3, maxsize=3)
-def test_parallel_blockwise():
+def test_parallel_blockwise_mpi():
 	params['mean_type'] = 'blockwise'
-	params['reuse_blocks'] = False
+	params['reuse_blocks'] = True
 	comm = MPI.COMM_WORLD
 	spod_class = SPOD_standard(params=params, variables=['p'], comm=comm)
 	spod = spod_class.fit(data=data, nt=nt)
@@ -73,6 +74,26 @@ def test_parallel_blockwise():
 			   (np.min(np.abs(modes_at_freq))   >1.1110799348607e-05-tol))
 		assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) & \
 			   (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
+
+@pytest.mark.mpi(minsize=3, maxsize=3)
+def test_parallel_blockwise_nompi():
+	params['mean_type'] = 'blockwise'
+	params['reuse_blocks'] = False
+	spod_class = SPOD_standard(params=params, variables=['p'])
+	spod = spod_class.fit(data=data, nt=nt)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
+	assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
+		   (np.abs(modes_at_freq[0,1,0,0])  >0.00046343628114412-tol))
+	assert((np.abs(modes_at_freq[10,3,0,2]) <0.00015920889387988+tol) & \
+		   (np.abs(modes_at_freq[10,3,0,2]) >0.00015920889387988-tol))
+	assert((np.abs(modes_at_freq[14,15,0,1])<0.00022129956393462+tol) & \
+		   (np.abs(modes_at_freq[14,15,0,1])>0.00022129956393462-tol))
+	assert((np.min(np.abs(modes_at_freq))   <1.1110799348607e-05+tol) & \
+		   (np.min(np.abs(modes_at_freq))   >1.1110799348607e-05-tol))
+	assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) & \
+		   (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
 
 @pytest.mark.mpi(minsize=3, maxsize=3)
 def test_parallel_longtime():
@@ -148,6 +169,7 @@ def test_parallel_postproc():
 
 
 if __name__ == "__main__":
-	test_parallel_blockwise()
-	test_parallel_longtime ()
-	test_parallel_postproc ()
+	test_parallel_blockwise_mpi()
+	# test_parallel_blockwise_nompi()
+	# test_parallel_longtime ()
+	# test_parallel_postproc ()

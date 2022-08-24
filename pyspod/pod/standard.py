@@ -170,8 +170,9 @@ class Standard(Base):
 		self._pr0('\nReconstructing data from coefficients ...')
 
 		# get time snapshots to be reconstructed
-		if not rec_idx: rec_idx = [0,self._nt%2,self._nt-1]
-		elif rec_idx.lower() == 'all': rec_idx = np.arange(0,self._nt)
+		nt = coeffs.shape[1]
+		if not rec_idx: rec_idx = [0,nt%2,nt-1]
+		elif rec_idx.lower() == 'all': rec_idx = np.arange(0,nt)
 		else: rec_idx = rec_idx
 
 		## phi x coeffs

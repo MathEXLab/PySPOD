@@ -35,7 +35,7 @@ class Low_Ram(Base):
 		self._pr0(f' ')
 		self._pr0(f'Calculating temporal DFT (low_ram)')
 		self._pr0(f'------------------------------------')
-
+		
 		## check if blocks are already saved in memory
 		blocks_present = False
 		if self._reuse_blocks:

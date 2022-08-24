@@ -68,7 +68,7 @@ def test_lstm_pod():
 	## fit and transform pod
 	pod_class = pod_standard(params=params_pod, variables=['p'])
 	pod = pod_class.fit(data=d_train, nt=nt_train)
-	coeffs_train = pod.transform(data=d_train, nt=nt_train)
+	coeffs_train = pod.transform(data=d_train, nt=nt_train, rec_idx='all')
 
 	## compute test coefficients
 	d_r_test = np.reshape(d_test[:,:,:], [nt_test,pod.nv*pod.nx])
@@ -120,8 +120,10 @@ def test_lstm_pod():
 	# reconstruct solutions
 	phi_t = coeffs_train['phi_tilde']
 	t_mean = coeffs_train['t_mean']
-	p_rec =pod.reconstruct_data(coeffs=c_test, phi_tilde=phi_t, t_mean=t_mean)
-	e_rec = pod.reconstruct_data(coeffs=coeffs, phi_tilde=phi_t, t_mean=t_mean)
+	p_rec =pod.reconstruct_data(
+		coeffs=c_test, phi_tilde=phi_t, t_mean=t_mean, rec_idx='all')
+	e_rec = pod.reconstruct_data(
+		coeffs=coeffs, phi_tilde=phi_t, t_mean=t_mean, rec_idx='all')
 	pod.get_data(t_0=0, t_end=1)
 
 	## assert test

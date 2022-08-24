@@ -37,21 +37,6 @@ class Low_Storage(Base):
 		self._pr0(f'Calculating temporal DFT (low_storage)')
 		self._pr0(f'--------------------------------------')
 
-		## check ram requirements
-		flat_dim = int(self._nx*self._nv)
-		vram_required = self._n_dft * flat_dim * sys.getsizeof(complex()) \
-			* BYTE_TO_GB
-
-		vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
-		self._pr0(f'RAM available: {vram_avail}')
-		self._pr0(f'RAM required : {vram_required}')
-		if self._rank == 0:
-			if vram_required > 1.5 * vram_avail:
-				raise ValueError(
-					'RAM required larger than RAM available... '
-					'consider running spod_low_ram or spod_parallel '
-					'to avoid system freezing.')
-
 		## check if blocks are already saved in memory
 		blocks_present = False
 		if self._reuse_blocks:
@@ -59,6 +44,7 @@ class Low_Storage(Base):
 				self._n_blocks, self._n_freq, self._blocks_folder, self._rank)
 
 		## initialize arrays
+		flat_dim = int(self._nx*self._nv)
 		Q_blk = np.empty([self._n_dft,flat_dim])
 		Q_hat = np.empty([self._n_freq,flat_dim,self._n_blocks], dtype=complex)
 		Q_blk_hat = np.empty([self._n_dft,flat_dim], dtype=complex)
