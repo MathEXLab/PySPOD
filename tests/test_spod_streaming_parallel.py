@@ -57,38 +57,52 @@ def test_streaming_parallel():
 	comm = MPI.COMM_WORLD
 	spod_class = SPOD_streaming(params=params, variables=['p'], comm=comm)
 	spod = spod_class.fit(data=data, nt=nt)
-	# spod.transform(X, nt=nt, rec_idx='all', svd=True)
+	spod.transform(data=data, nt=nt, rec_idx='all', svd=True)
 	tol1 = 1e-6; tol2 = 1e-10
 	if comm.rank == 0:
 		T_ = 12.5;
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
+		coeffs = np.load(spod.file_coeffs)
+		recons = np.load(spod.file_dynamics)
 		## fit
-		print(f'{np.real(spod.eigs[0][0]) = :}')
-		print(f'{spod.weights[0] = :}')
-		print(f'{modes_at_freq.shape = :}')
-		print(f'{np.abs(modes_at_freq[0,1,0,0]) = :}')
-		print(f'{np.abs(modes_at_freq[10,3,0,2]) = :}')
-		print(f'{np.abs(modes_at_freq[14,15,0,1]) = :}')
-		print(f'{np.min(np.abs(modes_at_freq)) = :}')
-		print(f'{np.max(np.abs(modes_at_freq)) = :}')
-
+		# print(f'{modes_at_freq.shape = :}')
+		# print(f'{np.real(spod.eigs[0][0]) = :}')
+		# print(f'{spod.weights[0] = :}')
+		# print(f'{modes_at_freq.shape = :}')
+		# print(f'{np.abs(modes_at_freq[0,1,0,0]) = :}')
+		# print(f'{np.abs(modes_at_freq[10,3,0,2]) = :}')
+		# print(f'{np.abs(modes_at_freq[14,15,0,1]) = :}')
+		# print(f'{np.min(np.abs(modes_at_freq)) = :}')
+		# print(f'{np.max(np.abs(modes_at_freq)) = :}')
 		assert(modes_at_freq.shape==(20, 88, 1, 3))
-		assert((np.real(spod.eigs[0][0])        <0.01945138582958337+tol2) & \
-			   (np.real(spod.eigs[0][0])        >0.01945138582958337-tol2))
+		assert((np.real(spod.eigs[0][0])        <0.02646688840382726+tol2) & \
+			   (np.real(spod.eigs[0][0])        >0.02646688840382726-tol2))
 		assert((spod.weights[0]                 <1.                 +tol2) & \
 			   (spod.weights[0]   	            >1.                 -tol2))
-		assert((np.abs(modes_at_freq[0,1,0,0])  <0.00049612434014559+tol2) & \
-			   (np.abs(modes_at_freq[0,1,0,0])  >0.00049612434014559-tol2))
-		assert((np.abs(modes_at_freq[10,3,0,2]) <3.6240863653305e-05+tol2) & \
-			   (np.abs(modes_at_freq[10,3,0,2]) >3.6240863653305e-05-tol2))
-		assert((np.abs(modes_at_freq[14,15,0,1])<0.00015266548251802+tol2) & \
-			   (np.abs(modes_at_freq[14,15,0,1])>0.00015266548251802-tol2))
-		assert((np.min(np.abs(modes_at_freq))   <4.6316466279320e-07+tol2) & \
-			   (np.min(np.abs(modes_at_freq))   >4.6316466279320e-07-tol2))
-		assert((np.max(np.abs(modes_at_freq))   <0.12207701471951361+tol2) & \
-			   (np.max(np.abs(modes_at_freq))   >0.12207701471951361-tol2))
-
+		assert((np.abs(modes_at_freq[0,1,0,0])  <0.00034252270314602+tol2) & \
+			   (np.abs(modes_at_freq[0,1,0,0])  >0.00034252270314602-tol2))
+		assert((np.abs(modes_at_freq[10,3,0,2]) <0.00017883224454813+tol2) & \
+			   (np.abs(modes_at_freq[10,3,0,2]) >0.00017883224454813-tol2))
+		assert((np.abs(modes_at_freq[14,15,0,1])<0.00020809153783069+tol2) & \
+			   (np.abs(modes_at_freq[14,15,0,1])>0.00020809153783069-tol2))
+		assert((np.min(np.abs(modes_at_freq))   <4.5039283294597e-06+tol2) & \
+			   (np.min(np.abs(modes_at_freq))   >4.5039283294597e-06-tol2))
+		assert((np.max(np.abs(modes_at_freq))   <0.11068809881000953+tol2) & \
+			   (np.max(np.abs(modes_at_freq))   >0.11068809881000953-tol2))
+		## transform
+		print(f'{np.real(np.min(recons)) = :}')
+		print(f'{np.real(np.min(coeffs)) = :}')
+		print(f'{np.real(np.max(recons)) = :}')
+		print(f'{np.real(np.max(coeffs)) = :}')
+		assert((np.real(np.min(coeffs))<-0.59795835704356+tol1) & \
+			   (np.real(np.min(coeffs))>-0.59795835704356-tol1))
+		assert((np.real(np.max(coeffs))< 0.53199683627834+tol1) & \
+			   (np.real(np.max(coeffs))> 0.53199683627834-tol1))
+		assert((np.real(np.min(recons))< 4.34899210787420+tol1) & \
+			   (np.real(np.min(recons))> 4.34899210787420-tol1))
+		assert((np.real(np.max(recons))< 4.49976493461025+tol1) & \
+			   (np.real(np.max(recons))> 4.49976493461025-tol1))
 
 if __name__ == "__main__":
 	test_streaming_parallel()

@@ -70,7 +70,6 @@ def test_parallel_svd():
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-		spod.file_coeffs
 		coeffs = np.load(spod.file_coeffs)
 		recons = np.load(spod.file_dynamics)
 		## fit
@@ -211,7 +210,6 @@ def test_parallel_normalize():
 	if comm.rank == 0:
 		f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-		spod.file_coeffs
 		coeffs = np.load(spod.file_coeffs)
 		recons = np.load(spod.file_dynamics)
 		## fit
