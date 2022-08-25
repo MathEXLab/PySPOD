@@ -48,7 +48,6 @@ def test_parallel_distribute():
 	space_data = data[0,...]
 	dso = utils_par.distribute_dimension(space_data, maxidx, comm=comm)
 	if rank == 0:
-		assert(maxval==88)
 		assert(maxidx==1)
 		assert(gs==(20,88))
 	if comm.size == 1:
