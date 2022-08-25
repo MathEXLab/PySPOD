@@ -875,22 +875,22 @@ class Base():
 
 	def _store_and_save(self):
 		'''Store and save results.'''
+		path_modes = os.path.join(self._modes_folder, 'modes_dict.yaml')
+		path_eigs  = os.path.join(self._savedir_sim, 'eigs')
 		if self._rank == 0:
 			# save dictionary of modes for loading
-			path_modes = os.path.join(self._modes_folder, 'modes_dict.yaml')
-			with open(path_modes, 'w') as file:
-				yaml.dump(self._modes, file)
+			with open(path_modes, 'w') as f:
+				yaml.dump(self._modes, f)
 			self._eigs_c_u = self._eigs_c[:,:,0]
 			self._eigs_c_l = self._eigs_c[:,:,1]
-			file = os.path.join(self._savedir_sim, 'eigs')
-			np.savez(file,
+			np.savez(path_eigs,
 				eigs=self._eigs,
 				eigs_c_u=self._eigs_c_u,
 				eigs_c_l=self._eigs_c_l,
 				f=self._freq,
 				weights=self._weights)
-			self._n_modes = self._eigs.shape[-1]
-			print(f'Eigenvalues saved in: {file}')
+			print(f'Eigenvalues saved in: {path_eigs}')
+		self._n_modes = self._eigs.shape[-1]
 
 
 	def _pr0(self, fstring):

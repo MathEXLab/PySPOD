@@ -14,12 +14,10 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.pod.standard          import Standard    as pod_standard
-from pyspod.spod.low_storage      import Low_Storage as spod_low_storage
+from pyspod.spod.standard         import Standard    as spod_standard
 from pyspod.emulation.neural_nets import Neural_Nets as emulation_nn
 import pyspod.utils.postproc as post
 import pyspod.utils.io as utils_io
-
-
 
 
 
@@ -211,7 +209,7 @@ def test_lstm_spod():
 	d_test   = data[nt_train:,:,:]
 
 	## fit and transform spod
-	spod_class = spod_low_storage(params=params_spod, variables=['p'])
+	spod_class = spod_standard(params=params_spod, variables=['p'])
 	spod = spod_class.fit(d_train, nt=nt_train)
 	coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
 	coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
@@ -353,7 +351,7 @@ def test_cnn_spod():
 	d_test   = data[nt_train:,:,:]
 
 	## fit and transform spod
-	spod_class = spod_low_storage(params=params_spod, variables=['p'])
+	spod_class = spod_standard(params=params_spod, variables=['p'])
 	spod = spod_class.fit(d_train, nt=nt_train)
 	coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
 	coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)

@@ -30,7 +30,7 @@ def test_standard():
 	dt = data_dict['dt'][0,0]
 	t = dt * np.arange(0,data.shape[0]).T
 	nt = t.shape[0]
-	params_pod = {
+	params = {
 		# -- required parameters
 		'time_step'   : dt,
 		'n_space_dims': 2,
@@ -44,7 +44,7 @@ def test_standard():
 
 	## fit and transform pod
 	comm = MPI.COMM_WORLD
-	pod_class = pod_standard(params=params_pod, variables=['p'], comm=comm)
+	pod_class = pod_standard(params=params, variables=['p'], comm=comm)
 	pod = pod_class.fit(data=data, nt=nt)
 	coeffs = pod.transform(data=data, nt=nt, rec_idx='all')
 	pod.get_data(t_0=0, t_end=1)
@@ -126,8 +126,6 @@ def test_standard():
 		except OSError as e:
 			pass
 
-
-
 def test_standard_convergence():
 	## -------------------------------------------------------------------------
 	data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
@@ -136,7 +134,7 @@ def test_standard_convergence():
 	dt = data_dict['dt'][0,0]
 	t = dt * np.arange(0,data.shape[0]).T
 	nt = t.shape[0]
-	params_pod = {
+	params = {
 		# -- required parameters
 		'time_step'   : dt,
 		'n_space_dims': 2,
@@ -150,7 +148,7 @@ def test_standard_convergence():
 
 	## fit and transform pod
 	comm = MPI.COMM_WORLD
-	pod_class = pod_standard(params=params_pod, variables=['p'], comm=comm)
+	pod_class = pod_standard(params=params, variables=['p'], comm=comm)
 	pod = pod_class.fit(data=data, nt=nt)
 	_ = pod.transform(data=data, nt=nt, rec_idx='all')
 	pod.get_data(t_0=0, t_end=1)
@@ -170,16 +168,16 @@ def test_standard_convergence():
 		l2_r = utils_errors.compute_l_errors(recons, x, norm_type='l2_rel')
 		li_r = utils_errors.compute_l_errors(recons, x, norm_type='linf_rel')
 		## errors
-		print(f'{l1 = :}')
-		print(f'{l2 = :}')
-		print(f'{li = :}')
-		print(f'{l1_r = :}')
-		print(f'{l2_r = :}')
-		print(f'{li_r = :}')
+		# print(f'{l1 = :}')
+		# print(f'{l2 = :}')
+		# print(f'{li = :}')
+		# print(f'{l1_r = :}')
+		# print(f'{l2_r = :}')
+		# print(f'{li_r = :}')
 		post.generate_2d_subplot(
 			var1=x     [10,...,0], title1='data1',
 			var2=recons[10,...,0], title2='data2',
-			N_round=6, path=params_pod['savedir'],
+			N_round=6, path=params['savedir'],
 			filename='rec.png')
 		## clean up results
 		try:
@@ -188,6 +186,7 @@ def test_standard_convergence():
 			pass
 
 
+
 if __name__ == "__main__":
-	test_standard ()
+	test_standard()
 	test_standard_convergence()

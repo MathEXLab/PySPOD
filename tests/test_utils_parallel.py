@@ -3,6 +3,7 @@
 import os
 import sys
 import shutil
+import pytest
 import numpy as np
 import xarray as xr
 from mpi4py import MPI
@@ -19,6 +20,7 @@ import pyspod.utils.io       as utils_io
 import pyspod.utils.parallel as utils_par
 
 
+@pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_pvar():
 	comm = MPI.COMM_WORLD
 	rank = comm.rank
@@ -34,7 +36,7 @@ def test_parallel_pvar():
 		assert((v<5.12904124410e-05+tol )&(v>5.12904124410e-05-tol ))
 		assert((m<4.459984976871076+tol )&(m>4.459984976871076-tol ))
 
-
+@pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_distribute():
 	comm = MPI.COMM_WORLD
 	rank = comm.rank
@@ -47,6 +49,8 @@ def test_parallel_distribute():
 	dts, maxidx, gs = utils_par.distribute_data(data, comm=comm)
 	space_data = data[0,...]
 	dso = utils_par.distribute_dimension(space_data, maxidx, comm=comm)
+	print(f'{rank = :}  {dso.shape = :}')
+	print(f'{rank = :}  {dts.shape = :}')
 	if rank == 0:
 		assert(maxidx==1)
 		assert(gs==(20,88))
@@ -60,22 +64,22 @@ def test_parallel_distribute():
 			assert(dso.shape==(20, 44))
 	elif comm.size == 3:
 		if rank == 0:
-			assert(dts.shape==(1000, 20, 29))
-			assert(dso.shape==(20, 29))
+			assert(dts.shape==(1000, 20, 30))
+			assert(dso.shape==(20, 30))
 	elif comm.size == 4:
 		if rank == 3:
 			assert(dts.shape==(1000, 20, 22))
 			assert(dso.shape==(20, 22))
 	elif comm.size == 5:
 		if rank == 0:
-			assert(dts.shape==(1000, 20, 17))
-			assert(dso.shape==(20, 17))
+			assert(dts.shape==(1000, 20, 18))
+			assert(dso.shape==(20, 18))
 	elif comm.size == 6:
 		if rank == 0:
-			assert(dts.shape==(1000, 20, 14))
-			assert(dso.shape==(20, 14))
+			assert(dts.shape==(1000, 20, 15))
+			assert(dso.shape==(20, 15))
 	elif comm.size == 7:
-		if rank == 0:
+		if rank == 5:
 			assert(dts.shape==(1000, 20, 12))
 			assert(dso.shape==(20, 12))
 	elif comm.size == 8:
@@ -86,27 +90,34 @@ def test_parallel_distribute():
 		if rank == 0:
 			print('testing up to 8 MPI ranks; test_parallel_distribute skipped')
 
+@pytest.mark.mpi(minsize=2, maxsize=2)
+def test_parallel_allreduce():
+	comm = MPI.COMM_WORLD
+	rank = comm.rank
+	## ------------------------------------------------------------------------
+	data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
+	data_dict = utils_io.read_data(data_file=data_file)
+	data = data_dict['p'].T
+	dt = data_dict['dt'][0,0]
+	## ------------------------------------------------------------------------
+	dts, maxidx, gs = utils_par.distribute_data(data, comm=comm)
+	dts = np.reshape(dts, [dts.shape[0], dts[0,...].size])
+	k = dts @ dts.conj().T
+	dts_r = utils_par.allreduce(k, comm=comm)
+	# print(f'{rank = :}  {np.sum(dts_r) = :}')
+	tol = 1e-1
+	if rank == 0:
+		assert(maxidx==1)
+		assert((np.sum(dts_r)<35009021572.78676+tol) & \
+			   (np.sum(dts_r)>35009021572.78676-tol))
 
-# def test_parallel_allreduce():
-# 	comm = MPI.COMM_WORLD
-# 	rank = comm.rank
-# 	## ------------------------------------------------------------------------
-# 	data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
-# 	data_dict = utils_io.read_data(data_file=data_file)
-# 	data = data_dict['p'].T
-# 	dt = data_dict['dt'][0,0]
-# 	## ------------------------------------------------------------------------
-# 	dts, maxidx, gs = utils_par.distribute_data(data, comm=comm)
-# 	dts_r = utils_par.allreduce(dts, comm=comm)
-# 	print(f'{rank = :}  {dts_r = :}')
-
-
+@pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_pr0():
 	comm = MPI.COMM_WORLD
 	rank = comm.rank
 	utils_par.pr0(f'data {rank = :}', comm=comm)
 
-
+@pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_npy(axis=0, dtype="d", order='C'):
 	comm = MPI.COMM_WORLD
 	rank = comm.rank
@@ -149,7 +160,7 @@ def test_parallel_npy(axis=0, dtype="d", order='C'):
 if __name__ == "__main__":
 	test_parallel_pvar()
 	test_parallel_distribute()
-	# test_parallel_allreduce()
+	test_parallel_allreduce()
 	test_parallel_pr0()
 	for axis in range(3):
 		for dtype in "iIqQfdFD":

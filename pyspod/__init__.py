@@ -1,12 +1,9 @@
 '''PySPOD init'''
-__all__ = ['spod_base', 'spod_low_storage', 'spod_low_ram', 'spod_streaming']
-
-from .spod.base        import Base
-from .spod.low_storage import Low_Storage
-from .spod.low_ram     import Low_Ram
-from .spod.standard    import Standard
-from .spod.streaming   import Streaming
-
+from .pod.base              import Base        as pod_base
+from .pod.standard          import Standard    as pod_standard
+from .spod.base             import Base        as spod_base
+from .spod.standard         import Standard    as spod_standard
+from .spod.streaming        import Streaming   as spod_streaming
 import os
 import sys
 PACKAGE_PARENTS = ['..']
@@ -25,4 +22,4 @@ __maintainer__ = __author__
 __status__ = "Stable"
 __license__ = "MIT"
 __version__ = "1.0.0"
-__url__ = "https://github.com/mengaldo/PySPOD"
+__url__ = "https://github.com/mathe-lab/PySPOD"

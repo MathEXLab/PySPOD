@@ -14,7 +14,7 @@ CFD = os.path.dirname(CF)
 
 # Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
-from pyspod.spod.low_storage import Low_Storage as SPOD_low_storage
+from pyspod.spod.standard import Standard as spod_standard
 import pyspod.utils.errors   as utils_errors
 import pyspod.utils.io       as utils_io
 import pyspod.utils.postproc as post
@@ -50,7 +50,10 @@ def test_errors():
 	assert((l2_rel_proj<0.000169009826+tol)&(l2_rel_proj>0.000169009826-tol))
 	assert((li_rel_proj<0.230434424435+tol)&(li_rel_proj>0.230434424435-tol))
 	assert((h1_proj    <0.0           +tol)&(h1_proj    >0.0           -tol))
-
+	try:
+		shutil.rmtree(os.path.join(CWD,'results'))
+	except OSError as e:
+		pass
 
 def test_io_yaml_required():
 	## --------------------------------------------------------------
@@ -66,7 +69,7 @@ def test_io_yaml_required():
 	## read simulation parameters
 	config_file = os.path.join(CFD, 'data', 'input.yaml')
 	params = utils_io.read_config(config_file)
-	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
+	SPOD_analysis = spod_standard(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -94,7 +97,7 @@ def test_io_yaml_optional():
 	## read simulation parameters
 	config_file = os.path.join(CFD, 'data', 'input_optional.yaml')
 	params = utils_io.read_config(config_file)
-	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
+	SPOD_analysis = spod_standard(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -123,7 +126,7 @@ def test_postproc_2d():
 	## read simulation parameters
 	config_file = os.path.join(CFD, 'data', 'input_postproc_2d.yaml')
 	params = utils_io.read_config(config_file)
-	SPOD_analysis = SPOD_low_storage(params=params, variables=variables)
+	SPOD_analysis = spod_standard(params=params, variables=variables)
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -256,12 +259,11 @@ def test_postproc_2d():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
 	try:
 		shutil.rmtree(os.path.join(CWD,'__pycache__'))
 	except OSError as e:
 		pass
-
 
 def test_postproc_3d():
 	## --------------------------------------------------------------
@@ -280,7 +282,7 @@ def test_postproc_3d():
 	## --------------------------------------------------------------
 	config_file = os.path.join(CFD, 'data', 'input_postproc_3d.yaml')
 	params = utils_io.read_config(config_file)
-	spod = SPOD_low_storage(params=params, variables=['p'])
+	spod = spod_standard(params=params, variables=['p'])
 	spod.fit(data=data, nt=nt)
 	T_ = 10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -348,12 +350,11 @@ def test_postproc_3d():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
 	try:
 		shutil.rmtree(os.path.join(CWD,'__pycache__'))
 	except OSError as e:
 		pass
-
 
 def test_weights_2d():
 	## --------------------------------------------------------------
@@ -390,7 +391,7 @@ def test_weights_2d():
 		x2_dim=x1.shape[0],
 		n_vars=len(variables),
 		R=1)
-	spod = SPOD_low_storage(params=params, weights=weights, variables=['p'])
+	spod = spod_standard(params=params, weights=weights, variables=['p'])
 	spod.fit(data=field, nt=nt)
 	T_ = 10;  tol = 1e-10
 	freq = spod.freq
@@ -405,8 +406,7 @@ def test_weights_2d():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
-
+		pass
 
 def test_weights_3d():
 	## --------------------------------------------------------------
@@ -447,7 +447,7 @@ def test_weights_3d():
 		x3_dim=x3.shape[0],
 		n_vars=len(variables),
 		R=1)
-	spod = SPOD_low_storage(params=params, weights=weights, variables=['p'])
+	spod = spod_standard(params=params, weights=weights, variables=['p'])
 	spod.fit(data=p, nt=nt)
 	T_ = 10;  tol = 1e-10
 	freq = spod.freq
@@ -462,7 +462,7 @@ def test_weights_3d():
 	try:
 		shutil.rmtree(os.path.join(CWD,'results'))
 	except OSError as e:
-		print("Error: %s : %s" % (os.path.join(CWD,'results'), e.strerror))
+		pass
 
 
 
