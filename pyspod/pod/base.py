@@ -235,17 +235,12 @@ class Base():
 
 		## distribute data and weights
 		if self._comm:
-			self._data, \
-			self._maxdim_idx, \
-			self._maxdim_val, \
-			self._global_shape = \
-				utils_par.distribute_time_space_data(\
+			self._data, self._maxdim_idx, self._global_shape = \
+				utils_par.distribute_data(\
 					data=self._data, comm=self._comm)
 			self._comm.Barrier()
-			self._weights = utils_par.distribute_space_data(\
-				data=self._weights,
-				maxdim_idx=self._maxdim_idx,
-				maxdim_val=self._maxdim_val,
+			self._weights = utils_par.distribute_dimension(\
+				data=self._weights, maxdim_idx=self._maxdim_idx,
 				comm=self._comm)
 			self._comm.Barrier()
 

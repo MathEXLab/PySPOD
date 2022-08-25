@@ -413,17 +413,12 @@ class Base():
 
 		## distribute data and weights
 		if self._comm:
-			self._data, \
-			self._maxdim_idx, \
-			self._maxdim_val, \
-			self._global_shape = \
-				utils_par.distribute_time_space_data(\
+			self._data, self._maxdim_idx, self._global_shape = \
+				utils_par.distribute_data(\
 					data=self._data, comm=self._comm)
 			self._comm.Barrier()
-			self._weights = utils_par.distribute_space_data(\
-				data=self._weights,
-				maxdim_idx=self._maxdim_idx,
-				maxdim_val=self._maxdim_val,
+			self._weights = utils_par.distribute_dimension(\
+				data=self._weights, maxdim_idx=self._maxdim_idx,
 				comm=self._comm)
 			self._comm.Barrier()
 
@@ -471,15 +466,13 @@ class Base():
 		self._win_weight = 1 / np.mean(self._window)
 		self._window = self._window.reshape(self._window.shape[0], 1)
 
-		# import pdb; pdb.set_trace()
-
 		# get frequency axis
 		self.get_freq_axis()
 
 		# get default for confidence interval
 		self._xi2_upper = 2 * sc.gammaincinv(self._n_blocks, 1 - self._c_level)
 		self._xi2_lower = 2 * sc.gammaincinv(self._n_blocks,     self._c_level)
-		self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype='complex_')
+		self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype=complex)
 
 		# create folder to save results
 		self._savedir_sim = os.path.join(self._savedir,
@@ -740,12 +733,8 @@ class Base():
 		## note: weights are already distributed from fit()
 		## it is assumed that one runs fit and transform within the same main
 		if self._comm:
-			self._data, \
-			self._maxdim_idx, \
-			self._maxdim_val, \
-			self._global_shape = \
-				utils_par.distribute_time_space_data(\
-					data=self._data, comm=self._comm)
+			self._data, self._maxdim_idx, self._global_shape = \
+				utils_par.distribute_data(data=self._data, comm=self._comm)
 			self._comm.Barrier()
 
 		## add axis for single variable
@@ -777,11 +766,8 @@ class Base():
 		for i_freq in range(self._freq_idx_lb, self._freq_idx_ub+1):
 			modes = self.get_modes_at_freq(i_freq)
 			if self._comm:
-				modes = utils_par.distribute_space_data(\
-					data=modes,
-					maxdim_idx=self._maxdim_idx,
-					maxdim_val=self._maxdim_val,
-					comm=self._comm)
+				modes = utils_par.distribute_dimension(\
+					data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
 			modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
 			for i_mode in range(self._n_modes_save):
 				jump_freq = self.n_modes_save*cnt_freq+i_mode

@@ -46,7 +46,6 @@ params = {
 	'normalize_data'   : False,
 	'n_modes_save'     : 3,
 	'conf_level'       : 0.95,
-	'savefft'          : True,
 	'savedir'          : os.path.join(CWD, 'results'),
 	'fullspectrum'     : True
 }
@@ -56,6 +55,7 @@ params = {
 @pytest.mark.mpi(minsize=3, maxsize=3)
 def test_parallel_blockwise_mpi():
 	params['mean_type'] = 'blockwise'
+	params['savefft'] = True
 	params['reuse_blocks'] = True
 	comm = MPI.COMM_WORLD
 	spod_class = SPOD_standard(params=params, variables=['p'], comm=comm)
@@ -170,6 +170,6 @@ def test_parallel_postproc():
 
 if __name__ == "__main__":
 	test_parallel_blockwise_mpi()
-	# test_parallel_blockwise_nompi()
-	# test_parallel_longtime ()
-	# test_parallel_postproc ()
+	test_parallel_blockwise_nompi()
+	test_parallel_longtime ()
+	test_parallel_postproc ()

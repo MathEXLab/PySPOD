@@ -113,12 +113,8 @@ class Standard(Base):
 		## note: weights are already distributed from fit()
 		## it is assumed that one runs fit and transform within the same main
 		if self._comm:
-			self._data, \
-			self._maxdim_idx, \
-			self._maxdim_val, \
-			self._global_shape = \
-				utils_par.distribute_time_space_data(\
-					data=self._data, comm=self._comm)
+			self._data, self._maxdim_idx, self._global_shape = \
+				utils_par.distribute_data(data=self._data, comm=self._comm)
 			self._comm.Barrier()
 
 		## add axis for single variable
@@ -141,11 +137,8 @@ class Standard(Base):
 		# load and distribute modes
 		modes = np.load(os.path.join(self._savedir_modes, 'modes.npy'))
 		if self._comm:
-			modes = utils_par.distribute_space_data(\
-				data=modes,
-				maxdim_idx=self._maxdim_idx,
-				maxdim_val=self._maxdim_val,
-				comm=self._comm)
+			modes = utils_par.distribute_dimension(\
+				data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
 		modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
 
 		# compute coefficients

@@ -44,10 +44,9 @@ def test_parallel_distribute():
 	data = data_dict['p'].T
 	dt = data_dict['dt'][0,0]
 	## ------------------------------------------------------------------------
-	dts, maxidx, maxval, gs = utils_par.distribute_time_space_data(
-		data, comm=comm)
+	dts, maxidx, gs = utils_par.distribute_data(data, comm=comm)
 	space_data = data[0,...]
-	dso = utils_par.distribute_space_data(space_data, maxidx, maxval, comm=comm)
+	dso = utils_par.distribute_dimension(space_data, maxidx, comm=comm)
 	if rank == 0:
 		assert(maxval==88)
 		assert(maxidx==1)
@@ -98,8 +97,7 @@ def test_parallel_distribute():
 # 	data = data_dict['p'].T
 # 	dt = data_dict['dt'][0,0]
 # 	## ------------------------------------------------------------------------
-# 	dts, maxidx, maxval, gs = utils_par.distribute_time_space_data(
-# 		data, comm=comm)
+# 	dts, maxidx, gs = utils_par.distribute_data(data, comm=comm)
 # 	dts_r = utils_par.allreduce(dts, comm=comm)
 # 	print(f'{rank = :}  {dts_r = :}')
 

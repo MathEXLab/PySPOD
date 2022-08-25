@@ -27,73 +27,25 @@ def pvar(data, comm):
 	return v, m, n
 
 
-def distribute_time_space_data(data, comm):
+def distribute_data(data, comm):
 	"""
 	Distribute largest spatial dimension of data, assuming:
 	- time dimensions appear as first coordinate of the array,
 	- spatial dimensions follow.
 	This is typically the case for `data`.
 	"""
-	## distribute largest spatial dimension
-	global_shape = data[0,...].shape
-	maxdim_idx = np.argmax(global_shape)
-	maxdim_val = global_shape[maxdim_idx]
-	perrank = maxdim_val // comm.size
-	remaind = maxdim_val  % comm.size
-	if maxdim_idx == 0:
-		if comm.rank == comm.size - 1:
-			data = data[:,comm.rank*perrank:,...]
-		else:
-			data = data[:,comm.rank*perrank:(comm.rank+1)*perrank,...]
-	elif maxdim_idx == 1:
-		if comm.rank == comm.size - 1:
-			data = data[:,:,comm.rank*perrank:,...]
-		else:
-			data = data[:,:,comm.rank*perrank:(comm.rank+1)*perrank,...]
-	elif maxdim_idx == 2:
-		if comm.rank == comm.size - 1:
-			data = data[:,:,:,comm.rank*perrank:,...]
-		else:
-			data = data[:,:,:,comm.rank*perrank:(comm.rank+1)*perrank,...]
-	else:
-		raise ValueError('MPI distribution planned on 3D problems.')
-	return data, maxdim_idx, maxdim_val, global_shape
-
-
-def distribute_space_data(data, maxdim_idx, maxdim_val, comm):
-	"""
-	Distribute largest spatial dimension, assuming
-	- spatial dimensions appear as first coordinates of the array.
-	This is typically the case for `weights` and `modes`.
-	"""
 	## distribute largest spatial dimension based on data
-	perrank = maxdim_val // comm.size
-	remaind = maxdim_val  % comm.size
-	if maxdim_idx == 0:
-		if comm.rank == comm.size - 1:
-			data = data[comm.rank*perrank:,...]
-		else:
-			data = data[comm.rank*perrank:(comm.rank+1)*perrank,...]
-	elif maxdim_idx == 1:
-		if comm.rank == comm.size - 1:
-			data = data[:,comm.rank*perrank:,...]
-		else:
-			data = data[:,comm.rank*perrank:(comm.rank+1)*perrank,...]
-	elif maxdim_idx == 2:
-		if comm.rank == comm.size - 1:
-			data = data[:,:,comm.rank*perrank:,...]
-		else:
-			data = data[:,:,comm.rank*perrank:(comm.rank+1)*perrank,...]
-	else:
-		raise ValueError('MPI distribution planned on 3D problems.')
-	return data
-
-
-def _blockdist(N, size, rank):
-    q, r = divmod(N, size)
-    n = q + (1 if r > rank else 0)
-    s = rank * q + min(rank, r)
-    return (n, s)
+	global_shape = data[0,...].shape ## spatial dimension
+	maxdim_idx = np.argmax(global_shape)
+	size = comm.size
+	rank = comm.rank
+	shape = data.shape
+	index = [np.s_[:]] * len(shape)
+	N = shape[maxdim_idx+1]
+	n, s = _blockdist(N, size, rank)
+	index[maxdim_idx+1] = np.s_[s:s+n]
+	index = tuple(index)
+	return data[index], maxdim_idx, global_shape
 
 
 def distribute_dimension(data, maxdim_idx, comm):
@@ -105,19 +57,19 @@ def distribute_dimension(data, maxdim_idx, comm):
 	size = comm.size
 	rank = comm.rank
 	shape = data.shape
-	print(f'{shape = :}')
 	index = [np.s_[:]] * len(shape)
-	print(f'{index = :}')
 	N = shape[maxdim_idx]
-	print(f'{N = :}')
 	n, s = _blockdist(N, size, rank)
-	print(f'{n = :},  {s = :}')
-
 	index[maxdim_idx] = np.s_[s:s+n]
-	print(f'{index = :}')
-	data = data[index]
-	print(f'{data = :}')
+	index = tuple(index)
 	return data[index]
+
+
+def _blockdist(N, size, rank):
+    q, r = divmod(N, size)
+    n = q + (1 if r > rank else 0)
+    s = rank * q + min(rank, r)
+    return (n, s)
 
 
 def allreduce(data, comm):

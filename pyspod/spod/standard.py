@@ -56,28 +56,24 @@ class Standard(Base):
 		Q_hat = np.empty(size_Q_hat, dtype='complex_')
 		## check if blocks already computed or not
 		if blocks_present:
-			print("REUSING BLOCKS --------------------------!!!")
 			# load blocks if present
 			size_Q_hat = [self._n_freq, *self._xshape, self._n_blocks]
 			Q_hat = np.empty(size_Q_hat, dtype='complex_')
-			print(f'{Q_hat.shape = :}')
 			for i_blk in tqdm(range(0, self._n_blocks), desc='loading blocks'):
 				self._Q_hat_f[str(i_blk)] = dict()
 				for i_freq in range(0, self._n_freq):
 					file = os.path.join(self._blocks_folder,
 						'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq))
-					print(f'{Q_hat[i_freq,:,:,i_blk].shape = :}')
 					s = np.load(file)
-					print(f'{s.shape = :}')
 					Q_hat[i_freq,...,i_blk] = np.load(file)
 					self._Q_hat_f[str(i_blk)][str(i_freq)] = file
-			print(f'{self._rank = :}  {Q_hat.shape = :}')
 			if self._comm:
-				utils_par.distribute_dimension(
+				Q_hat = utils_par.distribute_dimension(
 					data=Q_hat,
 					maxdim_idx=self._maxdim_idx+1,
 					comm=self._comm)
-			exit(2)
+			shape = [Q_hat.shape[0], Q_hat[0,...,0].size, Q_hat.shape[-1]]
+			Q_hat = np.reshape(Q_hat, shape)
 		else:
 			# loop over number of blocks and generate Fourier realizations
 			size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
@@ -97,7 +93,6 @@ class Standard(Base):
 
 				for i_freq in range(0, self._n_freq):
 					Q_blk_hat_fr = Q_blk_hat[i_freq,:]
-					print(f'{Q_blk_hat_fr.shape = :}')
 					if self._savefft == True:
 						file = 'fft_block{:08d}_freq{:08d}.npy'.format(
 							i_blk,i_freq)
@@ -106,7 +101,6 @@ class Standard(Base):
 						shape = [*self._xshape]
 						if self._comm: shape[self._maxdim_idx] = -1
 						Q_blk_hat_fr.shape = shape
-						print(f'{Q_blk_hat_fr.shape = :}')
 						if self._comm:
 							utils_par.npy_save(
 								self._comm,
@@ -114,7 +108,6 @@ class Standard(Base):
 								Q_blk_hat_fr,
 								axis=self._maxdim_idx)
 						else:
-							print(f'{Q_blk_hat_fr.shape = :}')
 							np.save(path, Q_blk_hat_fr)
 
 				## store FFT blocks in RAM
