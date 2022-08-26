@@ -24,13 +24,13 @@ REQUIRED = [
 	"h5py",
 	"netcdf4",
 	"xarray",
-	"opt_einsum",
 	"matplotlib"
+	"pyyaml"
 ]
 EXTRAS = {
-	'ai' : ['tensorflow'],
+	'ai'  : ['tensorflow'],
 	'mpi' : ['mpi4py'],
-	'docs': ['Sphinx==3.2.1', 'sphinx_rtd_theme'],
+	'docs': ['Sphinx', 'sphinx_rtd_theme'],
 	'test': ['pytest']
 }
 DESCR = (
@@ -103,10 +103,10 @@ setup(
 	url      = URL,
 	license  = 'MIT',
 	packages = [
-		'pyspod', 
-		'pyspod/pod', 
-		'pyspod/spod', 
-		'pyspod/emulation', 
+		'pyspod',
+		'pyspod/pod',
+		'pyspod/spod',
+		'pyspod/emulation',
 		'pyspod/utils'
 	],
 	package_data={'': [

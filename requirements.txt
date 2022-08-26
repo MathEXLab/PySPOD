@@ -10,4 +10,4 @@ sphinx_rtd_theme
 tensorflow
 tqdm
 xarray
-yaml
+pyyaml
