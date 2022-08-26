@@ -1,17 +1,21 @@
 import os
 import sys
-import pyspod
 import shutil
+import pyspod
+import pyspod.pod
+import pyspod.spod
+import pyspod.utils
+import pyspod.emulation
 from setuptools import setup
 from setuptools import Command
 
 # GLOBAL VARIABLES
-NAME = pyspod.__name__
-URL = pyspod.__url__
-AUTHOR = pyspod.__author__
-EMAIL = pyspod.__email__
-VERSION = pyspod.__version__
-KEYWORDS='spectral-proper-orthogonal-decomposition spod'
+NAME     = pyspod.__name__
+URL      = pyspod.__url__
+AUTHOR   = pyspod.__author__
+EMAIL    = pyspod.__email__
+VERSION  = pyspod.__version__
+KEYWORDS ='spectral-proper-orthogonal-decomposition spod'
 REQUIRED = [
 	"psutil",
 	"tqdm",
@@ -80,42 +84,38 @@ class UploadCommand(Command):
 
 # SETUP
 setup(
-	name=NAME,
-	version=VERSION,
-	description="Python Spectral Proper Orthogonal Decomposition",
-	long_description=DESCR,
-	author=AUTHOR,
-	author_email=EMAIL,
-	classifiers=[
+	name             = NAME,
+	version          = VERSION,
+	description      = "Python Spectral Proper Orthogonal Decomposition",
+	long_description = DESCR,
+	author           = AUTHOR,
+	author_email     = EMAIL,
+	classifiers = [
 		'License :: OSI Approved :: MIT License',
 		'Programming Language :: Python :: 3',
-		'Programming Language :: Python :: 3.6',
-		'Programming Language :: Python :: 3.7',
 		'Programming Language :: Python :: 3.8',
 		'Programming Language :: Python :: 3.9',
+		'Programming Language :: Python :: 3.10',
 		'Intended Audience :: Science/Research',
 		'Topic :: Scientific/Engineering :: Mathematics'
 	],
-	keywords=KEYWORDS,
-	url=URL,
-	license='MIT',
-	packages=[NAME],
+	keywords = KEYWORDS,
+	url      = URL,
+	license  = 'MIT',
+	packages = [
+		'pyspod', 
+		'pyspod/pod', 
+		'pyspod/spod', 
+		'pyspod/emulation', 
+		'pyspod/utils'
+	],
 	package_data={'': [
 		'plotting_support/coast.mat',
 		'plotting_support/coast_centred.mat'
 	]},
-	# data_files=[
-	# 	('pyspod',['pyspod/plotting_support/coast.mat']),
-	# 	('pyspod',['pyspod/plotting_support/coast_centred.mat'])],
-	# package_dir={NAME: NAME},
-	# package_data={NAME: [
-	#     'pyspod/plotting_support/*.mat',
-	# ]},
-	install_requires=REQUIRED,
-	extras_require=EXTRAS,
-	include_package_data=True,
-	zip_safe=False,
+	install_requires     = REQUIRED,
+	extras_require       = EXTRAS,
+	include_package_data = True,
+	zip_safe             = False,
 
-	cmdclass={
-		'upload': UploadCommand,
-	},)
+	cmdclass = {'upload': UploadCommand,},)
