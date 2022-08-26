@@ -1,7 +1,5 @@
-scipy
 setuptools
 enum34
-netcdf4
 coveralls
 coverage
 future
