@@ -298,21 +298,21 @@ def test_standard_normalize():
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	latent_space = spod.transform(
 		data=data, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
-	T_ = 12.5; 	tol = 1e-10
+	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	coeffs = np.load(spod.file_coeffs)
 	recons = np.load(spod.file_dynamics)
 	## fit
-	assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol) & \
-		   (np.min(np.abs(modes_at_freq))>1.600183827320e-09-tol))
-	assert((np.max(np.abs(modes_at_freq))<0.0071528728753325+tol) & \
-		   (np.max(np.abs(modes_at_freq))>0.0071528728753325-tol))
+	assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol2) & \
+		   (np.min(np.abs(modes_at_freq))>1.600183827320e-09-tol2))
+	assert((np.max(np.abs(modes_at_freq))<0.0071528728753325+tol2) & \
+		   (np.max(np.abs(modes_at_freq))>0.0071528728753325-tol2))
 	## transform
-	assert((np.real(np.max(coeffs))<2156.676391925318+tol) & \
-		   (np.real(np.max(coeffs))>2156.676391925318-tol))
-	assert((np.real(np.max(recons))<4.474232181561473+tol) & \
-		   (np.real(np.max(recons))>4.474232181561473-tol))
+	assert((np.real(np.max(coeffs))<2156.676391925318+tol1) & \
+		   (np.real(np.max(coeffs))>2156.676391925318-tol1))
+	assert((np.real(np.max(recons))<4.474232181561473+tol1) & \
+		   (np.real(np.max(recons))>4.474232181561473-tol1))
 	x = data[...,None]
 	l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
 	l2 = utils_errors.compute_l_errors(recons, x, norm_type='l2')
@@ -321,12 +321,12 @@ def test_standard_normalize():
 	l2_r = utils_errors.compute_l_errors(recons, x, norm_type='l2_rel')
 	li_r = utils_errors.compute_l_errors(recons, x, norm_type='linf_rel')
 	## errors
-	assert((l1  <0.003262458870240+tol) & (l1  >0.003262458870240-tol))
-	assert((l2  <3.85087739991e-06+tol) & (l2  >3.85087739991e-06-tol))
-	assert((li  <0.111822437047942+tol) & (li  >0.111822437047942-tol))
-	assert((l1_r<0.000732038850593+tol) & (l1_r>0.000732038850593-tol))
-	assert((l2_r<8.64671493204e-07+tol) & (l2_r>8.64671493204e-07-tol))
-	assert((li_r<0.025767738920132+tol) & (li_r>0.025767738920132-tol))
+	assert((l1  <0.003262458870240+tol2) & (l1  >0.003262458870240-tol2))
+	assert((l2  <3.85087739991e-06+tol2) & (l2  >3.85087739991e-06-tol2))
+	assert((li  <0.111822437047942+tol2) & (li  >0.111822437047942-tol2))
+	assert((l1_r<0.000732038850593+tol2) & (l1_r>0.000732038850593-tol2))
+	assert((l2_r<8.64671493204e-07+tol2) & (l2_r>8.64671493204e-07-tol2))
+	assert((li_r<0.025767738920132+tol2) & (li_r>0.025767738920132-tol2))
 	try:
 		shutil.rmtree(os.path.join(CWD, params['savedir']))
 	except OSError as e:
