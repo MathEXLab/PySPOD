@@ -73,7 +73,7 @@ weights = utils_weights.geo_trapz_3D(
 SPOD_analysis = SPOD_low_ram(
 	params=params,
 	data_handler=False,
-	variables=variables,
+	,
 	weights=weights)
 
 # Fit SPOD

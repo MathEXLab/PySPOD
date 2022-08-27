@@ -33,7 +33,7 @@ class Base():
 	'''
 	Spectral Proper Orthogonal Decomposition base class.
 	'''
-	def __init__(self, params, variables, weights=None, comm=None):
+	def __init__(self, params, weights=None, comm=None):
 		##--- required
 		self._n_dft = int(params['n_dft'])   # number of DFT (per block)
 		self._dt    = params['time_step'   ] # time-step of the data
@@ -62,7 +62,6 @@ class Base():
 		self._savedir = params.get('savedir', os.path.join(CWD,'spod_results'))
 
 		## parse other inputs
-		self._variables = variables
 		self._weights_tmp = weights
 		self._comm = comm
 
@@ -275,17 +274,6 @@ class Base():
 		:rtype: int
 		'''
 		return self._n_dft
-
-
-	@property
-	def variables(self):
-		'''
-		Get the variable list.
-
-		:return: the variable list used.
-		:rtype: list or strings
-		'''
-		return self._variables
 
 
 	@property

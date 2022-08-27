@@ -103,7 +103,7 @@ def spod_emulation():
 	SPOD_analysis = SPOD_low_storage(
 		params=params, 
 		data_handler=False, 
-		variables=variables,
+		,
 		weights=weights
 	)
 

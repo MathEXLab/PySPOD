@@ -34,7 +34,7 @@ def test_standard_fullspectrum():
 	params['time_step'] = dt
 	params['fullspectrum'] = True
 	## -------------------------------------------------------------------
-	spod_class = spod_standard(params=params, variables=['p'])
+	spod_class = spod_standard(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -68,7 +68,7 @@ def test_standard_reuse_blocks():
 	params['reuse_blocks'] = False
 	params['fullspectrum'] = True
 	## -------------------------------------------------------------------
-	spod_class = spod_standard(params=params, variables=['p'])
+	spod_class = spod_standard(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -85,7 +85,7 @@ def test_standard_reuse_blocks():
 		   (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
 	## now reuse blocks
 	params['reuse_blocks'] = True
-	spod_class = spod_standard(params=params, variables=['p'])
+	spod_class = spod_standard(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -120,7 +120,7 @@ def test_standard_svd():
 	params['overlap'     ] = 50
 	params['fullspectrum'] = True
 	## -------------------------------------------------------------------
-	SPOD_analysis = spod_standard(params=params, variables=['p'])
+	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	spod.transform(data, nt=nt, rec_idx='all', svd=True)
 	T_ = 12.5; 	tol = 1e-10
@@ -172,7 +172,7 @@ def test_standard_inv():
 	params['overlap'     ] = 50
 	params['fullspectrum'] = True
 	## -------------------------------------------------------------------
-	SPOD_analysis = spod_standard(params=params, variables=['p'])
+	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	spod.transform(data, nt=nt, rec_idx='all', svd=False)
 	T_ = 12.5; 	tol = 1e-10
@@ -224,7 +224,7 @@ def test_standard_freq():
 	params['overlap'     ] = 50
 	params['fullspectrum'] = True
 	## -------------------------------------------------------------------
-	SPOD_analysis = spod_standard(params=params, variables=['p'])
+	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	latent_space = spod.transform(
 		data=data, nt=nt, rec_idx='all', tol=1e-10,
@@ -294,7 +294,7 @@ def test_standard_normalize():
 	params['normalize_weights'] = True
 	params['normalize_data'   ] = True
 	## -------------------------------------------------------------------
-	SPOD_analysis = spod_standard(params=params, variables=['p'])
+	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	latent_space = spod.transform(
 		data=data, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
@@ -344,7 +344,7 @@ def test_streaming_fullspectrum():
 	params['time_step'] = dt
 	params['fullspectrum'] = True
 	## -------------------------------------------------------------------
-	spod_class = spod_streaming(params=params, variables=['p'])
+	spod_class = spod_streaming(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -385,7 +385,7 @@ def test_streaming_freq():
 	params['overlap'     ] = 50
 	params['fullspectrum'] = True
 	## -------------------------------------------------------------------
-	SPOD_analysis = spod_streaming(params=params, variables=['p'])
+	SPOD_analysis = spod_streaming(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	latent_space = spod.transform(
 		data=data, nt=nt, rec_idx='all', tol=1e-10,

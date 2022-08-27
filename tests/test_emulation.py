@@ -64,7 +64,7 @@ def test_lstm_pod():
 	d_test  = data[nt_train:,:,:]
 
 	## fit and transform pod
-	pod_class = pod_standard(params=params_pod, variables=['p'])
+	pod_class = pod_standard(params=params_pod)
 	pod = pod_class.fit(data=d_train, nt=nt_train)
 	coeffs_train = pod.transform(data=d_train, nt=nt_train, rec_idx='all')
 
@@ -135,7 +135,6 @@ def test_lstm_pod():
 	assert(pod.xdim        ==2)
 	assert(pod.xshape      ==(20, 88))
 	assert(pod.dt          ==0.2)
-	assert(pod.variables   ==['p'])
 	assert(pod.n_modes_save==8)
 	assert((np.real(pod.eigs[0])   <90699.72245430+tol) & \
 		   (np.real(pod.eigs[0])   >90699.72245430-tol))
@@ -209,7 +208,7 @@ def test_lstm_spod():
 	d_test   = data[nt_train:,:,:]
 
 	## fit and transform spod
-	spod_class = spod_standard(params=params_spod, variables=['p'])
+	spod_class = spod_standard(params=params_spod)
 	spod = spod_class.fit(d_train, nt=nt_train)
 	coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
 	coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
@@ -351,7 +350,7 @@ def test_cnn_spod():
 	d_test   = data[nt_train:,:,:]
 
 	## fit and transform spod
-	spod_class = spod_standard(params=params_spod, variables=['p'])
+	spod_class = spod_standard(params=params_spod)
 	spod = spod_class.fit(d_train, nt=nt_train)
 	coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
 	coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)

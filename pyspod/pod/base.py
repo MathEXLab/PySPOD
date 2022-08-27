@@ -28,7 +28,7 @@ class Base():
 	'''
 	Proper Orthogonal Decomposition base class.
 	'''
-	def __init__(self, params, variables, weights=None, comm=None):
+	def __init__(self, params, weights=None, comm=None):
 		# store mandatory parameters in class
 		self._dt   = params['time_step'   ]
 		self._xdim = params['n_space_dims']
@@ -43,7 +43,6 @@ class Base():
 		self._savedir = params.get('savedir', saveto)
 
 		## get other inputs
-		self._variables = variables
 		self._weights_tmp = weights
 		self._comm = comm
 
@@ -157,17 +156,6 @@ class Base():
 		:rtype: double
 		'''
 		return self._dt
-
-
-	@property
-	def variables(self):
-		'''
-		Get the variable list.
-
-		:return: the variable list used.
-		:rtype: list or strings
-		'''
-		return self._variables
 
 
 	@property

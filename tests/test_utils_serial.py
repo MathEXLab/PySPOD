@@ -69,7 +69,7 @@ def test_io_yaml_required():
 	## read simulation parameters
 	config_file = os.path.join(CFD, 'data', 'input.yaml')
 	params = utils_io.read_config(config_file)
-	SPOD_analysis = spod_standard(params=params, variables=variables)
+	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -97,7 +97,7 @@ def test_io_yaml_optional():
 	## read simulation parameters
 	config_file = os.path.join(CFD, 'data', 'input_optional.yaml')
 	params = utils_io.read_config(config_file)
-	SPOD_analysis = spod_standard(params=params, variables=variables)
+	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -126,7 +126,7 @@ def test_postproc_2d():
 	## read simulation parameters
 	config_file = os.path.join(CFD, 'data', 'input_postproc_2d.yaml')
 	params = utils_io.read_config(config_file)
-	SPOD_analysis = spod_standard(params=params, variables=variables)
+	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -282,7 +282,7 @@ def test_postproc_3d():
 	## --------------------------------------------------------------
 	config_file = os.path.join(CFD, 'data', 'input_postproc_3d.yaml')
 	params = utils_io.read_config(config_file)
-	spod = spod_standard(params=params, variables=['p'])
+	spod = spod_standard(params=params, )
 	spod.fit(data=data, nt=nt)
 	T_ = 10
 	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
@@ -391,7 +391,7 @@ def test_weights_2d():
 		x2_dim=x1.shape[0],
 		n_vars=len(variables),
 		R=1)
-	spod = spod_standard(params=params, weights=weights, variables=['p'])
+	spod = spod_standard(params=params, weights=weights, )
 	spod.fit(data=field, nt=nt)
 	T_ = 10;  tol = 1e-10
 	freq = spod.freq
@@ -447,7 +447,7 @@ def test_weights_3d():
 		x3_dim=x3.shape[0],
 		n_vars=len(variables),
 		R=1)
-	spod = spod_standard(params=params, weights=weights, variables=['p'])
+	spod = spod_standard(params=params, weights=weights, )
 	spod.fit(data=p, nt=nt)
 	T_ = 10;  tol = 1e-10
 	freq = spod.freq

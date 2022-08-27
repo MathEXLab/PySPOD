@@ -8,23 +8,23 @@
   <a href="https://doi.org/10.21105/joss.02862" target="_blank">
     <img alt="JOSS Paper" src="https://joss.theoj.org/papers/10.21105/joss.02862/status.svg">
   </a>
-	
+
   <a href="https://github.com/mathe-lab/PySPOD/LICENSE" target="_blank">
     <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
   </a>
-	
+
   <a href="https://badge.fury.io/py/pyspod">
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
-  </a>	
-	
+  </a>
+
   <a href="https://github.com/mathe-lab/PySPOD/actions" target="_blank">
     <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/workflows/ci/badge.svg">	  
   </a>
-	
+
   <a href="https://coveralls.io/github/mathe-lab/PySPOD?branch=main" target="_blank">
     <img src="https://coveralls.io/repos/github/mathe-lab/PySPOD/badge.svg?branch=main" alt="Coverage Status" />
   </a>
-	
+
   <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mathe-lab/PySPOD&amp;utm_campaign=Badge_Grade">
     <img src="https://app.codacy.com/project/badge/Grade/7ac24e711aea47df806ad52ab067e3a6"/>
   </a>
@@ -55,42 +55,42 @@
 
 **Spectral Proper Orthgonal Decomposition (SPOD)** has been extensively used in the past few years to identify spatio-temporal coherent patterns in a variety of datasets, mainly in the fluidmechanics and climate communities. In fluidmechanics it was applied to jets [(Schmidt et al. 2017)](#schmidt-et-al-2017), wakes [(Araya et al. 2017)](#araya-et-al-2017), and boundary layers [(Tutkun and George 2017)](#tutkun-and-george-2017), among others, while in weather and climate it was applied to ECMWF reanalysis datasets under the name Spectral Empirical Orthogonal Function, or SEOF, [(Schmidt et al. 2019)](#schmidt-et-al-2019).
 
-The SPOD approach targets statistically stationary problems and involves the decomposition of the cross-spectral density tensor. This means that the SPOD leads to a set of spatial modes that oscillate in time at a single frequency and that optimally capture the variance of an ensemble of stochastic data [(Towne et al. 2018)](#towne-et-al-2018). Therefore, given a dataset that is statistically stationary, one is able to capture the optimal spatio-temporal coherent structures that explain the variance in the dataset. 
+The SPOD approach targets statistically stationary problems and involves the decomposition of the cross-spectral density tensor. This means that the SPOD leads to a set of spatial modes that oscillate in time at a single frequency and that optimally capture the variance of an ensemble of stochastic data [(Towne et al. 2018)](#towne-et-al-2018). Therefore, given a dataset that is statistically stationary, one is able to capture the optimal spatio-temporal coherent structures that explain the variance in the dataset.
 
 This can help identifying relations to multiple variables or understanding the reduced order behavior of a given phenomenon of interest and represent a powerful tool for the data-driven analysis of nonlinear dynamical systems. The SPOD approach shares some relationships with the dynamic mode decomposition (DMD), and the resolvent analysis,  [(Towne et al. 2018)](#Towne-et-al-2018), that are also widely used approaches for the data-driven analysis of nonlinear systems. SPOD can be used for both experimental and simulation data, and a general description of its key parameters can be found in [(Schmidt and Colonius 2020)](#schmidt-and-colonius-2020).  
 
-In this package we implement three version of SPOD 
+In this package we implement three version of SPOD
 
   - SPOD_low_storage: that is intended for large RAM machines or small datasets
-  - SPOD_low_ram: that is intended for small RAM machines or large datasets, and 
+  - SPOD_low_ram: that is intended for small RAM machines or large datasets, and
   - SPOD_streaming: that is the algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
 
-To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md). 
+To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md).
 
 ### SPOD emulation
 
-We also implement the emulation of the **SPOD latent space** (i.e., time coefficients) with the aid of a **long-short term memory (LSTM) neural network** - see [Tutorial: 2D Jet emulation SPOD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2d_emulation_SPOD_time.ipynb). The SPOD emulation is also compared against **POD emulation** - see [Tutorial: 2D Jet emulation POD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2d_emulation_POD.ipynb). For more details you can refer to the following preprint: 
+We also implement the emulation of the **SPOD latent space** (i.e., time coefficients) with the aid of a **long-short term memory (LSTM) neural network** - see [Tutorial: 2D Jet emulation SPOD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2d_emulation_SPOD_time.ipynb). The SPOD emulation is also compared against **POD emulation** - see [Tutorial: 2D Jet emulation POD](https://github.com/mathe-lab/PySPOD/blob/main/tutorials/fluidmechanics/jet_2d_emulation_POD.ipynb). For more details you can refer to the following preprint:
 
   - [**Neural-network learning of SPOD latent dynamics**](https://arxiv.org/abs/2110.09218), by A. Lario, R. Maulik, O.T. Schmidt, G. Rozza, and G. Mengaldo
 
 ## Installation and dependencies
-**PySPOD** requires the following Python packages: 
-`numpy`, `scipy`, `tensorflow`, `matplotlib`, `xarray`, `netcdf4`, `opt_einsum`, `psutil`, `tdqm`, `future`, `ffmpeg`, `sphinx` (for the documentation). 
-Some of the *Climate tutorials*, additionally need `ecmwf_api_client` and `cdsapi`. 
+**PySPOD** requires the following Python packages:
+`numpy`, `scipy`, `tensorflow`, `matplotlib`, `xarray`, `netcdf4`, `opt_einsum`, `psutil`, `tdqm`, `future`, `ffmpeg`, `sphinx` (for the documentation).
+Some of the *Climate tutorials*, additionally need `ecmwf_api_client` and `cdsapi`.
 
-The code is developed and tested for Python 3 only. 
+The code is developed and tested for Python 3 only.
 It can be installed using `pip` or directly from the source code.
 
-<!-- NOTE: 
-  - to properly install netcdf4, you might need to have a local installation of `hdf5`. 
+<!-- NOTE:
+  - to properly install netcdf4, you might need to have a local installation of `hdf5`.
   - to be able to use the ffmpeg functionalities of the library (generating video of your data), you need a local installation of `ffmpeg` libraries.
   -->
-	
+
 ### Installing via PIP
 Mac and Linux users can install pre-built binary packages using pip.
-To install the package just type: 
+To install the package just type:
 ```bash
-    > pip install pyspod 
+    > pip install pyspod
 ```
 To uninstall the package:
 ```bash
@@ -116,11 +116,11 @@ To uninstall the package you have to rerun the installation and record the insta
 ```
 
 ## Get started with a simple analysis
-**PySPOD** comes with an extensive suite of [**Tutorials**](tutorials/README.md). 
-You can browse the [**Tutorials**](tutorials/README.md) to explore the capabilities 
-and various functionalities of the library. However, if you want to get started 
-quickly, after you installed the library you can simply copy the following script 
-into a file `your_script.py`, and run it with Python 3 (e.g. from a terminal window, 
+**PySPOD** comes with an extensive suite of [**Tutorials**](tutorials/README.md).
+You can browse the [**Tutorials**](tutorials/README.md) to explore the capabilities
+and various functionalities of the library. However, if you want to get started
+quickly, after you installed the library you can simply copy the following script
+into a file `your_script.py`, and run it with Python 3 (e.g. from a terminal window,
 the run command would look like `> python3 your_script.py`).
 
 ```python
@@ -138,8 +138,8 @@ import pyspod.utils_weights as utils_weights
 # Let's create some 2D syntetic data
 
 # -- define spatial and time coordinates
-x1 = np.linspace(0,10,100) 
-x2 = np.linspace(0, 5, 50) 
+x1 = np.linspace(0,10,100)
+x2 = np.linspace(0, 5, 50)
 xx1, xx2 = np.meshgrid(x1, x2)
 t = np.linspace(0, 200, 1000)
 nt = t.shape[0]
@@ -158,7 +158,7 @@ params = dict()
 # -- required parameters
 params['time_step'   ] = 1      # data time-sampling
 params['n_snapshots' ] = nt     # number of time snapshots (we consider all data)
-params['n_space_dims'] = 2      # number of spatial dimensions 
+params['n_space_dims'] = 2      # number of spatial dimensions
 params['n_variables' ] = 1 	# number of variables
 params['n_dft'       ] = 100    # length of FFT blocks (100 time-snapshots)
 
@@ -175,7 +175,7 @@ params['savedir'          ] = os.path.join('results', 'simple_test') # folder wh
 
 
 # Initialize libraries for the low_storage algorithm
-spod = SPOD_low_storage(params=params, data_handler=False, variables=['p'])
+spod = SPOD_low_storage(params=params, data_handler=False)
 
 # and run the analysis
 spod.fit(p, nt)
@@ -196,13 +196,13 @@ spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
 spod.plot_2d_modes_at_frequency(
 	freq_required=freq_found, freq=freq, x1=x2, x2=x1, modes_idx=[0,1], vars_idx=[0])
 ```
-You can change `SPOD_low_storage` to `SPOD_low_ram` and `SPOD_streaming`, 
+You can change `SPOD_low_storage` to `SPOD_low_ram` and `SPOD_streaming`,
 to run the other two SPOD algorithms available.
 
 ## Documentation
-**PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation. 
-You can view the documentation online [here](https://mathe-lab.github.io/PySPOD/). 
-If you want to build the documentation locally on your computer, you can do so 
+**PySPOD** uses [Sphinx](http://www.sphinx-doc.org/en/stable/) for code documentation.
+You can view the documentation online [here](https://mathe-lab.github.io/PySPOD/).
+If you want to build the documentation locally on your computer, you can do so
 by:
 
 ```bash
@@ -210,11 +210,11 @@ by:
 > make html
 ```
 
-This will generate a `docs/build/html` folder, where you can find an `index.html` file. 
+This will generate a `docs/build/html` folder, where you can find an `index.html` file.
 Open it with your browser and explore the documentation locally.
 
 ## Testing
-Regression tests are deployed using Travis CI, that is a continuous intergration framework. 
+Regression tests are deployed using Travis CI, that is a continuous intergration framework.
 
 If you want to run tests locally, you can do so by:
 
@@ -224,10 +224,10 @@ If you want to run tests locally, you can do so by:
 
 ## References
 
-#### (Lumley 1970) 
+#### (Lumley 1970)
 *Stochastic Tools in Turbulence.* [[DOI](https://www.elsevier.com/books/stochastic-tools-in-turbulence/lumey/978-0-12-395772-6?aaref=https%3A%2F%2Fwww.google.com)]
 
-#### (Picard and Delville 2000) 
+#### (Picard and Delville 2000)
 
 *Pressure velocity coupling in a subsonic round jet.*
 [[DOI](https://www.sciencedirect.com/science/article/abs/pii/S0142727X00000217)]
@@ -237,7 +237,7 @@ If you want to run tests locally, you can do so by:
 *Lumley decomposition of turbulent boundary layer at high Reynolds numbers.*
 [[DOI](https://aip.scitation.org/doi/10.1063/1.4974746)]
 
-#### (Schmidt et al 2017) 
+#### (Schmidt et al 2017)
 
 *Wavepackets and trapped acoustic modes in a turbulent jet: coherent structure eduction and global stability.*
 [[DOI](https://doi.org/10.1017/jfm.2017.407)]
@@ -247,7 +247,7 @@ If you want to run tests locally, you can do so by:
 *Transition to bluff-body dynamics in the wake of vertical-axis wind turbines.*
 [[DOI]( https://doi.org/10.1017/jfm.2016.862)]
 
-#### (Taira et al 2017) 
+#### (Taira et al 2017)
 
 *Modal analysis of fluid flows: An overview.*
 [[DOI](https://doi.org/10.2514/1.J056060)]
@@ -288,20 +288,20 @@ Current active contributors include:
 
   * [R. Maulik](https://romit-maulik.github.io), Argonne National Laboratory (US).
   * [A. Lario](https://www.math.sissa.it/users/andrea-lario), SISSA (Italy)
-  
+
 ## How to contribute
 
 Contributions improving code and documentation, as well as suggestions about new features are more than welcome!
 
-The guidelines to contribute are as follows: 
+The guidelines to contribute are as follows:
 1. open a new issue describing the bug you intend to fix or the feature you want to add.
 2. fork the project and open your own branch related to the issue you just opened, and call the branch `fix/name-of-the-issue` if it is a bug fix, or `feature/name-of-the-issue` if you are adding a feature.
 3. ensure to use 4 spaces for formatting the code.
 4. if you add a feature, it should be accompanied by relevant tests to ensure it functions correctly, while the code continue to be developed.
-5. commit your changes with a self-explanatory commit message. 
+5. commit your changes with a self-explanatory commit message.
 6. push your commits and submit a pull request. Please, remember to rebase properly in order to maintain a clean, linear git history.
 
-[Contact me](mailto:mpegim@nus.edu.sg) by email for further information or questions about **PySPOD** or ways on how to contribute. 
+[Contact me](mailto:mpegim@nus.edu.sg) by email for further information or questions about **PySPOD** or ways on how to contribute.
 
 
 ## License

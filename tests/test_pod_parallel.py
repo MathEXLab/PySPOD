@@ -44,7 +44,7 @@ def test_standard():
 
 	## fit and transform pod
 	comm = MPI.COMM_WORLD
-	pod_class = pod_standard(params=params, variables=['p'], comm=comm)
+	pod_class = pod_standard(params=params, comm=comm)
 	pod = pod_class.fit(data=data, nt=nt)
 	coeffs = pod.transform(data=data, nt=nt, rec_idx='all')
 	pod.get_data(t_0=0, t_end=1)
@@ -59,7 +59,6 @@ def test_standard():
 	assert(pod.xdim        ==2)
 	assert(pod.xshape      ==(20, 88))
 	assert(pod.dt          ==0.2)
-	assert(pod.variables   ==['p'])
 	assert(pod.n_modes_save==8)
 	modes = np.load(pod._file_modes)
 	coeffs = np.load(pod._file_coeffs)
@@ -148,7 +147,7 @@ def test_standard_convergence():
 
 	## fit and transform pod
 	comm = MPI.COMM_WORLD
-	pod_class = pod_standard(params=params, variables=['p'], comm=comm)
+	pod_class = pod_standard(params=params, comm=comm)
 	pod = pod_class.fit(data=data, nt=nt)
 	_ = pod.transform(data=data, nt=nt, rec_idx='all')
 	pod.get_data(t_0=0, t_end=1)

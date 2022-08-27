@@ -36,8 +36,6 @@ def find_nearest_freq(freq_required, freq):
 	idx = (np.abs(freq - freq_required)).argmin()
 	return freq[idx], idx
 
-
-
 def find_nearest_coords(coords, x, data_space_dim):
 	'''
 	Get nearest data coordinates to requested coordinates `coords`.
@@ -54,11 +52,9 @@ def find_nearest_coords(coords, x, data_space_dim):
 		grid = np.array(np.meshgrid(*x, indexing='ij'))
 	else:
 		raise TypeError('`x` must be a list.')
-
 	# check dimensions
 	if grid[0,::].shape != data_space_dim:
 		raise ValueError('Dimensions of coordinates `x` does not match data.')
-
 	idx = tuple()
 	xi  = tuple()
 	for i, coord in enumerate(coords):
@@ -69,8 +65,6 @@ def find_nearest_coords(coords, x, data_space_dim):
 		xi += (grid[tuple_idx],)
 		idx += (tmp_idx[cnt],)
 	return xi, idx
-
-
 
 def get_modes_at_freq(modes, freq_idx, modes_path='./'):
 	'''
@@ -90,11 +84,7 @@ def get_modes_at_freq(modes, freq_idx, modes_path='./'):
 		m = get_data_from_file(filename)
 	else:
 		raise TypeError('modes must be a dict.')
-	# else:
-	# 	m = modes[freq_idx,...]
 	return m
-
-
 
 def get_data_from_file(filename):
 	'''
@@ -141,19 +131,16 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 	'''
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
-
 	plt.figure(figsize=figsize)
 	if len(title) > 1:
 		plt.title(title)
 	ax = plt.gca()
 	ax.plot(eigs.real, eigs.imag, 'ko', label='Eigenvalues')
-
 	# dashed gridlines
 	gridlines = ax.get_xgridlines() + ax.get_ygridlines()
 	for line in gridlines:
 		line.set_linestyle('-.')
 	ax.grid(True)
-
 	# axes management
 	limit = np.max(np.ceil(np.absolute(eigs)))
 	if show_axes:
@@ -173,14 +160,12 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 	plt.xlabel('Real part')
 	if  equal_axes:
 		ax.set_aspect('equal')
-
 	# save or show plots
 	_save_show_plots(filename, path, plt)
 
-
-
-def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
-	show_axes=True, equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+def plot_eigs_vs_frequency(
+	eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
+	equal_axes=False, figsize=(12,8), fontname='Times New Roman',
 	fontsize=16, path='CWD', filename=None):
 	'''
 	Plot eigenvalues vs. frequency.
@@ -198,15 +183,12 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
 	'''
-
 	csfont = {'fontname': fontname}
 	szfont = {'fontsize': fontsize}
-
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 	if not isinstance(freq, np.ndarray):
 		raise TypeError('`freq` must be ndarray type.')
-
 	# plot figure
 	plt.figure(figsize=figsize, frameon=True, constrained_layout=False)
 	ax = plt.gca()
@@ -215,30 +197,27 @@ def plot_eigs_vs_frequency(eigs, freq, title='', xticks=None, yticks=None,
 		color = (ratio*k,ratio*k,ratio*k)
 		if ratio*k >=0.95:
 			color = (0.96,0.96, 0.96)
-		ax.plot(freq, np.real(eigs[:,k]), '-', color=color, label='Eigenvalues')
+		ax.plot(freq, np.real(eigs[:,k]), '-',
+				color=color, label='Eigenvalues')
 	ax.set_xscale('log')
 	ax.set_yscale('log')
 	ax.grid(True)
-
 	# axes management
 	ax, xticks, yticks = _format_axes(ax, xticks, yticks)
 	plt.xlabel('Frequency', **szfont, **csfont)
 	plt.ylabel('Eigenvalues', **szfont, **csfont)
 	plt.xticks(**csfont, **szfont)
 	plt.yticks(**csfont, **szfont)
-
 	if  equal_axes:
 		ax.set_aspect('equal')
 	if len(title) > 1:
 		plt.title(title)
-
 	# save or show plots
 	_save_show_plots(filename, path, plt)
 
-
-
-def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
-	show_axes=True, equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+def plot_eigs_vs_period(
+	eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
+	equal_axes=False, figsize=(12,8), fontname='Times New Roman',
 	fontsize=16, path='CWD', filename=None):
 	'''
 	Plot eigenvalues vs. period = 1 / freq.
@@ -256,19 +235,15 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	:param str filename: if specified, the plot is saved at `filename`. \
 		Default is None.
 	'''
-
 	csfont = {'fontname': fontname}
 	szfont = {'fontsize': fontsize}
-
 	if not isinstance(eigs, np.ndarray):
 		raise TypeError('`eigs` must be ndarray type.')
 	if not isinstance(freq, np.ndarray):
 		raise TypeError('`freq` must be ndarray type.')
-
 	# compute time vector
 	with np.errstate(divide='ignore'):
 		xx = 1. / freq
-
 	# plot figure
 	plt.figure(figsize=figsize, frameon=True, constrained_layout=False)
 	ax = plt.gca()
@@ -283,23 +258,18 @@ def plot_eigs_vs_period(eigs, freq, title='', xticks=None, yticks=None,
 	ax.grid(True)
 	ax.tick_params(labelsize=22)
 	plt.tight_layout(pad=5.0)
-
 	# set limits for axis
 	ax, xticks, yticks = _format_axes(ax, xticks, yticks)
 	plt.xlabel('Period', **szfont, **csfont)
 	plt.ylabel('Eigenvalues', **szfont, **csfont)
 	plt.xticks(**csfont, **szfont)
 	plt.yticks(**csfont, **szfont)
-
 	if  equal_axes:
 		ax.set_aspect('equal')
 	if len(title) > 1:
 		plt.title(title)
-
 	# save or show plots
 	_save_show_plots(filename, path, plt)
-
-
 
 def plot_2d_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 	vars_idx=[0], modes_idx=[0], x1=None, x2=None, fftshift=False,
@@ -477,8 +447,6 @@ def plot_2d_modes_at_frequency(modes, freq_required, freq, modes_path='./',
 				filename = '{0}_var{1}_mode{2}{3}'.format(
 					basename, var_id, mode_id, ext)
 			_save_show_plots(filename, path, plt)
-
-
 
 def plot_2d_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 	vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
@@ -675,11 +643,10 @@ def plot_2d_mode_slice_vs_time(modes, freq_required, freq, modes_path='./',
 				basename, var_id, mode_id, ext)
 		_save_show_plots(filename, path, plt)
 
-
-
-def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
-	modes_path='./', vars_idx=[0], modes_idx=[0], x1=None, x2=None, x3=None,
-	slice_dim=0, slice_id=None, fftshift=False, imaginary=False, plot_max=False,
+def plot_3d_modes_slice_at_frequency(
+	modes, freq_required, freq, modes_path='./', vars_idx=[0],
+	modes_idx=[0], x1=None, x2=None, x3=None, slice_dim=0,
+	slice_id=None, fftshift=False, imaginary=False, plot_max=False,
 	coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
 	equal_axes=False, path='CWD', filename=None, origin=None):
 	'''
@@ -731,7 +698,8 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 		raise TypeError('`modes_idx` must be a list or tuple')
 
 	# get modes at required frequency
-	freq_val, freq_idx = find_nearest_freq(freq_required=freq_required, freq=freq)
+	freq_val, freq_idx = find_nearest_freq(
+		freq_required=freq_required, freq=freq)
 	modes = get_modes_at_freq(
 		modes=modes, freq_idx=freq_idx, modes_path=modes_path)
 
@@ -762,9 +730,12 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 			elif mode.shape[0] == x2.shape[0]: xx = x2; flag1 = 'x2'
 			elif mode.shape[0] == x3.shape[0]: xx = x3; flag1 = 'x3'
 			# coord 2
-			if (mode.shape[1] == x1.shape[0]) and (flag1 != 'x1'): yy = x1; flag2 = 'x1'
-			elif (mode.shape[1] == x2.shape[0]) and (flag1 != 'x2'): yy = x2; flag2 = 'x2'
-			elif (mode.shape[1] == x3.shape[0]) and (flag1 != 'x3'): yy = x3; flag2 = 'x3'
+			if (mode.shape[1] == x1.shape[0]) and (flag1 != 'x1'):
+				yy = x1; flag2 = 'x1'
+			elif (mode.shape[1] == x2.shape[0]) and (flag1 != 'x2'):
+				yy = x2; flag2 = 'x2'
+			elif (mode.shape[1] == x3.shape[0]) and (flag1 != 'x3'):
+				yy = x3; flag2 = 'x3'
 
 			# perform fft shift if required
 			if fftshift:
@@ -789,13 +760,16 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 					vmax= np.abs(mode).max(),
 					origin=origin)
 				if plot_max:
-					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
-					imag_ax = _apply_2d_vertical_lines(imag_ax, x1, x2, idx_x1, idx_x2)
+					idx_x1,idx_x2 = \
+						np.where(np.abs(mode) == np.amax(np.abs(mode)))
+					real_ax = _apply_2d_vertical_lines(
+						real_ax, x1, x2, idx_x1, idx_x2)
+					imag_ax = _apply_2d_vertical_lines(
+						imag_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
 				imag_divider = make_axes_locatable(imag_ax)
-				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
-				imag_cax = imag_divider.append_axes("right", size="5%", pad=0.05)
+				real_cax = real_divider.append_axes("right",size="5%",pad=0.05)
+				imag_cax = imag_divider.append_axes("right",size="5%",pad=0.05)
 				plt.colorbar(real, cax=real_cax)
 				plt.colorbar(imag, cax=imag_cax)
 
@@ -819,7 +793,8 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 					fig.suptitle(title + \
 						', mode: {}, variable ID: {}'.format(mode_id, var_id))
 				else:
-					fig.suptitle('mode: {}, variable ID: {}'.format(mode_id, var_id))
+					fig.suptitle('mode: {}, variable ID: {}'.format(
+						mode_id, var_id))
 				real_ax.set_title('Real part')
 				imag_ax.set_title('Imaginary part')
 
@@ -832,10 +807,13 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 					vmax= np.abs(mode).max(),
 					origin=origin)
 				if plot_max:
-					idx_x1,idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-					real_ax = _apply_2d_vertical_lines(real_ax, x1, x2, idx_x1, idx_x2)
+					idx_x1,idx_x2 = \
+						np.where(np.abs(mode) == np.amax(np.abs(mode)))
+					real_ax = _apply_2d_vertical_lines(
+						real_ax, x1, x2, idx_x1, idx_x2)
 				real_divider = make_axes_locatable(real_ax)
-				real_cax = real_divider.append_axes("right", size="5%", pad=0.05)
+				real_cax = real_divider.append_axes(\
+					"right", size="5%", pad=0.05)
 				plt.colorbar(real, cax=real_cax)
 
 				# overlay coastlines if required
@@ -851,9 +829,11 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 				real_ax.set_ylabel(flag2)
 				if len(title) > 1:
 					real_ax.set_title(title + \
-						', slice mode: {}, variable ID: {}'.format(mode_id, var_id))
+						', slice mode: {}, variable ID: {}'.format(
+							mode_id, var_id))
 				else:
-					real_ax.set_title('slice mode: {}, variable ID: {}'.format(mode_id, var_id))
+					real_ax.set_title('slice mode: {}, variable ID: {}'.format(
+						mode_id, var_id))
 
 			# padding between elements
 			plt.tight_layout(pad=2.)
@@ -861,14 +841,14 @@ def plot_3d_modes_slice_at_frequency(modes, freq_required, freq,
 			# save or show plots
 			if filename:
 				basename, ext = splitext(filename)
-				filename = '{0}_var{1}_mode{2}{3}'.format(basename, var_id, mode_id, ext)
+				filename = '{0}_var{1}_mode{2}{3}'.format(
+					basename, var_id, mode_id, ext)
 			_save_show_plots(filename, path, plt)
 
-
-
-def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
-	x=None, vars_idx=[0], modes_idx=[0], fftshift=False, title='',
-	figsize=(12,8), path='CWD', filename=None):
+def plot_mode_tracers(
+	modes, freq_required, freq, coords_list, modes_path='./',
+	x=None, vars_idx=[0], modes_idx=[0], fftshift=False,
+	title='', figsize=(12,8), path='CWD', filename=None):
 	'''
 	Plot SPOD mode tracers for nD problems.
 
@@ -914,7 +894,8 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 		raise TypeError('`coords` must be a list')
 
 	# get modes at required frequency
-	freq_val, freq_idx = find_nearest_freq(freq_required=freq_required, freq=freq)
+	freq_val, freq_idx = find_nearest_freq(
+		freq_required=freq_required, freq=freq)
 	modes = get_modes_at_freq(
 		modes=modes, freq_idx=freq_idx, modes_path=modes_path)
 	xdim = modes[...,0,0].shape
@@ -970,8 +951,6 @@ def plot_mode_tracers(modes, freq_required, freq, coords_list, modes_path='./',
 					basename, coords, var_id, mode_id, ext)
 			_save_show_plots(filename, path, plt)
 
-
-
 def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 	title='', coastlines='', figsize=(12,8), path='CWD', filename=None,
 	origin=None):
@@ -1022,9 +1001,11 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 
 			fig = plt.figure(figsize=figsize)
 			if len(title) > 1:
-				fig.suptitle(title + ', time index {}, variable {}'.format(time_id, var_id))
+				fig.suptitle(title + ', time index {}, variable {}'.format(
+					time_id, var_id))
 			else:
-				fig.suptitle('time index {}, variable {}'.format(time_id, var_id))
+				fig.suptitle('time index {}, variable {}'.format(
+					time_id, var_id))
 
 			# get 2D data
 			x = np.real(X[time_id,...,var_id])
@@ -1032,7 +1013,8 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 			# check dimension axes and data
 			size_coords = x1.shape[0] * x2.shape[0]
 			if size_coords != x.size:
-				raise ValueError('Data dimension does not match coordinates dimensions.')
+				raise ValueError(\
+					'Data dimension does not match coordinates dimensions.')
 
 			if x1.shape[0] != x.shape[1] or x2.shape[0] != x.shape[0]:
 				x = x.T
@@ -1061,8 +1043,6 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
 				filename = '{0}_var{1}_time{2}{3}'.format(
 					basename, var_id, time_id, ext)
 			_save_show_plots(filename, path, plt)
-
-
 
 def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 	vars_idx=[0], title='', figsize=(12,8), path='CWD', filename=None):
@@ -1133,8 +1113,6 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 					basename, coords, var_id, ext)
 			_save_show_plots(filename, path, plt)
 
-
-
 def generate_2d_subplot(
 	var1, title1, var2=None, title2=None, var3=None, title3=None,
 	N_round=6, path='CWD', filename=None):
@@ -1185,8 +1163,6 @@ def generate_2d_subplot(
 		ax3.set_ylabel('y',fontsize=16, **csfont)
 	_save_show_plots(filename, path, plt)
 
-
-
 def plot_compare_time_series(
 	series1, series2, label1='', label2='', figsize=(12,8),
 	legendLocation='upper left', path='CWD', filename=None):
@@ -1201,8 +1177,6 @@ def plot_compare_time_series(
 	plt.xlabel('Index', fontsize=20)
 	plt.legend([label1, label2], loc=legendLocation, fontsize=18)
 	_save_show_plots(filename, path, plt)
-
-
 
 def plot_training_histories(
 	loss, val_loss, figsize=(12,8), path='CWD', filename=None):

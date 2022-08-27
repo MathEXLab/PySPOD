@@ -54,8 +54,8 @@ def read_data_netCDF(data, t_0, t_end, variables):
     for _,var in enumerate(variables):
         X = np.array(ds[var].isel(time=ti))
     return X
-x_nc = read_data_netCDF('data.nc', t_0=0, t_end=t.shape[0], variables=variables)
-x_nc_ssn = read_data_netCDF('data.nc', t_0=0, t_end=0, variables=variables)
+x_nc = read_data_netCDF('data.nc', t_0=0, t_end=t.shape[0], )
+x_nc_ssn = read_data_netCDF('data.nc', t_0=0, t_end=0, )
 print('x_nc.shape = ', x_nc.shape)
 print('x_nc_ssn.shape = ', x_nc_ssn.shape)
 
@@ -85,7 +85,7 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 
 # Initialize libraries by using data_handler for the low storage algorithm
-spod_ls = SPOD_streaming(params=params, data_handler=read_data_netCDF, variables=variables)
+spod_ls = SPOD_streaming(params=params, data_handler=read_data_netCDF, )
 spod = spod_ls.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 
 # Let's plot the data
@@ -110,7 +110,7 @@ spod_ls.plot_2d_modes_at_frequency(
     vars_idx=[0])
 
 # Let's try the low_ram algorithm
-spod_ram = SPOD_low_ram(params=params, data_handler=read_data_netCDF, variables=variables)
+spod_ram = SPOD_low_ram(params=params, data_handler=read_data_netCDF, )
 spod_ram.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 
 # Show results
@@ -130,7 +130,7 @@ spod_ram.plot_2d_modes_at_frequency(
     vars_idx=[0])
 
 # Finally, we can try the streaming algorithm
-spod_st = SPOD_streaming(params=params, data_handler=read_data_netCDF, variables=variables)
+spod_st = SPOD_streaming(params=params, data_handler=read_data_netCDF, )
 spod_st.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 
 # Show results

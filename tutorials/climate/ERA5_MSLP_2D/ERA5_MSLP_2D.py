@@ -49,7 +49,7 @@ def read_data(data, t_0, t_end, variables):
 s = time.time()
 variables = ['msl']
 nt =  t.shape[0]
-X = read_data(data=ds, t_0=0, t_end=0, variables=variables)
+X = read_data(data=ds, t_0=0, t_end=0, )
 # for i,var in enumerate(variables):
 #     X[...,i] = np.array(ds[var])
 # #   X[...,i] = np.einsum('ijk->ikj', np.array(ds[var]))
@@ -86,7 +86,7 @@ weights = utils_weights.geo_trapz_2D(
 SPOD_analysis = SPOD_low_ram(
 	params=params,
 	data_handler=read_data,
-	variables=variables,
+	,
 	weights=weights)
 
 # Fit SPOD
