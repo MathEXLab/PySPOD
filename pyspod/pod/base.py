@@ -209,7 +209,9 @@ class Base():
 	# -------------------------------------------------------------------------
 
 	def _initialize(self, data, nt):
-
+		'''
+		Initialize fit method for POD.
+		'''
 		self._nt = nt
 		self._data = data
 
@@ -234,15 +236,10 @@ class Base():
 		self.define_weights()
 
 		## distribute data and weights
-		if self._comm:
-			self._data, self._maxdim_idx, self._global_shape = \
-				utils_par.distribute_data(\
-					data=self._data, comm=self._comm)
-			self._comm.Barrier()
-			self._weights = utils_par.distribute_dimension(\
-				data=self._weights, maxdim_idx=self._maxdim_idx,
-				comm=self._comm)
-			self._comm.Barrier()
+		self._data, self._maxdim_idx, self._global_shape = \
+			utils_par.distribute_data(data=self._data, comm=self._comm)
+		self._weights = utils_par.distribute_dimension(\
+			data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
 
 		## get data and add axis for single variable
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
@@ -313,8 +310,8 @@ class Base():
 	def select_mean(self):
 		'''Select mean.'''
 		self._mean_type = self._mean_type.lower()
-		if self._mean_type   == 'longtime' : self._t_mean = self.long_t_mean()
-		elif self._mean_type == 'zero'     : self._t_mean = 0
+		if self._mean_type   == 'longtime': self._t_mean = self.long_t_mean()
+		elif self._mean_type == 'zero'    : self._t_mean = 0
 		else:
 			## mean_type not recognized
 			if self._rank == 0:
@@ -382,10 +379,10 @@ class Base():
 		:return: the matrix that contains the original snapshots.
 		:rtype: numpy.ndarray
 		'''
-		X = self._data[t_0:t_end,...]
-		if self._nv == 1 and (X.ndim != self._xdim + 2):
-				X = X[...,np.newaxis]
-		return X
+		d = self._data[t_0:t_end,...]
+		if self._nv == 1 and (d.ndim != self._xdim + 2):
+				d = d[...,np.newaxis]
+		return d
 
 	# -------------------------------------------------------------------------
 

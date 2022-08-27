@@ -23,7 +23,7 @@ class Streaming(Base):
 
 	def fit(self, data, nt):
 		'''
-		Class-specific method to fit the data matrix X using the SPOD
+		Class-specific method to fit the data matrix using the SPOD
 		streaming algorithm.
 		'''
 		start = time.time()
@@ -156,16 +156,14 @@ class Streaming(Base):
 
 						## product U^H*x needed in eqns. (27,32)
 						Ux = np.matmul(U.conj().T, x)
-						if self._comm:
-							Ux = utils_par.allreduce(Ux, comm=self._comm)
+						Ux = utils_par.allreduce(Ux, comm=self._comm)
 
 						## orthogonal complement to U, eqn. (27)
 						u_p = x - np.matmul(U, Ux)
 
 						## norm of orthogonal complement
 						abs_up = np.matmul(u_p.conj().T, u_p)
-						if self._comm:
-							abs_up = utils_par.allreduce(abs_up, comm=self._comm)
+						abs_up = utils_par.allreduce(abs_up, comm=self._comm)
 						abs_up = np.sqrt(abs_up)
 
 						## normalized orthogonal complement
@@ -222,11 +220,8 @@ class Streaming(Base):
 			if self._comm:
 				shape[self._maxdim_idx] = -1
 			Psi.shape = shape
-			if self._comm:
-				utils_par.npy_save(
-					self._comm, path_modes, Psi, axis=self._maxdim_idx)
-			else:
-				np.save(path_modes, Psi)
+			utils_par.npy_save(
+				self._comm, path_modes, Psi, axis=self._maxdim_idx)
 		self._pr0(f'Modes saved in folder: {self._modes_folder}')
 
 		## save eigenvalues

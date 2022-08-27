@@ -55,6 +55,15 @@ jobs:
     - name: Install extra dependencies
       run:  python -m pip install -r requirements_extra.txt
 
+    - name: Test mpiexec_pod
+      run: mpiexec -np 2 python3 tests/test_pod_parallel.py
+
+    - name: Test mpiexec_spod
+      run: mpiexec -np 2 python3 tests/test_spod_parallel.py
+
+    - name: Test mpiexec_utils
+      run: mpiexec -np 2 python3 tests/test_utils_parallel.py
+
     - name: Test package
       run: coverage run --source ./pyspod -m pytest -v tests/
 

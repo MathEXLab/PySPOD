@@ -1,4 +1,4 @@
-'''Derived module from spod_base.py for SPOD low ram.'''
+'''Derived module from spod_base.py for standard SPOD.'''
 
 # Import standard Python packages
 import os
@@ -11,27 +11,20 @@ import pyspod.utils.parallel as utils_par
 
 
 
-
-
-CWD = os.getcwd()
-BYTE_TO_GB = 9.3132257461548e-10
-
-
-
 class Standard(Base):
 	'''
-	Class that implements a distributed version of the
-	Spectral Proper Orthogonal Decomposition to the input
-	data (for large datasets ).
+	Class that implements a distributed batch version
+	Spectral Proper Orthogonal Decomposition algorithm
+	to the inputdata (for large datasets).
 
-	The computation is performed on the data *X* passed
+	The computation is performed on the `data` passed
 	to the constructor of the `Standard` class, derived
 	from the `Base` class.
 	'''
 
 	def fit(self, data, nt):
 		'''
-		Class-specific method to fit the data matrix X using
+		Class-specific method to fit the data matrix using
 		the SPOD low ram algorithm.
 		'''
 		start = time.time()
@@ -67,11 +60,8 @@ class Standard(Base):
 					s = np.load(file)
 					Q_hat[i_freq,...,i_blk] = np.load(file)
 					self._Q_hat_f[str(i_blk)][str(i_freq)] = file
-			if self._comm:
-				Q_hat = utils_par.distribute_dimension(
-					data=Q_hat,
-					maxdim_idx=self._maxdim_idx+1,
-					comm=self._comm)
+			Q_hat = utils_par.distribute_dimension(
+				data=Q_hat, maxdim_idx=self._maxdim_idx+1, comm=self._comm)
 			shape = [Q_hat.shape[0], Q_hat[0,...,0].size, Q_hat.shape[-1]]
 			Q_hat = np.reshape(Q_hat, shape)
 		else:
@@ -101,14 +91,11 @@ class Standard(Base):
 						shape = [*self._xshape]
 						if self._comm: shape[self._maxdim_idx] = -1
 						Q_blk_hat_fr.shape = shape
-						if self._comm:
-							utils_par.npy_save(
-								self._comm,
-								path,
-								Q_blk_hat_fr,
-								axis=self._maxdim_idx)
-						else:
-							np.save(path, Q_blk_hat_fr)
+						utils_par.npy_save(
+							self._comm,
+							path,
+							Q_blk_hat_fr,
+							axis=self._maxdim_idx)
 
 				## store FFT blocks in RAM
 				Q_hat[:,:,i_blk] = Q_blk_hat

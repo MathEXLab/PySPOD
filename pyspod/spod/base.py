@@ -1,6 +1,6 @@
 '''
 Base module for the SPOD:
-	- `fit` and `predict` methods must be implemented in inherited classes
+	- `fit` and `transform` methods must be implemented in inherited classes
 '''
 from __future__ import division
 
@@ -25,7 +25,6 @@ import pyspod.utils.postproc as post
 CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
-
 BYTE_TO_GB = 9.3132257461548e-10
 
 
@@ -412,15 +411,10 @@ class Base():
 		self.define_weights()
 
 		## distribute data and weights
-		if self._comm:
-			self._data, self._maxdim_idx, self._global_shape = \
-				utils_par.distribute_data(\
-					data=self._data, comm=self._comm)
-			self._comm.Barrier()
-			self._weights = utils_par.distribute_dimension(\
-				data=self._weights, maxdim_idx=self._maxdim_idx,
-				comm=self._comm)
-			self._comm.Barrier()
+		self._data, self._maxdim_idx, self._global_shape = \
+			utils_par.distribute_data(data=self._data, comm=self._comm)
+		self._weights = utils_par.distribute_dimension(\
+			data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
 
 		## get data and add axis for single variable
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
@@ -617,9 +611,7 @@ class Base():
 
 		# compute inner product in frequency space, for given frequency
 		M = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
-
-		if self._comm:
-			M = utils_par.allreduce(data=M, comm=self._comm)
+		M = utils_par.allreduce(data=M, comm=self._comm)
 
 		## compute eigenvalues and eigenvectors
 		L,V = la.eig(M)
@@ -643,11 +635,8 @@ class Base():
 		if self._comm:
 			shape[self._maxdim_idx] = -1
 		phi.shape = shape
-		if self._comm:
-			utils_par.npy_save(
-				self._comm, path_modes, phi, axis=self._maxdim_idx)
-		else:
-			np.save(path_modes, phi)
+		utils_par.npy_save(
+			self._comm, path_modes, phi, axis=self._maxdim_idx)
 		self._pr0(f'Modes saved in folder: {self._modes_folder}')
 
 		# get eigenvalues and confidence intervals
@@ -732,10 +721,8 @@ class Base():
 		## distribute data if parallel required
 		## note: weights are already distributed from fit()
 		## it is assumed that one runs fit and transform within the same main
-		if self._comm:
-			self._data, self._maxdim_idx, self._global_shape = \
-				utils_par.distribute_data(data=self._data, comm=self._comm)
-			self._comm.Barrier()
+		self._data, self._maxdim_idx, self._global_shape = \
+			utils_par.distribute_data(data=self._data, comm=self._comm)
 
 		## add axis for single variable
 		if not isinstance(self._data,np.ndarray):
@@ -765,9 +752,8 @@ class Base():
 		cnt_freq = 0
 		for i_freq in range(self._freq_idx_lb, self._freq_idx_ub+1):
 			modes = self.get_modes_at_freq(i_freq)
-			if self._comm:
-				modes = utils_par.distribute_dimension(\
-					data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
+			modes = utils_par.distribute_dimension(\
+				data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
 			modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
 			for i_mode in range(self._n_modes_save):
 				jump_freq = self.n_modes_save*cnt_freq+i_mode
@@ -803,9 +789,8 @@ class Base():
 		data = data.T
 		M = phi_tilde.conj().T @ (weights_phi * phi_tilde)
 		Q = phi_tilde.conj().T @ (weights * data)
-		if self._comm:
-			M = utils_par.allreduce(data=M, comm=self._comm)
-			Q = utils_par.allreduce(data=Q, comm=self._comm)
+		M = utils_par.allreduce(data=M, comm=self._comm)
+		Q = utils_par.allreduce(data=Q, comm=self._comm)
 		if svd:
 			u, l, v = np.linalg.svd(M)
 			l_inv = np.zeros([len(l),len(l)], dtype=complex)
@@ -856,12 +841,9 @@ class Base():
 			shape[self._maxdim_idx] = -1
 		Q_reconstructed.shape = shape
 		Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
-		if self._comm:
-			utils_par.npy_save(
-				self._comm, file_dynamics, Q_reconstructed,
-				axis=self._maxdim_idx+1)
-		else:
-			np.save(file_dynamics, Q_reconstructed)
+		utils_par.npy_save(
+			self._comm, file_dynamics, Q_reconstructed,
+			axis=self._maxdim_idx+1)
 
 		## reshape data and save
 		if self._rank == 0:

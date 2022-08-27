@@ -43,8 +43,7 @@ class Standard(Base):
 
 		## eigendecomposition
 		Q = d.conj().T @ (d * self._weights)
-		if self._comm:
-			Q = utils_par.allreduce(Q, comm=self._comm)
+		Q = utils_par.allreduce(Q, comm=self._comm)
 		w, v = scipy.linalg.eig(Q)
 
 		# bases
@@ -59,11 +58,10 @@ class Standard(Base):
 		shape = [*self._xshape,self._nv,self._n_modes_save]
 		if self._comm: shape[self._maxdim_idx] = -1
 		phi_r.shape = shape
-		if self._comm:
-			utils_par.npy_save(
-				self._comm, self._file_modes, phi_r, axis=self._maxdim_idx)
-		else:
-			np.save(self._file_modes, phi_r)
+		utils_par.npy_save(
+			self._comm, self._file_modes, phi_r, axis=self._maxdim_idx)
+		# else:
+			# np.save(self._file_modes, phi_r)
 		self._pr0(f'done. Elapsed time: {time.time() - st} s.')
 		self._pr0(f'Modes saved in  {self._file_modes}')
 		self._eigs = w
@@ -112,10 +110,8 @@ class Standard(Base):
 		## distribute data if parallel required
 		## note: weights are already distributed from fit()
 		## it is assumed that one runs fit and transform within the same main
-		if self._comm:
-			self._data, self._maxdim_idx, self._global_shape = \
-				utils_par.distribute_data(data=self._data, comm=self._comm)
-			self._comm.Barrier()
+		self._data, self._maxdim_idx, self._global_shape = \
+			utils_par.distribute_data(data=self._data, comm=self._comm)
 
 		## add axis for single variable
 		if not isinstance(self._data,np.ndarray):
@@ -136,15 +132,13 @@ class Standard(Base):
 
 		# load and distribute modes
 		modes = np.load(os.path.join(self._savedir_modes, 'modes.npy'))
-		if self._comm:
-			modes = utils_par.distribute_dimension(\
-				data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
+		modes = utils_par.distribute_dimension(\
+			data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
 		modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
 
 		# compute coefficients
 		a = np.transpose(modes) @ np.transpose(self._data)
-		if self._comm:
-			a = utils_par.allreduce(data=a, comm=self._comm)
+		a = utils_par.allreduce(data=a, comm=self._comm)
 
 		# save coefficients
 		self._file_coeffs = os.path.join(self._savedir_modes, 'coeffs.npy')
@@ -186,12 +180,9 @@ class Standard(Base):
 			shape[self._maxdim_idx] = -1
 		Q_reconstructed.shape = shape
 		Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
-		if self._comm:
-			utils_par.npy_save(
-				self._comm, self._file_dynamics, Q_reconstructed,
-				axis=self._maxdim_idx+1)
-		else:
-			np.save(self._file_dynamics, Q_reconstructed)
+		utils_par.npy_save(
+			self._comm, self._file_dynamics, Q_reconstructed,
+			axis=self._maxdim_idx+1)
 		self._pr0(f'done. Elapsed time: {time.time() - s0} s.')
 		self._pr0(f'Reconstructed data saved in {self._file_dynamics}')
 		return Q_reconstructed
