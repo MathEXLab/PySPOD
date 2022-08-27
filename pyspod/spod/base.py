@@ -399,12 +399,14 @@ class Base():
 		self.define_weights()
 
 		## distribute data and weights
+		self._pr0(f'- distributing data (if parallel)')
 		self._data, self._maxdim_idx, self._global_shape = \
 			utils_par.distribute_data(data=self._data, comm=self._comm)
 		self._weights = utils_par.distribute_dimension(\
 			data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
 
 		## get data and add axis for single variable
+		self._pr0(f'- getting data')
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
