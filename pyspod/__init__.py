@@ -1,9 +1,9 @@
 '''PySPOD init'''
-from .pod.base              import Base        as pod_base
-from .pod.standard          import Standard    as pod_standard
-from .spod.base             import Base        as spod_base
-from .spod.standard         import Standard    as spod_standard
-from .spod.streaming        import Streaming   as spod_streaming
+from .pod.base       import Base      as pod_base
+from .pod.standard   import Standard  as pod_standard
+from .spod.base      import Base      as spod_base
+from .spod.standard  import Standard  as spod_standard
+from .spod.streaming import Streaming as spod_streaming
 import os
 import sys
 PACKAGE_PARENTS = ['..']
@@ -16,7 +16,7 @@ for P in PACKAGE_PARENTS:
 __project__    = 'PySPOD'
 __title__      = "pyspod"
 __author__     = "Gianmarco Mengaldo, Lisandro Dalcin, Romit Maulik, Andrea Lario"
-__email__      = 'mpegim@nus.edu.sg, rmaulik@anl.gov, alario@sissa.it'
+__email__      = 'mpegim@nus.edu.sg, lisandro.dalcin@kaust.edu.sa, rmaulik@anl.gov, alario@sissa.it'
 __copyright__  = "Copyright 2020-2022 PySPOD authors and contributors"
 __maintainer__ = __author__
 __status__     = "Stable"
