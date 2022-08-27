@@ -40,8 +40,8 @@ def test_standard_fullspectrum():
 	## -------------------------------------------------------------------
 	spod_class = spod_standard(params=params, variables=['p'], comm=comm)
 	spod = spod_class.fit(data=data, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	if comm.rank == 0:
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 		assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
@@ -77,8 +77,8 @@ def test_standard_reuse_blocks():
 	## -------------------------------------------------------------------
 	spod_class = spod_standard(params=params, variables=['p'], comm=comm)
 	spod = spod_class.fit(data=data, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	if comm.rank == 0:
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 		assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
@@ -95,8 +95,8 @@ def test_standard_reuse_blocks():
 	params['reuse_blocks'] = True
 	spod_class = spod_standard(params=params, variables=['p'], comm=comm)
 	spod = spod_class.fit(data=data, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	if comm.rank == 0:
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 		assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
@@ -374,8 +374,8 @@ def test_streaming_fullspectrum():
 	## -------------------------------------------------------------------
 	spod_class = spod_streaming(params=params, variables=['p'], comm=comm)
 	spod = spod_class.fit(data=data, nt=nt)
-	T_approx = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+	T_ = 12.5; 	tol = 1e-10
+	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
 	if comm.rank == 0:
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 		# print(f'{np.abs(modes_at_freq[0,1,0,0]) = :}')
