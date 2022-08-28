@@ -406,14 +406,25 @@ class Base():
 			data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
 
 		## get data and add axis for single variable
-		self._pr0(f'- getting data')
+		st = time.time()
+		self._pr0(f'- loading data into memory')
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
+		print(f'{self._rank = :},  - loading data into memory, done. Elapsed time: {time.time() - st} s.')
+		st = time.time()
+
+		# test feasibility
+		if (self._n_dft < 4) or (self._n_blocks < 2):
+			if self._rank == 0:
+				raise ValueError(
+					'Spectral estimation parameters not meaningful.')
 
 		# apply mean
 		self._pr0(f'- computing time mean')
 		self.select_mean()
+		print(f'{self._rank = :},  - computing mean, done. Elapsed time: {time.time() - st} s.')
+		st = time.time()
 
 		## normalize weigths if required
 		if self._normalize_weights:
@@ -439,12 +450,6 @@ class Base():
 		# set number of modes to save
 		if self._n_modes_save > self._n_blocks:
 			self._n_modes_save = self._n_blocks
-
-		# test feasibility
-		if (self._n_dft < 4) or (self._n_blocks < 2):
-			if self._rank == 0:
-				raise ValueError(
-					'Spectral estimation parameters not meaningful.')
 
 		# determine correction for FFT window gain
 		self._win_weight = 1 / np.mean(self._window)
@@ -560,21 +565,33 @@ class Base():
 	def compute_blocks(self, i_blk):
 		'''Compute FFT blocks.'''
 
+		s0 = time.time()
+
 		# get time index for present block
 		offset = min(i_blk * (self._n_dft - self._n_overlap) \
 			+ self._n_dft, self._nt) - self._n_dft
 
 		# Get data
+		st = time.time()
 		Q_blk = self._data[offset:self._n_dft+offset,...]
+		# self._pr0(f'{self._rank = :}, {i_blk = :}, time for getting data: {time.time() - st} s.')
+		# st = time.time()
+
 		Q_blk = Q_blk.reshape(self._n_dft, self._data[0,...].size)
+		# print(f'{self._rank = :}, {i_blk = :},   {np.min(Q_blk) = :},  {np.max(Q_blk) = :},  {np.mean(Q_blk) = :},  {Q_blk.shape = :}')
+		# st = time.time()
 
 		# Subtract longtime or provided mean
 		Q_blk = Q_blk[:] - self._t_mean
+		# print(f'{self._rank = :}, {i_blk = :}, time for removing mean: {time.time() - st} s.')
+		# st = time.time()
 
 		# if block mean is to be subtracted,
 		# do it now that all data is collected
 		if self._mean_type.lower() == 'blockwise':
 			Q_blk = Q_blk - np.mean(Q_blk, axis=0)
+		# print(f'{self._rank = :}, {i_blk = :}, time for blockwise mean: {time.time() - st} s.')
+		# st = time.time()
 
 		# normalize by pointwise variance
 		if self._normalize_data:
@@ -583,39 +600,81 @@ class Base():
 			# address division-by-0 problem with NaNs
 			Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
 			Q_blk = Q_blk / Q_var
+		# print(f'{self._rank = :}, {i_blk = :}, time for normalizing data: {time.time() - st} s.')
+		# st = time.time()
 
 		# window and Fourier transform block
 		self._window = self._window.reshape(self._window.shape[0],1)
+		# print(f'{self._rank = :}, {i_blk = :}, time for reshaping window: {time.time() - st} s.')
+		# st = time.time()
+
 		Q_blk = Q_blk * self._window
+		# print(f'{self._rank = :}, {i_blk = :}, time for multiplying by window: {time.time() - st} s.')
+		# st = time.time()
+
 		Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
+		# print(f'{self._rank = :}, {i_blk = :}, time for fft: {time.time() - st} s.')
+		# st = time.time()
+
 		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
+		# print(f'{self._rank = :}, {i_blk = :}, time for extracting freqs: {time.time() - st} s.')
+		# st = time.time()
 
 		# correct Fourier coefficients for one-sided spectrum
 		if self._isrealx:
 			Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
+		# print(f'{self._rank = :}, {i_blk = :}, time for isrealx: {time.time() - st} s.')
+		# st = time.time()
+
+		print(f'{self._rank = :}, {i_blk = :}, TOTAL TIME REQUIRED TO COMPUTE BLOCK: {time.time() - s0} s.')
+		if self._comm: self._comm.Barrier()
+
 		return Q_blk_hat, offset
 
 
 	def compute_standard_spod(self, Q_hat_f, i_freq):
 		'''Compute standard SPOD.'''
 
+		s0 = time.time()
+		st = time.time()
+
 		# compute inner product in frequency space, for given frequency
 		M = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
+		print(f'{self._rank = :}, {i_freq = :}, time for M: {time.time() - st} s.')
+		st = time.time()
+
 		M = utils_par.allreduce(data=M, comm=self._comm)
+		print(f'{self._rank = :}, {i_freq = :}, time for allreduce: {time.time() - st} s.')
+		st = time.time()
 
 		## compute eigenvalues and eigenvectors
 		L,V = la.eig(M)
+		# print(f'{self._rank = :}, {i_freq = :}, time for eigs: {time.time() - st} s.')
+		# st = time.time()
+
 		L = np.real_if_close(L, tol=1000000)
+		# print(f'{self._rank = :}, {i_freq = :}, time for real_if_close: {time.time() - st} s.')
+		# st = time.time()
 
 		# reorder eigenvalues and eigenvectors
 		idx = np.argsort(L)[::-1]
 		L = L[idx]
 		V = V[:,idx]
+		# print(f'{self._rank = :}, {i_freq = :}, time for sorting: {time.time() - st} s.')
+		# st = time.time()
 
 		# compute spatial modes for given frequency
 		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
+		# print(f'{self._rank = :}, {i_freq = :}, time for computing L_diag: {time.time() - st} s.')
+		# st = time.time()
+
 		phi = np.matmul(Q_hat_f, V * L_diag[None,:])
+		# print(f'{self._rank = :}, {i_freq = :}, time for matmul Q_hat_f, V * L_diag: {time.time() - st} s.')
+		# st = time.time()
+
 		phi = phi[...,0:self._n_modes_save]
+		# print(f'{self._rank = :}, {i_freq = :}, time for extracting modes: {time.time() - st} s.')
+		# st = time.time()
 
 		## save modes
 		file_modes = 'modes_freq{:08d}.npy'.format(i_freq)
@@ -625,9 +684,11 @@ class Base():
 		if self._comm:
 			shape[self._maxdim_idx] = -1
 		phi.shape = shape
-		utils_par.npy_save(
-			self._comm, path_modes, phi, axis=self._maxdim_idx)
-		self._pr0(f'Modes saved in folder: {self._modes_folder}')
+		# print(f'{self._rank = :}, {i_freq = :}, time for reshaping modes: {time.time() - st} s.')
+		# st = time.time()
+		utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx)
+		# print(f'{self._rank = :}, {i_freq = :}, time for I/O saving modes: {time.time() - st} s.')
+		# st = time.time()
 
 		# get eigenvalues and confidence intervals
 		self._eigs[i_freq,:] = abs(L)
@@ -635,6 +696,11 @@ class Base():
 			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_lower
 		self._eigs_c[i_freq,:,1] = \
 			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_upper
+		# print(f'{self._rank = :}, {i_freq = :}, time for confidence intervals: {time.time() - st} s.')
+		# st = time.time()
+
+		print(f'{self._rank = :}, {i_freq = :}, TOTAL TIME FOR COMPUTING FREQ: {time.time() - s0} s.')
+		st = time.time()
 
 
 	def transform(
@@ -949,6 +1015,7 @@ class Base():
 				mode_path = os.path.join(
 					self._modes_folder, self.modes[freq_idx])
 				m = post.get_data_from_file(mode_path)
+				if self._comm: self._comm.Barrier()
 		else:
 			if self._rank == 0:
 				raise TypeError('Modes must be a dictionary')

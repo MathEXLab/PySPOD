@@ -80,10 +80,9 @@ class Standard(Base):
 
 				# save FFT blocks in storage memory
 				self._Q_hat_f[str(i_blk)] = dict()
-
 				for i_freq in range(0, self._n_freq):
-					Q_blk_hat_fr = Q_blk_hat[i_freq,:]
 					if self._savefft == True:
+						Q_blk_hat_fr = Q_blk_hat[i_freq,:]
 						file = 'fft_block{:08d}_freq{:08d}.npy'.format(
 							i_blk,i_freq)
 						path = os.path.join(self._blocks_folder, file)
@@ -96,13 +95,17 @@ class Standard(Base):
 							path,
 							Q_blk_hat_fr,
 							axis=self._maxdim_idx)
+				## delete temporary block
+				if self._savefft: del Q_blk_hat_fr
 
 				## store FFT blocks in RAM
 				Q_hat[:,:,i_blk] = Q_blk_hat
 
-				## delete temporary block
-				del Q_blk_hat_fr
+		self._pr0(f'Modes saved in folder: {self._modes_folder}')
 		self._pr0(f'------------------------------------')
+		print(f'{self._rank = :},  TIME TO COMPUTE TEMPORAL DFT: {time.time() - start} s.')
+		if self._comm: self._comm.Barrier()
+		start = time.time()
 
 		# Loop over all frequencies and calculate SPOD
 		self._pr0(f' ')
@@ -112,18 +115,64 @@ class Standard(Base):
 		self._modes = dict()
 
 		# keep everything in RAM memory (default)
-		for i_freq in tqdm(range(0,self._n_freq),desc='computing frequencies'):
+		if self._comm: self._comm.Barrier()
 
-			# get FFT block from RAM memory for each given frequency
+		## no time parallel: uncomment below
+		## ------------------------------------------------------------------
+		for i_freq in range(0,self._n_freq):
+
+			## get FFT block from RAM memory for each given frequency
 			Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
-
-			# compute standard spod
+			print(f'{self._rank = :},  {Q_hat_f.shape = :}')
+			## compute standard spod
 			self.compute_standard_spod(Q_hat_f, i_freq)
+
+		## barrier for sync and save
+		if self._comm: self._comm.Barrier()
+		## ------------------------------------------------------------------
+
+		# ## time parallel: uncomment below
+		# ## ------------------------------------------------------------------
+		# perrank = self._n_freq // self._size
+		# remaind = self._n_freq % self._size
+		# if self._comm: self._comm.Barrier()
+		# if self._rank != self._size - 1:
+		# 	print(f'{self._rank = :},  IF!')
+		# 	for i_freq in range(self._rank * perrank, (self._rank + 1) * perrank):
+		# 		print(f'IF - {self._rank = :},  {i_freq = :}/{self._n_freq-1}')
+		# 		# i_freq_local = i_freq - self._rank * perrank
+		# 		# print(f'IF - {self._rank = :},  {i_freq_local = :}/{self._n_freq-1}')
+		# 		# get FFT block from RAM memory for each given frequency
+		# 		Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
+		# 		print(f'{self._rank = :},  {Q_hat_f.shape = :}')
+		# 		# compute standard spod
+		# 		self.compute_standard_spod(Q_hat_f, i_freq)
+		# else:
+		# 	print(f'{self._rank = :},  ELSE!')
+		# 	print(f'{self._rank = :},  ELSE - {(self._size-1)*perrank = :},  {self._n_freq = :}')
+		# 	for i_freq in range((self._size-1)*perrank, self._n_freq):
+		# 		print(f'ELSE - {self._rank = :},  {i_freq = :}/{self._n_freq-1}')
+		# 		# i_freq_local = i_freq - (self._size-1)*perrank
+		# 		# print(f'ELSE - {self._rank = :},  {i_freq_local = :}/{self._n_freq-1}')
+		# 		# get FFT block from RAM memory for each given frequency
+		# 		Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
+		# 		print(f'{self._rank = :},  {Q_hat_f.shape = :}')
+		# 		# compute standard spod
+		# 		self.compute_standard_spod(Q_hat_f, i_freq)
+		# 		print(f'{self._rank = :},  ELSE - compute_standard_spod')
+		#
+		# ## barrier for sync and save
+		# print(f'{self._rank = :},  barrier 1')
+		# if self._comm: self._comm.Barrier()
+		# print(f'{self._rank = :},  barrier 2')
+		## ------------------------------------------------------------------
+
 
 		# store and save results
 		self._store_and_save()
 		self._pr0(f'------------------------------------')
 		self._pr0(f' ')
 		self._pr0(f'Results saved in folder {self._savedir_sim}')
-		self._pr0(f'Elapsed time: {time.time() - start} s.')
+		print(f'{self._rank = :},  TIME TO COMPUTE SPOD: {time.time() - start} s.')
+		if self._comm: self._comm.Barrier()
 		return self

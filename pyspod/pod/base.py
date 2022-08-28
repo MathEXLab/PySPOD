@@ -224,19 +224,27 @@ class Base():
 		self.define_weights()
 
 		## distribute data and weights
+		if self._comm: self._pr0('- distributing data')
 		self._data, self._maxdim_idx, self._global_shape = \
 			utils_par.distribute_data(data=self._data, comm=self._comm)
 		self._weights = utils_par.distribute_dimension(\
 			data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
 
 		## get data and add axis for single variable
+		st = time.time()
+		self._pr0(f'- loading data into memory')
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
+		print(f'{self._rank = :},  - loading data into memory, done. Elapsed time: {time.time() - st} s.')
+		st = time.time()
 
 		# apply mean
+		st = time.time()
 		self._pr0(f'- computing time mean')
 		self.select_mean()
+		print(f'{self._rank = :},  - computing mean, done. Elapsed time: {time.time() - st} s.')
+		st = time.time()
 
 		## normalize weigths if required
 		if self._normalize_weights:
