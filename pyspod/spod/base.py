@@ -62,6 +62,7 @@ class Base():
 		self._savedir = params.get('savedir', os.path.join(CWD,'spod_results'))
 
 		## parse other inputs
+		self._params = params
 		self._weights_tmp = weights
 		self._comm = comm
 
@@ -470,8 +471,7 @@ class Base():
 			+'_nblks'+str(self._n_blocks)  \
 		)
 		self._blocks_folder = os.path.join(self._savedir_sim, 'blocks')
-		self._modes_folder = os.path.join(
-			self._savedir_sim, 'modes'+str(self._n_modes_save))
+		self._modes_folder = os.path.join(self._savedir_sim, 'modes')
 		if self._rank == 0:
 			if not os.path.exists(self._savedir_sim):
 				os.makedirs(self._savedir_sim)
@@ -708,6 +708,7 @@ class Base():
 		T_lb=None, T_ub=None):
 
 		## override class variables self._data
+		del self._data
 		self._data = data
 		self._nt = nt
 
@@ -903,22 +904,33 @@ class Base():
 
 	def _store_and_save(self):
 		'''Store and save results.'''
-		path_modes = os.path.join(self._modes_folder, 'modes_dict.yaml')
-		path_eigs  = os.path.join(self._savedir_sim, 'eigs')
+		self._params['n_freq'] = self._n_freq
+		self._params['results_folder'] = self._savedir_sim
+		self._params['modes_folder'] = self._modes_folder
+		path_modes = os.path.join(self._savedir_sim, 'modes_dict.yaml')
+		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
+		path_eigs  = os.path.join(self._savedir_sim, 'eigs_and_weights')
+		## save
 		if self._rank == 0:
-			# save dictionary of modes for loading
-			with open(path_modes, 'w') as f:
-				yaml.dump(self._modes, f)
-			self._eigs_c_u = self._eigs_c[:,:,0]
-			self._eigs_c_l = self._eigs_c[:,:,1]
-			np.savez(path_eigs,
-				eigs=self._eigs,
-				eigs_c_u=self._eigs_c_u,
-				eigs_c_l=self._eigs_c_l,
-				f=self._freq,
-				weights=self._weights)
-			print(f'Eigenvalues saved in: {path_eigs}')
+			## save dictionaries of modes and params
+			with open(path_modes , 'w') as f: yaml.dump(self._modes , f)
+			with open(path_params, 'w') as f: yaml.dump(self._params, f)
+			## save eigs, freq, and weights
+			if hasattr(self, '_eigs_c'):
+				self._eigs_c_u = self._eigs_c[:,:,0]
+				self._eigs_c_l = self._eigs_c[:,:,1]
+				np.savez(path_eigs, eigs=self._eigs,
+					eigs_c_u=self._eigs_c_u, eigs_c_l=self._eigs_c_l,
+					freq=self._freq, weights=self._weights)
+			else:
+				np.savez(
+					path_eigs, eigs=self._eigs, freq=self._freq,
+					weights=self._weights)
+			print(f'Modes dictionary saved in: {path_modes}')
+			print(f'Parameters dictionary saved in: {path_params}')
+			print(f'Eigenvalues and weights saved in: {path_eigs}')
 		self._n_modes = self._eigs.shape[-1]
+
 
 
 	def _pr0(self, fstring):

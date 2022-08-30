@@ -224,11 +224,14 @@ class Streaming(Base):
 				self._comm, path_modes, Psi, axis=self._maxdim_idx)
 		self._pr0(f'Modes saved in folder: {self._modes_folder}')
 
-		## save eigenvalues
+		## transpose eigs
 		self._eigs = self._eigs.T
-		file = os.path.join(self._savedir_sim, 'eigs')
-		if self._rank == 0:
-			np.savez(file, eigs=self._eigs, f=self._freq)
-		self._pr0(f'Eigenvalues saved in: {file}')
-		self._pr0(f'Elapsed time: {time.time() - start} s.')
+		
+		# store and save results
+		self._store_and_save()
+		self._pr0(f'------------------------------------')
+		self._pr0(f' ')
+		self._pr0(f'Results saved in folder {self._savedir_sim}')
+		print(f'{self._rank = :},  TIME TO COMPUTE SPOD: {time.time() - start} s.')
+		if self._comm: self._comm.Barrier()
 		return self
