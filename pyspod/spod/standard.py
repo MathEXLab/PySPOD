@@ -119,11 +119,15 @@ class Standard(Base):
 
 		## no time parallel: uncomment below
 		## ------------------------------------------------------------------
+		if self._rank == 0:
+			pbar = tqdm(total=self._n_freq, desc='# iterations on freqs')
+
 		for i_freq in range(0,self._n_freq):
+			if self._rank == 0: pbar.update(1)
 
 			## get FFT block from RAM memory for each given frequency
-			Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
-			print(f'{self._rank = :},  {Q_hat_f.shape = :}')
+			Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype(complex)
+
 			## compute standard spod
 			self.compute_standard_spod(Q_hat_f, i_freq)
 

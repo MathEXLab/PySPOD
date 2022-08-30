@@ -35,6 +35,9 @@ def distribute_data(data, comm):
 	This is typically the case for `data`.
 	"""
 	## distribute largest spatial dimension based on data
+	# time_size = data.shape[0]
+	# space_size = data[0,...].size
+	# ratio = space_size / time_size
 	global_shape = data[0,...].shape ## spatial dimension
 	maxdim_idx = np.argmax(global_shape)
 	if comm:

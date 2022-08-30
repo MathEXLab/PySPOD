@@ -640,12 +640,12 @@ class Base():
 
 		# compute inner product in frequency space, for given frequency
 		M = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
-		print(f'{self._rank = :}, {i_freq = :}, time for M: {time.time() - st} s.')
-		st = time.time()
+		# print(f'{self._rank = :}, {i_freq = :}, time for M: {time.time() - st} s.')
+		# st = time.time()
 
 		M = utils_par.allreduce(data=M, comm=self._comm)
-		print(f'{self._rank = :}, {i_freq = :}, time for allreduce: {time.time() - st} s.')
-		st = time.time()
+		# print(f'{self._rank = :}, {i_freq = :}, time for allreduce: {time.time() - st} s.')
+		# st = time.time()
 
 		## compute eigenvalues and eigenvectors
 		L,V = la.eig(M)
@@ -699,8 +699,8 @@ class Base():
 		# print(f'{self._rank = :}, {i_freq = :}, time for confidence intervals: {time.time() - st} s.')
 		# st = time.time()
 
-		print(f'{self._rank = :}, {i_freq = :}, TOTAL TIME FOR COMPUTING FREQ: {time.time() - s0} s.')
-		st = time.time()
+		# print(f'{self._rank = :}, {i_freq = :}, TOTAL TIME FOR COMPUTING FREQ: {time.time() - s0} s.')
+		# st = time.time()
 
 
 	def transform(
@@ -760,16 +760,6 @@ class Base():
 
 		## initialize coeffs matrix
 		shape_tmp = (self._n_freq_r*self._n_modes_save, self._nt)
-		mem_tmp = self._n_freq_r * self._n_modes_save * self._nt
-		mem_coeffs = mem_tmp * sys.getsizeof(complex()) * BYTE_TO_GB
-		vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
-		sram_avail = psutil.swap_memory()[2] * BYTE_TO_GB
-		self._pr0(f'- RAM memory to compute coeffs ~ {mem_coeffs} GB.')
-		self._pr0(f'- Available RAM memory ~ {vram_avail} GB.')
-		if self._rank == 0:
-			if mem_coeffs > vram_avail:
-				raise ValueError('Not enough RAM memory to compute coeffs.')
-
 		coeffs = np.zeros(shape_tmp, dtype=complex)
 		self._pr0(f'- initialized coeff matrix: {time.time() - st} s.')
 		st = time.time()
@@ -1002,20 +992,9 @@ class Base():
 		if self._modes is None:
 			raise ValueError('Modes not found. Consider running fit()')
 		elif isinstance(self._modes, dict):
-			ram_modes = freq_idx * self.nx * self._n_modes_save * \
-				sys.getsizeof(complex()) * BYTE_TO_GB
-			vram_avail = psutil.virtual_memory()[1] * BYTE_TO_GB
-			sram_avail = psutil.swap_memory   ()[2] * BYTE_TO_GB
-			if ram_modes >= vram_avail:
-				self._pr0(f'- RAM required for loading modes ~ {ram_modes} GB')
-				self._pr0(f'- Available RAM ~ {vram_avail} GB')
-				if self._rank == 0:
-					raise ValueError('Not enough RAM to load all modes.')
-			else:
-				mode_path = os.path.join(
-					self._modes_folder, self.modes[freq_idx])
-				m = post.get_data_from_file(mode_path)
-				if self._comm: self._comm.Barrier()
+			mode_path = os.path.join(self._modes_folder, self.modes[freq_idx])
+			m = post.get_data_from_file(mode_path)
+			if self._comm: self._comm.Barrier()
 		else:
 			if self._rank == 0:
 				raise TypeError('Modes must be a dictionary')
