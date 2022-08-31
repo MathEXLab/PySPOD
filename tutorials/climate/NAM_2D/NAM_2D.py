@@ -75,13 +75,13 @@ spod = SPOD_analysis.fit(data=snapshots, nt=nt)
 # Show results
 T_approx = 30 # approximate period = 30 days (1 month)
 freq_found, freq_idx = spod.find_nearest_freq(
-	freq_required=1/T_approx, freq=spod.freq)
+	freq_req=1/T_approx, freq=spod.freq)
 modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 spod.plot_eigs()
 freq = spod.freq * 7 # (in weeks)
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_2d_modes_at_frequency(
-	freq_required=freq_found,
+	freq_req=freq_found,
 	freq=freq, x1=lat, x2=lon,
 	modes_idx=[0,1,2], vars_idx=[0],
 	origin='lower')

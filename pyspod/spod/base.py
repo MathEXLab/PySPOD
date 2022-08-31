@@ -13,7 +13,7 @@ import psutil
 import warnings
 import numpy as np
 import scipy.special as sc
-from numpy import linalg as la
+
 
 # Import custom Python packages
 import pyspod.utils.parallel as utils_par
@@ -417,9 +417,7 @@ class Base():
 
 		# test feasibility
 		if (self._n_dft < 4) or (self._n_blocks < 2):
-			if self._rank == 0:
-				raise ValueError(
-					'Spectral estimation parameters not meaningful.')
+			raise ValueError('Spectral estimation parameters not meaningful.')
 
 		# apply mean
 		self._pr0(f'- computing time mean')
@@ -442,11 +440,10 @@ class Base():
 			self._weights = np.reshape(
 				self._weights, [self._data[0,...].size,1])
 		except:
-			if self._rank == 0:
-				raise ValueError(
-					'parameter ``weights`` must be cast into '
-					'1d array with dimension equal to flattened '
-					'spatial dimension of data.')
+			raise ValueError(
+				'parameter ``weights`` must be cast into '
+				'1d array with dimension equal to flattened '
+				'spatial dimension of data.')
 
 		# set number of modes to save
 		if self._n_modes_save > self._n_blocks:
@@ -464,21 +461,22 @@ class Base():
 		self._xi2_lower = 2 * sc.gammaincinv(self._n_blocks,     self._c_level)
 		self._eigs_c = np.zeros([self._n_freq,self._n_blocks,2], dtype=complex)
 
-		# create folder to save results
+		## create folder to save results
 		self._savedir_sim = os.path.join(self._savedir,
 			'nfft'+str(self._n_dft)
 			+'_novlp'+str(self._n_overlap) \
 			+'_nblks'+str(self._n_blocks)  \
 		)
-		self._blocks_folder = os.path.join(self._savedir_sim, 'blocks')
-		self._modes_folder = os.path.join(self._savedir_sim, 'modes')
 		if self._rank == 0:
 			if not os.path.exists(self._savedir_sim):
 				os.makedirs(self._savedir_sim)
-			if not os.path.exists(self._blocks_folder):
-				os.makedirs(self._blocks_folder)
-			if not os.path.exists(self._modes_folder):
-				os.makedirs(self._modes_folder)
+
+		## create folder to save fft blocks
+		if self._savefft:
+			self._blocks_folder = os.path.join(self._savedir_sim, 'blocks')
+			if self._rank == 0:
+				if not os.path.exists(self._blocks_folder):
+					os.makedirs(self._blocks_folder)
 
 		# compute approx problem size (assuming double)
 		self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
@@ -495,11 +493,10 @@ class Base():
 			self._weights = self._weights_tmp['weights']
 			self._weights_name = self._weights_tmp['weights_name']
 			if np.size(self._weights) != int(self.nx * self.nv):
-				if self._rank == 0:
-					raise ValueError(
-						'parameter ``weights`` must have the '
-						'same size as flattened data spatial '
-						'dimensions, that is: ', int(self.nx * self.nv))
+				raise ValueError(
+					'parameter ``weights`` must have the '
+					'same size as flattened data spatial '
+					'dimensions, that is: ', int(self.nx * self.nv))
 		else:
 			self._weights = np.ones(self._xshape+(self._nv,))
 			self._weights_name = 'uniform'
@@ -517,8 +514,7 @@ class Base():
 		elif self._mean_type == 'zero'     : self._t_mean = 0
 		else:
 			## mean_type not recognized
-			if self._rank == 0:
-				raise ValueError(self._mean_type, 'not recognized.')
+			raise ValueError(self._mean_type, 'not recognized.')
 		## trigger warning if mean_type is zero
 		if (self._mean_type == 'zero') and (self._rank == 0):
 			warnings.warn(
@@ -560,147 +556,6 @@ class Base():
 					self._freq[(n_dft+1)/2+1:] = \
 					self._freq[(self._n_dft+1)/2+1:] - 1 / self._dt
 		self._n_freq = len(self._freq)
-
-
-	def compute_blocks(self, i_blk):
-		'''Compute FFT blocks.'''
-
-		s0 = time.time()
-
-		# get time index for present block
-		offset = min(i_blk * (self._n_dft - self._n_overlap) \
-			+ self._n_dft, self._nt) - self._n_dft
-
-		# Get data
-		st = time.time()
-		Q_blk = self._data[offset:self._n_dft+offset,...]
-		# self._pr0(f'{self._rank = :}, {i_blk = :}, time for getting data: {time.time() - st} s.')
-		# st = time.time()
-
-		Q_blk = Q_blk.reshape(self._n_dft, self._data[0,...].size)
-		# print(f'{self._rank = :}, {i_blk = :},   {np.min(Q_blk) = :},  {np.max(Q_blk) = :},  {np.mean(Q_blk) = :},  {Q_blk.shape = :}')
-		# st = time.time()
-
-		# Subtract longtime or provided mean
-		Q_blk = Q_blk[:] - self._t_mean
-		# print(f'{self._rank = :}, {i_blk = :}, time for removing mean: {time.time() - st} s.')
-		# st = time.time()
-
-		# if block mean is to be subtracted,
-		# do it now that all data is collected
-		if self._mean_type.lower() == 'blockwise':
-			Q_blk = Q_blk - np.mean(Q_blk, axis=0)
-		# print(f'{self._rank = :}, {i_blk = :}, time for blockwise mean: {time.time() - st} s.')
-		# st = time.time()
-
-		# normalize by pointwise variance
-		if self._normalize_data:
-			Q_var = np.sum(
-				(Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_dft-1)
-			# address division-by-0 problem with NaNs
-			Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
-			Q_blk = Q_blk / Q_var
-		# print(f'{self._rank = :}, {i_blk = :}, time for normalizing data: {time.time() - st} s.')
-		# st = time.time()
-
-		# window and Fourier transform block
-		self._window = self._window.reshape(self._window.shape[0],1)
-		# print(f'{self._rank = :}, {i_blk = :}, time for reshaping window: {time.time() - st} s.')
-		# st = time.time()
-
-		Q_blk = Q_blk * self._window
-		# print(f'{self._rank = :}, {i_blk = :}, time for multiplying by window: {time.time() - st} s.')
-		# st = time.time()
-
-		Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
-		# print(f'{self._rank = :}, {i_blk = :}, time for fft: {time.time() - st} s.')
-		# st = time.time()
-
-		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
-		# print(f'{self._rank = :}, {i_blk = :}, time for extracting freqs: {time.time() - st} s.')
-		# st = time.time()
-
-		# correct Fourier coefficients for one-sided spectrum
-		if self._isrealx:
-			Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
-		# print(f'{self._rank = :}, {i_blk = :}, time for isrealx: {time.time() - st} s.')
-		# st = time.time()
-
-		print(f'{self._rank = :}, {i_blk = :}, TOTAL TIME REQUIRED TO COMPUTE BLOCK: {time.time() - s0} s.')
-		if self._comm: self._comm.Barrier()
-
-		return Q_blk_hat, offset
-
-
-	def compute_standard_spod(self, Q_hat_f, i_freq):
-		'''Compute standard SPOD.'''
-
-		s0 = time.time()
-		st = time.time()
-
-		# compute inner product in frequency space, for given frequency
-		M = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
-		# print(f'{self._rank = :}, {i_freq = :}, time for M: {time.time() - st} s.')
-		# st = time.time()
-
-		M = utils_par.allreduce(data=M, comm=self._comm)
-		# print(f'{self._rank = :}, {i_freq = :}, time for allreduce: {time.time() - st} s.')
-		# st = time.time()
-
-		## compute eigenvalues and eigenvectors
-		L,V = la.eig(M)
-		# print(f'{self._rank = :}, {i_freq = :}, time for eigs: {time.time() - st} s.')
-		# st = time.time()
-
-		L = np.real_if_close(L, tol=1000000)
-		# print(f'{self._rank = :}, {i_freq = :}, time for real_if_close: {time.time() - st} s.')
-		# st = time.time()
-
-		# reorder eigenvalues and eigenvectors
-		idx = np.argsort(L)[::-1]
-		L = L[idx]
-		V = V[:,idx]
-		# print(f'{self._rank = :}, {i_freq = :}, time for sorting: {time.time() - st} s.')
-		# st = time.time()
-
-		# compute spatial modes for given frequency
-		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
-		# print(f'{self._rank = :}, {i_freq = :}, time for computing L_diag: {time.time() - st} s.')
-		# st = time.time()
-
-		phi = np.matmul(Q_hat_f, V * L_diag[None,:])
-		# print(f'{self._rank = :}, {i_freq = :}, time for matmul Q_hat_f, V * L_diag: {time.time() - st} s.')
-		# st = time.time()
-
-		phi = phi[...,0:self._n_modes_save]
-		# print(f'{self._rank = :}, {i_freq = :}, time for extracting modes: {time.time() - st} s.')
-		# st = time.time()
-
-		## save modes
-		file_modes = 'modes_freq{:08d}.npy'.format(i_freq)
-		path_modes = os.path.join(self._modes_folder, file_modes)
-		self._modes[i_freq] = file_modes
-		shape = [*self._xshape,self._nv,self._n_modes_save]
-		if self._comm:
-			shape[self._maxdim_idx] = -1
-		phi.shape = shape
-		# print(f'{self._rank = :}, {i_freq = :}, time for reshaping modes: {time.time() - st} s.')
-		# st = time.time()
-		utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx)
-		# print(f'{self._rank = :}, {i_freq = :}, time for I/O saving modes: {time.time() - st} s.')
-		# st = time.time()
-
-		# get eigenvalues and confidence intervals
-		self._eigs[i_freq,:] = abs(L)
-		self._eigs_c[i_freq,:,0] = \
-			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_lower
-		self._eigs_c[i_freq,:,1] = \
-			self._eigs[i_freq,:] * 2 * self._n_blocks / self._xi2_upper
-		# print(f'{self._rank = :}, {i_freq = :}, time for confidence intervals: {time.time() - st} s.')
-		# st = time.time()
-
-		# print(f'{self._rank = :}, {i_freq = :}, TOTAL TIME FOR COMPUTING FREQ: {time.time() - s0} s.')
-		# st = time.time()
 
 
 	def transform(
@@ -752,9 +607,9 @@ class Base():
 			self._freq_found_ub = self._freq[self._freq_idx_ub]
 		else:
 			self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
-				freq_required=1/T_ub, freq=self._freq)
+				freq_req=1/T_ub, freq=self._freq)
 			self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
-				freq_required=1/T_lb, freq=self._freq)
+				freq_req=1/T_lb, freq=self._freq)
 		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
 		self._pr0(f'- identified frequencies: {time.time() - st} s.')
 		st = time.time()
@@ -906,14 +761,13 @@ class Base():
 		'''Store and save results.'''
 		self._params['n_freq'] = self._n_freq
 		self._params['results_folder'] = self._savedir_sim
-		self._params['modes_folder'] = self._modes_folder
-		path_modes = os.path.join(self._savedir_sim, 'modes_dict.yaml')
+		self._params['time_step'] = float(self._dt)
+		print(type(self._params['time_step']))
 		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
-		path_eigs  = os.path.join(self._savedir_sim, 'eigs_and_weights')
+		path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq_weights')
 		## save
 		if self._rank == 0:
 			## save dictionaries of modes and params
-			with open(path_modes , 'w') as f: yaml.dump(self._modes , f)
 			with open(path_params, 'w') as f: yaml.dump(self._params, f)
 			## save eigs, freq, and weights
 			if hasattr(self, '_eigs_c'):
@@ -926,7 +780,6 @@ class Base():
 				np.savez(
 					path_eigs, eigs=self._eigs, freq=self._freq,
 					weights=self._weights)
-			print(f'Modes dictionary saved in: {path_modes}')
 			print(f'Parameters dictionary saved in: {path_params}')
 			print(f'Eigenvalues and weights saved in: {path_eigs}')
 		self._n_modes = self._eigs.shape[-1]
@@ -974,7 +827,7 @@ class Base():
 	# getters with arguments
 	# ---------------------------------------------------------------------------
 
-	def find_nearest_freq(self, freq_required, freq=None):
+	def find_nearest_freq(self, freq_req, freq=None):
 		'''
 		See method implementation in the postproc module.
 		'''
@@ -982,7 +835,7 @@ class Base():
 			if not freq:
 				freq = self.freq
 		nearest_freq, idx = post.find_nearest_freq(
-			freq_required=freq_required,
+			freq_req=freq_req,
 			freq=freq
 		)
 		return nearest_freq, idx
@@ -1001,16 +854,14 @@ class Base():
 		'''
 		See method implementation in the postproc module.
 		'''
-		if self._modes is None:
+		if self._file_modes is None:
 			raise ValueError('Modes not found. Consider running fit()')
-		elif isinstance(self._modes, dict):
-			mode_path = os.path.join(self._modes_folder, self.modes[freq_idx])
+		elif isinstance(self._file_modes, str):
+			mode_path = os.path.join(self._savedir_sim, self._file_modes)
 			m = post.get_data_from_file(mode_path)
-			if self._comm: self._comm.Barrier()
 		else:
-			if self._rank == 0:
-				raise TypeError('Modes must be a dictionary')
-		return m
+			raise TypeError('Modes must be a string to modes.npy')
+		return m[freq_idx]
 
 
 	def get_data(self, t_0, t_end):
@@ -1110,7 +961,7 @@ class Base():
 			path=self.savedir_sim, filename=filename)
 
 
-	def plot_2d_modes_at_frequency(self, freq_required, freq, vars_idx=[0],
+	def plot_2d_modes_at_frequency(self, freq_req, freq, vars_idx=[0],
 		modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
 		plot_max=False, coastlines='', title='', xticks=None, yticks=None,
 		figsize=(12,8), equal_axes=False, filename=None, origin=None):
@@ -1118,8 +969,8 @@ class Base():
 		See method implementation in the postproc module.
 		'''
 		post.plot_2d_modes_at_frequency(
-			self.modes, freq_required=freq_required, freq=freq,
-			modes_path=self._modes_folder, vars_idx=vars_idx,
+			self._file_modes, freq_req=freq_req, freq=freq,
+			modes_path=self.savedir_sim, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift,
 			imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
 			title=title, xticks=xticks, yticks=yticks, figsize=figsize,
@@ -1127,22 +978,22 @@ class Base():
 			filename=filename)
 
 
-	def plot_2d_mode_slice_vs_time(self, freq_required, freq, vars_idx=[0],
+	def plot_2d_mode_slice_vs_time(self, freq_req, freq, vars_idx=[0],
 		modes_idx=[0], x1=None, x2=None, max_each_mode=False, fftshift=False,
 		title='', figsize=(12,8), equal_axes=False, filename=None):
 		'''
 		See method implementation in the postproc module.
 		'''
 		post.plot_2d_mode_slice_vs_time(
-			self.modes, freq_required=freq_required, freq=freq,
-			modes_path=self._modes_folder, vars_idx=vars_idx,
+			self._file_modes, freq_req=freq_req, freq=freq,
+			modes_path=self.savedir_sim, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
 			fftshift=fftshift, title=title, figsize=figsize,
 			equal_axes=equal_axes, path=self.savedir_sim,
 			filename=filename)
 
 
-	def plot_3d_modes_slice_at_frequency(self, freq_required, freq,
+	def plot_3d_modes_slice_at_frequency(self, freq_req, freq,
 		vars_idx=[0], modes_idx=[0], x1=None, x2=None, x3=None, slice_dim=0,
 		slice_id=None, fftshift=False, imaginary=False, plot_max=False,
 		coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
@@ -1151,8 +1002,8 @@ class Base():
 		See method implementation in the postproc module.
 		'''
 		post.plot_3d_modes_slice_at_frequency(
-			self.modes, freq_required=freq_required, freq=freq,
-			modes_path=self._modes_folder, vars_idx=vars_idx,
+			self._file_modes, freq_req=freq_req, freq=freq,
+			modes_path=self.savedir_sim, vars_idx=vars_idx,
 			modes_idx=modes_idx, x1=x1, x2=x2, x3=x3, slice_dim=slice_dim,
 			slice_id=slice_id, fftshift=fftshift, imaginary=imaginary,
 			plot_max=plot_max, coastlines=coastlines, title=title,
@@ -1161,15 +1012,15 @@ class Base():
 			filename=filename)
 
 
-	def plot_mode_tracers(self, freq_required, freq, coords_list,
+	def plot_mode_tracers(self, freq_req, freq, coords_list,
 		x=None, vars_idx=[0], modes_idx=[0], fftshift=False, title='',
 		figsize=(12,8), filename=None):
 		'''
 		See method implementation in the postproc module.
 		'''
 		post.plot_mode_tracers(
-			self.modes, freq_required=freq_required, freq=freq,
-			coords_list=coords_list, modes_path=self._modes_folder,
+			self._file_modes, freq_req=freq_req, freq=freq,
+			coords_list=coords_list, modes_path=self.savedir_sim,
 			x=x, vars_idx=vars_idx, modes_idx=modes_idx, fftshift=fftshift,
 			title=title, figsize=figsize, path=self.savedir_sim,
 			filename=filename)

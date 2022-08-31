@@ -189,12 +189,12 @@ spod.plot_data_tracers(coords_list=[(5,2.5)], time_limits=[0,t.shape[0]])
 # Show results
 T_approx = 10 # approximate period = 10 time units
 freq = spod.freq
-freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+freq_found, freq_idx = spod.find_nearest_freq(freq_req=1/T_approx, freq=freq)
 modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 spod.plot_eigs()
 spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
 spod.plot_2d_modes_at_frequency(
-	freq_required=freq_found, freq=freq, x1=x2, x2=x1, modes_idx=[0,1], vars_idx=[0])
+	freq_req=freq_found, freq=freq, x1=x2, x2=x1, modes_idx=[0,1], vars_idx=[0])
 ```
 You can change `SPOD_low_storage` to `SPOD_low_ram` and `SPOD_streaming`,
 to run the other two SPOD algorithms available.

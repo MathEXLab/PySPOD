@@ -37,7 +37,7 @@ def test_standard_fullspectrum():
 	spod_class = spod_standard(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])  >0.00046343628114412-tol))
@@ -71,7 +71,7 @@ def test_standard_reuse_blocks():
 	spod_class = spod_standard(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])  >0.00046343628114412-tol))
@@ -88,7 +88,7 @@ def test_standard_reuse_blocks():
 	spod_class = spod_standard(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])  >0.00046343628114412-tol))
@@ -124,7 +124,7 @@ def test_standard_svd():
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	spod.transform(data, nt=nt, rec_idx='all', svd=True)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	coeffs = np.load(spod.file_coeffs)
 	recons = np.load(spod.file_dynamics)
@@ -176,7 +176,7 @@ def test_standard_inv():
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	spod.transform(data, nt=nt, rec_idx='all', svd=False)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	coeffs = np.load(spod.file_coeffs)
 	recons = np.load(spod.file_dynamics)
@@ -230,7 +230,7 @@ def test_standard_freq():
 		data=data, nt=nt, rec_idx='all', tol=1e-10,
 		svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	coeffs = np.load(spod.file_coeffs)
 	recons = np.load(spod.file_dynamics)
@@ -299,7 +299,7 @@ def test_standard_normalize():
 	latent_space = spod.transform(
 		data=data, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	coeffs = np.load(spod.file_coeffs)
 	recons = np.load(spod.file_dynamics)
@@ -347,7 +347,7 @@ def test_streaming_fullspectrum():
 	spod_class = spod_streaming(params=params, )
 	spod = spod_class.fit(data=data, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	# print(f'{np.abs(modes_at_freq[0,1,0,0]) = :}')
 	# print(f'{np.abs(modes_at_freq[10,3,0,2]) = :}')
@@ -391,7 +391,7 @@ def test_streaming_freq():
 		data=data, nt=nt, rec_idx='all', tol=1e-10,
 		svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	coeffs = np.load(spod.file_coeffs)
 	recons = np.load(spod.file_dynamics)

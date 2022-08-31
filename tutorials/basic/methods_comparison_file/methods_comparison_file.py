@@ -96,13 +96,13 @@ spod_ls.generate_2d_data_video(sampling=10, time_limits=[0,t.shape[0]])
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
 freq = spod_ls.freq
-freq_found, freq_idx = spod_ls.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+freq_found, freq_idx = spod_ls.find_nearest_freq(freq_req=1/T_approx, freq=freq)
 modes_at_freq = spod_ls.get_modes_at_freq(freq_idx=freq_idx)
 spod_ls.plot_eigs()
 spod_ls.plot_eigs_vs_frequency(freq=freq)
 spod_ls.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
 spod_ls.plot_2d_modes_at_frequency(
-	freq_required=freq_found,
+	freq_req=freq_found,
     freq=freq,
     x1=x2,
     x2=x1,
@@ -116,13 +116,13 @@ spod_ram.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
 freq = spod_ram.freq
-freq_found, freq_idx = spod_ram.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+freq_found, freq_idx = spod_ram.find_nearest_freq(freq_req=1/T_approx, freq=freq)
 modes_at_freq = spod_ram.get_modes_at_freq(freq_idx=freq_idx)
 spod_ram.plot_eigs()
 spod_ram.plot_eigs_vs_frequency(freq=freq)
 spod_ram.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
 spod_ram.plot_2d_modes_at_frequency(
-	freq_required=freq_found,
+	freq_req=freq_found,
     freq=freq,
     x1=x2,
     x2=x1,
@@ -136,13 +136,13 @@ spod_st.fit(data=os.path.join(CWD,'data.nc'), nt=t.shape[0])
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
 freq = spod_st.freq
-freq_found, freq_idx = spod_st.find_nearest_freq(freq_required=1/T_approx, freq=freq)
+freq_found, freq_idx = spod_st.find_nearest_freq(freq_req=1/T_approx, freq=freq)
 modes_at_freq = spod_st.get_modes_at_freq(freq_idx=freq_idx)
 spod_st.plot_eigs()
 spod_st.plot_eigs_vs_frequency(freq=freq)
 spod_st.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 1825])
 spod_st.plot_2d_modes_at_frequency(
-	freq_required=freq_found,
+	freq_req=freq_found,
     freq=freq,
     x1=x2,
     x2=x1,

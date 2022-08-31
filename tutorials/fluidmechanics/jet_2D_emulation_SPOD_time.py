@@ -175,8 +175,8 @@ def jet_emulationSPOD():
 	# spod.plot_eigs_vs_period()
 	
 	#T_approx = 12.5
-	#freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
-	# spod.plot_2d_modes_at_frequency(freq=spod.freq, freq_required=freq_found, modes_idx=[0,1,2])
+	#freq_found, freq_idx = spod.find_nearest_freq(freq_req=1/T_approx, freq=spod.freq)
+	# spod.plot_2d_modes_at_frequency(freq=spod.freq, freq_req=freq_found, modes_idx=[0,1,2])
 	# spod.plot_compare_time_series(serie1=coeffs[0,:].real, serie2=coeffs_test['coeffs'][0,:].real, label1="Prediction", label2="Testing")
 
 	#spod.generate_2d_subplot(

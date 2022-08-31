@@ -60,7 +60,7 @@ class Streaming(Base):
 		mu     = np.zeros([flat_dim,1], dtype=complex)
 		x_hat  = np.zeros([flat_dim,n_freq],dtype=complex)
 		x_sum  = np.zeros([flat_dim,n_freq,n_blocks_par],dtype=complex)
-		x_spod = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
+		phi = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
 		u_hat  = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
 		self._eigs  = np.zeros([n_m_save,n_freq],dtype=complex)
 		self._modes = dict()
@@ -192,41 +192,49 @@ class Streaming(Base):
 					## reset dft sum
 					x_hat[:,:] = 0
 
-				x_spod_prev = x_spod
-				x_spod = u_hat * (1 / sqrt_w[:,:,np.newaxis])
+				phi_prev = phi
+				phi = u_hat * (1 / sqrt_w[:,:,np.newaxis])
 
 				# ## convergence
 				# for i_freq in range(0,n_freq):
-				# 	proj_i_freq = (np.squeeze(x_spod_prev[:,i_freq,:]) * \
-				# 		self._weights).conj().T @ np.squeeze(x_spod[:,i_freq,:])
+				# 	proj_i_freq = (np.squeeze(phi_prev[:,i_freq,:]) * \
+				# 		self._weights).conj().T @ np.squeeze(phi[:,i_freq,:])
 				# 	proj_prev[i_freq,block_i,:] = \
 				# 		np.amax(np.abs(proj_i_freq), axis=0)
 				# mse_prev[block_i,:,:] = (np.abs(S_hat_prev**2 - \
 				# 	self._eigs**2)**2) / (S_hat_prev**2)
 
 		## rescale such that <U_i,U_j>_E = U_i^H * W * U_j = delta_ij
-		x_spod = u_hat[:,:,0:n_m_save] * (1 / sqrt_w[:,:,np.newaxis])
+		phi = u_hat[:,:,0:n_m_save] * (1 / sqrt_w[:,:,np.newaxis])
 
 		# ## shuffle and reshape
-		x_spod = np.einsum('ijk->jik', x_spod)
+		phi = np.einsum('ijk->jik', phi)
 
+		# ## save modes
+		# for i_freq in range(0,n_freq):
+		# 	file_modes = 'modes_freq{:08d}.npy'.format(i_freq)
+		# 	path_modes = os.path.join(self._modes_folder, file_modes)
+		# 	self._modes[i_freq] = file_modes
+		# 	Psi = phi[i_freq,...]
+		# 	shape = [*self._xshape, self._nv, self._n_modes_save]
+		# 	if self._comm:
+		# 		shape[self._maxdim_idx] = -1
+		# 	Psi.shape = shape
+		# 	utils_par.npy_save(
+		# 		self._comm, path_modes, Psi, axis=self._maxdim_idx)
+		# self._pr0(f'Modes saved in folder: {self._modes_folder}')
 		## save modes
-		for i_freq in range(0,n_freq):
-			file_modes = 'modes_freq{:08d}.npy'.format(i_freq)
-			path_modes = os.path.join(self._modes_folder, file_modes)
-			self._modes[i_freq] = file_modes
-			Psi = x_spod[i_freq,...]
-			shape = [*self._xshape, self._nv, self._n_modes_save]
-			if self._comm:
-				shape[self._maxdim_idx] = -1
-			Psi.shape = shape
-			utils_par.npy_save(
-				self._comm, path_modes, Psi, axis=self._maxdim_idx)
-		self._pr0(f'Modes saved in folder: {self._modes_folder}')
+		self._file_modes = 'modes.npy'
+		path_modes = os.path.join(self._savedir_sim, self._file_modes)
+		shape = [self._n_freq, *self._xshape, self._nv, self._n_modes_save]
+		if self._comm:
+			shape[self._maxdim_idx+1] = -1
+		phi.shape = shape
+		utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx+1)
 
 		## transpose eigs
 		self._eigs = self._eigs.T
-		
+
 		# store and save results
 		self._store_and_save()
 		self._pr0(f'------------------------------------')

@@ -27,6 +27,44 @@ def pvar(data, comm):
 	return v, m, n
 
 
+
+
+def create_subcomm(comm):
+	'''Create subcommunicator'''
+	size = comm.Get_size()
+	rank = comm.Get_rank()
+	for n in [3,4,2,1]:
+		if size % n == 0:
+			den = n
+			break
+	a, b = MPI.Compute_dims(size//den, 2)
+	b *= den
+	dims = (a,b)
+	cart = comm.Create_cart(dims)
+	coords = cart.Get_coords(cart.Get_rank())
+	print(f'{rank = :}  {coords = :}')
+	subcomm = cart.Sub([False, True])
+	cart.Free()
+	return dims[0], coords[0], subcomm
+
+	# def blockdist(N, size, rank):
+	#     q, r = divmod(N, size)
+	#     n = q + (1 if r > rank else 0)
+	#     s = rank * q + min(rank, r)
+	#     return (n, s)
+	#
+	# import sys
+	# sys.stdout.flush()
+	# N = 7
+	# n, s = _blockdist(N, dims[0], coords[0])
+	# for i in range(s, s+n):
+	#     val = subcomm.allreduce(rank)
+	#     print(f"[{rank:2d}] {i = :2d}  ", val)
+	# subcomm.Free()
+	# cart.Free()
+
+
+
 def distribute_data(data, comm):
 	"""
 	Distribute largest spatial dimension of data, assuming:

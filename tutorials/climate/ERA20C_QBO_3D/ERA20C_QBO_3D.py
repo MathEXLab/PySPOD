@@ -81,7 +81,7 @@ spod = SPOD_analysis.fit(data=X, nt=nt)
 
 # Show results
 T_approx = 744 # approximate period (in days)
-freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+freq_found, freq_idx = spod.find_nearest_freq(freq_req=1/T_approx, freq=spod.freq)
 modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 
 freq = spod.freq*24
@@ -89,7 +89,7 @@ spod.plot_eigs()
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 740, 1825])
 spod.plot_3d_modes_slice_at_frequency(
-    freq_required=freq_found,
+    freq_req=freq_found,
     freq=freq,
     x1=x1-180,
     x2=x2,
@@ -100,7 +100,7 @@ spod.plot_3d_modes_slice_at_frequency(
 	modes_idx=[0,1,2],
 	vars_idx=[0])
 spod.plot_mode_tracers(
-    freq_required=freq_found,
+    freq_req=freq_found,
     freq=freq,
     coords_list=[(100,0,2)],
     modes_idx=[0,1,2])

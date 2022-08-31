@@ -72,7 +72,7 @@ def test_io_yaml_required():
 	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.min(np.abs(modes_at_freq))<1.891400529444e-10+tol) & \
 		   (np.min(np.abs(modes_at_freq))>1.891400529444e-10-tol))
@@ -100,7 +100,7 @@ def test_io_yaml_optional():
 	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.min(np.abs(modes_at_freq))<1.088621540690e-09+tol) & \
 		   (np.min(np.abs(modes_at_freq))>1.088621540690e-09-tol))
@@ -129,7 +129,7 @@ def test_postproc_2d():
 	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=da, nt=nt)
 	T_ = 12.5; 	tol = 1e-10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[0,1,0,0])  <8.574136171525e-05+tol) & \
 		   (np.abs(modes_at_freq[0,1,0,0])  >8.574136171525e-05-tol))
@@ -153,13 +153,13 @@ def test_postproc_2d():
 		equal_axes=True,
 		title='eigs_vs_period')
 	spod.plot_2d_modes_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		x1=x1,
 		x2=x2,
 		filename='modes.png')
 	spod.plot_2d_modes_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		x1=None,
 		x2=None,
@@ -169,7 +169,7 @@ def test_postproc_2d():
 		plot_max=True,
 		coastlines='regular')
 	spod.plot_2d_modes_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		x1=None,
 		x2=None,
@@ -181,7 +181,7 @@ def test_postproc_2d():
 		equal_axes=True,
 		title='modes')
 	spod.plot_2d_mode_slice_vs_time(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		modes_idx=0,
 		fftshift=True,
@@ -190,7 +190,7 @@ def test_postproc_2d():
 		title='modes_time',
 		filename='modes1.png')
 	spod.plot_2d_mode_slice_vs_time(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		modes_idx=0,
 		fftshift=True,
@@ -198,14 +198,14 @@ def test_postproc_2d():
 		max_each_mode=True,
 		filename='modes2.png')
 	spod.plot_mode_tracers(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		modes_idx=0,
 		fftshift=True,
 		coords_list=[(10,10),(14,14)],
 		filename='tracers.png')
 	spod.plot_mode_tracers(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		modes_idx=0,
 		fftshift=True,
@@ -285,13 +285,13 @@ def test_postproc_3d():
 	spod = spod_standard(params=params, )
 	spod.fit(data=data, nt=nt)
 	T_ = 10
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=spod.freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	spod.plot_eigs             (filename='eigs.png')
 	spod.plot_eigs_vs_frequency(filename='eigs.png')
 	spod.plot_eigs_vs_period   (filename='eigs.png')
 	spod.plot_3d_modes_slice_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		modes_idx=0,
 		x1=x1,
@@ -302,7 +302,7 @@ def test_postproc_3d():
 		filename='modes.png',
 		plot_max=True)
 	spod.plot_3d_modes_slice_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		x1=x1,
 		x2=x2,
@@ -311,7 +311,7 @@ def test_postproc_3d():
 		filename='modes.png',
 		title='sim 1')
 	spod.plot_3d_modes_slice_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		x1=None,
 		x2=None,
@@ -322,7 +322,7 @@ def test_postproc_3d():
 		plot_max=True,
 		equal_axes=True)
 	spod.plot_3d_modes_slice_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		x1=None,
 		x2=None,
@@ -334,7 +334,7 @@ def test_postproc_3d():
 		slice_dim=1,
 		equal_axes=True)
 	spod.plot_3d_modes_slice_at_frequency(
-		freq_required=f_,
+		freq_req=f_,
 		freq=spod.freq,
 		x1=None,
 		x2=None,
@@ -395,7 +395,7 @@ def test_weights_2d():
 	spod.fit(data=field, nt=nt)
 	T_ = 10;  tol = 1e-10
 	freq = spod.freq
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[5,10,0,0])<0.16561370950286056+tol) & \
 		   (np.abs(modes_at_freq[5,10,0,0])>0.16561370950286056-tol))
@@ -451,7 +451,7 @@ def test_weights_3d():
 	spod.fit(data=p, nt=nt)
 	T_ = 10;  tol = 1e-10
 	freq = spod.freq
-	f_, f_idx = spod.find_nearest_freq(freq_required=1/T_, freq=freq)
+	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	assert((np.abs(modes_at_freq[5,10,0,0,0])<0.0221012979473301+tol) & \
 		   (np.abs(modes_at_freq[5,10,0,0,0])>0.0221012979473301-tol))

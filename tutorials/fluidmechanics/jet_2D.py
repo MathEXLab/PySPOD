@@ -62,7 +62,7 @@ spod = SPOD_analysis.fit(data=X, nt=nt)
 
 # Show results
 T_approx = 12.5 # approximate period
-freq_found, freq_idx = spod.find_nearest_freq(freq_required=1/T_approx, freq=spod.freq)
+freq_found, freq_idx = spod.find_nearest_freq(freq_req=1/T_approx, freq=spod.freq)
 modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 
 spod.plot_eigs()
@@ -71,7 +71,7 @@ freq = spod.freq
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 0.5, 0.2, 0.1, 0.05, 0.02])
 spod.plot_2d_modes_at_frequency(
-	freq_required=freq_found, freq=freq,
+	freq_req=freq_found, freq=freq,
 	x1=x1, x2=x2, modes_idx=[0,1], vars_idx=[0])
 spod.plot_2d_data(x1=x1, x2=x2, vars_idx=[0], time_idx=[0,100,200])
 spod.generate_2d_data_video(x1=x1, x2=x2, vars_idx=[0])

@@ -6,6 +6,8 @@ import sys
 import time
 import numpy as np
 from tqdm import tqdm
+from numpy import linalg as la
+# from scipy import linalg as la
 from pyspod.spod.base import Base
 import pyspod.utils.parallel as utils_par
 
@@ -46,12 +48,12 @@ class Standard(Base):
 		# if blocks are not saved in storage
 		self._Q_hat_f = dict()
 		size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
-		Q_hat = np.empty(size_Q_hat, dtype='complex_')
+		Q_hat = np.empty(size_Q_hat, dtype=complex)
 		## check if blocks already computed or not
 		if blocks_present:
 			# load blocks if present
 			size_Q_hat = [self._n_freq, *self._xshape, self._n_blocks]
-			Q_hat = np.empty(size_Q_hat, dtype='complex_')
+			Q_hat = np.empty(size_Q_hat, dtype=complex)
 			for i_blk in tqdm(range(0, self._n_blocks), desc='loading blocks'):
 				self._Q_hat_f[str(i_blk)] = dict()
 				for i_freq in range(0, self._n_freq):
@@ -67,16 +69,15 @@ class Standard(Base):
 		else:
 			# loop over number of blocks and generate Fourier realizations
 			size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
-			Q_hat = np.empty(size_Q_hat, dtype='complex_')
+			Q_hat = np.empty(size_Q_hat, dtype=complex)
 			for i_blk in range(0,self._n_blocks):
 
 				# compute block
-				Q_blk_hat, offset = self.compute_blocks(i_blk)
+				Q_blk_hat, offset = self._compute_blocks(i_blk)
 
 				# print info file
-				self._pr0(
-					f'block {(i_blk+1)}/{(self._n_blocks)}'
-					f' ({(offset)}:{(self._n_dft+offset)})')
+				self._pr0(f'block {(i_blk+1)}/{(self._n_blocks)}'
+						  f' ({(offset)}:{(self._n_dft+offset)})')
 
 				# save FFT blocks in storage memory
 				self._Q_hat_f[str(i_blk)] = dict()
@@ -95,13 +96,10 @@ class Standard(Base):
 							path,
 							Q_blk_hat_fr,
 							axis=self._maxdim_idx)
-				## delete temporary block
-				if self._savefft: del Q_blk_hat_fr
 
 				## store FFT blocks in RAM
 				Q_hat[:,:,i_blk] = Q_blk_hat
 
-		self._pr0(f'Modes saved in folder: {self._modes_folder}')
 		self._pr0(f'------------------------------------')
 		print(f'{self._rank = :},  TIME TO COMPUTE TEMPORAL DFT: {time.time() - start} s.')
 		if self._comm: self._comm.Barrier()
@@ -114,63 +112,8 @@ class Standard(Base):
 		self._eigs = np.zeros([self._n_freq,self._n_blocks], dtype=complex)
 		self._modes = dict()
 
-		# keep everything in RAM memory (default)
-		if self._comm: self._comm.Barrier()
-
-		## no time parallel: uncomment below
-		## ------------------------------------------------------------------
-		if self._rank == 0:
-			pbar = tqdm(total=self._n_freq, desc='# iterations on freqs')
-
-		for i_freq in range(0,self._n_freq):
-			if self._rank == 0: pbar.update(1)
-
-			## get FFT block from RAM memory for each given frequency
-			Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype(complex)
-
-			## compute standard spod
-			self.compute_standard_spod(Q_hat_f, i_freq)
-
-		## barrier for sync and save
-		if self._comm: self._comm.Barrier()
-		## ------------------------------------------------------------------
-
-		# ## time parallel: uncomment below
-		# ## ------------------------------------------------------------------
-		# perrank = self._n_freq // self._size
-		# remaind = self._n_freq % self._size
-		# if self._comm: self._comm.Barrier()
-		# if self._rank != self._size - 1:
-		# 	print(f'{self._rank = :},  IF!')
-		# 	for i_freq in range(self._rank * perrank, (self._rank + 1) * perrank):
-		# 		print(f'IF - {self._rank = :},  {i_freq = :}/{self._n_freq-1}')
-		# 		# i_freq_local = i_freq - self._rank * perrank
-		# 		# print(f'IF - {self._rank = :},  {i_freq_local = :}/{self._n_freq-1}')
-		# 		# get FFT block from RAM memory for each given frequency
-		# 		Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
-		# 		print(f'{self._rank = :},  {Q_hat_f.shape = :}')
-		# 		# compute standard spod
-		# 		self.compute_standard_spod(Q_hat_f, i_freq)
-		# else:
-		# 	print(f'{self._rank = :},  ELSE!')
-		# 	print(f'{self._rank = :},  ELSE - {(self._size-1)*perrank = :},  {self._n_freq = :}')
-		# 	for i_freq in range((self._size-1)*perrank, self._n_freq):
-		# 		print(f'ELSE - {self._rank = :},  {i_freq = :}/{self._n_freq-1}')
-		# 		# i_freq_local = i_freq - (self._size-1)*perrank
-		# 		# print(f'ELSE - {self._rank = :},  {i_freq_local = :}/{self._n_freq-1}')
-		# 		# get FFT block from RAM memory for each given frequency
-		# 		Q_hat_f = np.squeeze(Q_hat[i_freq,:,:]).astype('complex_')
-		# 		print(f'{self._rank = :},  {Q_hat_f.shape = :}')
-		# 		# compute standard spod
-		# 		self.compute_standard_spod(Q_hat_f, i_freq)
-		# 		print(f'{self._rank = :},  ELSE - compute_standard_spod')
-		#
-		# ## barrier for sync and save
-		# print(f'{self._rank = :},  barrier 1')
-		# if self._comm: self._comm.Barrier()
-		# print(f'{self._rank = :},  barrier 2')
-		## ------------------------------------------------------------------
-
+		## compute standard spod
+		self._compute_standard_spod(Q_hat)
 
 		# store and save results
 		self._store_and_save()
@@ -180,3 +123,89 @@ class Standard(Base):
 		print(f'{self._rank = :},  TIME TO COMPUTE SPOD: {time.time() - start} s.')
 		if self._comm: self._comm.Barrier()
 		return self
+
+
+
+	def _compute_blocks(self, i_blk):
+		'''Compute FFT blocks.'''
+		# get time index for present block
+		offset = min(i_blk * (self._n_dft - self._n_overlap) \
+			+ self._n_dft, self._nt) - self._n_dft
+
+		# Get data
+		Q_blk = self._data[offset:self._n_dft+offset,...]
+		Q_blk = Q_blk.reshape(self._n_dft, self._data[0,...].size)
+
+		# Subtract longtime or provided mean
+		Q_blk = Q_blk[:] - self._t_mean
+
+		# if block mean is to be subtracted,
+		# do it now that all data is collected
+		if self._mean_type.lower() == 'blockwise':
+			Q_blk = Q_blk - np.mean(Q_blk, axis=0)
+
+		# normalize by pointwise variance
+		if self._normalize_data:
+			Q_var = np.sum(
+				(Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_dft-1)
+			# address division-by-0 problem with NaNs
+			Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
+			Q_blk = Q_blk / Q_var
+		Q_blk = Q_blk * self._window
+		Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
+		Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
+
+		# correct Fourier coefficients for one-sided spectrum
+		if self._isrealx:
+			Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
+		return Q_blk_hat, offset
+
+
+	def _compute_standard_spod(self, Q_hat):
+		'''Compute standard SPOD.'''
+		# compute inner product in frequency space, for given frequency
+		M = [None]*self._n_freq
+		for f in range(0,self._n_freq):
+			Q_hat_f = np.squeeze(Q_hat[f,:,:])#.astype(complex)
+			M[f] = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
+		M = np.stack(M)
+		M = utils_par.allreduce(data=M, comm=self._comm)
+
+		## compute eigenvalues and eigenvectors
+		L, V = la.eig(M)
+		L = np.real_if_close(L, tol=1000000)
+
+		# reorder eigenvalues and eigenvectors
+		for f, Lf in enumerate(L):
+			idx = np.argsort(Lf)[::-1]
+			L[f,:] = L[f,idx]
+			vf = V[f,...]
+			vf = vf[:,idx]
+			V[f] = vf
+
+		# compute spatial modes for given frequency
+		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
+		V_hat = V * L_diag[:,None,:]
+		phi = [None] * self._n_freq
+		for f in range(0,self._n_freq):
+			phi[f] = np.matmul(Q_hat[f,...], V[f,...] * L_diag[f,None,:])
+		phi = np.stack(phi)
+		# phi = np.einsum('...ij,...jk', Q_hat, V_hat)
+		# phi = np.dot(Q_hat, V_hat.swapaxes(0,2))
+		phi = phi[...,0:self._n_modes_save]
+
+		## save modes
+		self._file_modes = 'modes.npy'
+		path_modes = os.path.join(self._savedir_sim, self._file_modes)
+		shape = [self._n_freq,*self._xshape,self._nv,self._n_modes_save]
+		if self._comm:
+			shape[self._maxdim_idx+1] = -1
+		phi.shape = shape
+		utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx+1)
+
+		# get eigenvalues and confidence intervals
+		self._eigs = np.abs(L)
+		fac_lower = 2 * self._n_blocks / self._xi2_lower
+		fac_upper = 2 * self._n_blocks / self._xi2_upper
+		self._eigs_c[...,0] = self._eigs * fac_lower
+		self._eigs_c[...,1] = self._eigs * fac_upper
