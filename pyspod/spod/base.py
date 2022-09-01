@@ -763,9 +763,16 @@ class Base():
 		self._params['results_folder'] = self._savedir_sim
 		self._params['time_step'] = float(self._dt)
 		print(type(self._params['time_step']))
+		path_weights = os.path.join(self._savedir_sim, 'weights.npy')
 		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
-		path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq_weights')
-		## save
+		path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq')
+		## save weights
+		shape = [*self._xshape,self._nv]
+		if self._comm: shape[self._maxdim_idx] = -1
+		self._weights.shape = shape
+		utils_par.npy_save(
+			self._comm, path_weights, self._weights, axis=self._maxdim_idx)
+		# save params; eigs and freq
 		if self._rank == 0:
 			## save dictionaries of modes and params
 			with open(path_params, 'w') as f: yaml.dump(self._params, f)
@@ -775,11 +782,10 @@ class Base():
 				self._eigs_c_l = self._eigs_c[:,:,1]
 				np.savez(path_eigs, eigs=self._eigs,
 					eigs_c_u=self._eigs_c_u, eigs_c_l=self._eigs_c_l,
-					freq=self._freq, weights=self._weights)
+					freq=self._freq)
 			else:
 				np.savez(
-					path_eigs, eigs=self._eigs, freq=self._freq,
-					weights=self._weights)
+					path_eigs, eigs=self._eigs, freq=self._freq)
 			print(f'Parameters dictionary saved in: {path_params}')
 			print(f'Eigenvalues and weights saved in: {path_eigs}')
 		self._n_modes = self._eigs.shape[-1]

@@ -13,58 +13,58 @@ import pyspod.utils.parallel as utils_par
 import pyspod.utils.postproc as post
 
 
+
 def coeff_and_recons(
 	data, nt, results_dir, idx=None, tol=1e-10, svd=True,
 	T_lb=None, T_ub=None, comm=None):
 
-	file_modes = os.path.join(results_dir, 'modes.npy')
-	file_params = os.path.join(results_dir, 'params_dict.yaml')
-	file_efw = os.path.join(results_dir, 'eigs_freq_weights.npz')
-
 	## select time snapshots required
 	data = data[0:nt,...]
-	phi = np.lib.format.open_memmap(file_modes)
-	params = yaml.load(file_params, Loader=yaml.FullLoader)
-	efw = np.load(file_efw)
-	freq = efw['freq']
-	weights = efw['weights']
-	print(f'{comm.rank = :},  {phi.shape = :}')
-	print(f'{comm.rank = :},  {params    = :}')
-	print(f'{comm.rank = :},  {freq      = :}')
-	print(f'{comm.rank = :},  {weights   = :}')
-	exit(0)
 
 	## compute coeffs
-	a, phi, tm = _compute_coeffs(
-		params, tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub, comm=comm)
+	a, phi, tm, file_coeffs, r_name, maxdim_idx = _compute_coeffs(
+		data=data, nt=nt, results_dir=results_dir, tol=tol, svd=svd,
+		T_lb=T_lb, T_ub=T_ub, comm=comm)
 
 	## reconstruct solution
-	dynamics = _reconstruct_data(
-		a=a, phi=phi, tm=tm, idx=idx, T_lb=T_lb, T_ub=T_ub)
+	file_dynamics = _reconstruct_data(
+		a=a, phi=phi, tm=tm, results_dir=results_dir, r_name=r_name,
+		maxdim_idx=maxdim_idx, idx=idx, T_lb=T_lb, T_ub=T_ub, comm=comm)
 
-	# return data
-	dict_return = {
-		'coeffs' : a,
-		'modes'  : phi,
-		't_mean' : tm,
-		'weights': w,
-		'reconstructed_data': reconstructed_data
-	}
-	return dict_return
+	## return path to coeff and dynamics files
+	return file_coeffs, file_dynamics
 
 
-def _compute_coeffs(params, tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None):
+def _compute_coeffs(
+	data, nt, results_dir, tol=1e-10, svd=True,
+	T_lb=None, T_ub=None, comm=None):
 	'''
 	Compute coefficients through oblique projection.
 	'''
 	s0 = time.time()
+	st = time.time()
 	utils_par.pr0(f'\nComputing coefficients'      , comm)
 	utils_par.pr0(f'------------------------------', comm)
 
-	## initialize frequencies
-	st = time.time()
+	## load required files
+	file_weights   = os.path.join(results_dir, 'weights.npy')
+	file_modes     = os.path.join(results_dir, 'modes.npy')
+	file_eigs_freq = os.path.join(results_dir, 'eigs_freq.npz')
+	file_params    = os.path.join(results_dir, 'params_dict.yaml')
+	weights   = np.lib.format.open_memmap(file_weights)
+	phi       = np.lib.format.open_memmap(file_modes)
+	eigs_freq = np.load(file_eigs_freq)
+	with open(file_params) as f:
+		params = yaml.load(f, Loader=yaml.FullLoader)
+
+	## get required parameters
+	freq   = eigs_freq['freq']
 	n_freq = params['n_freq']
-	n_modes_save = params['n_modes_save']
+	nv     = params['n_variables']
+	xdim   = params['n_space_dims']
+	n_modes_save = phi.shape[-1]
+
+	## initialize frequencies
 	if (T_lb is None) or (T_ub is None):
 		f_idx_lb = 0
 		f_idx_ub = n_freq - 1
@@ -74,38 +74,35 @@ def _compute_coeffs(params, tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None
 		f_lb, f_idx_lb = post.find_nearest_freq(freq_req=1/T_ub, freq=freq)
 		f_ub, f_idx_ub = post.find_nearest_freq(freq_req=1/T_lb, freq=freq)
 	n_freq_r = f_idx_ub - f_idx_lb + 1
-	if comm.rank == 0: print(f'- identified frequencies: {time.time() - st} s.')
+	utils_par.pr0(f'- identified frequencies: {time.time() - st} s.', comm)
 	st = time.time()
 
 	## initialize coeffs matrix
 	shape_tmp = (n_freq_r*n_modes_save, nt)
 	a = np.zeros(shape_tmp, dtype=complex)
-	utils_par.pr0(f'- initialized coeff matrix: {time.time() - st} s.')
-	st = time.time()
 
-	## distribute data if parallel required
-	## note: weights are already distributed from fit()
-	## it is assumed that one runs fit and transform within the same main
+	## distribute data and weights if parallel
 	data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
+	weights = utils_par.distribute_dimension(
+		data=weights, maxdim_idx=maxdim_idx, comm=comm)
 
 	## add axis for single variable
-	if not isinstance(data,np.ndarray):
-		data = data.values
+	if not isinstance(data,np.ndarray): data = data.values
 	if (nv == 1) and (data.ndim != xdim + 2):
 		data = data[...,np.newaxis]
 
 	## flatten spatial x variable dimensions
 	data = np.reshape(data, [nt, data[0,...].size])
+	weights = np.reshape(weights, [data[0,...].size, 1])
 
-	## compute time mean and subtract from data
-	tm = np.mean(data, axis=0) ###### should we reuse the time mean from fit?
-	data = data - tm
-	utils_par.pr0(f'- data and time mean: {time.time() - st} s.');
+	## compute time mean and subtract from data (reuse the one from fit?)
+	tm = np.mean(data, axis=0); data = data - tm
+	utils_par.pr0(f'- data and time mean: {time.time() - st} s.', comm)
 	st = time.time()
 
 	# initialize modes and weights
 	shape_tmp = (data[0,...].size, n_freq_r*n_modes_save)
-	m = np.zeros(shape_tmp, dtype=complex)
+	phi_r = np.zeros(shape_tmp, dtype=complex)
 	weights_phi = np.zeros(shape_tmp, dtype=complex)
 
 	## order weights and modes such that each frequency contains
@@ -114,95 +111,102 @@ def _compute_coeffs(params, tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None
 	## - freq_1: modes from 0 to n_modes_save
 	## ...
 	cnt_freq = 0
+	phi = utils_par.distribute_dimension(
+		data=phi, maxdim_idx=maxdim_idx+1, comm=comm)
+	phi = np.reshape(phi, [phi.shape[0], data[0,...].size, n_modes_save])
 	for i_freq in range(f_idx_lb, f_idx_ub+1):
-		modes = self.get_modes_at_freq(i_freq)
-		modes = utils_par.distribute_dimension(\
-			data=modes, maxdim_idx=maxdim_idx, comm=comm)
-		modes = np.reshape(modes, [data[0,...].size,n_modes_save])
+		modes = phi[i_freq,...]
 		for i_mode in range(n_modes_save):
-			jump_freq = n_modes_save*cnt_freq+i_mode
+			jump_freq = n_modes_save * cnt_freq + i_mode
 			weights_phi[:,jump_freq] = np.squeeze(weights[:])
-			m  [:,jump_freq] = modes[:,i_mode]
+			phi_r[:,jump_freq] = modes[:,i_mode]
 		cnt_freq = cnt_freq + 1
-	utils_par.pr0(f'- retrieved requested frequencies: {time.time() - st} s.')
+	utils_par.pr0(f'- retrieved frequencies: {time.time() - st} s.', comm)
 	st = time.time()
 
 	# evaluate the coefficients by oblique projection
-	a = self._oblique_projection(
-		m, weights_phi, weights, data, tol=tol, svd=svd)
-	utils_par.pr0(f'- oblique projection done: {time.time() - st} s.')
+	a = _oblique_projection(
+		phi_r, weights_phi, weights, data, tol=tol, svd=svd, comm=comm)
+	utils_par.pr0(f'- oblique projection done: {time.time() - st} s.', comm)
 	st = time.time()
 
 	# save coefficients
-	file_coeffs = os.path.join(savedir_sim,
-		'coeffs_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub))
+	c_name = 'coeffs_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
+	r_name = 'reconstructed_data_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
+
+	file_coeffs = os.path.join(results_dir, c_name)
 	if comm.rank == 0:
 		np.save(file_coeffs, a)
-	utils_par.pr0(f'- saving completed: {time.time() - st} s.')
-	utils_par.pr0(f'------------------------------')
-	utils_par.pr0(f'Coefficients saved in folder: {file_coeffs}')
-	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.')
-	file_coeffs = file_coeffs
-	return a, m, tm
+	utils_par.pr0(f'- saving completed: {time.time() - st} s.'  , comm)
+	utils_par.pr0(f'-----------------------------------------'  , comm)
+	utils_par.pr0(f'Coefficients saved in folder: {file_coeffs}', comm)
+	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'        , comm)
+	return a, phi_r, tm, file_coeffs, r_name, maxdim_idx
 
 
-
-def _reconstruct_data(a, phi, tm, idx, T_lb=None, T_ub=None):
+def _reconstruct_data(
+	a, phi, tm, results_dir, r_name, maxdim_idx, idx,
+	T_lb=None, T_ub=None, comm=None):
 	'''
 	Reconstruct original data through oblique projection.
 	'''
 	s0 = time.time()
-	utils_par.pr0(f'\nReconstructing data from coefficients'   )
-	utils_par.pr0(f'------------------------------------------')
 	st = time.time()
+	utils_par.pr0(f'\nReconstructing data from coefficients'   , comm)
+	utils_par.pr0(f'------------------------------------------', comm)
+
+	## load required files
+	file_weights = os.path.join(results_dir, 'weights.npy')
+	file_params  = os.path.join(results_dir, 'params_dict.yaml')
+	weights      = np.lib.format.open_memmap(file_weights)
+	with open(file_params) as f:
+		params = yaml.load(f, Loader=yaml.FullLoader)
+	xshape_nv = weights.shape
 
 	# get time snapshots to be reconstructed
 	nt = a.shape[1]
 	if not idx: idx = [0,nt%2,nt-1]
-	elif idx.lower() == 'all': idx = np.arange(0,nt)
+	elif idx.lower() == 'all': idx = np.arange(0, nt)
 	else: idx = idx
 
 	## phi x a
 	Q_reconstructed = phi @ a[:,idx]
-	utils_par.pr0(f'- phi x a completed: {time.time() - st} s.')
+	utils_par.pr0(f'- phi x a completed: {time.time() - st} s.', comm)
 	st = time.time()
 
 	## add time mean
 	Q_reconstructed = Q_reconstructed + tm[...,None]
-	utils_par.pr0(f'- added time mean: {time.time() - st} s.')
+	utils_par.pr0(f'- added time mean: {time.time() - st} s.', comm)
 	st = time.time()
 
 	## reshape and save
-	file_dynamics = os.path.join(self._savedir_sim,
-		'reconstructed_data_freq{:08f}to{:08f}.npy'.format(
-			self._f_lb, self._f_ub))
-	shape = [*self._xshape,self._nv,len(idx)]
-	if self._comm:
-		shape[self._maxdim_idx] = -1
+	file_dynamics = os.path.join(results_dir, r_name)
+	shape = [*xshape_nv, len(idx)]
+	if comm:
+		shape[maxdim_idx] = -1
 	Q_reconstructed.shape = shape
 	Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
-	utils_par.npy_save(
-		self._comm, file_dynamics, Q_reconstructed,
-		axis=self._maxdim_idx+1)
-
-	## reshape data and save
-	if self._rank == 0:
-		utils_par.pr0(f'- data saved: {time.time() - st} s.')
-		utils_par.pr0(f'------------------------------------------')
-		utils_par.pr0(f'Reconstructed data saved in folder: {file_dynamics}')
-		utils_par.pr0(f'Elapsed time: {time.time() - s0} s.')
-	self._file_dynamics = file_dynamics
-	return Q_reconstructed
+	utils_par.npy_save(comm, file_dynamics, Q_reconstructed, axis=maxdim_idx+1)
+	utils_par.pr0(f'- data saved: {time.time() - st} s.'                , comm)
+	utils_par.pr0(f'---------------------------------------------------', comm)
+	utils_par.pr0(f'Reconstructed data saved in folder: {file_dynamics}', comm)
+	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'                , comm)
+	return file_dynamics
 
 
-
-def _oblique_projection(phi, weights_phi, weights, data, tol, svd=True):
+def _oblique_projection(
+	phi, weights_phi, weights, data, tol, svd=True, comm=None):
 	'''Compute oblique projection for time coefficients.'''
 	data = data.T
+	comm.Barrier()
+	print(f'{data.shape = :}')
+	print(f'{phi.shape = :}')
+	print(f'{weights_phi.shape = :}')
+	print(f'{weights.shape = :}')
 	M = phi.conj().T @ (weights_phi * phi)
 	Q = phi.conj().T @ (weights * data)
-	M = utils_par.allreduce(data=M, comm=self._comm)
-	Q = utils_par.allreduce(data=Q, comm=self._comm)
+	M = utils_par.allreduce(data=M, comm=comm)
+	Q = utils_par.allreduce(data=Q, comm=comm)
 	if svd:
 		u, l, v = np.linalg.svd(M)
 		l_inv = np.zeros([len(l),len(l)], dtype=complex)
