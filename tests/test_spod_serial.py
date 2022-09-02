@@ -16,6 +16,7 @@ sys.path.append(os.path.join(CFD,"../"))
 sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod.standard  import Standard  as spod_standard
 from pyspod.spod.streaming import Streaming as spod_streaming
+import pyspod.spod.utils     as spod_utils
 import pyspod.utils.weights  as utils_weights
 import pyspod.utils.errors   as utils_errors
 import pyspod.utils.io		 as utils_io
@@ -122,12 +123,15 @@ def test_standard_svd():
 	## -------------------------------------------------------------------
 	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
-	spod.transform(data, nt=nt, rec_idx='all', svd=True)
+	# spod.transform(data, nt=nt, rec_idx='all', svd=True)
+	results_dir = spod.savedir_sim
+	file_coeffs, file_dynamics = spod_utils.coeff_and_recons(
+		data=data, nt=nt, results_dir=results_dir, idx='all', svd=True)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-	coeffs = np.load(spod.file_coeffs)
-	recons = np.load(spod.file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	## fit
 	assert((np.min(np.abs(modes_at_freq))<3.685998997e-06+tol) & \
 		   (np.min(np.abs(modes_at_freq))>3.685998997e-06-tol))
@@ -174,12 +178,15 @@ def test_standard_inv():
 	## -------------------------------------------------------------------
 	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
-	spod.transform(data, nt=nt, rec_idx='all', svd=False)
+	# spod.transform(data, nt=nt, rec_idx='all', svd=False)
+	results_dir = spod.savedir_sim
+	file_coeffs, file_dynamics = spod_utils.coeff_and_recons(
+		data=data, nt=nt, results_dir=results_dir, idx='all', svd=False)
 	T_ = 12.5; 	tol = 1e-10
 	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-	coeffs = np.load(spod.file_coeffs)
-	recons = np.load(spod.file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	## fit
 	assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol) & \
 		   (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol))
@@ -226,14 +233,18 @@ def test_standard_freq():
 	## -------------------------------------------------------------------
 	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
-	latent_space = spod.transform(
-		data=data, nt=nt, rec_idx='all', tol=1e-10,
-		svd=False, T_lb=0.5, T_ub=1.1)
+	# latent_space = spod.transform(
+	# 	data=data, nt=nt, rec_idx='all', tol=1e-10,
+	# 	svd=False, T_lb=0.5, T_ub=1.1)
+	results_dir = spod.savedir_sim
+	file_coeffs, file_dynamics = spod_utils.coeff_and_recons(
+		data=data, nt=nt, results_dir=results_dir, idx='all',
+		tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-	coeffs = np.load(spod.file_coeffs)
-	recons = np.load(spod.file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	## fit
 	assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) & \
 		   (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol2))
@@ -296,13 +307,17 @@ def test_standard_normalize():
 	## -------------------------------------------------------------------
 	SPOD_analysis = spod_standard(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
-	latent_space = spod.transform(
-		data=data, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
+	# latent_space = spod.transform(
+	# 	data=data, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
+	results_dir = spod.savedir_sim
+	file_coeffs, file_dynamics = spod_utils.coeff_and_recons(
+		data=data, nt=nt, results_dir=results_dir, idx='all',
+		tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-	coeffs = np.load(spod.file_coeffs)
-	recons = np.load(spod.file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	## fit
 	assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol2) & \
 		   (np.min(np.abs(modes_at_freq))>1.600183827320e-09-tol2))
@@ -387,14 +402,18 @@ def test_streaming_freq():
 	## -------------------------------------------------------------------
 	SPOD_analysis = spod_streaming(params=params, )
 	spod = SPOD_analysis.fit(data=data, nt=nt)
-	latent_space = spod.transform(
-		data=data, nt=nt, rec_idx='all', tol=1e-10,
-		svd=False, T_lb=0.5, T_ub=1.1)
+	# latent_space = spod.transform(
+	# 	data=data, nt=nt, rec_idx='all', tol=1e-10,
+	# 	svd=False, T_lb=0.5, T_ub=1.1)
+	results_dir = spod.savedir_sim
+	file_coeffs, file_dynamics = spod_utils.coeff_and_recons(
+		data=data, nt=nt, results_dir=results_dir, idx='all',
+		tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-	coeffs = np.load(spod.file_coeffs)
-	recons = np.load(spod.file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	# print(f'{np.min(np.abs(modes_at_freq)) = :}')
 	# print(f'{np.max(np.abs(modes_at_freq)) = :}')
 	## fit

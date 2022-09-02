@@ -16,6 +16,7 @@ import scipy.special as sc
 
 
 # Import custom Python packages
+import pyspod.spod.utils as utils_spod
 import pyspod.utils.parallel as utils_par
 import pyspod.utils.io       as utils_io
 import pyspod.utils.weights  as utils_weights
@@ -558,210 +559,19 @@ class Base():
 		self._n_freq = len(self._freq)
 
 
-	def transform(
-		self, data, nt, rec_idx=None, tol=1e-10, svd=True,
-		T_lb=None, T_ub=None):
+	def coeff_and_recons(self, data, nt, results_dir, idx=None, tol=1e-10,
+		svd=True, T_lb=None, T_ub=None, comm=None):
 
-		## override class variables self._data
-		del self._data
-		self._data = data
-		self._nt = nt
-
-		## select time snapshots required
-		self._data = self._data[0:self._nt,...]
-
-		# compute coeffs
-		coeffs, phi_tilde, t_mean = self.compute_coeffs(
-			tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub)
-		# coeffs = np.real_if_close(coeffs, tol=1000000)
-
-		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs, phi_tilde=phi_tilde, t_mean=t_mean,
-			rec_idx=rec_idx, T_lb=T_lb, T_ub=T_ub)
-
-		# return data
-		dict_return = {
-			'coeffs': coeffs,
-			'phi_tilde': phi_tilde,
-			't_mean': t_mean,
-			'weights': self._weights,
-			'reconstructed_data': reconstructed_data
-		}
-		return dict_return
-
-
-	def compute_coeffs(self, tol=1e-10, svd=True, T_lb=None, T_ub=None):
-		'''
-		Compute coefficients through oblique projection.
-		'''
-		s0 = time.time()
-		self._pr0(f'\nComputing coefficients'      )
-		self._pr0(f'------------------------------')
-
-		## initialize frequencies
-		st = time.time()
-		if (T_lb is None) or (T_ub is None):
-			self._freq_idx_lb = 0
-			self._freq_idx_ub = self._n_freq - 1
-			self._freq_found_lb = self._freq[self._freq_idx_lb]
-			self._freq_found_ub = self._freq[self._freq_idx_ub]
-		else:
-			self._freq_found_lb, self._freq_idx_lb = self.find_nearest_freq(
-				freq_req=1/T_ub, freq=self._freq)
-			self._freq_found_ub, self._freq_idx_ub = self.find_nearest_freq(
-				freq_req=1/T_lb, freq=self._freq)
-		self._n_freq_r = self._freq_idx_ub - self._freq_idx_lb + 1
-		self._pr0(f'- identified frequencies: {time.time() - st} s.')
-		st = time.time()
-
-		## initialize coeffs matrix
-		shape_tmp = (self._n_freq_r*self._n_modes_save, self._nt)
-		coeffs = np.zeros(shape_tmp, dtype=complex)
-		self._pr0(f'- initialized coeff matrix: {time.time() - st} s.')
-		st = time.time()
-
-		## distribute data if parallel required
-		## note: weights are already distributed from fit()
-		## it is assumed that one runs fit and transform within the same main
-		self._data, self._maxdim_idx, self._global_shape = \
-			utils_par.distribute_data(data=self._data, comm=self._comm)
-
-		## add axis for single variable
-		if not isinstance(self._data,np.ndarray):
-			self._data = self._data.values
-		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
-			self._data = self._data[...,np.newaxis]
-
-		## flatten spatial x variable dimensions
-		self._data = np.reshape(self._data, [self._nt, self._data[0,...].size])
-
-		## compute time mean and subtract from data
-		t_mean = np.mean(self._data, axis=0) ###### should we reuse the time mean from fit?
-		self._data = self._data - t_mean
-		self._pr0(f'- data and time mean: {time.time() - st} s.');
-		st = time.time()
-
-		# initialize modes and weights
-		shape_tmp = (self._data[0,...].size, self._n_freq_r*self.n_modes_save)
-		phi_tilde = np.zeros(shape_tmp, dtype=complex)
-		weights_phi = np.zeros(shape_tmp, dtype=complex)
-
-		## order weights and modes such that each frequency contains
-		## all required modes (n_modes_save)
-		## - freq_0: modes from 0 to n_modes_save
-		## - freq_1: modes from 0 to n_modes_save
-		## ...
-		cnt_freq = 0
-		for i_freq in range(self._freq_idx_lb, self._freq_idx_ub+1):
-			modes = self.get_modes_at_freq(i_freq)
-			modes = utils_par.distribute_dimension(\
-				data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
-			modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
-			for i_mode in range(self._n_modes_save):
-				jump_freq = self.n_modes_save*cnt_freq+i_mode
-				weights_phi[:,jump_freq] = np.squeeze(self._weights[:])
-				phi_tilde  [:,jump_freq] = modes[:,i_mode]
-			cnt_freq = cnt_freq + 1
-		self._pr0(f'- retrieved requested frequencies: {time.time() - st} s.')
-		st = time.time()
-
-		# evaluate the coefficients by oblique projection
-		coeffs = self._oblique_projection(
-			phi_tilde, weights_phi, self._weights, self._data, tol=tol, svd=svd)
-		self._pr0(f'- oblique projection done: {time.time() - st} s.')
-		st = time.time()
-
-		# save coefficients
-		file_coeffs = os.path.join(self._savedir_sim,
-			'coeffs_freq{:08f}to{:08f}.npy'.format(
-				self._freq_found_lb, self._freq_found_ub))
-		if self._rank == 0:
-			np.save(file_coeffs, coeffs)
-		self._pr0(f'- saving completed: {time.time() - st} s.')
-		self._pr0(f'------------------------------')
-		self._pr0(f'Coefficients saved in folder: {file_coeffs}')
-		self._pr0(f'Elapsed time: {time.time() - s0} s.')
-		self._file_coeffs = file_coeffs
-		return coeffs, phi_tilde, t_mean
-
-
-	def _oblique_projection(
-		self, phi_tilde, weights_phi, weights, data, tol, svd=True):
-		'''Compute oblique projection for time coefficients.'''
-		data = data.T
-		M = phi_tilde.conj().T @ (weights_phi * phi_tilde)
-		Q = phi_tilde.conj().T @ (weights * data)
-		M = utils_par.allreduce(data=M, comm=self._comm)
-		Q = utils_par.allreduce(data=Q, comm=self._comm)
-		if svd:
-			u, l, v = np.linalg.svd(M)
-			l_inv = np.zeros([len(l),len(l)], dtype=complex)
-			l_max = np.max(l)
-			for i in range(len(l)):
-				if (l[i] > tol * l_max):
-					l_inv[i,i] = 1 / l[i]
-			M_inv = (v.conj().T @ l_inv) @ u.conj().T
-			coeffs = M_inv @ Q
-		else:
-			tmp1_inv = np.linalg.pinv(M, tol)
-			coeffs = tmp1_inv @ Q
-		return coeffs
-
-
-	def reconstruct_data(
-		self, coeffs, phi_tilde, t_mean, rec_idx, T_lb=None, T_ub=None):
-		'''
-		Reconstruct original data through oblique projection.
-		'''
-		s0 = time.time()
-		self._pr0(f'\nReconstructing data from coefficients'   )
-		self._pr0(f'------------------------------------------')
-		st = time.time()
-
-		# get time snapshots to be reconstructed
-		nt = coeffs.shape[1]
-		if not rec_idx: rec_idx = [0,nt%2,nt-1]
-		elif rec_idx.lower() == 'all': rec_idx = np.arange(0,nt)
-		else: rec_idx = rec_idx
-
-		## phi x coeffs
-		Q_reconstructed = phi_tilde @ coeffs[:,rec_idx]
-		self._pr0(f'- phi x coeffs completed: {time.time() - st} s.')
-		st = time.time()
-
-		## add time mean
-		Q_reconstructed = Q_reconstructed + t_mean[...,None]
-		self._pr0(f'- added time mean: {time.time() - st} s.')
-		st = time.time()
-
-		## reshape and save
-		file_dynamics = os.path.join(self._savedir_sim,
-			'reconstructed_data_freq{:08f}to{:08f}.npy'.format(
-				self._freq_found_lb, self._freq_found_ub))
-		shape = [*self._xshape,self._nv,len(rec_idx)]
-		if self._comm:
-			shape[self._maxdim_idx] = -1
-		Q_reconstructed.shape = shape
-		Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
-		utils_par.npy_save(
-			self._comm, file_dynamics, Q_reconstructed,
-			axis=self._maxdim_idx+1)
-
-		## reshape data and save
-		if self._rank == 0:
-			self._pr0(f'- data saved: {time.time() - st} s.')
-			self._pr0(f'------------------------------------------')
-			self._pr0(f'Reconstructed data saved in folder: {file_dynamics}')
-			self._pr0(f'Elapsed time: {time.time() - s0} s.')
-		self._file_dynamics = file_dynamics
-		return Q_reconstructed
+		utils_spod.coeffs_and_recons(data, nt, results_dir=self._savedir_sim,
+			idx=None, tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None)
 
 
 	def _store_and_save(self):
 		'''Store and save results.'''
-		self._params['n_freq'] = self._n_freq
-		self._params['results_folder'] = self._savedir_sim
+		self._params['n_freq'] = int(self._n_freq)
+		self._params['results_folder'] = str(self._savedir_sim)
 		self._params['time_step'] = float(self._dt)
+		self._params['n_dft'] = int(self._n_dft)
 		print(type(self._params['time_step']))
 		path_weights = os.path.join(self._savedir_sim, 'weights.npy')
 		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
@@ -784,12 +594,10 @@ class Base():
 					eigs_c_u=self._eigs_c_u, eigs_c_l=self._eigs_c_l,
 					freq=self._freq)
 			else:
-				np.savez(
-					path_eigs, eigs=self._eigs, freq=self._freq)
+				np.savez(path_eigs, eigs=self._eigs, freq=self._freq)
 			print(f'Parameters dictionary saved in: {path_params}')
 			print(f'Eigenvalues and weights saved in: {path_eigs}')
 		self._n_modes = self._eigs.shape[-1]
-
 
 
 	def _pr0(self, fstring):

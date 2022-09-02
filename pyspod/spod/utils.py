@@ -22,12 +22,12 @@ def coeff_and_recons(
 	data = data[0:nt,...]
 
 	## compute coeffs
-	a, phi, tm, file_coeffs, r_name, maxdim_idx = _compute_coeffs(
+	a, phi, tm, file_coeffs, r_name, n_freq_r, maxdim_idx = compute_coeffs(
 		data=data, nt=nt, results_dir=results_dir, tol=tol, svd=svd,
 		T_lb=T_lb, T_ub=T_ub, comm=comm)
 
 	## reconstruct solution
-	file_dynamics = _reconstruct_data(
+	file_dynamics = reconstruct_data(
 		a=a, phi=phi, tm=tm, results_dir=results_dir, r_name=r_name,
 		maxdim_idx=maxdim_idx, idx=idx, T_lb=T_lb, T_ub=T_ub, comm=comm)
 
@@ -35,7 +35,7 @@ def coeff_and_recons(
 	return file_coeffs, file_dynamics
 
 
-def _compute_coeffs(
+def compute_coeffs(
 	data, nt, results_dir, tol=1e-10, svd=True,
 	T_lb=None, T_ub=None, comm=None):
 	'''
@@ -135,16 +135,19 @@ def _compute_coeffs(
 	r_name = 'reconstructed_data_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
 
 	file_coeffs = os.path.join(results_dir, c_name)
-	if comm.rank == 0:
+	if comm:
+		if comm.rank == 0:
+			np.save(file_coeffs, a)
+	else:
 		np.save(file_coeffs, a)
 	utils_par.pr0(f'- saving completed: {time.time() - st} s.'  , comm)
 	utils_par.pr0(f'-----------------------------------------'  , comm)
 	utils_par.pr0(f'Coefficients saved in folder: {file_coeffs}', comm)
 	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'        , comm)
-	return a, phi_r, tm, file_coeffs, r_name, maxdim_idx
+	return a, phi_r, tm, file_coeffs, r_name, n_freq_r, maxdim_idx
 
 
-def _reconstruct_data(
+def reconstruct_data(
 	a, phi, tm, results_dir, r_name, maxdim_idx, idx,
 	T_lb=None, T_ub=None, comm=None):
 	'''
@@ -198,11 +201,6 @@ def _oblique_projection(
 	phi, weights_phi, weights, data, tol, svd=True, comm=None):
 	'''Compute oblique projection for time coefficients.'''
 	data = data.T
-	comm.Barrier()
-	print(f'{data.shape = :}')
-	print(f'{phi.shape = :}')
-	print(f'{weights_phi.shape = :}')
-	print(f'{weights.shape = :}')
 	M = phi.conj().T @ (weights_phi * phi)
 	Q = phi.conj().T @ (weights * data)
 	M = utils_par.allreduce(data=M, comm=comm)

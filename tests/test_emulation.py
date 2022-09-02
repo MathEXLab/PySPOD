@@ -16,8 +16,9 @@ sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.pod.standard          import Standard    as pod_standard
 from pyspod.spod.standard         import Standard    as spod_standard
 from pyspod.emulation.neural_nets import Neural_Nets as emulation_nn
+import pyspod.spod.utils     as spod_utils
+import pyspod.utils.io       as utils_io
 import pyspod.utils.postproc as post
-import pyspod.utils.io as utils_io
 
 
 
@@ -210,16 +211,22 @@ def test_lstm_spod():
 	## fit and transform spod
 	spod_class = spod_standard(params=params_spod)
 	spod = spod_class.fit(d_train, nt=nt_train)
-	coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
-	coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
+	# coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
+	# coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
+	results_dir = spod.savedir_sim
+	coeffs_train, phi_r_train, tm_train, _, r_name, n_freq, maxdim_idx = \
+		spod_utils.compute_coeffs(
+			data=d_train, nt=nt_train, results_dir=results_dir)
+	coeffs_test, phi_r_test, tm_test, _, r_name, _, maxdim_idx = \
+		spod_utils.compute_coeffs(
+			data=d_test, nt=nt_test, results_dir=results_dir)
 
 	## initialization of variables and structures
-	n_freq     = spod._n_freq_r
 	n_modes    = params_spod['n_modes_save']
-	dim0_test  = coeffs_test ['coeffs'].shape[0]
-	dim1_train = coeffs_train['coeffs'].shape[1]
-	dim1_test  = coeffs_test ['coeffs'].shape[1]
-	n_feature  = coeffs_train['coeffs'].shape[0]
+	dim0_test  = coeffs_test .shape[0]
+	dim1_train = coeffs_train.shape[1]
+	dim1_test  = coeffs_test .shape[1]
+	n_feature  = coeffs_train.shape[0]
 	data_train = np.zeros([n_freq,dim1_train]  , dtype=complex)
 	data_test  = np.zeros([n_freq,dim1_test ]  , dtype=complex)
 	coeffs_tmp = np.zeros([n_freq,dim1_test ]  , dtype=complex)
@@ -232,11 +239,14 @@ def test_lstm_spod():
 	emulation = emulation_nn(params_emulation)
 	emulation.model_initialize(data=data_train)
 
+	print(coeffs_train.shape)
 	for idx in range(n_modes):
 		idx_x = list(range(idx,n_feature,n_modes))
 		## normalize data
-		c_train = coeffs_train['coeffs'][idx_x,:]
-		c_test  = coeffs_test ['coeffs'][idx_x,:]
+		c_train = coeffs_train[idx_x,:]
+		c_test  = coeffs_test [idx_x,:]
+		print(f'{c_train.shape = :}')
+		print(f'{c_test.shape = :}')
 		scaler1 = emulation.scaler(data=c_train)
 		scaler2 = emulation.scaler(data=c_train)
 		data_train[:,:] = emulation.scale_data(c_train, vec=scaler1)
@@ -259,14 +269,15 @@ def test_lstm_spod():
 		filename='history.png')
 
 	## reconstruct solutions
-	phi_t  = coeffs_train['phi_tilde']
-	t_mean = coeffs_train['t_mean']
-	c_t = coeffs_test['coeffs'][:,:]
-	p_rec = spod.reconstruct_data(
-		coeffs=c_t, phi_tilde=phi_t, t_mean=t_mean, rec_idx='all')
-	e_rec = spod.reconstruct_data(
-		coeffs=coeffs, phi_tilde=phi_t, t_mean=t_mean, rec_idx='all')
+	file_dynamics_p = spod_utils.reconstruct_data(
+		a=coeffs_train, phi=phi_r_train, tm=tm_train, results_dir=results_dir,
+		r_name=r_name, maxdim_idx=maxdim_idx, idx='all')
+	file_dynamics_e = spod_utils.reconstruct_data(
+		a=coeffs, phi=phi_r_train, tm=tm_train, results_dir=results_dir,
+		r_name=r_name, maxdim_idx=maxdim_idx, idx='all')
 	d_test = d_test[...,None]
+	p_rec = np.load(file_dynamics_p)
+	e_rec = np.load(file_dynamics_e)
 
 	## test visualization
 	post.generate_2d_subplot(
@@ -275,10 +286,10 @@ def test_lstm_spod():
 		var3=e_rec [10,...,0], title3='lstm emulation',
 		N_round=6, path=params_spod['savedir'], filename='emulation.png')
 	post.plot_compare_time_series(
-		series1=coeffs_test['coeffs'][0,:], series2=coeffs[0,:],
+		series1=coeffs_test[0,:], series2=coeffs[0,:],
 		label1='test', label2='lstm', legendLocation='upper left',
 		path=params_spod['savedir'], filename='timeseries_comparison.png')
-	_ = post.compute_energy_spectrum(coeffs_test['coeffs'][0,:])
+	_ = post.compute_energy_spectrum(coeffs_test[0,:])
 
 	## assert test solutions
 	tol = 1e-6
@@ -352,16 +363,22 @@ def test_cnn_spod():
 	## fit and transform spod
 	spod_class = spod_standard(params=params_spod)
 	spod = spod_class.fit(d_train, nt=nt_train)
-	coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
-	coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
+	# coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
+	# coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
+	results_dir = spod.savedir_sim
+	coeffs_train, phi_r_train, tm_train, _, r_name, n_freq, maxdim_idx = \
+		spod_utils.compute_coeffs(
+			data=d_train, nt=nt_train, results_dir=results_dir)
+	coeffs_test, phi_r_test, tm_test, _, r_name, _, maxdim_idx = \
+		spod_utils.compute_coeffs(
+			data=d_test, nt=nt_test, results_dir=results_dir)
 
 	## initialization of variables and structures
-	n_freq     = spod._n_freq_r
 	n_modes    = params_spod['n_modes_save']
-	dim0_test  = coeffs_test ['coeffs'].shape[0]
-	dim1_train = coeffs_train['coeffs'].shape[1]
-	dim1_test  = coeffs_test ['coeffs'].shape[1]
-	n_feature  = coeffs_train['coeffs'].shape[0]
+	dim0_test  = coeffs_test .shape[0]
+	dim1_train = coeffs_train.shape[1]
+	dim1_test  = coeffs_test .shape[1]
+	n_feature  = coeffs_train.shape[0]
 	data_train = np.zeros([n_freq,dim1_train]  , dtype=complex)
 	data_test  = np.zeros([n_freq,dim1_test ]  , dtype=complex)
 	coeffs_tmp = np.zeros([n_freq,dim1_test ]  , dtype=complex)
