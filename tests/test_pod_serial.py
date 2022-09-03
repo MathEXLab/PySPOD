@@ -44,7 +44,8 @@ def test_standard():
 	## fit and transform pod
 	pod_class = pod_standard(params=params)
 	pod = pod_class.fit(data=data, nt=nt)
-	coeffs = pod.transform(data=data, nt=nt, rec_idx='all')
+	file_coeffs, file_dynamics = pod.coeffs_and_recons(
+		data=data, nt=nt, idx='all')
 	pod.get_data(t_0=0, t_end=1)
 
 	## assert test
@@ -59,8 +60,8 @@ def test_standard():
 	assert(pod.dt          ==0.2)
 	assert(pod.n_modes_save==8)
 	modes = np.load(pod._file_modes)
-	coeffs = np.load(pod._file_coeffs)
-	recons = np.load(pod._file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	# print(coeffs.shape)
 	# print(recons.shape)
 	tol1 = 1e-6; tol2 = 1e-10
@@ -75,8 +76,8 @@ def test_standard():
 	assert(modes.shape==(20, 88, 1, 8))
 	assert((np.real(pod.eigs[0])    <5.507017010287017+tol1) & \
 		   (np.real(pod.eigs[0])    >5.507017010287017-tol1))
-	assert((pod.weights[0]          <1.    +tol1) & \
-		   (pod.weights[0]   	    >1.    -tol1))
+	assert((pod.weights[0,0]        <1.    +tol1) & \
+		   (pod.weights[0,0]   	    >1.    -tol1))
 	assert((np.abs(modes[0,1,0,0])  <0.00083357978228883+tol2) & \
 		   (np.abs(modes[0,1,0,0])  >0.00083357978228883-tol2))
 	assert((np.abs(modes[10,3,0,2]) <3.9895843115101e-05+tol2) & \
@@ -145,14 +146,15 @@ def test_standard_convergence():
 	## fit and transform pod
 	pod_class = pod_standard(params=params)
 	pod = pod_class.fit(data=data, nt=nt)
-	_ = pod.transform(data=data, nt=nt, rec_idx='all')
+	file_coeffs, file_dynamics = pod.coeffs_and_recons(
+		data=data, nt=nt, idx='all')
 	pod.get_data(t_0=0, t_end=1)
 
 	## assert test
 	savedir = pod._savedir
 	modes = np.load(pod._file_modes)
-	coeffs = np.load(pod._file_coeffs)
-	recons = np.load(pod._file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	tol1 = 1e-6; tol2 = 1e-10
 	x = data[...,None]
 	l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')

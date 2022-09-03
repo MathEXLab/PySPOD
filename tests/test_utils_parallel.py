@@ -49,8 +49,8 @@ def test_parallel_distribute():
 	dts, maxidx, gs = utils_par.distribute_data(data, comm=comm)
 	space_data = data[0,...]
 	dso = utils_par.distribute_dimension(space_data, maxidx, comm=comm)
-	print(f'{rank = :}  {dso.shape = :}')
-	print(f'{rank = :}  {dts.shape = :}')
+	# print(f'{rank = :}  {dso.shape = :}')
+	# print(f'{rank = :}  {dts.shape = :}')
 	if rank == 0:
 		assert(maxidx==1)
 		assert(gs==(20,88))

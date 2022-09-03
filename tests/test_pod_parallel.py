@@ -15,10 +15,9 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.pod.standard import Standard as pod_standard
-import pyspod.utils.postproc as post
 import pyspod.utils.io       as utils_io
 import pyspod.utils.errors   as utils_errors
-
+import pyspod.utils.postproc as post
 
 
 
@@ -46,7 +45,9 @@ def test_standard():
 	comm = MPI.COMM_WORLD
 	pod_class = pod_standard(params=params, comm=comm)
 	pod = pod_class.fit(data=data, nt=nt)
-	coeffs = pod.transform(data=data, nt=nt, rec_idx='all')
+	# coeffs = pod.transform(data=data, nt=nt, rec_idx='all')
+	file_coeffs, file_dynamics = pod.coeffs_and_recons(
+		data=data, nt=nt, idx='all')
 	pod.get_data(t_0=0, t_end=1)
 
 	## assert test
@@ -61,8 +62,8 @@ def test_standard():
 	assert(pod.dt          ==0.2)
 	assert(pod.n_modes_save==8)
 	modes = np.load(pod._file_modes)
-	coeffs = np.load(pod._file_coeffs)
-	recons = np.load(pod._file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	# print(coeffs.shape)
 	# print(recons.shape)
 	tol1 = 1e-6; tol2 = 1e-10
@@ -78,8 +79,8 @@ def test_standard():
 		assert(modes.shape==(20, 88, 1, 8))
 		assert((np.real(pod.eigs[0])    <5.507017010287017+tol1) & \
 			   (np.real(pod.eigs[0])    >5.507017010287017-tol1))
-		assert((pod.weights[0]          <1.    +tol1) & \
-			   (pod.weights[0]   	    >1.    -tol1))
+		assert((pod.weights[0,0]        <1.    +tol1) & \
+			   (pod.weights[0,0]   	    >1.    -tol1))
 		assert((np.abs(modes[0,1,0,0])  <0.00083357978228883+tol2) & \
 			   (np.abs(modes[0,1,0,0])  >0.00083357978228883-tol2))
 		assert((np.abs(modes[10,3,0,2]) <3.9895843115101e-05+tol2) & \
@@ -149,14 +150,16 @@ def test_standard_convergence():
 	comm = MPI.COMM_WORLD
 	pod_class = pod_standard(params=params, comm=comm)
 	pod = pod_class.fit(data=data, nt=nt)
-	_ = pod.transform(data=data, nt=nt, rec_idx='all')
+	# _ = pod.transform(data=data, nt=nt, rec_idx='all')
+	file_coeffs, file_dynamics = pod.coeffs_and_recons(
+		data=data, nt=nt, idx='all')
 	pod.get_data(t_0=0, t_end=1)
 
 	## assert test
 	savedir = pod._savedir
 	modes = np.load(pod._file_modes)
-	coeffs = np.load(pod._file_coeffs)
-	recons = np.load(pod._file_dynamics)
+	coeffs = np.load(file_coeffs)
+	recons = np.load(file_dynamics)
 	tol1 = 1e-6; tol2 = 1e-10
 	if comm.rank == 0:
 		x = data[...,None]

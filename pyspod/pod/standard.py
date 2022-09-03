@@ -54,7 +54,7 @@ class Standard(Base):
 
 		# truncation and save
 		phi_r = phi[:,0:self._n_modes_save]
-		self._file_modes = os.path.join(self._savedir_modes, 'modes.npy')
+		self._file_modes = os.path.join(self._savedir_sim, 'modes.npy')
 		shape = [*self._xshape,self._nv,self._n_modes_save]
 		if self._comm: shape[self._maxdim_idx] = -1
 		phi_r.shape = shape
@@ -65,126 +65,10 @@ class Standard(Base):
 		self._pr0(f'done. Elapsed time: {time.time() - st} s.')
 		self._pr0(f'Modes saved in  {self._file_modes}')
 		self._eigs = w
+		self._store_and_save()
 		if self._rank == 0:
-			file = os.path.join(self._savedir_modes, 'eigs')
+			file = os.path.join(self._savedir_sim, 'eigs')
 			np.savez(file, eigs=self._eigs)
 		return self
-
-
-	def transform(self, data, nt, rec_idx=None):
-		'''
-		Compute coefficients and reconstruction through oblique projection.
-		'''
-
-		## override class variables self._data
-		self._data = data
-		self._nt = nt
-
-		## select time snapshots required
-		self._data = self._data[0:self._nt,...]
-
-		# compute coeffs
-		coeffs, phi_tilde, t_mean = self.compute_coeffs(data=data, nt=nt)
-
-		# reconstruct data
-		reconstructed_data = self.reconstruct_data(
-			coeffs=coeffs, phi_tilde=phi_tilde, t_mean=t_mean, rec_idx=rec_idx)
-
-		# return data
-		dict_return = {
-			'coeffs': coeffs,
-			'phi_tilde': phi_tilde,
-			't_mean': t_mean,
-			'reconstructed_data': reconstructed_data
-		}
-		return dict_return
-
-
-	def compute_coeffs(self, data, nt):
-		'''
-		Compute coefficients through oblique projection.
-		'''
-		s0 = time.time()
-		self._pr0('\nComputing coefficients ...')
-
-		## distribute data if parallel required
-		## note: weights are already distributed from fit()
-		## it is assumed that one runs fit and transform within the same main
-		self._data, self._maxdim_idx, self._global_shape = \
-			utils_par.distribute_data(data=self._data, comm=self._comm)
-
-		## add axis for single variable
-		if not isinstance(self._data,np.ndarray):
-			self._data = self._data.values
-		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
-			self._data = self._data[...,np.newaxis]
-
-		## flatten spatial x variable dimensions
-		self._data = np.reshape(self._data, [self._nt, self._data[0,...].size])
-		self._pr0(f'- initialized coeff matrix: {time.time() - s0} s.')
-		st = time.time()
-
-		## compute time mean and subtract from data
-		t_mean = np.mean(self._data, axis=0) ###### should we reuse the time mean from fit?
-		self._data = self._data - t_mean
-		self._pr0(f'- data and time mean: {time.time() - st} s.');
-		st = time.time()
-
-		# load and distribute modes
-		modes = np.load(os.path.join(self._savedir_modes, 'modes.npy'))
-		modes = utils_par.distribute_dimension(\
-			data=modes, maxdim_idx=self._maxdim_idx, comm=self._comm)
-		modes = np.reshape(modes,[self._data[0,...].size,self.n_modes_save])
-
-		# compute coefficients
-		a = np.transpose(modes) @ np.transpose(self._data)
-		a = utils_par.allreduce(data=a, comm=self._comm)
-
-		# save coefficients
-		self._file_coeffs = os.path.join(self._savedir_modes, 'coeffs.npy')
-		if self._rank == 0:
-			np.save(self._file_coeffs, a)
-		self._pr0(f'done. Elapsed time: {time.time() - s0} s.')
-		self._pr0(f'Coefficients saved in {self._file_coeffs}')
-		return a, modes, t_mean
-
-
-	def reconstruct_data(self, coeffs, phi_tilde, t_mean, rec_idx):
-		'''
-		Reconstruct original data through oblique projection.
-		'''
-		s0 = time.time()
-		self._pr0('\nReconstructing data from coefficients ...')
-
-		# get time snapshots to be reconstructed
-		nt = coeffs.shape[1]
-		if not rec_idx: rec_idx = [0,nt%2,nt-1]
-		elif rec_idx.lower() == 'all': rec_idx = np.arange(0,nt)
-		else: rec_idx = rec_idx
-
-		## phi x coeffs
-		Q_reconstructed = phi_tilde @ coeffs[:,rec_idx]
-		self._pr0(f'- phi x coeffs completed: {time.time() - s0} s.')
-		st = time.time()
-
-		## add time mean
-		Q_reconstructed = Q_reconstructed + t_mean[...,None]
-		self._pr0(f'- added time mean: {time.time() - st} s.')
-		st = time.time()
-
-		## save reconstructed solution
-		self._file_dynamics = os.path.join(
-			self._savedir_modes, 'reconstructed_data.npy')
-		shape = [*self._xshape,self._nv,len(rec_idx)]
-		if self._comm:
-			shape[self._maxdim_idx] = -1
-		Q_reconstructed.shape = shape
-		Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
-		utils_par.npy_save(
-			self._comm, self._file_dynamics, Q_reconstructed,
-			axis=self._maxdim_idx+1)
-		self._pr0(f'done. Elapsed time: {time.time() - s0} s.')
-		self._pr0(f'Reconstructed data saved in {self._file_dynamics}')
-		return Q_reconstructed
 
 ## ----------------------------------------------------------------------------

@@ -45,7 +45,7 @@ def test_standard_freq():
 	SPOD_analysis = spod_standard(params=params,  comm=comm)
 	spod = SPOD_analysis.fit(data=data, nt=nt)
 	results_dir = spod.savedir_sim
-	file_coeffs, file_dynamics = spod_utils.coeff_and_recons(
+	file_coeffs, file_dynamics = spod_utils.coeffs_and_recons(
 		data=data, nt=nt, results_dir=results_dir, idx='all', tol=1e-10,
 		svd=False, T_lb=0.5, T_ub=1.1, comm=comm)
 
@@ -121,7 +121,7 @@ def test_streaming_freq():
 	# 	data=data, nt=nt, rec_idx='all', tol=1e-10,
 	# 	svd=False, T_lb=0.5, T_ub=1.1)
 	results_dir = spod.savedir_sim
-	file_coeffs, file_dynamics = spod_utils.coeff_and_recons(
+	file_coeffs, file_dynamics = spod_utils.coeffs_and_recons(
 		data=data, nt=nt, results_dir=results_dir, idx='all', tol=1e-10,
 		svd=False, T_lb=0.5, T_ub=1.1, comm=comm)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8

@@ -14,7 +14,7 @@ import pyspod.utils.postproc as post
 
 
 
-def coeff_and_recons(
+def coeffs_and_recons(
 	data, nt, results_dir, idx=None, tol=1e-10, svd=True,
 	T_lb=None, T_ub=None, comm=None):
 
@@ -22,13 +22,15 @@ def coeff_and_recons(
 	data = data[0:nt,...]
 
 	## compute coeffs
-	a, phi, tm, file_coeffs, r_name, n_freq_r, maxdim_idx = compute_coeffs(
-		data=data, nt=nt, results_dir=results_dir, tol=tol, svd=svd,
-		T_lb=T_lb, T_ub=T_ub, comm=comm)
+	coeffs, phi, tm, file_coeffs, r_name, n_freq_r, maxdim_idx = \
+		compute_coeffs(
+			data=data, nt=nt, results_dir=results_dir,
+			tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub,
+			comm=comm)
 
 	## reconstruct solution
 	file_dynamics = reconstruct_data(
-		a=a, phi=phi, tm=tm, results_dir=results_dir, r_name=r_name,
+		coeffs=coeffs, phi=phi, tm=tm, results_dir=results_dir, r_name=r_name,
 		maxdim_idx=maxdim_idx, idx=idx, T_lb=T_lb, T_ub=T_ub, comm=comm)
 
 	## return path to coeff and dynamics files
@@ -102,7 +104,7 @@ def compute_coeffs(
 
 	# initialize modes and weights
 	shape_tmp = (data[0,...].size, n_freq_r*n_modes_save)
-	phi_r = np.zeros(shape_tmp, dtype=complex)
+	phir = np.zeros(shape_tmp, dtype=complex)
 	weights_phi = np.zeros(shape_tmp, dtype=complex)
 
 	## order weights and modes such that each frequency contains
@@ -119,21 +121,28 @@ def compute_coeffs(
 		for i_mode in range(n_modes_save):
 			jump_freq = n_modes_save * cnt_freq + i_mode
 			weights_phi[:,jump_freq] = np.squeeze(weights[:])
-			phi_r[:,jump_freq] = modes[:,i_mode]
+			phir[:,jump_freq] = modes[:,i_mode]
 		cnt_freq = cnt_freq + 1
+
+	# ## reshape and save phir
+	# file_phir = os.path.join(results_dir, 'modes_r')
+	# shape = [*shape_tmp]
+	# if comm: shape[maxdim_idx] = -1
+	# phir.shape = shape_tmp
+	# utils_par.npy_save(comm, file_phir, phir, axis=maxdim_idx)
+
 	utils_par.pr0(f'- retrieved frequencies: {time.time() - st} s.', comm)
 	st = time.time()
 
 	# evaluate the coefficients by oblique projection
 	a = _oblique_projection(
-		phi_r, weights_phi, weights, data, tol=tol, svd=svd, comm=comm)
+		phir, weights_phi, weights, data, tol=tol, svd=svd, comm=comm)
 	utils_par.pr0(f'- oblique projection done: {time.time() - st} s.', comm)
 	st = time.time()
 
 	# save coefficients
 	c_name = 'coeffs_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
 	r_name = 'reconstructed_data_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
-
 	file_coeffs = os.path.join(results_dir, c_name)
 	if comm:
 		if comm.rank == 0:
@@ -144,11 +153,11 @@ def compute_coeffs(
 	utils_par.pr0(f'-----------------------------------------'  , comm)
 	utils_par.pr0(f'Coefficients saved in folder: {file_coeffs}', comm)
 	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'        , comm)
-	return a, phi_r, tm, file_coeffs, r_name, n_freq_r, maxdim_idx
+	return a, phir, tm, file_coeffs, r_name, n_freq_r, maxdim_idx
 
 
 def reconstruct_data(
-	a, phi, tm, results_dir, r_name, maxdim_idx, idx,
+	coeffs, phi, tm, results_dir, r_name, maxdim_idx, idx,
 	T_lb=None, T_ub=None, comm=None):
 	'''
 	Reconstruct original data through oblique projection.
@@ -159,21 +168,25 @@ def reconstruct_data(
 	utils_par.pr0(f'------------------------------------------', comm)
 
 	## load required files
+	# file_phir    = os.path.join(results_dir, 'modes_r.npy')
 	file_weights = os.path.join(results_dir, 'weights.npy')
 	file_params  = os.path.join(results_dir, 'params_dict.yaml')
 	weights      = np.lib.format.open_memmap(file_weights)
+	# phir         = np.lib.format.open_memmap(file_phir)
+	# print(f'{phir.shape = :}')
+	# print(f'{phi.shape = :}')
 	with open(file_params) as f:
 		params = yaml.load(f, Loader=yaml.FullLoader)
 	xshape_nv = weights.shape
 
 	# get time snapshots to be reconstructed
-	nt = a.shape[1]
+	nt = coeffs.shape[1]
 	if not idx: idx = [0,nt%2,nt-1]
 	elif idx.lower() == 'all': idx = np.arange(0, nt)
 	else: idx = idx
 
 	## phi x a
-	Q_reconstructed = phi @ a[:,idx]
+	Q_reconstructed = phi @ coeffs[:,idx]
 	utils_par.pr0(f'- phi x a completed: {time.time() - st} s.', comm)
 	st = time.time()
 

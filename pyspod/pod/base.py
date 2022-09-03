@@ -8,10 +8,11 @@ from __future__ import division
 import os
 import sys
 import time
-import pickle
+import yaml
 import warnings
 import numpy as np
 import scipy as scipy
+import pyspod.pod.utils      as pod_utils
 import pyspod.utils.parallel as utils_par
 import pyspod.utils.weights  as utils_weights
 CWD = os.getcwd()
@@ -30,7 +31,7 @@ class Base():
 	'''
 	def __init__(self, params, weights=None, comm=None):
 		# store mandatory parameters in class
-		self._dt   = params['time_step'   ]
+		self._dt   = params['time_step']
 		self._xdim = params['n_space_dims']
 		self._nv   = params['n_variables' ]
 
@@ -43,6 +44,7 @@ class Base():
 		self._savedir = params.get('savedir', saveto)
 
 		## get other inputs
+		self._params = params
 		self._weights_tmp = weights
 		self._comm = comm
 
@@ -268,11 +270,11 @@ class Base():
 					'spatial dimension of data.')
 
 		# create folder to save results
-		self._savedir_modes = os.path.join(
+		self._savedir_sim = os.path.join(
 			self._savedir, 'modes'+str(self._n_modes_save))
 		if self._rank == 0:
-			if not os.path.exists(self._savedir_modes):
-		 		os.makedirs(self._savedir_modes)
+			if not os.path.exists(self._savedir_sim):
+		 		os.makedirs(self._savedir_sim)
 		if self._comm: self._comm.Barrier()
 
 		# # compute approx problem size (assuming double)
@@ -337,6 +339,41 @@ class Base():
 		t_mean = t_sum / self.nt
 		t_mean = np.reshape(t_mean, shape_sxv)
 		return t_mean
+
+
+	def coeffs_and_recons(self, data, nt, idx=None, comm=None):
+		'''compute coefficient and reconstruct solution.'''
+		file_coeffs, file_recons = \
+			pod_utils.coeffs_and_recons(
+				data, nt, results_dir=self._savedir_sim, idx=idx, comm=comm)
+		self._file_coeffs = file_coeffs
+		self._file_recons = file_recons
+		return file_coeffs, file_recons
+
+
+	def _store_and_save(self):
+		'''Store and save results.'''
+		self._params['results_folder'] = str(self._savedir_sim)
+		self._params['time_step'] = float(self._dt)
+		path_weights = os.path.join(self._savedir_sim, 'weights.npy')
+		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
+		path_eigs  = os.path.join(self._savedir_sim, 'eigs')
+		## save weights
+		shape = [*self._xshape,self._nv]
+		if self._comm: shape[self._maxdim_idx] = -1
+		self._weights.shape = shape
+		utils_par.npy_save(
+			self._comm, path_weights, self._weights, axis=self._maxdim_idx)
+		# save params; eigs and freq
+		if self._rank == 0:
+			## save dictionaries of modes and params
+			with open(path_params, 'w') as f: yaml.dump(self._params, f)
+			## save eigs
+			np.savez(path_eigs, eigs=self._eigs)
+			print(f'Weights saved in: {path_weights}')
+			print(f'Parameters dictionary saved in: {path_params}')
+			print(f'Eigenvalues saved in: {path_eigs}')
+		self._n_modes = self._eigs.shape[-1]
 
 
 	def _pr0(self, fstring):

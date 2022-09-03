@@ -1,6 +1,6 @@
 '''
 Base module for the SPOD:
-	- `fit` and `transform` methods must be implemented in inherited classes
+	- `fit` method must be implemented in inherited classes
 '''
 from __future__ import division
 
@@ -559,12 +559,15 @@ class Base():
 		self._n_freq = len(self._freq)
 
 
-	def coeff_and_recons(self, data, nt, results_dir, idx=None, tol=1e-10,
-		svd=True, T_lb=None, T_ub=None, comm=None):
-
-		utils_spod.coeffs_and_recons(data, nt, results_dir=self._savedir_sim,
-			idx=None, tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None)
-
+	def coeffs_and_recons(self, data, nt, results_dir, idx=None,
+		tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None):
+		file_coeffs, file_recons = \
+			utils_spod.coeffs_and_recons(\
+				data, nt, results_dir=self._savedir_sim,
+				idx=idx, tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub, comm=comm)
+		self._file_coeffs = file_coeffs
+		self._file_recons = file_recons
+		return file_coeffs, file_recons
 
 	def _store_and_save(self):
 		'''Store and save results.'''
@@ -572,7 +575,6 @@ class Base():
 		self._params['results_folder'] = str(self._savedir_sim)
 		self._params['time_step'] = float(self._dt)
 		self._params['n_dft'] = int(self._n_dft)
-		print(type(self._params['time_step']))
 		path_weights = os.path.join(self._savedir_sim, 'weights.npy')
 		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
 		path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq')
@@ -586,7 +588,7 @@ class Base():
 		if self._rank == 0:
 			## save dictionaries of modes and params
 			with open(path_params, 'w') as f: yaml.dump(self._params, f)
-			## save eigs, freq, and weights
+			## save eigs and freq
 			if hasattr(self, '_eigs_c'):
 				self._eigs_c_u = self._eigs_c[:,:,0]
 				self._eigs_c_l = self._eigs_c[:,:,1]
@@ -595,8 +597,9 @@ class Base():
 					freq=self._freq)
 			else:
 				np.savez(path_eigs, eigs=self._eigs, freq=self._freq)
+			print(f'Weights saved in: {path_weights}')
 			print(f'Parameters dictionary saved in: {path_params}')
-			print(f'Eigenvalues and weights saved in: {path_eigs}')
+			print(f'Eigenvalues saved in: {path_eigs}')
 		self._n_modes = self._eigs.shape[-1]
 
 

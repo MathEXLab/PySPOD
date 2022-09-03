@@ -101,10 +101,8 @@ def apply_normalization(
 				print('Normalization by variance - parallel')
 				print('------------------------------------')
 			axis = tuple(np.arange(0, data[...,0].ndim))
-			print(axis)
 			for i in range(0, n_variables):
 				var, _, _ = utils_par.pvar(data[...,i], comm=comm)
-				print(f'{i = :} {var = :}')
 				weights[...,i] = weights[...,i] / var
 		else:
 			if comm.rank:

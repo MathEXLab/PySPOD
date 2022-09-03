@@ -17,6 +17,7 @@ from pyspod.pod.standard          import Standard    as pod_standard
 from pyspod.spod.standard         import Standard    as spod_standard
 from pyspod.emulation.neural_nets import Neural_Nets as emulation_nn
 import pyspod.spod.utils     as spod_utils
+import pyspod.pod.utils      as pod_utils
 import pyspod.utils.io       as utils_io
 import pyspod.utils.postproc as post
 
@@ -67,20 +68,21 @@ def test_lstm_pod():
 	## fit and transform pod
 	pod_class = pod_standard(params=params_pod)
 	pod = pod_class.fit(data=d_train, nt=nt_train)
-	coeffs_train = pod.transform(data=d_train, nt=nt_train, rec_idx='all')
+	modes = np.load(os.path.join(pod._savedir_sim, 'modes.npy'))
+	coeffs_train, phi, tm, file_coeffs, maxdim_idx = pod_utils.compute_coeffs(
+		data=d_train, nt=nt_train, results_dir=pod._savedir_sim)
 
 	## compute test coefficients
 	d_r_test = np.reshape(d_test[:,:,:], [nt_test,pod.nv*pod.nx])
 	for i in range(nt_test):
-		d_r_test[i,:] = \
-			np.squeeze(d_r_test[i,:]) - np.squeeze(coeffs_train['t_mean'])
-	coeffs_test = np.transpose(coeffs_train['phi_tilde']) @ d_r_test.T
+		d_r_test[i,:] = np.squeeze(d_r_test[i,:]) - np.squeeze(tm)
+	coeffs_test = np.transpose(phi) @ d_r_test.T
 
 	## initialization of variables and structures
 	n_modes = params_pod['n_modes_save']
-	dim1_train = coeffs_train['coeffs'].shape[1]
-	dim0_test  = coeffs_test           .shape[0]
-	dim1_test  = coeffs_test           .shape[1]
+	dim1_train = coeffs_train.shape[1]
+	dim0_test  = coeffs_test .shape[0]
+	dim1_test  = coeffs_test .shape[1]
 	data_train = np.zeros([n_modes  , dim1_train], dtype=float)
 	data_test  = np.zeros([n_modes  , dim1_test] , dtype=float)
 	coeffs     = np.zeros([dim0_test, dim1_test] , dtype=float)
@@ -94,7 +96,7 @@ def test_lstm_pod():
 	emulation.model_initialize(data=data_train)
 
 	## normalize data
-	c_train = coeffs_train['coeffs'][:,:]
+	c_train = coeffs_train[:,:]
 	c_test = coeffs_test[:,:]
 	scaler1 = emulation.scaler(data=c_train)
 	scaler2 = emulation.scaler(data=c_train)
@@ -117,12 +119,12 @@ def test_lstm_pod():
 		filename='history.png')
 
 	# reconstruct solutions
-	phi_t = coeffs_train['phi_tilde']
-	t_mean = coeffs_train['t_mean']
-	p_rec =pod.reconstruct_data(
-		coeffs=c_test, phi_tilde=phi_t, t_mean=t_mean, rec_idx='all')
-	e_rec = pod.reconstruct_data(
-		coeffs=coeffs, phi_tilde=phi_t, t_mean=t_mean, rec_idx='all')
+	f_p = pod_utils.reconstruct_data(coeffs=c_test, phi=phi, tm=tm,
+		results_dir=pod._savedir_sim, maxdim_idx=maxdim_idx, idx='all')
+	f_e = pod_utils.reconstruct_data(coeffs=coeffs, phi=phi, tm=tm,
+		results_dir=pod._savedir_sim, maxdim_idx=maxdim_idx, idx='all')
+	p_rec = np.load(f_p)
+	e_rec = np.load(f_e)
 	pod.get_data(t_0=0, t_end=1)
 
 	## assert test
@@ -139,8 +141,8 @@ def test_lstm_pod():
 	assert(pod.n_modes_save==8)
 	assert((np.real(pod.eigs[0])   <90699.72245430+tol) & \
 		   (np.real(pod.eigs[0])   >90699.72245430-tol))
-	assert((pod.weights[0]         <19934.84235881+tol) & \
-		   (pod.weights[0]   	   >19934.84235881-tol))
+	assert((pod.weights[0,0]       <19934.84235881+tol) & \
+		   (pod.weights[0,0]   	   >19934.84235881-tol))
 	assert((np.abs(e_rec[0,1,0])   <4.467810376724+tol) & \
 		   (np.abs(e_rec[0,1,0])   >4.467810376724-tol))
 	assert((np.abs(e_rec[100,1,0]) <4.467810376724+tol) & \
@@ -239,14 +241,11 @@ def test_lstm_spod():
 	emulation = emulation_nn(params_emulation)
 	emulation.model_initialize(data=data_train)
 
-	print(coeffs_train.shape)
 	for idx in range(n_modes):
 		idx_x = list(range(idx,n_feature,n_modes))
 		## normalize data
 		c_train = coeffs_train[idx_x,:]
 		c_test  = coeffs_test [idx_x,:]
-		print(f'{c_train.shape = :}')
-		print(f'{c_test.shape = :}')
 		scaler1 = emulation.scaler(data=c_train)
 		scaler2 = emulation.scaler(data=c_train)
 		data_train[:,:] = emulation.scale_data(c_train, vec=scaler1)
@@ -269,15 +268,17 @@ def test_lstm_spod():
 		filename='history.png')
 
 	## reconstruct solutions
-	file_dynamics_p = spod_utils.reconstruct_data(
-		a=coeffs_train, phi=phi_r_train, tm=tm_train, results_dir=results_dir,
+	f_p = spod_utils.reconstruct_data(
+		coeffs=coeffs_train, phi=phi_r_train,
+		tm=tm_train,  results_dir=results_dir,
 		r_name=r_name, maxdim_idx=maxdim_idx, idx='all')
-	file_dynamics_e = spod_utils.reconstruct_data(
-		a=coeffs, phi=phi_r_train, tm=tm_train, results_dir=results_dir,
-		r_name=r_name, maxdim_idx=maxdim_idx, idx='all')
+	f_e = spod_utils.reconstruct_data(
+		coeffs=coeffs, phi=phi_r_train, tm=tm_train,
+		results_dir=results_dir, r_name=r_name,
+		maxdim_idx=maxdim_idx, idx='all')
 	d_test = d_test[...,None]
-	p_rec = np.load(file_dynamics_p)
-	e_rec = np.load(file_dynamics_e)
+	p_rec = np.load(f_p)
+	e_rec = np.load(f_e)
 
 	## test visualization
 	post.generate_2d_subplot(
@@ -305,11 +306,11 @@ def test_lstm_spod():
 		   (np.abs(e_rec[10,0,0,0]) >4.465600418067-tol))
 	assert((np.abs(e_rec[15,5,12,0])<4.457098452307+tol) & \
 		   (np.abs(e_rec[15,5,12,0])>4.457098452307-tol))
-	# clean up results
-	try:
-		shutil.rmtree(os.path.join(CFD,'results'))
-	except OSError as e:
-		pass
+	# # clean up results
+	# try:
+	# 	shutil.rmtree(os.path.join(CFD,'results'))
+	# except OSError as e:
+	# 	pass
 
 
 def test_cnn_spod():

@@ -42,7 +42,6 @@ def create_subcomm(comm):
 	dims = (a,b)
 	cart = comm.Create_cart(dims)
 	coords = cart.Get_coords(cart.Get_rank())
-	print(f'{rank = :}  {coords = :}')
 	subcomm = cart.Sub([False, True])
 	cart.Free()
 	return dims[0], coords[0], subcomm
@@ -59,7 +58,6 @@ def create_subcomm(comm):
 	# n, s = _blockdist(N, dims[0], coords[0])
 	# for i in range(s, s+n):
 	#     val = subcomm.allreduce(rank)
-	#     print(f"[{rank:2d}] {i = :2d}  ", val)
 	# subcomm.Free()
 	# cart.Free()
 
