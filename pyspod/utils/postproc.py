@@ -80,11 +80,29 @@ def get_modes_at_freq(modes_file, freq_idx, modes_path='./'):
 	'''
 	# load modes from files if saved in storage
 	if isinstance(modes_file, str):
-		filename = os.path.join(modes_path, modes_file)
+		tmp_str = f'freq_idx_{freq_idx:08d}.npy'
+		filename = os.path.join(modes_path, modes_file, tmp_str)
 		m = get_data_from_file(filename)
 	else:
 		raise TypeError('Modes must be a string to modes.npy')
-	return m[freq_idx]
+	return m
+
+def get_all_modes(modes_file, modes_path='./'):
+	# load modes from files if saved in storage
+	if isinstance(modes_file, str):
+		import glob, os
+		os.chdir(modes_file)
+		flist = []
+		for filename in glob.glob("*.npy"):
+			flist.append(filename)
+		flist.sort()
+		m = [None] * len(flist)
+		for f_idx, f in enumerate(flist):
+			m[f_idx] = get_data_from_file(f)
+		m = np.stack(m)
+	else:
+		raise TypeError('Modes must be a string to modes.npy')
+	return m
 
 def get_data_from_file(filename):
 	'''
@@ -95,7 +113,9 @@ def get_data_from_file(filename):
 	:return: the requested data stored in `filename`
 	:rtype: numpy.ndarray
 	'''
+	print(f'{filename = :}')
 	_, ext = splitext(filename)
+
 	if ext.lower() == '.npy':
 		# m = np.load(filename)
 		m = np.lib.format.open_memmap(filename)

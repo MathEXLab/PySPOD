@@ -63,7 +63,6 @@ class Streaming(Base):
 		phi = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
 		u_hat  = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
 		self._eigs  = np.zeros([n_m_save,n_freq],dtype=complex)
-		self._modes = dict()
 
 		## dft matrix
 		dft = np.fft.fft(np.identity(self._n_dft))
@@ -210,27 +209,26 @@ class Streaming(Base):
 		# ## shuffle and reshape
 		phi = np.einsum('ijk->jik', phi)
 
-		# ## save modes
-		# for i_freq in range(0,n_freq):
-		# 	file_modes = 'modes_freq{:08d}.npy'.format(i_freq)
-		# 	path_modes = os.path.join(self._modes_folder, file_modes)
-		# 	self._modes[i_freq] = file_modes
-		# 	Psi = phi[i_freq,...]
-		# 	shape = [*self._xshape, self._nv, self._n_modes_save]
-		# 	if self._comm:
-		# 		shape[self._maxdim_idx] = -1
-		# 	Psi.shape = shape
-		# 	utils_par.npy_save(
-		# 		self._comm, path_modes, Psi, axis=self._maxdim_idx)
-		# self._pr0(f'Modes saved in folder: {self._modes_folder}')
 		## save modes
-		self._file_modes = 'modes.npy'
-		path_modes = os.path.join(self._savedir_sim, self._file_modes)
-		shape = [self._n_freq, *self._xshape, self._nv, self._n_modes_save]
-		if self._comm:
-			shape[self._maxdim_idx+1] = -1
-		phi.shape = shape
-		utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx+1)
+		for f in range(0,n_freq):
+			filename = f'freq_idx_{f:08d}.npy'
+			path_modes = os.path.join(self._file_modes, filename)
+			shape = [*self._xshape, self._nv, self._n_modes_save]
+			if self._comm:
+				shape[self._maxdim_idx] = -1
+			phif = phi[f,...]
+			phif.shape = shape
+			utils_par.npy_save(
+				self._comm, path_modes, phif, axis=self._maxdim_idx)
+				
+		# ## save modes
+		# self._file_modes = 'modes.npy'
+		# path_modes = os.path.join(self._savedir_sim, self._file_modes)
+		# shape = [self._n_freq, *self._xshape, self._nv, self._n_modes_save]
+		# if self._comm:
+		# 	shape[self._maxdim_idx+1] = -1
+		# phi.shape = shape
+		# utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx+1)
 
 		## transpose eigs
 		self._eigs = self._eigs.T

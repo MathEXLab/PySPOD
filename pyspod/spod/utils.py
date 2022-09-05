@@ -11,7 +11,7 @@ import numpy as np
 # Import custom Python packages
 import pyspod.utils.parallel as utils_par
 import pyspod.utils.postproc as post
-
+CWD = os.getcwd()
 
 
 def coeffs_and_recons(
@@ -38,8 +38,8 @@ def coeffs_and_recons(
 
 
 def compute_coeffs(
-	data, nt, results_dir, tol=1e-10, svd=True,
-	T_lb=None, T_ub=None, comm=None):
+	data, nt, results_dir, tol=1e-10,
+	svd=True, T_lb=None, T_ub=None, comm=None):
 	'''
 	Compute coefficients through oblique projection.
 	'''
@@ -48,13 +48,12 @@ def compute_coeffs(
 	utils_par.pr0(f'\nComputing coefficients'      , comm)
 	utils_par.pr0(f'------------------------------', comm)
 
-	## load required files
+	results_dir = os.path.join(CWD, results_dir)
 	file_weights   = os.path.join(results_dir, 'weights.npy')
-	file_modes     = os.path.join(results_dir, 'modes.npy')
+	file_modes     = os.path.join(results_dir, 'modes')
 	file_eigs_freq = os.path.join(results_dir, 'eigs_freq.npz')
 	file_params    = os.path.join(results_dir, 'params_dict.yaml')
 	weights   = np.lib.format.open_memmap(file_weights)
-	phi       = np.lib.format.open_memmap(file_modes)
 	eigs_freq = np.load(file_eigs_freq)
 	with open(file_params) as f:
 		params = yaml.load(f, Loader=yaml.FullLoader)
@@ -64,7 +63,7 @@ def compute_coeffs(
 	n_freq = params['n_freq']
 	nv     = params['n_variables']
 	xdim   = params['n_space_dims']
-	n_modes_save = phi.shape[-1]
+	n_modes_save = params['n_modes_save']
 
 	## initialize frequencies
 	if (T_lb is None) or (T_ub is None):
@@ -113,17 +112,16 @@ def compute_coeffs(
 	## - freq_1: modes from 0 to n_modes_save
 	## ...
 	cnt_freq = 0
-	phi = utils_par.distribute_dimension(
-		data=phi, maxdim_idx=maxdim_idx+1, comm=comm)
-	phi = np.reshape(phi, [phi.shape[0], data[0,...].size, n_modes_save])
 	for i_freq in range(f_idx_lb, f_idx_ub+1):
-		modes = phi[i_freq,...]
+		phi = post.get_modes_at_freq(file_modes, freq_idx=i_freq)
+		phi = utils_par.distribute_dimension(\
+			data=phi, maxdim_idx=maxdim_idx, comm=comm)
+		phi = np.reshape(phi,[data[0,...].size,n_modes_save])
 		for i_mode in range(n_modes_save):
 			jump_freq = n_modes_save * cnt_freq + i_mode
 			weights_phi[:,jump_freq] = np.squeeze(weights[:])
-			phir[:,jump_freq] = modes[:,i_mode]
+			phir[:,jump_freq] = phi[:,i_mode]
 		cnt_freq = cnt_freq + 1
-
 	# ## reshape and save phir
 	# file_phir = os.path.join(results_dir, 'modes_r')
 	# shape = [*shape_tmp]
@@ -142,7 +140,7 @@ def compute_coeffs(
 
 	# save coefficients
 	c_name = 'coeffs_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
-	r_name = 'reconstructed_data_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
+	r_name = 'recons_freq{:08f}to{:08f}.npy'.format(f_lb, f_ub)
 	file_coeffs = os.path.join(results_dir, c_name)
 	if comm:
 		if comm.rank == 0:
@@ -168,6 +166,9 @@ def reconstruct_data(
 	utils_par.pr0(f'------------------------------------------', comm)
 
 	## load required files
+	# results_dir = os.path.abspath(results_dir)
+
+	results_dir = os.path.join(CWD, results_dir)
 	# file_phir    = os.path.join(results_dir, 'modes_r.npy')
 	file_weights = os.path.join(results_dir, 'weights.npy')
 	file_params  = os.path.join(results_dir, 'params_dict.yaml')

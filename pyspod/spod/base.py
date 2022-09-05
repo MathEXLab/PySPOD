@@ -61,6 +61,8 @@ class Base():
 		self._n_modes_save = params.get('n_modes_save', 1e10)
 		# where to save data
 		self._savedir = params.get('savedir', os.path.join(CWD,'spod_results'))
+		self._savedir = os.path.join(CWD, self._savedir)
+		params['savedir'] = self._savedir
 
 		## parse other inputs
 		self._params = params
@@ -323,14 +325,14 @@ class Base():
 
 
 	@property
-	def modes(self):
+	def modes_dir(self):
 		'''
 		Get the dictionary containing the path to the SPOD modes saved.
 
 		:return: the dictionary containing the path to the SPOD modes saved.
 		:rtype: dict
 		'''
-		return self._modes
+		return self._file_modes
 
 
 	@property
@@ -472,6 +474,12 @@ class Base():
 			if not os.path.exists(self._savedir_sim):
 				os.makedirs(self._savedir_sim)
 
+		## create folder to save modes
+		self._file_modes = os.path.join(self._savedir_sim, 'modes')
+		if self._rank == 0:
+			if not os.path.exists(self._file_modes):
+				os.makedirs(self._file_modes)
+
 		## create folder to save fft blocks
 		if self._savefft:
 			self._blocks_folder = os.path.join(self._savedir_sim, 'blocks')
@@ -575,6 +583,7 @@ class Base():
 		self._params['results_folder'] = str(self._savedir_sim)
 		self._params['time_step'] = float(self._dt)
 		self._params['n_dft'] = int(self._n_dft)
+		self._params['n_modes_save'] = int(self._n_modes_save)
 		path_weights = os.path.join(self._savedir_sim, 'weights.npy')
 		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
 		path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq')
@@ -674,11 +683,12 @@ class Base():
 		if self._file_modes is None:
 			raise ValueError('Modes not found. Consider running fit()')
 		elif isinstance(self._file_modes, str):
-			mode_path = os.path.join(self._savedir_sim, self._file_modes)
+			tmp_str = f'freq_idx_{freq_idx:08d}.npy'
+			mode_path = os.path.join(self._file_modes, tmp_str)
 			m = post.get_data_from_file(mode_path)
 		else:
 			raise TypeError('Modes must be a string to modes.npy')
-		return m[freq_idx]
+		return m
 
 
 	def get_data(self, t_0, t_end):
@@ -830,8 +840,8 @@ class Base():
 
 
 	def plot_mode_tracers(self, freq_req, freq, coords_list,
-		x=None, vars_idx=[0], modes_idx=[0], fftshift=False, title='',
-		figsize=(12,8), filename=None):
+		x=None, vars_idx=[0], modes_idx=[0], fftshift=False,
+		title='', figsize=(12,8), filename=None):
 		'''
 		See method implementation in the postproc module.
 		'''

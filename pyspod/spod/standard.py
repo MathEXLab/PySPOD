@@ -24,6 +24,7 @@ class Standard(Base):
 	from the `Base` class.
 	'''
 
+	# @profile
 	def fit(self, data, nt):
 		'''
 		Class-specific method to fit the data matrix using
@@ -110,7 +111,6 @@ class Standard(Base):
 		self._pr0(f'Calculating SPOD (parallel)')
 		self._pr0(f'------------------------------------')
 		self._eigs = np.zeros([self._n_freq,self._n_blocks], dtype=complex)
-		self._modes = dict()
 
 		## compute standard spod
 		self._compute_standard_spod(Q_hat)
@@ -125,7 +125,7 @@ class Standard(Base):
 		return self
 
 
-
+	# @profile
 	def _compute_blocks(self, i_blk):
 		'''Compute FFT blocks.'''
 		# get time index for present block
@@ -160,7 +160,7 @@ class Standard(Base):
 			Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
 		return Q_blk_hat, offset
 
-
+	# @profile
 	def _compute_standard_spod(self, Q_hat):
 		'''Compute standard SPOD.'''
 		# compute inner product in frequency space, for given frequency
@@ -186,22 +186,22 @@ class Standard(Base):
 		# compute spatial modes for given frequency
 		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
 		V_hat = V * L_diag[:,None,:]
-		phi = [None] * self._n_freq
+		# phi = [None] * self._n_freq
 		for f in range(0,self._n_freq):
-			phi[f] = np.matmul(Q_hat[f,...], V[f,...] * L_diag[f,None,:])
-		phi = np.stack(phi)
-		# phi = np.einsum('...ij,...jk', Q_hat, V_hat)
-		# phi = np.dot(Q_hat, V_hat.swapaxes(0,2))
-		phi = phi[...,0:self._n_modes_save]
+			phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag[f,None,:])
+			phi = phi[...,0:self._n_modes_save]
+			filename = f'freq_idx_{f:08d}.npy'
+			p_modes = os.path.join(self._file_modes, filename)
+			print(f'{p_modes = :}')
 
-		## save modes
-		self._file_modes = 'modes.npy'
-		path_modes = os.path.join(self._savedir_sim, self._file_modes)
-		shape = [self._n_freq,*self._xshape,self._nv,self._n_modes_save]
-		if self._comm:
-			shape[self._maxdim_idx+1] = -1
-		phi.shape = shape
-		utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx+1)
+			## save modes
+			shape = [*self._xshape,self._nv,self._n_modes_save]
+			if self._comm:
+				shape[self._maxdim_idx] = -1
+			phi.shape = shape
+			utils_par.npy_save(self._comm, p_modes, phi, axis=self._maxdim_idx)
+		# phi = np.stack(phi)
+		# phi = phi[...,0:self._n_modes_save]
 
 		# get eigenvalues and confidence intervals
 		self._eigs = np.abs(L)
