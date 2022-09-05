@@ -113,7 +113,6 @@ def get_data_from_file(filename):
 	:return: the requested data stored in `filename`
 	:rtype: numpy.ndarray
 	'''
-	print(f'{filename = :}')
 	_, ext = splitext(filename)
 
 	if ext.lower() == '.npy':

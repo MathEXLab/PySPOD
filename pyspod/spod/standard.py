@@ -164,12 +164,16 @@ class Standard(Base):
 	def _compute_standard_spod(self, Q_hat):
 		'''Compute standard SPOD.'''
 		# compute inner product in frequency space, for given frequency
+
+		st = time.time()
 		M = [None]*self._n_freq
 		for f in range(0,self._n_freq):
 			Q_hat_f = np.squeeze(Q_hat[f,:,:])#.astype(complex)
 			M[f] = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
 		M = np.stack(M)
 		M = utils_par.allreduce(data=M, comm=self._comm)
+		self._pr0(f'- M computation: {time.time() - st} s.')
+		st = time.time()
 
 		## compute eigenvalues and eigenvectors
 		L, V = la.eig(M)
@@ -182,24 +186,38 @@ class Standard(Base):
 			vf = V[f,...]
 			vf = vf[:,idx]
 			V[f] = vf
+		self._pr0(f'- Eig computation: {time.time() - st} s.')
+		st = time.time()
 
 		# compute spatial modes for given frequency
 		L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
 		V_hat = V * L_diag[:,None,:]
 		# phi = [None] * self._n_freq
 		for f in range(0,self._n_freq):
+			s0 = time.time()
+			st = time.time()
+			## compute
 			phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag[f,None,:])
 			phi = phi[...,0:self._n_modes_save]
-			filename = f'freq_idx_{f:08d}.npy'
-			p_modes = os.path.join(self._file_modes, filename)
-			print(f'{p_modes = :}')
+			# self._pr0(f'- compute: {time.time() - st} s.')
+			# st = time.time()
 
 			## save modes
+			filename = f'freq_idx_{f:08d}.npy'
+			p_modes = os.path.join(self._file_modes, filename)
 			shape = [*self._xshape,self._nv,self._n_modes_save]
 			if self._comm:
 				shape[self._maxdim_idx] = -1
 			phi.shape = shape
+			# self._pr0(f'- reshape: {time.time() - st} s.')
+			# st = time.time()
 			utils_par.npy_save(self._comm, p_modes, phi, axis=self._maxdim_idx)
+			# self._pr0(f'- save: {time.time() - st} s.')
+			# st = time.time()
+			self._pr0(f'freq: {f}/{self._n_freq}, {time.time() - s0} s.')
+
+		self._pr0(f'- Modes computation  and saving: {time.time() - st} s.')
+
 		# phi = np.stack(phi)
 		# phi = phi[...,0:self._n_modes_save]
 
