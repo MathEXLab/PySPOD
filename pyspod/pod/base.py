@@ -12,7 +12,7 @@ import yaml
 import warnings
 import numpy as np
 import scipy as scipy
-import pyspod.pod.utils      as pod_utils
+import pyspod.pod.utils      as utils_pod
 import pyspod.utils.parallel as utils_par
 import pyspod.utils.weights  as utils_weights
 CWD = os.getcwd()
@@ -238,14 +238,16 @@ class Base():
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
-		print(f'{self._rank = :},  - loading data into memory, done. Elapsed time: {time.time() - st} s.')
+		self._pr0(f'- loading data into memory, done. Elapsed time: '
+				  f'{time.time()-st} s.')
 		st = time.time()
 
 		# apply mean
 		st = time.time()
-		self._pr0(f'- computing time mean')
+		self._pr0(f'- computing mean')
 		self.select_mean()
-		print(f'{self._rank = :},  - computing mean, done. Elapsed time: {time.time() - st} s.')
+		self._pr0(f'- computing mean, done. Elapsed time: '
+				  f'{time.time()-st} s.')
 		st = time.time()
 
 		## normalize weigths if required
@@ -274,7 +276,7 @@ class Base():
 			self._savedir, 'modes'+str(self._n_modes_save))
 		if self._rank == 0:
 			if not os.path.exists(self._savedir_sim):
-		 		os.makedirs(self._savedir_sim)
+				os.makedirs(self._savedir_sim)
 		if self._comm: self._comm.Barrier()
 
 		# # compute approx problem size (assuming double)
@@ -341,11 +343,35 @@ class Base():
 		return t_mean
 
 
-	def coeffs_and_recons(self, data, nt, idx=None, comm=None):
-		'''compute coefficient and reconstruct solution.'''
+	def compute_coeffs(self, data, results_dir, modes_idx=None,
+		tol=1e-10, svd=True, T_lb=None, T_ub=None):
+		file_coeffs, coeffs_dir = utils_pod.compute_coeffs(\
+			data, results_dir=self._savedir_sim, modes_idx=modes_idx,
+			comm=self._comm)
+		self._file_coeffs = file_coeffs
+		self._coeffs_dir = coeffs_dir
+		return file_coeffs, coeffs_dir
+
+
+	def compute_reconstruction(self, coeffs_dir, coeffs=None, time_idx=None):
+		if not hasattr(self, '_file_coeffs'):
+			raise ValueError(
+				'Coeffs not computed; you need to run `compute_coeffs`.')
+		else:
+			file_recons, coeffs_dir = utils_pod.compute_reconstruction(\
+				coeffs_dir=self._coeffs_dir, coeffs=coeffs, time_idx=time_idx,
+				comm=self._comm)
+		self._file_recons = file_recons
+		self._coeffs_dir = coeffs_dir
+		return file_recons, coeffs_dir
+
+
+	def coeffs_and_reconstruction(self, data, results_dir,
+		modes_idx=None, time_idx=None, comm=None):
 		file_coeffs, file_recons = \
-			pod_utils.coeffs_and_recons(
-				data, nt, results_dir=self._savedir_sim, idx=idx, comm=comm)
+			utils_pod.coeffs_and_reconstruction(\
+				data, results_dir=self._savedir_sim, modes_idx=modes_idx,
+				time_idx=time_idx, comm=comm)
 		self._file_coeffs = file_coeffs
 		self._file_recons = file_recons
 		return file_coeffs, file_recons

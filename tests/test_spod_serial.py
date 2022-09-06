@@ -240,11 +240,16 @@ def test_standard_freq():
 	file_coeffs, file_dynamics = utils_spod.coeffs_and_reconstruction(
 		data=data, results_dir=results_dir, time_idx='all',
 		tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
+	file_coeffs_cl, file_dynamics_cl = spod.coeffs_and_reconstruction(
+		data=data, results_dir=results_dir, time_idx='all',
+		tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
 	T_ = 12.5; 	tol1 = 1e-3;  tol2 = 1e-8
 	f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
 	modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 	coeffs = np.load(file_coeffs)
 	recons = np.load(file_dynamics)
+	recons_cl = np.load(file_dynamics)
+
 	## fit
 	assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) & \
 		   (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol2))
@@ -263,6 +268,10 @@ def test_standard_freq():
 		   (np.real(np.min(recons))> 4.340606772197322-tol1))
 	assert((np.real(np.max(recons))< 4.498677772159833+tol1) & \
 		   (np.real(np.max(recons))> 4.498677772159833-tol1))
+	assert((np.real(np.min(recons_cl))< 4.340606772197322+tol1) & \
+		   (np.real(np.min(recons_cl))> 4.340606772197322-tol1))
+	assert((np.real(np.max(recons_cl))< 4.498677772159833+tol1) & \
+		   (np.real(np.max(recons_cl))> 4.498677772159833-tol1))
 	x = data[...,None]
 	l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
 	l2 = utils_errors.compute_l_errors(recons, x, norm_type='l2')

@@ -17,7 +17,6 @@ CWD = os.getcwd()
 def coeffs_and_reconstruction(
 	data, results_dir, modes_idx=None, time_idx=None, tol=1e-10, svd=True,
 	T_lb=None, T_ub=None, savedir=None, comm=None):
-
 	'''
 	Compute coefficients through oblique projection and reconstruct solution.
 	'''
@@ -115,6 +114,12 @@ def coeffs_and_reconstruction(
 	utils_par.pr0(f'- retrieved frequencies: {time.time() - st} s.', comm)
 	st = time.time()
 
+	## evaluate the coefficients by oblique projection
+	coeffs = _oblique_projection(
+		phir, weights_phi, weights, data, tol=tol, svd=svd, comm=comm)
+	utils_par.pr0(f'- oblique projection done: {time.time() - st} s.', comm)
+	st = time.time()
+
 	## create coeffs folder
 	coeffs_dir = os.path.join(results_dir, f'coeffs_{f_idx_lb}_{f_idx_ub}')
 	if savedir is not None:
@@ -122,13 +127,7 @@ def coeffs_and_reconstruction(
 	if rank == 0:
 		if not os.path.exists(coeffs_dir): os.makedirs(coeffs_dir)
 	if comm: comm.Barrier()
-
-	## evaluate the coefficients by oblique projection
-	coeffs = _oblique_projection(
-		phir, weights_phi, weights, data, tol=tol, svd=svd, comm=comm)
-	utils_par.pr0(f'- oblique projection done: {time.time() - st} s.', comm)
-	st = time.time()
-
+	
 	## save coefficients
 	file_coeffs = os.path.join(coeffs_dir, 'coeffs.npy')
 	if rank == 0: np.save(file_coeffs, coeffs)
@@ -201,10 +200,10 @@ def coeffs_and_reconstruction(
 	Q_reconstructed.shape = shape
 	Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
 	utils_par.npy_save(comm, file_dynamics, Q_reconstructed, axis=maxdim_idx+1)
-	utils_par.pr0(f'- data saved: {time.time() - st} s.'                , comm)
-	utils_par.pr0(f'---------------------------------------------------', comm)
-	utils_par.pr0(f'Reconstructed data saved in folder: {file_dynamics}', comm)
-	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'                , comm)
+	utils_par.pr0(f'- data saved: {time.time() - st} s.'         , comm)
+	utils_par.pr0(f'--------------------------------------------', comm)
+	utils_par.pr0(f'Reconstructed data saved in: {file_dynamics}', comm)
+	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'         , comm)
 
 	## return path to coeff and dynamics files
 	return file_coeffs, file_dynamics
@@ -378,7 +377,7 @@ def compute_reconstruction(
 	else:
 		rank = 0
 		size = 1
-		
+
 	## load required files
 	coeffs_dir = os.path.join(CWD, coeffs_dir)
 	file_lt_mean = os.path.join(coeffs_dir, 'ltm.npy')
@@ -428,7 +427,7 @@ def compute_reconstruction(
 	utils_par.pr0(f'- added time mean: {time.time() - st} s.', comm)
 	st = time.time()
 
-	## reshape and save
+	## reshape and save reconstructed solution
 	if filename is None: filename = 'reconstructed'
 	if savedir is not None:
 		coeffs_dir = os.path.join(coeffs_dir, savedir)
@@ -442,10 +441,10 @@ def compute_reconstruction(
 	Q_reconstructed.shape = shape
 	Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
 	utils_par.npy_save(comm, file_dynamics, Q_reconstructed, axis=maxdim_idx+1)
-	utils_par.pr0(f'- data saved: {time.time() - st} s.'                , comm)
-	utils_par.pr0(f'---------------------------------------------------', comm)
-	utils_par.pr0(f'Reconstructed data saved in folder: {file_dynamics}', comm)
-	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'                , comm)
+	utils_par.pr0(f'- data saved: {time.time() - st} s.'         , comm)
+	utils_par.pr0(f'--------------------------------------------', comm)
+	utils_par.pr0(f'Reconstructed data saved in: {file_dynamics}', comm)
+	utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'         , comm)
 	return file_dynamics, coeffs_dir
 
 

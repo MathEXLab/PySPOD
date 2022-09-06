@@ -17,8 +17,9 @@ sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.pod.standard          import Standard    as pod_standard
 from pyspod.spod.standard         import Standard    as spod_standard
 from pyspod.emulation.neural_nets import Neural_Nets as emulation_nn
+import pyspod.pod.utils      as utils_pod
 import pyspod.spod.utils     as utils_spod
-import pyspod.pod.utils      as pod_utils
+import pyspod.pod.utils      as utils_pod
 import pyspod.utils.io       as utils_io
 import pyspod.utils.postproc as post
 
@@ -69,18 +70,25 @@ def test_lstm_pod():
 	## fit and transform pod
 	pod_class = pod_standard(params=params_pod)
 	pod = pod_class.fit(data=d_train, nt=nt_train)
-	modes = np.load(os.path.join(pod._savedir_sim, 'modes.npy'))
-	coeffs_train, phi, tm, file_coeffs, maxdim_idx = pod_utils.compute_coeffs(
-		data=d_train, nt=nt_train, results_dir=pod._savedir_sim)
+	phi = np.load(os.path.join(pod._savedir_sim, 'modes.npy'))
+	# coeffs_train, phi, tm, file_coeffs, maxdim_idx = utils_pod.compute_coeffs(
+	# 	data=d_train, results_dir=pod._savedir_sim)
+	results_dir = pod._savedir_sim
+	c_train_file, dir_train = utils_pod.compute_coeffs(
+		d_train, results_dir, savedir='train')
+	c_test_file, dir_test = utils_pod.compute_coeffs(
+		d_test, results_dir, savedir='test')
 
 	## compute test coefficients
-	d_r_test = np.reshape(d_test[:,:,:], [nt_test,pod.nv*pod.nx])
-	for i in range(nt_test):
-		d_r_test[i,:] = np.squeeze(d_r_test[i,:]) - np.squeeze(tm)
-	coeffs_test = np.transpose(phi) @ d_r_test.T
+	# d_r_test = np.reshape(d_test[:,:,:], [nt_test,pod.nv*pod.nx])
+	# for i in range(nt_test):
+		# d_r_test[i,:] = np.squeeze(d_r_test[i,:]) - np.squeeze(tm)
+	# coeffs_test = np.transpose(phi) @ d_r_test.T
 
 	## initialization of variables and structures
 	n_modes = params_pod['n_modes_save']
+	coeffs_train = np.load(c_train_file)
+	coeffs_test = np.load(c_test_file)
 	dim1_train = coeffs_train.shape[1]
 	dim0_test  = coeffs_test .shape[0]
 	dim1_test  = coeffs_test .shape[1]
@@ -120,10 +128,12 @@ def test_lstm_pod():
 		filename='history.png')
 
 	# reconstruct solutions
-	f_p = pod_utils.reconstruct_data(coeffs=c_test, phi=phi, tm=tm,
-		results_dir=pod._savedir_sim, maxdim_idx=maxdim_idx, idx='all')
-	f_e = pod_utils.reconstruct_data(coeffs=coeffs, phi=phi, tm=tm,
-		results_dir=pod._savedir_sim, maxdim_idx=maxdim_idx, idx='all')
+	f_p, _ = utils_pod.compute_reconstruction(
+		coeffs=c_test, coeffs_dir=dir_train, time_idx='all',
+		savedir=dir_test, filename='recons_projection')
+	f_e, _ = utils_pod.compute_reconstruction(
+		coeffs=coeffs, coeffs_dir=dir_train, time_idx='all',
+		savedir=dir_test, filename='recons_emulation')
 	p_rec = np.load(f_p)
 	e_rec = np.load(f_e)
 	pod.get_data(t_0=0, t_end=1)
