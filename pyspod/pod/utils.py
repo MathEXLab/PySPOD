@@ -44,7 +44,7 @@ def compute_coeffs(data, nt, results_dir, comm=None):
 	file_weights = os.path.join(results_dir, 'weights.npy')
 	file_modes   = os.path.join(results_dir, 'modes.npy')
 	file_eigs    = os.path.join(results_dir, 'eigs.npz')
-	file_params  = os.path.join(results_dir, 'params_dict.yaml')
+	file_params  = os.path.join(results_dir, 'params_modes.yaml')
 	weights      = np.lib.format.open_memmap(file_weights)
 	phi          = np.lib.format.open_memmap(file_modes)
 	eigs         = np.load(file_eigs)
@@ -105,7 +105,7 @@ def reconstruct_data(coeffs, phi, tm, results_dir, maxdim_idx, idx, comm=None):
 	## load required files
 	# file_phir    = os.path.join(results_dir, 'modes_r.npy')
 	file_weights = os.path.join(results_dir, 'weights.npy')
-	file_params  = os.path.join(results_dir, 'params_dict.yaml')
+	file_params  = os.path.join(results_dir, 'params_modes.yaml')
 	weights      = np.lib.format.open_memmap(file_weights)
 	# phir         = np.lib.format.open_memmap(file_phir)
 	# print(f'{phir.shape = :}')

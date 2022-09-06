@@ -356,7 +356,7 @@ class Base():
 		self._params['results_folder'] = str(self._savedir_sim)
 		self._params['time_step'] = float(self._dt)
 		path_weights = os.path.join(self._savedir_sim, 'weights.npy')
-		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
+		path_params = os.path.join(self._savedir_sim, 'params_modes.yaml')
 		path_eigs  = os.path.join(self._savedir_sim, 'eigs')
 		## save weights
 		shape = [*self._xshape,self._nv]

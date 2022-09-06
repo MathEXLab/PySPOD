@@ -3,6 +3,7 @@
 import os
 import sys
 import h5py
+import yaml
 import shutil
 import numpy as np
 
@@ -16,7 +17,7 @@ sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.pod.standard          import Standard    as pod_standard
 from pyspod.spod.standard         import Standard    as spod_standard
 from pyspod.emulation.neural_nets import Neural_Nets as emulation_nn
-import pyspod.spod.utils     as spod_utils
+import pyspod.spod.utils     as utils_spod
 import pyspod.pod.utils      as pod_utils
 import pyspod.utils.io       as utils_io
 import pyspod.utils.postproc as post
@@ -213,22 +214,25 @@ def test_lstm_spod():
 	## fit and transform spod
 	spod_class = spod_standard(params=params_spod)
 	spod = spod_class.fit(d_train, nt=nt_train)
-	# coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
-	# coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
 	results_dir = spod.savedir_sim
-	coeffs_train, phi_r_train, tm_train, _, r_name, n_freq, maxdim_idx = \
-		spod_utils.compute_coeffs(
-			data=d_train, nt=nt_train, results_dir=results_dir)
-	coeffs_test, phi_r_test, tm_test, _, r_name, _, maxdim_idx = \
-		spod_utils.compute_coeffs(
-			data=d_test, nt=nt_test, results_dir=results_dir)
+	c_train_file, dir_train = utils_spod.compute_coeffs(
+		d_train, results_dir, savedir='train')
+	c_test_file, dir_test = utils_spod.compute_coeffs(
+		d_test, results_dir, savedir='test')
 
 	## initialization of variables and structures
+	coeffs_train = np.load(c_train_file)
+	coeffs_test  = np.load(c_test_file )
+	f_train = os.path.join(dir_train, 'params_coeffs.yaml')
+	f_test  = os.path.join(dir_test , 'params_coeffs.yaml')
+	with open(f_train) as f: params_train = yaml.load(f, Loader=yaml.FullLoader)
+	with open(f_test ) as f: params_test  = yaml.load(f, Loader=yaml.FullLoader)
+	n_freq = params_train['n_freq_r']
 	n_modes    = params_spod['n_modes_save']
-	dim0_test  = coeffs_test .shape[0]
-	dim1_train = coeffs_train.shape[1]
-	dim1_test  = coeffs_test .shape[1]
 	n_feature  = coeffs_train.shape[0]
+	dim1_train = coeffs_train.shape[1]
+	dim0_test  = coeffs_test .shape[0]
+	dim1_test  = coeffs_test .shape[1]
 	data_train = np.zeros([n_freq,dim1_train]  , dtype=complex)
 	data_test  = np.zeros([n_freq,dim1_test ]  , dtype=complex)
 	coeffs_tmp = np.zeros([n_freq,dim1_test ]  , dtype=complex)
@@ -267,15 +271,16 @@ def test_lstm_spod():
 		path=params_spod['savedir'],
 		filename='history.png')
 
+	print(f'{coeffs[0,0] = :}')
+	print(f'{coeffs_train[0,0] = :}')
+	# exit(0)
 	## reconstruct solutions
-	f_p = spod_utils.reconstruct_data(
-		coeffs=coeffs_train, phi=phi_r_train,
-		tm=tm_train,  results_dir=results_dir,
-		r_name=r_name, maxdim_idx=maxdim_idx, idx='all')
-	f_e = spod_utils.reconstruct_data(
-		coeffs=coeffs, phi=phi_r_train, tm=tm_train,
-		results_dir=results_dir, r_name=r_name,
-		maxdim_idx=maxdim_idx, idx='all')
+	f_p, _ = utils_spod.compute_reconstruction(
+		coeffs_dir=dir_train, coeffs=coeffs_test, time_idx='all',
+		savedir=dir_test, filename='recons_projection')
+	f_e, _ = utils_spod.compute_reconstruction(
+		coeffs_dir=dir_train, coeffs=coeffs, time_idx='all',
+		savedir=dir_test, filename='recons_emulation')
 	d_test = d_test[...,None]
 	p_rec = np.load(f_p)
 	e_rec = np.load(f_e)
@@ -294,6 +299,12 @@ def test_lstm_spod():
 
 	## assert test solutions
 	tol = 1e-6
+	print(f'{np.abs(p_rec[0,0,0,0]) = :}')
+	print(f'{np.abs(p_rec[10,0,0,0]) = :}')
+	print(f'{np.abs(p_rec[15,5,12,0]) = :}')
+	print(f'{np.abs(e_rec[0,0,0,0]) = :}')
+	print(f'{np.abs(e_rec[10,0,0,0]) = :}')
+	print(f'{np.abs(e_rec[15,5,12,0]) = :}')
 	assert((np.abs(p_rec[0,0,0,0])  <4.467528967599+tol) & \
 		   (np.abs(p_rec[0,0,0,0])  >4.467528967599-tol))
 	assert((np.abs(p_rec[10,0,0,0]) <4.465600418067+tol) & \
@@ -364,17 +375,20 @@ def test_cnn_spod():
 	## fit and transform spod
 	spod_class = spod_standard(params=params_spod)
 	spod = spod_class.fit(d_train, nt=nt_train)
-	# coeffs_train = spod.transform(d_train, nt=nt_train, T_lb=None, T_ub=None)
-	# coeffs_test  = spod.transform(d_test , nt=nt_test , T_lb=None, T_ub=None)
 	results_dir = spod.savedir_sim
-	coeffs_train, phi_r_train, tm_train, _, r_name, n_freq, maxdim_idx = \
-		spod_utils.compute_coeffs(
-			data=d_train, nt=nt_train, results_dir=results_dir)
-	coeffs_test, phi_r_test, tm_test, _, r_name, _, maxdim_idx = \
-		spod_utils.compute_coeffs(
-			data=d_test, nt=nt_test, results_dir=results_dir)
+	c_train_file, dir_train = utils_spod.compute_coeffs(
+		d_train, results_dir, savedir='train')
+	c_test_file, dir_test = utils_spod.compute_coeffs(
+		d_test, results_dir, savedir='test')
 
 	## initialization of variables and structures
+	coeffs_train = np.load(c_train_file)
+	coeffs_test  = np.load(c_test_file )
+	f_train = os.path.join(dir_train, 'params_coeffs.yaml')
+	f_test  = os.path.join(dir_test , 'params_coeffs.yaml')
+	with open(f_train) as f: params_train = yaml.load(f, Loader=yaml.FullLoader)
+	with open(f_test ) as f: params_test  = yaml.load(f, Loader=yaml.FullLoader)
+	n_freq = params_train['n_freq_r']
 	n_modes    = params_spod['n_modes_save']
 	dim0_test  = coeffs_test .shape[0]
 	dim1_train = coeffs_train.shape[1]

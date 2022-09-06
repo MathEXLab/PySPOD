@@ -518,7 +518,8 @@ class Base():
 	def select_mean(self):
 		'''Select mean.'''
 		self._mean_type = self._mean_type.lower()
-		if self._mean_type   == 'longtime' : self._t_mean = self.long_t_mean()
+		self._lt_mean = self.long_t_mean()
+		if self._mean_type   == 'longtime' : self._t_mean = self._lt_mean
 		elif self._mean_type == 'blockwise': self._t_mean = 0
 		elif self._mean_type == 'zero'     : self._t_mean = 0
 		else:
@@ -567,15 +568,39 @@ class Base():
 		self._n_freq = len(self._freq)
 
 
-	def coeffs_and_recons(self, data, nt, results_dir, idx=None,
-		tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None):
+	def compute_coeffs(self, data, results_dir, modes_idx=None,
+		tol=1e-10, svd=True, T_lb=None, T_ub=None):
+		file_coeffs, coeffs_dir = utils_spod.compute_coeffs(\
+			data, results_dir=self._savedir_sim, modes_idx=modes_idx,
+			tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub, comm=self._comm)
+		self._file_coeffs = file_coeffs
+		self._coeffs_dir = coeffs_dir
+		return file_coeffs, coeffs_dir
+
+
+	def compute_reconstruction(self, coeffs_dir, time_idx=None):
+		if not hasattr(self, '_file_coeffs'):
+			raise ValueError(
+				'Coeffs not computed; you need to run `compute_coeffs`.')
+		else:
+			file_recons, coeffs_dir = utils_spod.compute_reconstruction(\
+				coeffs_dir=self._coeffs_dir, time_idx=time_idx, comm=self._comm)
+		self._file_recons = file_recons
+		self._coeffs_dir = coeffs_dir
+		return file_recons, coeffs_dir
+
+
+	def coeffs_and_reconstruction(self, data, results_dir, modes_idx=None,
+		time_idx=None, tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None):
 		file_coeffs, file_recons = \
-			utils_spod.coeffs_and_recons(\
-				data, nt, results_dir=self._savedir_sim,
-				idx=idx, tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub, comm=comm)
+			utils_spod.coeffs_and_reconstruction(\
+				data, results_dir=self._savedir_sim, modes_idx=modes_idx,
+				time_idx=time_idx, tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub,
+				comm=comm)
 		self._file_coeffs = file_coeffs
 		self._file_recons = file_recons
 		return file_coeffs, file_recons
+
 
 	def _store_and_save(self):
 		'''Store and save results.'''
@@ -585,14 +610,18 @@ class Base():
 		self._params['n_dft'] = int(self._n_dft)
 		self._params['n_modes_save'] = int(self._n_modes_save)
 		path_weights = os.path.join(self._savedir_sim, 'weights.npy')
-		path_params = os.path.join(self._savedir_sim, 'params_dict.yaml')
+		path_lt_mean = os.path.join(self._savedir_sim, 'ltm_modes.npy')
+		path_params = os.path.join(self._savedir_sim, 'params_modes.yaml')
 		path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq')
 		## save weights
 		shape = [*self._xshape,self._nv]
 		if self._comm: shape[self._maxdim_idx] = -1
 		self._weights.shape = shape
-		utils_par.npy_save(
-			self._comm, path_weights, self._weights, axis=self._maxdim_idx)
+		self._lt_mean.shape = shape
+		md = self._maxdim_idx
+		utils_par.npy_save(self._comm, path_weights, self._weights, axis=md)
+		utils_par.npy_save(self._comm, path_lt_mean, self._lt_mean, axis=md)
+
 		# save params; eigs and freq
 		if self._rank == 0:
 			## save dictionaries of modes and params

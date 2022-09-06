@@ -141,6 +141,7 @@ def pr0(fstring, comm):
 
 def npy_save(comm, filename, array, axis=0):
 	if comm:
+		array = array.newbyteorder('=')
 		array = np.asarray(array)
 		dtype = array.dtype
 		shape = array.shape

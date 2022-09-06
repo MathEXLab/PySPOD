@@ -15,9 +15,9 @@ CFD = os.path.dirname(CF)
 # Import library specific modules
 sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.pod.standard import Standard as pod_standard
-import pyspod.utils.postproc as post
 import pyspod.utils.io       as utils_io
 import pyspod.utils.errors   as utils_errors
+import pyspod.utils.postproc as post
 
 
 
