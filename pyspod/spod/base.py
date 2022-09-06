@@ -411,11 +411,10 @@ class Base():
 
 		## get data and add axis for single variable
 		st = time.time()
-		self._pr0(f'- loading data into memory')
 		if not isinstance(self._data,np.ndarray): self._data = self._data.values
 		if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
 			self._data = self._data[...,np.newaxis]
-		print(f'{self._rank = :},  - loading data into memory, done. Elapsed time: {time.time() - st} s.')
+		self._pr0(f'- loaded data into memory: {time.time() - st} s.')
 		st = time.time()
 
 		# test feasibility
@@ -423,9 +422,8 @@ class Base():
 			raise ValueError('Spectral estimation parameters not meaningful.')
 
 		# apply mean
-		self._pr0(f'- computing time mean')
 		self.select_mean()
-		print(f'{self._rank = :},  - computing mean, done. Elapsed time: {time.time() - st} s.')
+		self._pr0(f'- computed mean: {time.time() - st} s.')
 		st = time.time()
 
 		## normalize weigths if required

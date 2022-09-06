@@ -115,7 +115,7 @@ def test_parallel_allreduce():
 def test_parallel_pr0():
 	comm = MPI.COMM_WORLD
 	rank = comm.rank
-	utils_par.pr0(f'data {rank = :}', comm=comm)
+	utils_par.pr0(f'data rank: {rank}', comm=comm)
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_npy(axis=0, dtype="d", order='C'):

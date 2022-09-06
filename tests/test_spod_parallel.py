@@ -354,10 +354,10 @@ def test_standard_freq_class_compute():
 		assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
 			   (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
 		## transform
-		print(f'{np.real(np.min(coeffs)) = :}')
-		print(f'{np.real(np.max(coeffs)) = :}')
-		print(f'{np.real(np.min(recons)) = :}')
-		print(f'{np.real(np.max(recons)) = :}')
+		# print(f'{np.real(np.min(coeffs)) = :}')
+		# print(f'{np.real(np.max(coeffs)) = :}')
+		# print(f'{np.real(np.min(recons)) = :}')
+		# print(f'{np.real(np.max(recons)) = :}')
 		assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) & \
 			   (np.real(np.min(coeffs))>-101.6470600168104-tol1))
 		assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) & \
@@ -428,10 +428,10 @@ def test_standard_freq_utils_compute():
 		assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
 			   (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
 		## transform
-		print(f'{np.real(np.min(coeffs)) = :}')
-		print(f'{np.real(np.max(coeffs)) = :}')
-		print(f'{np.real(np.min(recons)) = :}')
-		print(f'{np.real(np.max(recons)) = :}')
+		# print(f'{np.real(np.min(coeffs)) = :}')
+		# print(f'{np.real(np.max(coeffs)) = :}')
+		# print(f'{np.real(np.min(recons)) = :}')
+		# print(f'{np.real(np.max(recons)) = :}')
 		assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) & \
 			   (np.real(np.min(coeffs))>-101.6470600168104-tol1))
 		assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) & \
@@ -499,10 +499,10 @@ def test_standard_normalize():
 		modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
 		coeffs = np.load(file_coeffs)
 		recons = np.load(file_dynamics)
-		print(f'{np.real(np.min(recons)) = :}')
-		print(f'{np.real(np.min(coeffs)) = :}')
-		print(f'{np.real(np.max(recons)) = :}')
-		print(f'{np.real(np.max(coeffs)) = :}')
+		# print(f'{np.real(np.min(recons)) = :}')
+		# print(f'{np.real(np.min(coeffs)) = :}')
+		# print(f'{np.real(np.max(recons)) = :}')
+		# print(f'{np.real(np.max(coeffs)) = :}')
 		## fit
 		assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol2) & \
 			   (np.min(np.abs(modes_at_freq))>1.600183827320e-09-tol2))

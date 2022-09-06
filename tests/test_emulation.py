@@ -281,9 +281,6 @@ def test_lstm_spod():
 		path=params_spod['savedir'],
 		filename='history.png')
 
-	print(f'{coeffs[0,0] = :}')
-	print(f'{coeffs_train[0,0] = :}')
-	# exit(0)
 	## reconstruct solutions
 	f_p, _ = utils_spod.compute_reconstruction(
 		coeffs_dir=dir_train, coeffs=coeffs_test, time_idx='all',
@@ -309,12 +306,12 @@ def test_lstm_spod():
 
 	## assert test solutions
 	tol = 1e-6
-	print(f'{np.abs(p_rec[0,0,0,0]) = :}')
-	print(f'{np.abs(p_rec[10,0,0,0]) = :}')
-	print(f'{np.abs(p_rec[15,5,12,0]) = :}')
-	print(f'{np.abs(e_rec[0,0,0,0]) = :}')
-	print(f'{np.abs(e_rec[10,0,0,0]) = :}')
-	print(f'{np.abs(e_rec[15,5,12,0]) = :}')
+	# print(f'{np.abs(p_rec[0,0,0,0]) = :}')
+	# print(f'{np.abs(p_rec[10,0,0,0]) = :}')
+	# print(f'{np.abs(p_rec[15,5,12,0]) = :}')
+	# print(f'{np.abs(e_rec[0,0,0,0]) = :}')
+	# print(f'{np.abs(e_rec[10,0,0,0]) = :}')
+	# print(f'{np.abs(e_rec[15,5,12,0]) = :}')
 	assert((np.abs(p_rec[0,0,0,0])  <4.467528967599+tol) & \
 		   (np.abs(p_rec[0,0,0,0])  >4.467528967599-tol))
 	assert((np.abs(p_rec[10,0,0,0]) <4.465600418067+tol) & \

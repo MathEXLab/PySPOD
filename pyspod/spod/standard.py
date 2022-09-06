@@ -72,21 +72,19 @@ class Standard(Base):
 			size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
 			Q_hat = np.empty(size_Q_hat, dtype=complex)
 			for i_blk in range(0,self._n_blocks):
+				st = time.time()
 
 				# compute block
 				Q_blk_hat, offset = self._compute_blocks(i_blk)
-
-				# print info file
-				self._pr0(f'block {(i_blk+1)}/{(self._n_blocks)}'
-						  f' ({(offset)}:{(self._n_dft+offset)})')
 
 				# save FFT blocks in storage memory
 				self._Q_hat_f[str(i_blk)] = dict()
 				for i_freq in range(0, self._n_freq):
 					if self._savefft == True:
 						Q_blk_hat_fr = Q_blk_hat[i_freq,:]
-						file = 'fft_block{:08d}_freq{:08d}.npy'.format(
-							i_blk,i_freq)
+						file = f'fft_block{i_blk:08d}_freq{i_freq:08d}'
+						# file = 'fft_block{:08d}_freq{:08d}.npy'.format(
+							# i_blk,i_freq)
 						path = os.path.join(self._blocks_folder, file)
 						self._Q_hat_f[str(i_blk),str(i_freq)] = path
 						shape = [*self._xshape]
@@ -98,11 +96,16 @@ class Standard(Base):
 							Q_blk_hat_fr,
 							axis=self._maxdim_idx)
 
+				# print info file
+				self._pr0(f'block {(i_blk+1)}/{(self._n_blocks)}'
+						  f' ({(offset)}:{(self._n_dft+offset)});  '
+						  f'Elapsed time: {time.time() - st} s.')
+
 				## store FFT blocks in RAM
 				Q_hat[:,:,i_blk] = Q_blk_hat
 
 		self._pr0(f'------------------------------------')
-		print(f'{self._rank = :},  TIME TO COMPUTE TEMPORAL DFT: {time.time() - start} s.')
+		self._pr0(f'Time to compute DFT: {time.time() - start} s.')
 		if self._comm: self._comm.Barrier()
 		start = time.time()
 
@@ -120,7 +123,7 @@ class Standard(Base):
 		self._pr0(f'------------------------------------')
 		self._pr0(f' ')
 		self._pr0(f'Results saved in folder {self._savedir_sim}')
-		print(f'{self._rank = :},  TIME TO COMPUTE SPOD: {time.time() - start} s.')
+		self._pr0(f'Time to compute SPOD: {time.time() - start} s.')
 		if self._comm: self._comm.Barrier()
 		return self
 
@@ -214,7 +217,8 @@ class Standard(Base):
 			utils_par.npy_save(self._comm, p_modes, phi, axis=self._maxdim_idx)
 			# self._pr0(f'- save: {time.time() - st} s.')
 			# st = time.time()
-			self._pr0(f'freq: {f}/{self._n_freq}, {time.time() - s0} s.')
+			self._pr0(f'freq: {f}/{self._n_freq};  '
+					  f'Elapsed time: {time.time() - s0} s.')
 
 		self._pr0(f'- Modes computation  and saving: {time.time() - st} s.')
 

@@ -117,7 +117,6 @@ def apply_normalization(
 			axis = tuple(np.arange(0, data[...,0].ndim))
 			for i in range(0, n_variables):
 				var = np.nanvar(data[...,i], axis=axis)
-				print(f'{i = :} {var = :}')
 				weights[...,i] = weights[...,i] / var
 		else:
 			print('')

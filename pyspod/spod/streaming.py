@@ -220,7 +220,7 @@ class Streaming(Base):
 			phif.shape = shape
 			utils_par.npy_save(
 				self._comm, path_modes, phif, axis=self._maxdim_idx)
-				
+
 		# ## save modes
 		# self._file_modes = 'modes.npy'
 		# path_modes = os.path.join(self._savedir_sim, self._file_modes)
@@ -238,6 +238,6 @@ class Streaming(Base):
 		self._pr0(f'------------------------------------')
 		self._pr0(f' ')
 		self._pr0(f'Results saved in folder {self._savedir_sim}')
-		print(f'{self._rank = :},  TIME TO COMPUTE SPOD: {time.time() - start} s.')
+		self._pr0(f'Time to compute SPOD: {time.time() - start} s.')
 		if self._comm: self._comm.Barrier()
 		return self
