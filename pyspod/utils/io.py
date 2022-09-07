@@ -11,69 +11,69 @@ from os.path import splitext
 
 
 def read_data(data_file, format=None, comm=None):
-	if not format:
-		_, format = splitext(data_file)
-	if comm:
-		if comm.rank == 0: print(f'reading data with format: {format}')
-	format = format.lower()
-	if format == '.npy' or format == 'npy':
-		d = npy_load(data_file)
-	elif format == '.nc' or format == 'nc':
-		d = xr.open_dataset(data_file)
-	elif format == '.mat' or format == 'mat':
-		with h5py.File(data_file, 'r') as f:
-			d = dict()
-			for k, v in f.items():
-				d[k] = np.array(v)
-	else:
-		raise ValueError(format, ' format not supported')
-	return d
+    if not format:
+        _, format = splitext(data_file)
+    if comm:
+        if comm.rank == 0: print(f'reading data with format: {format}')
+    format = format.lower()
+    if format == '.npy' or format == 'npy':
+        d = npy_load(data_file)
+    elif format == '.nc' or format == 'nc':
+        d = xr.open_dataset(data_file)
+    elif format == '.mat' or format == 'mat':
+        with h5py.File(data_file, 'r') as f:
+            d = dict()
+            for k, v in f.items():
+                d[k] = np.array(v)
+    else:
+        raise ValueError(format, ' format not supported')
+    return d
 
 
 def read_config(parsed_file=None):
-	## parse command line
-	parser = argparse.ArgumentParser(description='Config file.')
-	parser.add_argument('--config_file', help='Configuration file.')
-	if parsed_file:
-		args = parser.parse_args(['--config_file', parsed_file])
-	else:
-		args = parser.parse_args()
+    ## parse command line
+    parser = argparse.ArgumentParser(description='Config file.')
+    parser.add_argument('--config_file', help='Configuration file.')
+    if parsed_file:
+        args = parser.parse_args(['--config_file', parsed_file])
+    else:
+        args = parser.parse_args()
 
-	## read yaml file
-	with open(args.config_file) as file:
-		l = yaml.load(file, Loader=yaml.FullLoader)
+    ## read yaml file
+    with open(args.config_file) as file:
+        l = yaml.load(file, Loader=yaml.FullLoader)
 
-	## get required keys
-	l_req = l['required']
-	keys_r = ['time_step', 'n_space_dims', 'n_variables', 'n_dft']
-	params_req = _parse_yaml(l_req)
-	f, k = _check_keys(params_req, keys_r)
-	f, _ = _check_keys(l, 'optional')
-	if f:
-		l_opt = l['optional']
-		params_opt = _parse_yaml(l_opt)
-		params = {**params_req, **params_opt}
-	else:
-		params = params_req
-	return params
+    ## get required keys
+    l_req = l['required']
+    keys_r = ['time_step', 'n_space_dims', 'n_variables', 'n_dft']
+    params_req = _parse_yaml(l_req)
+    f, k = _check_keys(params_req, keys_r)
+    f, _ = _check_keys(l, 'optional')
+    if f:
+        l_opt = l['optional']
+        params_opt = _parse_yaml(l_opt)
+        params = {**params_req, **params_opt}
+    else:
+        params = params_req
+    return params
 
 
 def _parse_yaml(l):
-	params = dict()
-	for i,d in enumerate(l):
-		k = list(d.keys())[0]
-		v = d[k]
-		params[k] = v
-	return params
+    params = dict()
+    for i,d in enumerate(l):
+        k = list(d.keys())[0]
+        v = d[k]
+        params[k] = v
+    return params
 
 
 def _check_keys(l, keys):
-	if isinstance(keys, str):
-		keys = [keys]
-	flag = True
-	keys_not_found = list()
-	for k in keys:
-		if k not in l.keys():
-			flag = False
-			keys_not_found.append(k)
-	return flag, keys_not_found
+    if isinstance(keys, str):
+        keys = [keys]
+    flag = True
+    keys_not_found = list()
+    for k in keys:
+        if k not in l.keys():
+            flag = False
+            keys_not_found.append(k)
+    return flag, keys_not_found
