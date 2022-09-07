@@ -24,7 +24,7 @@ REQUIRED = [
 	"h5py",
 	"netcdf4",
 	"xarray",
-	"matplotlib"
+	"matplotlib",
 	"pyyaml"
 ]
 EXTRAS = {

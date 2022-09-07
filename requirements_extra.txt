@@ -1,7 +1,0 @@
-setuptools
-enum34
-coveralls
-coverage
-future
-pytest
-ffmpeg

@@ -12,8 +12,6 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append(os.path.join(CFD,"../"))
-sys.path.append(os.path.join(CFD,"../pyspod"))
 from pyspod.spod.standard  import Standard  as spod_standard
 from pyspod.spod.streaming import Streaming as spod_streaming
 import pyspod.spod.utils     as utils_spod

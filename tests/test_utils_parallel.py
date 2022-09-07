@@ -14,8 +14,6 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.append(os.path.join(CFD,"../"))
-sys.path.append(os.path.join(CFD,"../pyspod"))
 import pyspod.utils.io       as utils_io
 import pyspod.utils.parallel as utils_par
 

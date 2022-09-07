@@ -13,7 +13,6 @@ CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 
 # Import library specific modules
-sys.path.insert(0, os.path.join(CFD, "../"))
 from pyspod.spod.standard import Standard as spod_standard
 import pyspod.utils.errors   as utils_errors
 import pyspod.utils.io       as utils_io

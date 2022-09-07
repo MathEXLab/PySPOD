@@ -49,11 +49,8 @@ jobs:
         python-version: ${{ matrix.py }}
         architecture: x64
 
-    - name: Install basic dependencies
-      run:  python -m pip install -r requirements.txt
-
-    - name: Install extra dependencies
-      run:  python -m pip install -r requirements_extra.txt
+    - name: Install
+      run: python -m pip install .[mpi,test]
 
     - name: Test mpiexec_pod
       run: mpiexec -np 2 python3 tests/test_pod_parallel.py
