@@ -136,6 +136,10 @@ def allreduce(data, comm):
     return data_reduced
 
 
+def barrier(comm):
+    if comm: comm.Barrier()
+
+    
 def pr0(fstring, comm):
     if comm:
         if comm.rank == 0: print(fstring)
