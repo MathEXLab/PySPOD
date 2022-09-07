@@ -1,8 +1,12 @@
 '''Module implementing utils to support distributed deployment.'''
 import io
 import numpy as np
-from mpi4py import MPI
-from mpi4py.util import dtlib
+try:
+    from mpi4py import MPI
+    from mpi4py.util import dtlib
+except ImportError:
+    MPI = None
+    dtlib = None
 
 
 def pvar(data, comm):

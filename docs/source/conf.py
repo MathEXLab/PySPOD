@@ -19,18 +19,20 @@ import sphinx_rtd_theme
 sys.path.insert(0, os.path.abspath('../../'))
 import pyspod
 
+import datetime
+_today = datetime.datetime.now()
+
 # -- Project information -----------------------------------------------------
 # General information about the project.
-project = pyspod.__project__
-copyright = pyspod.__copyright__
-author = pyspod.__author__
+
+project = 'PySPOD'
+package = project.lower()
 version = pyspod.__version__
-
-
+author = "Gianmarco Mengaldo, Lisandro Dalcin, Romit Maulik, Andrea Lario"
+copyright = f"2020-{_today.year}, {project} authors and contributors"
 
 
 # -- General configuration ---------------------------------------------------
-
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -47,13 +49,15 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
-	'sphinx.ext.autosectionlabel',
+    'sphinx.ext.autosectionlabel',
 ]
 
-intersphinx_mapping = {'python': ('http://docs.python.org/2', None),
-                       'numpy': ('http://docs.scipy.org/doc/numpy/', None),
-                       'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
-                       'matplotlib': ('http://matplotlib.sourceforge.net/', None)}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+    'matplotlib': ('https://matplotlib.org/stable', None),
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -230,7 +234,7 @@ html_show_copyright = True
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyspoddoc'
+htmlhelp_basename = f'{package}doc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -252,8 +256,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'pyspod.tex', u'pyspod Documentation',
-   u'PySPOD contributors', 'manual'),
+  (master_doc, f'{package}.tex', f'{project} Documentation', author, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -282,8 +285,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pyspod', u'pyspod Documentation',
-     [author], 1)
+    (master_doc, f'{package}', f'{project} Documentation', [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -296,8 +298,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'pyspod', u'pyspod Documentation',
-   author, 'pyspod', 'One line description of project.',
+  (master_doc, f'{package}', f'{project} Documentation',
+   author, f'{package}.', 'One line description of project.',
    'Miscellaneous'),
 ]
 

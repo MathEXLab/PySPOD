@@ -286,6 +286,7 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 
 Current active contributors include:
 
+  * [L. Dalcin](https://cemse.kaust.edu.sa/ecrc/people/person/lisandro-dalcin), King Abdullah University of Science and Technology (Saudi Arabia).
   * [R. Maulik](https://romit-maulik.github.io), Argonne National Laboratory (US).
   * [A. Lario](https://www.math.sissa.it/users/andrea-lario), SISSA (Italy)
 
