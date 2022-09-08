@@ -1,12 +1,27 @@
 '''Module implementing utils to support distributed deployment.'''
 import io
+import sys
+import importlib
 import numpy as np
-try:
-    from mpi4py import MPI
-    from mpi4py.util import dtlib
-except ImportError:
-    MPI = None
-    dtlib = None
+
+
+def _get_module_MPI(comm):
+    assert comm is not None
+    mod_name = type(comm).__module__
+    try:
+        return sys.modules[mod_name]
+    except KeyError:
+        return importlib.import_module(mod_name)
+
+
+def _get_module_dtlib(comm):
+    MPI = _get_module_MPI(comm)
+    pkg_name = MPI.__spec__.parent
+    mod_name = pkg_name + '.util.dtlib'
+    try:
+        return sys.modules[mod_name]
+    except KeyError:
+        return importlib.import_module(mod_name)
 
 
 def pvar(data, comm):
@@ -35,6 +50,7 @@ def pvar(data, comm):
 
 def create_subcomm(comm):
     '''Create subcommunicator'''
+    MPI = _get_module_MPI(comm)
     size = comm.Get_size()
     rank = comm.Get_rank()
     for n in [3,4,2,1]:
@@ -80,7 +96,7 @@ def distribute_data(data, comm):
     # ratio = space_size / time_size
     global_shape = data[0,...].shape ## spatial dimension
     maxdim_idx = np.argmax(global_shape)
-    if comm:
+    if comm is not None:
         size = comm.size
         rank = comm.rank
         shape = data.shape
@@ -102,7 +118,7 @@ def distribute_dimension(data, maxdim_idx, comm):
     by value // comm.size, with remaind = value % comm.size
     """
     ## distribute largest spatial dimension based on data
-    if comm:
+    if comm is not None:
         size = comm.size
         rank = comm.rank
         shape = data.shape
@@ -126,7 +142,8 @@ def _blockdist(N, size, rank):
 
 
 def allreduce(data, comm):
-    if comm:
+    if comm is not None:
+        MPI = _get_module_MPI(comm)
         data = data.newbyteorder('=')
         data_reduced = np.zeros_like(data)
         comm.Barrier()
@@ -137,18 +154,22 @@ def allreduce(data, comm):
 
 
 def barrier(comm):
-    if comm: comm.Barrier()
+    if comm is not None:
+        comm.Barrier()
 
     
-def pr0(fstring, comm):
-    if comm:
-        if comm.rank == 0: print(fstring)
+def pr0(string, comm):
+    if comm is not None:
+        if comm.rank == 0:
+            print(string)
     else:
-        print(fstring)
+        print(string)
 
 
 def npy_save(comm, filename, array, axis=0):
-    if comm:
+    if comm is not None:
+        MPI = _get_module_MPI(comm)
+        dtlib = _get_module_dtlib(comm)
         array = array.newbyteorder('=')
         array = np.asarray(array)
         dtype = array.dtype
@@ -208,7 +229,9 @@ def npy_save(comm, filename, array, axis=0):
 
 
 def npy_load(comm, filename, axis=0, count=None):
-    if comm:
+    if comm is not None:
+        MPI = _get_module_MPI(comm)
+        dtlib = _get_module_dtlib(comm)
         class _File(MPI.File):
             def read(self, size):
                 buf = bytearray(size)
