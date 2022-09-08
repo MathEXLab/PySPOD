@@ -5,7 +5,6 @@ import os
 import sys
 import time
 import numpy as np
-from tqdm import tqdm
 from numpy import linalg as la
 # from scipy import linalg as la
 from pyspod.spod.base import Base
@@ -24,7 +23,6 @@ class Standard(Base):
     from the `Base` class.
     '''
 
-    # @profile
     def fit(self, data, nt):
         '''
         Class-specific method to fit the data matrix using
@@ -47,22 +45,19 @@ class Standard(Base):
 
         # loop over number of blocks and generate Fourier realizations,
         # if blocks are not saved in storage
-        self._Q_hat_f = dict()
         size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
-        Q_hat = np.empty(size_Q_hat, dtype=complex)
+        Q_hat = np.empty(size_Q_hat, dtype=self._complex)
         ## check if blocks already computed or not
         if blocks_present:
             # load blocks if present
             size_Q_hat = [self._n_freq, *self._xshape, self._n_blocks]
-            Q_hat = np.empty(size_Q_hat, dtype=complex)
-            for i_blk in tqdm(range(0, self._n_blocks), desc='loading blocks'):
-                self._Q_hat_f[str(i_blk)] = dict()
+            Q_hat = np.empty(size_Q_hat, dtype=self._complex)
+            for i_blk in range(0, self._n_blocks):
+                print(f'Loading block {i_blk}/{self._n_blocks}')
                 for i_freq in range(0, self._n_freq):
-                    file = os.path.join(self._blocks_folder,
-                        'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq))
-                    s = np.load(file)
-                    Q_hat[i_freq,...,i_blk] = np.load(file)
-                    self._Q_hat_f[str(i_blk)][str(i_freq)] = file
+                    file = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
+                    path = os.path.join(self._blocks_folder, file)
+                    Q_hat[i_freq,...,i_blk] = np.load(path)
             Q_hat = utils_par.distribute_dimension(
                 data=Q_hat, maxdim_idx=self._maxdim_idx+1, comm=self._comm)
             shape = [Q_hat.shape[0], Q_hat[0,...,0].size, Q_hat.shape[-1]]
@@ -70,7 +65,7 @@ class Standard(Base):
         else:
             # loop over number of blocks and generate Fourier realizations
             size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
-            Q_hat = np.empty(size_Q_hat, dtype=complex)
+            Q_hat = np.empty(size_Q_hat, dtype=self._complex)
             for i_blk in range(0,self._n_blocks):
                 st = time.time()
 
@@ -78,23 +73,18 @@ class Standard(Base):
                 Q_blk_hat, offset = self._compute_blocks(i_blk)
 
                 # save FFT blocks in storage memory
-                self._Q_hat_f[str(i_blk)] = dict()
-                for i_freq in range(0, self._n_freq):
-                    if self._savefft == True:
+                if self._savefft == True:
+                    for i_freq in range(0, self._n_freq):
                         Q_blk_hat_fr = Q_blk_hat[i_freq,:]
-                        file = f'fft_block{i_blk:08d}_freq{i_freq:08d}'
-                        # file = 'fft_block{:08d}_freq{:08d}.npy'.format(
-                            # i_blk,i_freq)
+                        file = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
                         path = os.path.join(self._blocks_folder, file)
-                        self._Q_hat_f[str(i_blk),str(i_freq)] = path
                         shape = [*self._xshape]
                         if self._comm: shape[self._maxdim_idx] = -1
                         Q_blk_hat_fr.shape = shape
                         utils_par.npy_save(
-                            self._comm,
-                            path,
-                            Q_blk_hat_fr,
+                            self._comm, path, Q_blk_hat_fr,
                             axis=self._maxdim_idx)
+                    del Q_blk_hat_fr
 
                 # print info file
                 self._pr0(f'block {(i_blk+1)}/{(self._n_blocks)}'
@@ -103,6 +93,8 @@ class Standard(Base):
 
                 ## store FFT blocks in RAM
                 Q_hat[:,:,i_blk] = Q_blk_hat
+            del Q_blk_hat
+        del self._data
 
         self._pr0(f'------------------------------------')
         self._pr0(f'Time to compute DFT: {time.time() - start} s.')
@@ -113,7 +105,8 @@ class Standard(Base):
         self._pr0(f' ')
         self._pr0(f'Calculating SPOD (parallel)')
         self._pr0(f'------------------------------------')
-        self._eigs = np.zeros([self._n_freq,self._n_blocks], dtype=complex)
+        self._eigs = np.zeros([self._n_freq,self._n_blocks],
+            dtype=self._complex)
 
         ## compute standard spod
         self._compute_standard_spod(Q_hat)
@@ -128,7 +121,6 @@ class Standard(Base):
         return self
 
 
-    # @profile
     def _compute_blocks(self, i_blk):
         '''Compute FFT blocks.'''
         # get time index for present block
@@ -154,16 +146,19 @@ class Standard(Base):
             # address division-by-0 problem with NaNs
             Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
             Q_blk = Q_blk / Q_var
+
         Q_blk = Q_blk * self._window
+        Q_blk = self._set_dtype(Q_blk)
         Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
-        Q_blk_hat = Q_blk_hat[0:self._n_freq,:];
+        Q_blk_hat = Q_blk_hat[0:self._n_freq,:]
 
         # correct Fourier coefficients for one-sided spectrum
         if self._isrealx:
             Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
+
         return Q_blk_hat, offset
 
-    # @profile
+
     def _compute_standard_spod(self, Q_hat):
         '''Compute standard SPOD.'''
         # compute inner product in frequency space, for given frequency
@@ -173,6 +168,7 @@ class Standard(Base):
         for f in range(0,self._n_freq):
             Q_hat_f = np.squeeze(Q_hat[f,:,:])#.astype(complex)
             M[f] = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
+        del Q_hat_f
         M = np.stack(M)
         M = utils_par.allreduce(data=M, comm=self._comm)
         self._pr0(f'- M computation: {time.time() - st} s.')
@@ -181,6 +177,7 @@ class Standard(Base):
         ## compute eigenvalues and eigenvectors
         L, V = la.eig(M)
         L = np.real_if_close(L, tol=1000000)
+        del M
 
         # reorder eigenvalues and eigenvectors
         for f, Lf in enumerate(L):

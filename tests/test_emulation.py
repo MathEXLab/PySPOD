@@ -44,6 +44,7 @@ def test_lstm_pod():
         'normalize_weights': True,
         'scale_data'       : True,
         'n_modes_save'     : 8,
+        'dtype'            : 'float64',
         'savedir'          : os.path.join(CFD, 'results')
     }
     params_emulation = {
@@ -135,7 +136,6 @@ def test_lstm_pod():
         savedir=dir_test, filename='recons_emulation')
     p_rec = np.load(f_p)
     e_rec = np.load(f_e)
-    pod.get_data(t_0=0, t_end=1)
 
     ## assert test
     tol = 1e-6
@@ -198,7 +198,8 @@ def test_lstm_spod():
         'conf_level'       : 0.95,
         'savedir'          : os.path.join(CFD, 'results'),
         'reuse_blocks'     : False,
-        'fullspectrum'     : True
+        'fullspectrum'     : True,
+        'dtype'            : 'float64'
     }
     params_emulation = {
         'network'   : 'lstm',
@@ -356,7 +357,8 @@ def test_cnn_spod():
         'conf_level'       : 0.95,
         'savedir'          : os.path.join(CFD, 'results'),
         'reuse_blocks'     : False,
-        'fullspectrum'     : True
+        'fullspectrum'     : True,
+        'dtype'            : 'float64'
     }
     params_emulation = {
         'network'   : 'lstm',

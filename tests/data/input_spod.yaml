@@ -13,5 +13,6 @@ optional:
   - conf_level       : 0.95
   - reuse_blocks     : False
   - savefft          : False
+  - dtype            : 'float64'
   - savedir          : 'spod_results'
   - fullspectrum     : False

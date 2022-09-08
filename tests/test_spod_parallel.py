@@ -691,8 +691,13 @@ def test_parallel_postproc():
         spod.plot_mode_tracers(freq_req=f_, freq=spod.freq,
                                 coords_list=[(10,10), (14,14)],
                                 filename='tracers.png')
-        spod.plot_2d_data(time_idx=[0,10], filename='data.png')
-        spod.plot_data_tracers(coords_list=[(10,10), (14,14)],
+        data = spod.get_data(data)
+        post.plot_2d_data(data, time_idx=[0,10],
+            path=params['savedir'], filename='data.png')
+        post.plot_data_tracers(data, coords_list=[(10,10), (14,14)],
+            path=params['savedir'], filename='data_tracers.png')
+        spod.plot_2d_data(data, time_idx=[0,10], filename='data.png')
+        spod.plot_data_tracers(data, coords_list=[(10,10), (14,14)],
                                 filename='data_tracers.png')
         # spod.generate_2d_data_video(filename='data_movie.mp4')
         # print(f'{np.min(np.abs(modes_at_freq)) = :}')

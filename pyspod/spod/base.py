@@ -6,6 +6,7 @@ from __future__ import division
 
 # Import standard Python packages
 import os
+import gc
 import sys
 import time
 import yaml
@@ -13,7 +14,6 @@ import psutil
 import warnings
 import numpy as np
 import scipy.special as sc
-
 
 # Import custom Python packages
 import pyspod.spod.utils as utils_spod
@@ -26,7 +26,7 @@ import pyspod.utils.postproc as post
 CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
-BYTE_TO_GB = 9.3132257461548e-10
+B2GB = 9.3132257461548e-10
 
 
 
@@ -59,6 +59,8 @@ class Base():
         self._normalize_data = params.get('normalize_data', False)
         # default is all (large number)
         self._n_modes_save = params.get('n_modes_save', 1e10)
+        # default datatype is float64
+        self._dtype = params.get('dtype', 'float64')
         # where to save data
         self._savedir = params.get('savedir', os.path.join(CWD,'spod_results'))
         self._savedir = os.path.join(CWD, self._savedir)
@@ -68,6 +70,12 @@ class Base():
         self._params = params
         self._weights_tmp = weights
         self._comm = comm
+        if self._dtype == 'float64':
+            self._float = np.float64
+            self._complex = np.complex128
+        else:
+            self._float = np.float32
+            self._complex = np.complex64
 
         ## define rank and size for both parallel and serial
         if self._comm:
@@ -82,11 +90,12 @@ class Base():
         # define default spectral estimation parameters
         if isinstance(self._n_dft, int):
             self._window = Base._hamming_window(self._n_dft)
+            self._window = self._set_dtype(self._window)
             self._window_name = 'hamming'
         else:
             raise TypeError('n_dft must be an integer.')
 
-        # define block overlap
+        # define block overlapå
         self._n_overlap = int(np.ceil(self._n_dft * self._overlap / 100))
         if self._n_overlap > self._n_dft - 1:
             raise ValueError('Overlap is too large.')
@@ -336,18 +345,6 @@ class Base():
 
 
     @property
-    def Q_hat_f(self):
-        '''
-        Get the dictionary containing the path to the block data matrices saved.
-
-        :return: the dictionary containing the path to the block data
-                 matrices saved.
-        :rtype: dict
-        '''
-        return self._Q_hat_f
-
-
-    @property
     def weights(self):
         '''
         Get the weights used to compute the inner product.
@@ -369,15 +366,13 @@ class Base():
         self._pr0(f' ')
         self._pr0(f'Initialize data')
         self._pr0(f'------------------------------------')
-
         self._nt = nt
-        self._data = data
 
         self._pr0(f'- reading first time snapshot for data dimensions')
-        if not isinstance(self._data[[0],...], np.ndarray):
-            x_tmp = self._data[[0],...].values
+        if not isinstance(data[[0],...], np.ndarray):
+            x_tmp = data[[0],...].values
         else:
-            x_tmp = self._data[[0],...]
+            x_tmp = data[[0],...]
         ## correct last dimension for single variable data
         if self._nv == 1 and (x_tmp.ndim != self._xdim + 2):
             x_tmp = x_tmp[...,np.newaxis]
@@ -392,7 +387,7 @@ class Base():
 
         ## Determine whether data is real-valued or complex-valued-valued
         ## to decide on one- or two-sided spectrum from data
-        self._isrealx = np.isreal(self._data[0]).all()
+        self._isrealx = np.isreal(data[0]).all()
 
         # define number of blocks
         num = self._nt    - self._n_overlap
@@ -404,16 +399,17 @@ class Base():
 
         ## distribute data and weights
         self._pr0(f'- distributing data (if parallel)')
-        self._data, self._maxdim_idx, self._global_shape = \
-            utils_par.distribute_data(data=self._data, comm=self._comm)
+        data, self._maxdim_idx, self._global_shape = \
+            utils_par.distribute_data(data=data, comm=self._comm)
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
 
         ## get data and add axis for single variable
         st = time.time()
-        if not isinstance(self._data,np.ndarray): self._data = self._data.values
-        if (self._nv == 1) and (self._data.ndim != self._xdim + 2):
-            self._data = self._data[...,np.newaxis]
+        if not isinstance(data,np.ndarray): data = data.values
+
+        if (self._nv == 1) and (data.ndim != self._xdim + 2):
+            data = data[...,np.newaxis]
         self._pr0(f'- loaded data into memory: {time.time() - st} s.')
         st = time.time()
 
@@ -422,7 +418,7 @@ class Base():
             raise ValueError('Spectral estimation parameters not meaningful.')
 
         # apply mean
-        self.select_mean()
+        self.select_mean(data)
         self._pr0(f'- computed mean: {time.time() - st} s.')
         st = time.time()
 
@@ -430,21 +426,21 @@ class Base():
         if self._normalize_weights:
             self._pr0('- normalizing weights')
             self._weights = utils_weights.apply_normalization(
-                data=self._data,
-                weights=self._weights,
-                n_variables=self._nv,
-                comm=self._comm,
-                method='variance')
+                data=data, weights=self._weights,
+                n_variables=self._nv, comm=self._comm, method='variance')
 
         ## flatten weights to number of space x variables points
         try:
             self._weights = np.reshape(
-                self._weights, [self._data[0,...].size,1])
+                self._weights, [data[0,...].size,1])
         except:
             raise ValueError(
                 'parameter ``weights`` must be cast into '
                 '1d array with dimension equal to flattened '
                 'spatial dimension of data.')
+
+        ## set dtype for weights
+        self._weights = self._set_dtype(self._weights)
 
         # set number of modes to save
         if self._n_modes_save > self._n_blocks:
@@ -486,8 +482,10 @@ class Base():
                     os.makedirs(self._blocks_folder)
 
         # compute approx problem size (assuming double)
-        self._pb_size = self._nt * self._nx * self._nv * 8 * BYTE_TO_GB
-
+        self._pb_size_f = data.size * self._float(1).nbytes * B2GB
+        self._pb_size_c = data.size * self._complex(1).nbytes * B2GB
+        data = self._set_dtype(data)
+        self._data = data
         # print parameters to the screen
         self._print_parameters()
         self._pr0(f'------------------------------------')
@@ -513,10 +511,10 @@ class Base():
                     'Using default uniform weighting')
 
 
-    def select_mean(self):
+    def select_mean(self, data):
         '''Select mean.'''
         self._mean_type = self._mean_type.lower()
-        self._lt_mean = self.long_t_mean()
+        self._lt_mean = self.long_t_mean(data)
         if self._mean_type   == 'longtime' : self._t_mean = self._lt_mean
         elif self._mean_type == 'blockwise': self._t_mean = 0
         elif self._mean_type == 'zero'     : self._t_mean = 0
@@ -529,23 +527,24 @@ class Base():
                 'No mean subtracted. Consider providing longtime mean.')
 
 
-    def long_t_mean(self):
+    def long_t_mean(self, data):
         '''Get longtime mean.'''
         split_block = self.nt // self._n_blocks
         split_res = self.nt % self._n_blocks
-        shape_s_v = self._data[0,...].shape
-        shape_sxv = self._data[0,...].size
-        t_sum = np.zeros(self._data[0,...].shape)
+        shape_s_v = data[0,...].shape
+        shape_sxv = data[0,...].size
+        t_sum = np.zeros(data[0,...].shape)
         for i_blk in range(0, self._n_blocks):
             lb = i_blk * split_block
             ub = lb + split_block
-            d = self._data[lb:ub,...,:]
+            d = data[lb:ub,...,:]
             t_sum += np.sum(d, axis=0)
         if split_res > 0:
-            d = self._data[self.nt-split_res:self.nt,...,:]
+            d = data[self.nt-split_res:self.nt,...,:]
             t_sum += np.sum(d, axis=0)
         t_mean = t_sum / self.nt
         t_mean = np.reshape(t_mean, shape_sxv)
+        t_mean = self._set_dtype(t_mean)
         return t_mean
 
 
@@ -644,11 +643,20 @@ class Base():
         utils_par.pr0(fstring=fstring, comm=self._comm)
 
 
+    def _set_dtype(self, d):
+        if   d.dtype == float  : d = d.astype(self._float  )
+        elif d.dtype == complex: d = d.astype(self._complex)
+        return d
+
+
     def _print_parameters(self):
         # display parameter summary
         self._pr0(f'SPOD parameters')
         self._pr0(f'------------------------------------')
-        self._pr0(f'Problem size             : {self._pb_size} GB. (double)')
+        self._pr0(f'Problem size (real)      : {self._pb_size_f} GB.')
+        self._pr0(f'Problem size (complex)   : {self._pb_size_c} GB.')
+        self._pr0(f'Data type for real       : {self._float}')
+        self._pr0(f'Data type for complex    : {self._complex}')
         self._pr0(f'No. snapshots per block  : {self._n_dft}')
         self._pr0(f'Block overlap            : {self._n_overlap}')
         self._pr0(f'No. of blocks            : {self._n_blocks}')
@@ -719,14 +727,16 @@ class Base():
         return m
 
 
-    def get_data(self, t_0, t_end):
+    def get_data(self, data, t_0=None, t_end=None):
         '''
         Get the original input data.
 
         :return: the matrix that contains the original snapshots.
         :rtype: numpy.ndarray
         '''
-        X = self._data[t_0:t_end,...]
+        if t_0 is None: t_0 = 0
+        if t_end is None: t_end = data.shape[0]
+        X = data[t_0:t_end,...]
         if self._nv == 1 and (X.ndim != self._xdim + 2):
             X = X[...,np.newaxis]
         return X
@@ -881,27 +891,28 @@ class Base():
             filename=filename)
 
 
-    def plot_2d_data(self, time_idx=[0], vars_idx=[0], x1=None, x2=None,
+    def plot_2d_data(self, data, time_idx=[0], vars_idx=[0], x1=None, x2=None,
         title='', coastlines='', figsize=(12,8), filename=None, origin=None):
         '''
         See method implementation in the postproc module.
         '''
         max_time_idx = np.max(time_idx)
+        data = self.get_data(data, t_0=0, t_end=max_time_idx+1)
         post.plot_2d_data(
-            X=self.get_data(t_0=0, t_end=max_time_idx+1),
-            time_idx=time_idx, vars_idx=vars_idx, x1=x1, x2=x2,
-            title=title, coastlines=coastlines, figsize=figsize,
-            path=self.savedir_sim, filename=filename)
+            X=data, time_idx=time_idx, vars_idx=vars_idx,
+            x1=x1, x2=x2, title=title, coastlines=coastlines,
+            figsize=figsize, path=self.savedir_sim, filename=filename)
 
 
-    def plot_data_tracers(self, coords_list, x=None, time_limits=[0,10],
+    def plot_data_tracers(self, data, coords_list, x=None, time_limits=[0,10],
         vars_idx=[0], title='', figsize=(12,8), filename=None):
         '''
         See method implementation in the postproc module.
         '''
+        data = self.get_data(
+            data, t_0=time_limits[0], t_end=time_limits[-1])
         post.plot_data_tracers(
-            X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
-            coords_list=coords_list, x=x, time_limits=time_limits,
+            X=data, coords_list=coords_list, x=x, time_limits=time_limits,
             vars_idx=vars_idx, title=title, figsize=figsize,
             path=self.savedir_sim, filename=filename)
 
@@ -912,15 +923,16 @@ class Base():
     # Generate animations
     # --------------------------------------------------------------------------
 
-    def generate_2d_data_video(self, time_limits=[0,10], vars_idx=[0],
+    def generate_2d_data_video(self, data, time_limits=[0,10], vars_idx=[0],
         sampling=1, x1=None, x2=None, coastlines='', figsize=(12,8),
         filename='data_video.mp4'):
         '''
         See method implementation in the postproc module.
         '''
+        data = self.get_data(
+            data, t_0=time_limits[0], t_end=time_limits[-1])
         post.generate_2d_data_video(
-            X=self.get_data(t_0=time_limits[0], t_end=time_limits[-1]),
-            time_limits=[0,time_limits[-1]], vars_idx=vars_idx,
+            X=data, time_limits=[0,time_limits[-1]], vars_idx=vars_idx,
             sampling=sampling, x1=x1, x2=x2, coastlines=coastlines,
             figsize=figsize, path=self.savedir_sim, filename=filename)
 

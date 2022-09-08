@@ -431,16 +431,22 @@ class Base():
     # getters with arguments
     # -------------------------------------------------------------------------
 
-    def get_data(self, t_0, t_end):
+    def get_data(self, data, t_0=None, t_end=None):
         '''
         Get the original input data.
 
         :return: the matrix that contains the original snapshots.
         :rtype: numpy.ndarray
         '''
-        d = self._data[t_0:t_end,...]
+        if t_0 is None: t_0 = 0
+        if t_end is None: t_end = data.shape[0]
+        d = data[t_0:t_end,...]
+        print(f'{d.shape = :}')
+        print(f'{self._xdim = :}')
+        print(f'{d.ndim = :}')
+        print(f'{self._nv = :}')
         if self._nv == 1 and (d.ndim != self._xdim + 2):
-                d = d[...,np.newaxis]
+            d = d[...,np.newaxis]
         return d
 
     # -------------------------------------------------------------------------

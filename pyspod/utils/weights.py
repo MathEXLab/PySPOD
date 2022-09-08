@@ -90,11 +90,11 @@ def custom(**kwargs):
 
 
 def apply_normalization(
-    data, weights, n_variables, comm, method='variance'):
+    data, weights, n_variables, method='variance', comm=None):
     '''Normalization of weights if required.'''
 
     # variable-wise normalization by variance via weight matrix
-    if comm:
+    if comm is not None:
         if method.lower() == 'variance':
             if comm.rank == 0:
                 print('')

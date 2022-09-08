@@ -12,11 +12,12 @@ import numpy as np
 import pyspod.utils.parallel as utils_par
 import pyspod.utils.postproc as post
 CWD = os.getcwd()
+B2GB = 9.313225746154785e-10
 
 
 def coeffs_and_reconstruction(
     data, results_dir, modes_idx=None, time_idx=None, tol=1e-10, svd=True,
-    T_lb=None, T_ub=None, savedir=None, comm=None):
+    T_lb=None, T_ub=None, savedir=None, dtype=complex, comm=None):
     '''
     Compute coefficients through oblique projection and reconstruct solution.
     '''
@@ -69,7 +70,7 @@ def coeffs_and_reconstruction(
 
     ## initialize coeffs matrix
     shape_tmp = (n_freq_r*n_modes_save, nt)
-    coeffs = np.zeros(shape_tmp, dtype=complex)
+    coeffs = np.zeros(shape_tmp, dtype=dtype)
 
     ## distribute data and weights if parallel
     data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
@@ -93,8 +94,8 @@ def coeffs_and_reconstruction(
 
     # initialize modes and weights
     shape_tmp = (data[0,...].size, n_freq_r*n_modes_save)
-    phir = np.zeros(shape_tmp, dtype=complex)
-    weights_phi = np.zeros(shape_tmp, dtype=complex)
+    phir = np.zeros(shape_tmp, dtype=dtype)
+    # weights_phi = np.zeros(shape_tmp, dtype=complex)
     ## order weights and modes such that each frequency contains
     ## all required modes (n_modes_save)
     ## - freq_0: modes from 0 to n_modes_save
@@ -108,17 +109,19 @@ def coeffs_and_reconstruction(
         phi = np.reshape(phi,[data[0,...].size,n_modes_save])
         for i_mode in range(n_modes_save):
             jump_freq = n_modes_save * cnt_freq + i_mode
-            weights_phi[:,jump_freq] = np.squeeze(weights[:])
+            # weights_phi[:,jump_freq] = np.squeeze(weights[:])
             phir[:,jump_freq] = phi[:,i_mode]
         cnt_freq = cnt_freq + 1
+    del phi
     utils_par.pr0(f'- retrieved frequencies: {time.time() - st} s.', comm)
     st = time.time()
 
     ## evaluate the coefficients by oblique projection
     coeffs = _oblique_projection(
-        phir, weights_phi, weights, data, tol=tol, svd=svd, comm=comm)
+        phir, weights, data, tol=tol, svd=svd, comm=comm)
     utils_par.pr0(f'- oblique projection done: {time.time() - st} s.', comm)
     st = time.time()
+    del data
 
     ## create coeffs folder
     coeffs_dir = os.path.join(results_dir, f'coeffs_{f_idx_lb}_{f_idx_ub}')
@@ -126,15 +129,16 @@ def coeffs_and_reconstruction(
         coeffs_dir = os.path.join(coeffs_dir, savedir)
     if rank == 0:
         if not os.path.exists(coeffs_dir): os.makedirs(coeffs_dir)
-    if comm: comm.Barrier()
+    utils_par.barrier(comm)
 
     ## save coefficients
     file_coeffs = os.path.join(coeffs_dir, 'coeffs.npy')
     if rank == 0: np.save(file_coeffs, coeffs)
+    utils_par.barrier(comm)
 
     ## dump file with coeffs params
-    params['coeffs_dir' ] = str(coeffs_dir)
-    params['modes_idx'  ] = modes_idx
+    params['coeffs_dir'] = str(coeffs_dir)
+    params['modes_idx' ] = modes_idx
     if T_lb is not None: params['T_lb'] = float(T_lb)
     if T_ub is not None: params['T_ub'] = float(T_ub)
     params['n_freq_r'   ] = int(n_freq_r)
@@ -191,6 +195,7 @@ def coeffs_and_reconstruction(
     lt_mean.shape = xshape_nv
     utils_par.npy_save(comm, file_phir, phir, axis=maxdim_idx)
     utils_par.npy_save(comm, file_lt_mean, lt_mean, axis=maxdim_idx)
+    del phir, coeffs
 
     ## reshape and save
     file_dynamics = os.path.join(coeffs_dir, 'reconstructed.npy')
@@ -204,14 +209,13 @@ def coeffs_and_reconstruction(
     utils_par.pr0(f'--------------------------------------------', comm)
     utils_par.pr0(f'Reconstructed data saved in: {file_dynamics}', comm)
     utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'         , comm)
-
     ## return path to coeff and dynamics files
     return file_coeffs, file_dynamics
 
 
 def compute_coeffs(
     data, results_dir, modes_idx=None, T_lb=None, T_ub=None,
-    tol=1e-10, svd=True, savedir=None, comm=None):
+    tol=1e-10, svd=False, savedir=None, dtype=complex, comm=None):
     '''
     Compute coefficients through oblique projection.
     '''
@@ -265,7 +269,7 @@ def compute_coeffs(
 
     ## initialize coeffs matrix
     shape_tmp = (n_freq_r*n_modes_save, nt)
-    coeffs = np.zeros(shape_tmp, dtype=complex)
+    coeffs = np.zeros(shape_tmp, dtype=dtype)
 
     ## distribute data and weights if parallel
     data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
@@ -289,8 +293,9 @@ def compute_coeffs(
 
     # initialize modes and weights
     shape_tmp = (data[0,...].size, n_freq_r*n_modes_save)
-    phir = np.zeros(shape_tmp, dtype=complex)
-    weights_phi = np.zeros(shape_tmp, dtype=complex)
+    phir = np.zeros(shape_tmp, dtype=dtype)
+    # weights_phi = np.zeros(shape_tmp, dtype=complex)
+
     ## order weights and modes such that each frequency contains
     ## all required modes (n_modes_save)
     ## - freq_0: modes from 0 to n_modes_save
@@ -304,29 +309,27 @@ def compute_coeffs(
         phi = np.reshape(phi,[data[0,...].size,n_modes_save])
         for i_mode in range(n_modes_save):
             jump_freq = n_modes_save * cnt_freq + i_mode
-            weights_phi[:,jump_freq] = np.squeeze(weights[:])
+            # weights_phi[:,jump_freq] = np.squeeze(weights[:])
             phir[:,jump_freq] = phi[:,i_mode]
         cnt_freq = cnt_freq + 1
+    del phi
     utils_par.pr0(f'- retrieved frequencies: {time.time() - st} s.', comm)
     st = time.time()
 
     ## create coeffs folder
     coeffs_dir = os.path.join(results_dir, f'coeffs_{f_idx_lb}_{f_idx_ub}')
-    if savedir is not None:
-        coeffs_dir = os.path.join(coeffs_dir, savedir)
+    if savedir is not None: coeffs_dir = os.path.join(coeffs_dir, savedir)
     if rank == 0:
         if not os.path.exists(coeffs_dir): os.makedirs(coeffs_dir)
-    if comm: comm.Barrier()
+    utils_par.barrier(comm)
 
     # evaluate the coefficients by oblique projection
     coeffs = _oblique_projection(
-        phir, weights_phi, weights, data, tol=tol, svd=svd, comm=comm)
+        phir, weights, data, tol=tol, svd=svd, comm=comm)
     utils_par.pr0(f'- oblique projection done: {time.time() - st} s.', comm)
     st = time.time()
-
-    # save coefficients
-    file_coeffs = os.path.join(coeffs_dir, 'coeffs.npy')
-    if rank == 0: np.save(file_coeffs, coeffs)
+    utils_par.barrier(comm)
+    del data, weights
 
     ## save auxiliary files
     file_phir = os.path.join(coeffs_dir, 'modes_r.npy')
@@ -341,6 +344,14 @@ def compute_coeffs(
     lt_mean.shape = xshape_nv
     utils_par.npy_save(comm, file_phir, phir, axis=maxdim_idx)
     utils_par.npy_save(comm, file_lt_mean, lt_mean, axis=maxdim_idx)
+    utils_par.barrier(comm)
+    del lt_mean, phir
+
+    # save coefficients
+    file_coeffs = os.path.join(coeffs_dir, 'coeffs.npy')
+    if rank == 0: np.save(file_coeffs, coeffs)
+    utils_par.barrier(comm)
+    del coeffs
 
     ## dump file with coeffs params
     params['coeffs_dir' ] = str(coeffs_dir)
@@ -363,7 +374,8 @@ def compute_coeffs(
 
 
 def compute_reconstruction(
-    coeffs_dir, time_idx, coeffs=None, savedir=None, filename=None, comm=None):
+    coeffs_dir, time_idx, coeffs=None, savedir=None, filename=None,
+    dtype=complex, comm=None):
     '''
     Reconstruct original data through oblique projection.
     '''
@@ -448,24 +460,38 @@ def compute_reconstruction(
     return file_dynamics, coeffs_dir
 
 
-def _oblique_projection(
-    phi, weights_phi, weights, data, tol, svd=True, comm=None):
+
+def _oblique_projection(phir, weights, data, tol, svd=False, comm=None):
     '''Compute oblique projection for time coefficients.'''
     data = data.T
-    M = phi.conj().T @ (weights_phi * phi)
-    Q = phi.conj().T @ (weights * data)
+    w_phir = weights * phir
+    data = weights * data
+    M = phir.conj().T @ w_phir
+    Q = phir.conj().T @ data
+    del weights
+    del w_phir
     M = utils_par.allreduce(data=M, comm=comm)
     Q = utils_par.allreduce(data=Q, comm=comm)
+    coeffs = np.zeros([Q.shape[1], Q.shape[0]])
     if svd:
         u, l, v = np.linalg.svd(M)
-        l_inv = np.zeros([len(l),len(l)], dtype=complex)
+        l_inv = np.zeros([len(l),len(l)], dtype=np.complex128)
         l_max = np.max(l)
         for i in range(len(l)):
             if (l[i] > tol * l_max):
                 l_inv[i,i] = 1 / l[i]
         M_inv = (v.conj().T @ l_inv) @ u.conj().T
         coeffs = M_inv @ Q
+        del u, l, v
+        del l_inv
+        del l_max
+        del M_inv
+        del Q, M
+        del data
     else:
         tmp1_inv = np.linalg.pinv(M, tol)
         coeffs = tmp1_inv @ Q
+        del tmp1_inv
+        del Q, M
+        del data
     return coeffs

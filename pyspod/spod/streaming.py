@@ -57,12 +57,12 @@ class Streaming(Base):
         x_new = np.reshape(x_new,(flat_dim,1))
 
         ## allocate data arrays
-        mu     = np.zeros([flat_dim,1], dtype=complex)
-        x_hat  = np.zeros([flat_dim,n_freq],dtype=complex)
-        x_sum  = np.zeros([flat_dim,n_freq,n_blocks_par],dtype=complex)
-        phi = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
-        u_hat  = np.zeros([flat_dim,n_freq,n_m_save],dtype=complex)
-        self._eigs  = np.zeros([n_m_save,n_freq],dtype=complex)
+        mu    = np.zeros([flat_dim,1], dtype=self._complex)
+        x_hat = np.zeros([flat_dim,n_freq],dtype=self._complex)
+        x_sum = np.zeros([flat_dim,n_freq,n_blocks_par],dtype=self._complex)
+        phi   = np.zeros([flat_dim,n_freq,n_m_save],dtype=self._complex)
+        u_hat = np.zeros([flat_dim,n_freq,n_m_save],dtype=self._complex)
+        self._eigs  = np.zeros([n_m_save,n_freq],dtype=self._complex)
 
         ## dft matrix
         dft = np.fft.fft(np.identity(self._n_dft))
@@ -70,8 +70,10 @@ class Streaming(Base):
         ## check if real for frequency axis
         if self._isrealx:
             dft[:,1:n_freq-1] = 2 * dft[:,1:n_freq-1]
-            # freq_idx = np.arange(0, int(self._n_dft/2+1))
-            freq_idx = np.arange(0, int(self._n_dft), 1)
+            if self._fullspectrum:
+                freq_idx = np.arange(0, int(self._n_dft), 1)
+            else:
+                freq_idx = np.arange(0, int(self._n_dft/2+1))
             dft = dft[:,freq_idx]
 
         # ## convergence tests
@@ -82,7 +84,7 @@ class Streaming(Base):
         ## initialize counters
         block_i = 0
         ti = -1
-        z = np.zeros([1,n_m_save])
+        z = np.zeros([1,n_m_save], dtype=self._float)
         while True:
             ti = ti + 1
 
@@ -116,6 +118,7 @@ class Streaming(Base):
                     t_idx[block_j] = min(t_idx) - dn
                 else:
                     t_idx[block_j] = t_idx[block_j] + 1
+            del x_new
 
             ## update basis if a dft sum is completed
             if update:
@@ -133,17 +136,18 @@ class Streaming(Base):
                     ## initialize basis with first vector
                     self._pr0(
                         f'--> Initializing left singular vectors; '
-                        f'Time {str(ti)} / block {str(block_i)}')
+                        f' Time {str(ti)} / block {str(block_i)}')
                     u_hat[:,:,0] = x_hat * sqrt_w
                     self._eigs[0,:] = np.sum(abs(u_hat[:,:,0]**2))
                 else:
                     ## update basis
                     self._pr0(
-                        f'--> Updating left singular vectors'
-                        f'Time {str(ti)} / block {str(block_i)}')
+                        f'--> Updating left singular vectors; '
+                        f' Time {str(ti)} / block {str(block_i)}')
 
                     # S_hat_prev = self._eigs.copy()
                     for i_freq in range(0,n_freq):
+
                         ## new data (weighted)
                         x = x_hat[:,[i_freq]] * sqrt_w[:]
 
@@ -167,15 +171,20 @@ class Streaming(Base):
 
                         ## normalized orthogonal complement
                         u_new = u_p / abs_up
+                        del u_p
 
                         ## build K matrix and compute its SVD, eqn. (32)
                         K_1 = np.hstack((np.sqrt(block_i+2) * S, Ux))
+                        del Ux
+
                         K_2 = np.hstack((z, abs_up))
                         K = np.vstack((K_1, K_2))
+                        del K_1, K_2
                         K = np.sqrt((block_i+1) / (block_i+2)**2) * K
 
                         ## calculate partial svd
                         Up, Sp, _ = la.svd(K, full_matrices=False)
+                        del K
 
                         ## update U as in eqn. (33)
                         ## for simplicity, we could not rotate here and instead
@@ -183,6 +192,7 @@ class Streaming(Base):
                         ## later; see Brand (LAA ,2006, section 4.1)
                         U_tmp = np.hstack((U, u_new))
                         U = np.dot(U_tmp, Up)
+                        del U_tmp
 
                         ## best rank-k approximation, eqn. (37)
                         u_hat[:,i_freq,:] = U[:,0:self._n_modes_save]
@@ -191,8 +201,8 @@ class Streaming(Base):
                     ## reset dft sum
                     x_hat[:,:] = 0
 
-                phi_prev = phi
-                phi = u_hat * (1 / sqrt_w[:,:,np.newaxis])
+                # phi_prev = phi
+                # phi = u_hat * (1 / sqrt_w[:,:,np.newaxis])
 
                 # ## convergence
                 # for i_freq in range(0,n_freq):

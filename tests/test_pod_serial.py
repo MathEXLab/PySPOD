@@ -37,6 +37,7 @@ def test_standard():
         # -- optional parameters
         'normalize_weights': False,
         'n_modes_save'     : 8,
+        'dtype'            : 'float64',
         'savedir'          : os.path.join(CFD, 'results')
     }
     ## -----------------------------------------------------------------------
@@ -49,7 +50,6 @@ def test_standard():
         data=data, results_dir=results_dir, time_idx='all')
     file_coeffs_cl, file_dynamics_cl = pod.coeffs_and_reconstruction(
         data=data, results_dir=results_dir, time_idx='all')
-    pod.get_data(t_0=0, t_end=1)
 
     ## assert test
     savedir = pod._savedir
@@ -146,6 +146,7 @@ def test_standard_class_compute():
         # -- optional parameters
         'normalize_weights': False,
         'n_modes_save'     : 8,
+        'dtype'            : 'float64',
         'savedir'          : os.path.join(CFD, 'results')
     }
     ## -------------------------------------------------------------------------
@@ -158,7 +159,6 @@ def test_standard_class_compute():
         data=data, results_dir=results_dir)
     file_dynamics, coeffs_dir = pod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all')
-    pod.get_data(t_0=0, t_end=1)
 
     ## assert test
     savedir = pod._savedir
@@ -254,6 +254,7 @@ def test_standard_utils_compute():
         # -- optional parameters
         'normalize_weights': False,
         'n_modes_save'     : 8,
+        'dtype'            : 'float64',
         'savedir'          : os.path.join(CFD, 'results')
     }
     ## -------------------------------------------------------------------------
@@ -266,7 +267,6 @@ def test_standard_utils_compute():
         data=data, results_dir=results_dir)
     file_dynamics, coeffs_dir = utils_pod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all')
-    pod.get_data(t_0=0, t_end=1)
 
     ## assert test
     savedir = pod._savedir
@@ -359,6 +359,7 @@ def test_standard_convergence():
         # -- optional parameters
         'normalize_weights': False,
         'n_modes_save'     : 300,
+        'dtype'            : 'float64',
         'savedir'          : os.path.join(CFD, 'results')
     }
     ## -----------------------------------------------------------------------
@@ -369,7 +370,6 @@ def test_standard_convergence():
     results_dir = pod._savedir_sim
     file_coeffs, file_dynamics = pod.coeffs_and_reconstruction(
         data=data, results_dir=results_dir, time_idx='all')
-    pod.get_data(t_0=0, t_end=1)
 
     ## assert test
     savedir = pod._savedir
@@ -377,7 +377,7 @@ def test_standard_convergence():
     coeffs = np.load(file_coeffs)
     recons = np.load(file_dynamics)
     tol1 = 1e-6; tol2 = 1e-10
-    x = data[...,None]
+    x = pod.get_data(data)
     l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
     l2 = utils_errors.compute_l_errors(recons, x, norm_type='l2')
     li = utils_errors.compute_l_errors(recons, x, norm_type='linf')

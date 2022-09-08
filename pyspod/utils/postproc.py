@@ -2,15 +2,15 @@
 
 # import standard python packages
 import os
+import shutil
 import numpy as np
-# from numba import jit
-from scipy.io import loadmat
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rc('figure', max_open_warning = 0)
 from os.path import splitext
+from scipy.io import loadmat
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -1221,7 +1221,7 @@ def plot_training_histories(
 # Animations
 # ---------------------------------------------------------------------------
 
-def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
+def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
     sampling=1, x1=None, x2=None, coastlines='', figsize=(12,8),
     path='CWD', filename='data_video.mp4'):
     '''
@@ -1245,6 +1245,11 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
         Default is CWD.
     :param str filename: if specified, the plot is saved at `filename`.
     '''
+    command = shutil.which("ffmpeg")
+    if (command is None) or (command is False):
+        print('Skipping creating ffmpeg video as `ffmpeg` not present.')
+        return
+
     # check dimensions
     if X.ndim != 4:
         raise ValueError('Dimension of data is not 2D.')
@@ -1334,17 +1339,10 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=None,
             fig, frames, interval=70, blit=False, repeat=False)
         if path == 'CWD': path = CWD
         filename = '{0}_var{1}{2}'.format(basename, i, ext)
-        try:
-            bashCmd = ["which", "ffmpeg"]
-            print(subprocess.check_output(bashCmd))
-            Writer = animation.writers['ffmpeg']
-            writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-            a.save(os.path.join(path,filename), writer=writer)
-            plt.close('all')
-        except:
-            print('Skipping saving ffmpeg video as `ffmpeg` not present.')
-            plt.close('all')
-            return
+        Writer = animation.writers['ffmpeg']
+        writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+        a.save(os.path.join(path,filename), writer=writer)
+        plt.close('all')
 
 # ---------------------------------------------------------------------------
 

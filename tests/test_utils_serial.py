@@ -213,47 +213,58 @@ def test_postproc_2d():
         coords_list=[(10,10),(14,14)],
         title='tracers',
         filename='tracers.png')
-    spod.plot_2d_data(time_idx=0,filename='data.png', title='data_plot')
-    spod.plot_2d_data(time_idx=[0,10],filename='data.png',coastlines='regular')
-    spod.plot_2d_data(time_idx=[0,10],filename='data.png',coastlines='centred')
-    spod.plot_data_tracers(
-        coords_list=[(10,10), (14,14)],
+    da = da.values
+    da = da[...,None]
+    print(da.shape)
+    post.plot_2d_data(da,time_idx=0,
+        path=params['savedir'],filename='data.png',title='data_plot')
+    post.plot_2d_data(da,time_idx=[0,10],
+        path=params['savedir'],filename='data.png',coastlines='regular')
+    post.plot_2d_data(da,time_idx=[0,10],
+        path=params['savedir'],filename='data.png',coastlines='centred')
+    post.plot_data_tracers(
+        da, coords_list=[(10,10), (14,14)],
         title='data_tracers',
+        path=params['savedir'],
         filename='data_tracers.png')
-    spod.plot_data_tracers(
-        coords_list=[(10,10), (14,14)],
+    post.plot_data_tracers(
+        da, coords_list=[(10,10), (14,14)],
+        path=params['savedir'],
         filename='data_tracers.png')
     coords, idx_coords = spod.find_nearest_coords(coords=(10,10), x=[x1,x2])
-    spod.generate_2d_data_video(
-        sampling=5,
+    post.generate_2d_data_video(
+        da, sampling=5,
         time_limits=[0,20],
+        path=params['savedir'],
         filename='data_movie1.mp4')
-    spod.generate_2d_data_video(
-        sampling=5,
+    post.generate_2d_data_video(
+        da, sampling=5,
         time_limits=[0,20],
+        path=params['savedir'],
         filename='data_movie2.mp4',
         coastlines='regular')
-    spod.generate_2d_data_video(
-        sampling=5,
+    post.generate_2d_data_video(
+        da, sampling=5,
         time_limits=[0,20],
+        path=params['savedir'],
         filename='data_movie3.mp4',
         coastlines='centred')
     ## post
     post.generate_2d_subplot(
-        var1=da[10,...], title1='data',
+        var1=da[10,...,0], title1='data',
         N_round=6,
         path=params['savedir'],
         filename='subplot1.png')
     post.generate_2d_subplot(
-        var1=da[10,...], title1='data1',
-        var2=da[10,...], title2='data2',
+        var1=da[10,...,0], title1='data1',
+        var2=da[10,...,0], title2='data2',
         N_round=6,
         path=params['savedir'],
         filename='subplot2.png')
     post.generate_2d_subplot(
-        var1=da[10,...], title1='data1',
-        var2=da[10,...], title2='data2',
-        var3=da[10,...], title3='data3',
+        var1=da[10,...,0], title1='data1',
+        var2=da[10,...,0], title2='data2',
+        var3=da[10,...,0], title3='data3',
         N_round=6,
         path=params['savedir'],
         filename='subplot3.png')
@@ -346,8 +357,14 @@ def test_postproc_3d():
         plot_max=True,
         slice_dim=2,
         equal_axes=True)
+    data = spod.get_data(data)
+    post.plot_data_tracers(
+        data, coords_list=[(4,2,1)], time_limits=[0,t.shape[0]],
+        path=params['savedir'], filename='tmp.png')
     spod.plot_data_tracers(
-        coords_list=[(4,2,1)], time_limits=[0,t.shape[0]], filename='tmp.png')
+        data, coords_list=[(4,2,1)], time_limits=[0,t.shape[0]],
+        filename='tmp.png')
+
     try:
         shutil.rmtree(os.path.join(CWD,'results'))
     except OSError as e:
