@@ -126,10 +126,11 @@ def test_standard_svd():
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params, )
     spod = SPOD_analysis.fit(data=data, nt=nt)
-    # spod.transform(data, nt=nt, rec_idx='all', svd=True)
     results_dir = spod.savedir_sim
-    file_coeffs, file_dynamics = utils_spod.coeffs_and_reconstruction(
-        data=data, results_dir=results_dir, time_idx='all', svd=True)
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+        data=data, results_dir=results_dir, svd=True)
+    file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
+        coeffs_dir=coeffs_dir, time_idx='all')
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -181,10 +182,11 @@ def test_standard_inv():
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params, )
     spod = SPOD_analysis.fit(data=data, nt=nt)
-    # spod.transform(data, nt=nt, rec_idx='all', svd=False)
     results_dir = spod.savedir_sim
-    file_coeffs, file_dynamics = utils_spod.coeffs_and_reconstruction(
-        data=data, results_dir=results_dir, time_idx='all', svd=False)
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+        data=data, results_dir=results_dir)
+    file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
+        coeffs_dir=coeffs_dir, time_idx='all')
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -214,87 +216,6 @@ def test_standard_inv():
     assert((l1_r<1.07101850791e-07+tol) & (l1_r>1.07101850791e-07-tol))
     assert((l2_r<1.30918399202e-09+tol) & (l2_r>1.30918399202e-09-tol))
     assert((li_r<0.000137704603970+tol) & (li_r>0.000137704603970-tol))
-    try:
-        shutil.rmtree(os.path.join(CWD, params['savedir']))
-    except OSError as e:
-        pass
-
-def test_standard_freq():
-    ## -------------------------------------------------------------------
-    data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
-    data_dict = utils_io.read_data(data_file=data_file)
-    data = data_dict['p'].T
-    dt = data_dict['dt'][0,0]
-    nt = data.shape[0]
-    config_file = os.path.join(CFD, 'data', 'input_spod.yaml')
-    params = utils_io.read_config(config_file)
-    params['time_step'   ] = dt
-    params['mean_type'   ] = 'longtime'
-    params['n_modes_save'] = 40
-    params['overlap'     ] = 50
-    params['fullspectrum'] = True
-    ## -------------------------------------------------------------------
-    SPOD_analysis = spod_standard(params=params, )
-    spod = SPOD_analysis.fit(data=data, nt=nt)
-    # latent_space = spod.transform(
-    #     data=data, nt=nt, rec_idx='all', tol=1e-10,
-    #     svd=False, T_lb=0.5, T_ub=1.1)
-    results_dir = spod.savedir_sim
-    file_coeffs, file_dynamics = utils_spod.coeffs_and_reconstruction(
-        data=data, results_dir=results_dir, time_idx='all',
-        tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
-    file_coeffs_cl, file_dynamics_cl = spod.coeffs_and_reconstruction(
-        data=data, results_dir=results_dir, time_idx='all',
-        tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
-    T_ = 12.5;     tol1 = 1e-3;  tol2 = 1e-8
-    f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
-    modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    coeffs = np.load(file_coeffs)
-    recons = np.load(file_dynamics)
-    recons_cl = np.load(file_dynamics)
-
-    ## fit
-    assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) & \
-           (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol2))
-    assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
-           (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
-    ## transform
-    # print(f'{np.real(np.min(recons)) = :}')
-    # print(f'{np.real(np.min(coeffs)) = :}')
-    # print(f'{np.real(np.max(recons)) = :}')
-    # print(f'{np.real(np.max(coeffs)) = :}')
-    assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) & \
-           (np.real(np.min(coeffs))>-101.6470600168104-tol1))
-    assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) & \
-           (np.real(np.max(coeffs))> 117.3492244840017-tol1))
-    assert((np.real(np.min(recons))< 4.340606772197322+tol1) & \
-           (np.real(np.min(recons))> 4.340606772197322-tol1))
-    assert((np.real(np.max(recons))< 4.498677772159833+tol1) & \
-           (np.real(np.max(recons))> 4.498677772159833-tol1))
-    assert((np.real(np.min(recons_cl))< 4.340606772197322+tol1) & \
-           (np.real(np.min(recons_cl))> 4.340606772197322-tol1))
-    assert((np.real(np.max(recons_cl))< 4.498677772159833+tol1) & \
-           (np.real(np.max(recons_cl))> 4.498677772159833-tol1))
-    x = data[...,None]
-    l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
-    l2 = utils_errors.compute_l_errors(recons, x, norm_type='l2')
-    li = utils_errors.compute_l_errors(recons, x, norm_type='linf')
-    l1_r = utils_errors.compute_l_errors(recons, x, norm_type='l1_rel')
-    l2_r = utils_errors.compute_l_errors(recons, x, norm_type='l2_rel')
-    li_r = utils_errors.compute_l_errors(recons, x, norm_type='linf_rel')
-    ## errors
-    # print(f'{l1 = :}')
-    # print(f'{l2 = :}')
-    # print(f'{li = :}')
-    # print(f'{l1_r = :}')
-    # print(f'{l2_r = :}')
-    # print(f'{li_r = :}')
-    assert((l1  <0.00104122273134+tol2) & (l1  >0.00104122273134-tol2))
-    assert((l2  <1.1276085475e-06+tol2) & (l2  >1.1276085475e-06-tol2))
-    assert((li  <0.01784020507579+tol2) & (li  >0.01784020507579-tol2))
-    assert((l1_r<0.00023355591009+tol2) & (l1_r>0.00023355591009-tol2))
-    assert((l2_r<2.5299012083e-07+tol2) & (l2_r>2.5299012083e-07-tol2))
-    assert((li_r<0.00403310279450+tol2) & (li_r>0.00403310279450-tol2))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
     except OSError as e:
@@ -461,12 +382,12 @@ def test_standard_normalize():
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params, )
     spod = SPOD_analysis.fit(data=data, nt=nt)
-    # latent_space = spod.transform(
-    #     data=data, nt=nt, rec_idx='all', svd=False, T_lb=0.5, T_ub=1.1)
     results_dir = spod.savedir_sim
-    file_coeffs, file_dynamics = utils_spod.coeffs_and_reconstruction(
-        data=data, results_dir=results_dir, time_idx='all',
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+        data=data, results_dir=results_dir,
         tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
+    file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
+        coeffs_dir=coeffs_dir, time_idx='all')
     T_ = 12.5;     tol1 = 1e-3;  tol2 = 1e-8
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -556,13 +477,12 @@ def test_streaming_freq():
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_streaming(params=params, )
     spod = SPOD_analysis.fit(data=data, nt=nt)
-    # latent_space = spod.transform(
-    #     data=data, nt=nt, rec_idx='all', tol=1e-10,
-    #     svd=False, T_lb=0.5, T_ub=1.1)
     results_dir = spod.savedir_sim
-    file_coeffs, file_dynamics = utils_spod.coeffs_and_reconstruction(
-        data=data, results_dir=results_dir, time_idx='all',
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+        data=data, results_dir=results_dir,
         tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
+    file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
+        coeffs_dir=coeffs_dir, time_idx='all')
     T_ = 12.5;     tol1 = 1e-3;  tol2 = 1e-8
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -618,7 +538,6 @@ if __name__ == "__main__":
     test_standard_reuse_blocks()
     test_standard_svd()
     test_standard_inv()
-    test_standard_freq()
     test_standard_freq_class_compute()
     test_standard_freq_utils_compute()
     test_standard_normalize()

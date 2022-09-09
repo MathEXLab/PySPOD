@@ -180,23 +180,23 @@ def test_postproc_2d():
         fftshift=True,
         equal_axes=True,
         title='modes')
-    spod.plot_2d_mode_slice_vs_time(
-        freq_req=f_,
-        freq=spod.freq,
-        modes_idx=0,
-        fftshift=True,
-        equal_axes=True,
-        max_each_mode=True,
-        title='modes_time',
-        filename='modes1.png')
-    spod.plot_2d_mode_slice_vs_time(
-        freq_req=f_,
-        freq=spod.freq,
-        modes_idx=0,
-        fftshift=True,
-        equal_axes=True,
-        max_each_mode=True,
-        filename='modes2.png')
+    # spod.plot_2d_mode_slice_vs_time(
+    #     freq_req=f_,
+    #     freq=spod.freq,
+    #     modes_idx=0,
+    #     fftshift=True,
+    #     equal_axes=True,
+    #     max_each_mode=True,
+    #     title='modes_time',
+    #     filename='modes1.png')
+    # spod.plot_2d_mode_slice_vs_time(
+    #     freq_req=f_,
+    #     freq=spod.freq,
+    #     modes_idx=0,
+    #     fftshift=True,
+    #     equal_axes=True,
+    #     max_each_mode=True,
+    #     filename='modes2.png')
     spod.plot_mode_tracers(
         freq_req=f_,
         freq=spod.freq,

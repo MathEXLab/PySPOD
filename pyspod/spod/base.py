@@ -59,8 +59,8 @@ class Base():
         self._normalize_data = params.get('normalize_data', False)
         # default is all (large number)
         self._n_modes_save = params.get('n_modes_save', 1e10)
-        # default datatype is float64
-        self._dtype = params.get('dtype', 'float64')
+        # default datatype is double
+        self._dtype = params.get('dtype', 'double')
         # where to save data
         self._savedir = params.get('savedir', os.path.join(CWD,'spod_results'))
         self._savedir = os.path.join(CWD, self._savedir)
@@ -70,7 +70,7 @@ class Base():
         self._params = params
         self._weights_tmp = weights
         self._comm = comm
-        if self._dtype == 'float64':
+        if self._dtype == 'double':
             self._float = np.float64
             self._complex = np.complex128
         else:
@@ -587,18 +587,6 @@ class Base():
         self._file_recons = file_recons
         self._coeffs_dir = coeffs_dir
         return file_recons, coeffs_dir
-
-
-    def coeffs_and_reconstruction(self, data, results_dir, modes_idx=None,
-        time_idx=None, tol=1e-10, svd=True, T_lb=None, T_ub=None, comm=None):
-        file_coeffs, file_recons = \
-            utils_spod.coeffs_and_reconstruction(\
-                data, results_dir=self._savedir_sim, modes_idx=modes_idx,
-                time_idx=time_idx, tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub,
-                comm=comm)
-        self._file_coeffs = file_coeffs
-        self._file_recons = file_recons
-        return file_coeffs, file_recons
 
 
     def _store_and_save(self):
