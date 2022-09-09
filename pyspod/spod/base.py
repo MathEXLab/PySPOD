@@ -481,12 +481,13 @@ class Base():
                 if not os.path.exists(self._blocks_folder):
                     os.makedirs(self._blocks_folder)
 
-        # compute approx problem size (assuming double)
-        self._pb_size_f = data.size * self._float(1).nbytes * B2GB
-        self._pb_size_c = data.size * self._complex(1).nbytes * B2GB
+        # compute approx problem size
+        self._pb_size_f = self._size*data.size * self._float(1).nbytes * B2GB
+        self._pb_size_c = self._size*data.size * self._complex(1).nbytes * B2GB
         data = self._set_dtype(data)
         self._data = data
         utils_par.barrier(self._comm)
+        del data
 
         # print parameters to the screen
         self._print_parameters()
@@ -525,8 +526,7 @@ class Base():
             raise ValueError(self._mean_type, 'not recognized.')
         ## trigger warning if mean_type is zero
         if (self._mean_type == 'zero') and (self._rank == 0):
-            warnings.warn(
-                'No mean subtracted. Consider providing longtime mean.')
+            warnings.warn('No mean subtracted. Consider using longtime mean.')
 
 
     def long_t_mean(self, data):
