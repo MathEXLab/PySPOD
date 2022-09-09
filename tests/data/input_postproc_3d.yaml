@@ -13,5 +13,5 @@ optional:
   - conf_level       : 0.95
   - reuse_blocks     : False
   - savefft          : False
-  - dtype            : 'float64'
+  - dtype            : 'double'
   - savedir          : 'results'

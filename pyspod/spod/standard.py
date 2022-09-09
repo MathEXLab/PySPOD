@@ -6,7 +6,8 @@ import sys
 import time
 import numpy as np
 from numpy import linalg as la
-# from scipy import linalg as la
+
+# Import custom Python packages
 from pyspod.spod.base import Base
 import pyspod.utils.parallel as utils_par
 
@@ -22,7 +23,6 @@ class Standard(Base):
     to the constructor of the `Standard` class, derived
     from the `Base` class.
     '''
-
     def fit(self, data, nt):
         '''
         Class-specific method to fit the data matrix using

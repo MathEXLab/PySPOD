@@ -44,7 +44,7 @@ def test_lstm_pod():
         'normalize_weights': True,
         'scale_data'       : True,
         'n_modes_save'     : 8,
-        'dtype'            : 'float64',
+        'dtype'            : 'double',
         'savedir'          : os.path.join(CFD, 'results')
     }
     params_emulation = {
@@ -199,7 +199,7 @@ def test_lstm_spod():
         'savedir'          : os.path.join(CFD, 'results'),
         'reuse_blocks'     : False,
         'fullspectrum'     : True,
-        'dtype'            : 'float64'
+        'dtype'            : 'double'
     }
     params_emulation = {
         'network'   : 'lstm',
@@ -358,7 +358,7 @@ def test_cnn_spod():
         'savedir'          : os.path.join(CFD, 'results'),
         'reuse_blocks'     : False,
         'fullspectrum'     : True,
-        'dtype'            : 'float64'
+        'dtype'            : 'double'
     }
     params_emulation = {
         'network'   : 'lstm',

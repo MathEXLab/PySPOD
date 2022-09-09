@@ -7,15 +7,15 @@ def compute_l_errors(data, data_ref, norm_type='l2'):
     '''
     Compute error norms of a 1D array with respect to a reference data
     '''
-    nx = data.size
+    n = data.size
     e = np.abs(data - data_ref)
     ef = e.flatten('C')
     e_rel = ef / data_ref.flatten('C')
-    if   norm_type == 'l1'  : error_norm = np.linalg.norm(ef, 1) / nx
-    elif norm_type == 'l2'  : error_norm = np.linalg.norm(ef) / nx
+    if   norm_type == 'l1'  : error_norm = np.linalg.norm(ef, 1) / n
+    elif norm_type == 'l2'  : error_norm = np.linalg.norm(ef) / n
     elif norm_type == 'linf': error_norm = np.amax(ef)
-    elif norm_type == 'l1_rel'  : error_norm = np.linalg.norm(e_rel, 1) / nx
-    elif norm_type == 'l2_rel'  : error_norm = np.linalg.norm(e_rel) / nx
+    elif norm_type == 'l1_rel'  : error_norm = np.linalg.norm(e_rel, 1) / n
+    elif norm_type == 'l2_rel'  : error_norm = np.linalg.norm(e_rel) / n
     elif norm_type == 'linf_rel': error_norm = np.amax(e_rel)
     else:
         raise ValueError(norm_type, ' not implemented.')

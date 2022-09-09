@@ -12,6 +12,8 @@ import pickle
 import warnings
 import scipy
 import numpy as np
+
+# Import custom Python packages
 from pyspod.pod.base import Base
 import pyspod.utils.parallel as utils_par
 BYTE_TO_GB = 9.3132257461548e-10
@@ -25,7 +27,6 @@ class Standard(Base):
     '''
     Class that implements the standard Proper Orthogonal Decomposition.
     '''
-
     def fit(self, data, nt):
         '''
         Class-specific method to fit the data matrix `data` using standard POD.

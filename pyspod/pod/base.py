@@ -40,7 +40,7 @@ class Base():
         self._normalize_data = params.get('normalize_data', False)
         self._normalize_weights = params.get('normalize_weights', False)
         self._n_modes_save = params.get('n_modes_save', 1e10)
-        self._dtype = params.get('dtype', 'float64')
+        self._dtype = params.get('dtype', 'double')
         self._savedir = params.get('savedir', os.path.join(CWD,'pod_results'))
         self._savedir = os.path.join(CWD, self._savedir)
         params['savedir'] = self._savedir
@@ -49,7 +49,7 @@ class Base():
         self._params = params
         self._weights_tmp = weights
         self._comm = comm
-        if self._dtype == 'float64':
+        if self._dtype == 'double':
             self._float = np.float64
             self._complex = np.complex128
         else:
@@ -374,17 +374,6 @@ class Base():
         self._file_recons = file_recons
         self._coeffs_dir = coeffs_dir
         return file_recons, coeffs_dir
-
-
-    def coeffs_and_reconstruction(self, data, results_dir,
-        modes_idx=None, time_idx=None, comm=None):
-        file_coeffs, file_recons = \
-            utils_pod.coeffs_and_reconstruction(\
-                data, results_dir=self._savedir_sim, modes_idx=modes_idx,
-                time_idx=time_idx, comm=comm)
-        self._file_coeffs = file_coeffs
-        self._file_recons = file_recons
-        return file_coeffs, file_recons
 
 
     def _store_and_save(self):

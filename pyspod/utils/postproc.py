@@ -456,206 +456,217 @@ def plot_2d_modes_at_frequency(results_path, freq_req, freq,
             plt.tight_layout(pad=2.)
 
             # save or show plots
+            tmp_name = filename
             if filename:
                 basename, ext = splitext(filename)
                 tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
             _save_show_plots(tmp_name, path, plt)
 
-def plot_2d_mode_slice_vs_time(results_path, freq_req, freq,
-    vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
-    fftshift=False, title='', figsize=(12,8), equal_axes=False, path='CWD',
-    filename=None):
-    '''
-    Plot the time evolution of SPOD mode slices for 2D problems.
-
-    :param str results_path: file containing 2D SPOD modes.
-    :param double freq_req: frequency to be plotted.
-    :param numpy.ndarray freq: frequency array.
-    :param int or sequence(int) vars_idx: variables to be plotted. \
-        Default, the first variable is plotted.
-    :param int or sequence(int) modes_idx: modes to be plotted. \
-        Default, the first mode is plotted.
-    :param numpy.ndarray x1: x-axis coordinate.
-    :param numpy.ndarray x2: y-axis coordinate.
-    :param bool max_each_mode: whether to use the maximum value \
-        of each mode to color plots. Default is False (use maximum \
-        of leading mode).
-    :param bool fftshift: whether to perform fft-shifting. \
-        Default is False.
-    :param bool imaginary: whether to plot imaginary part. \
-        Default is False
-    :param bool plot_max: whether to plot a dot at maximum value of the plot. \
-        Default is False.
-    :param str title: if specified, title of the plot. Default is ''.
-    :param tuple or list xticks: ticks to be set on x-axis. \
-        Default is None.
-    :param tuple or list yticks: ticks to be set on y-axis. \
-        Default is None.
-    :param bool equal_axes: if True, the axes will be equal. \
-        Default is False.
-    :param tuple(int,int) figsize: size of the figure (width,height). \
-        Default is (12,8).
-    :param str path: if specified, the plot is saved at `path`. \
-        Default is CWD.
-    :param str filename: if specified, the plot is saved at `filename`. \
-        Default is None.
-    '''
-
-    # get idx variables
-    vars_idx = _check_vars(vars_idx)
-
-    # get idx modes
-    if isinstance(modes_idx, int):
-        modes_idx = [modes_idx]
-    if not isinstance(modes_idx, (list,tuple)):
-        raise TypeError('`modes_idx` must be a list or tuple')
-
-    # get modes at required frequency
-    freq_val, freq_idx = find_nearest_freq(
-        freq_req=freq_req, freq=freq)
-    modes = get_modes_at_freq(
-        results_path=results_path, freq_idx=freq_idx)
-
-    # if domain dimensions have not been passed, use data dimensions
-    if x1 is None and x2 is None:
-        x1 = np.arange(modes.shape[0])
-        x2 = np.arange(modes.shape[1])
-
-    # calculate period and time vector
-    n_points = 50
-    period = 1. / freq_req
-    t = np.linspace(0,period,n_points)
-
-    # pre-compute auxiliary phase vector and shape it accordingly
-    phase = np.exp(complex(0,1) * np.linspace(0,2*np.pi,n_points))
-    phase = np.reshape(phase,(1,phase.shape[0]))
-
-    # get width and height figure
-    wsize = figsize[0]
-    hsize = figsize[1]
-
-    # plot mode evolution
-    cnt = 0
-
-    # loop over variables and modes
-    for var_id in vars_idx:
-
-        # instantiate subplot figure 1
-        fig1, spec1 = plt.subplots(ncols=1, nrows=len(modes_idx),
-            figsize=(wsize,2.0*len(modes_idx)), sharex=True, squeeze=False)
-        # instantiate subplot figure 2
-        fig2, spec2 = plt.subplots(ncols=len(modes_idx), nrows=1,
-            figsize=(2.0*len(modes_idx),hsize), sharey=True, squeeze=False)
-        # instantiate subplot figure 3
-        fig3, spec3 = plt.subplots(ncols=1, nrows=len(modes_idx),
-            figsize=(wsize,2.0*len(modes_idx)), sharex=True, squeeze=False)
-
-        # pre-compute indices leading mode max value
-        tmp = np.squeeze(modes[:,:,var_id,0])
-        if fftshift:
-            tmp = np.fft.fftshift(tmp, axes=1)
-        idx_x1, idx_x2 = np.where(np.abs(tmp) == np.amax(np.abs(tmp)))
-
-        # loop over modes
-        for mode_id in modes_idx:
-
-            # select mode and fft-shift it
-            mode = np.squeeze(modes[:,:,var_id,mode_id])
-
-            # check dimensions
-            if mode.ndim != 2:
-                raise ValueError('Dimension of the modes is not 2D.')
-
-            if fftshift:
-                mode = np.fft.fftshift(mode, axes=1)
-
-            # identify mode max indices per each mode if required
-            if max_each_mode:
-                idx_x1, idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
-
-            # select modes at maximum values in x1 and x2
-            mode_x1 = mode[idx_x1,:]
-            mode_x2 = mode[:,idx_x2]
-
-            # plot mode vs. x1, x2 with lines
-            ax = fig1.add_subplot(spec1[cnt,0])
-            ax_obj = ax.pcolormesh(
-                x1, x2, np.real(mode).T,
-                shading='gouraud',
-                vmin=np.nanmin(mode.real),
-                vmax=np.nanmax(mode.real))
-            ax.axhline(x2[idx_x2], xmin=0, xmax=1,color='k',linestyle='--')
-            ax.axvline(x1[idx_x1], ymin=0, ymax=1,color='k',linestyle='--')
-
-            # axis management
-            ax = _set_2d_axes_limits(ax, x1, x2)
-
-            ax_divider = make_axes_locatable(ax)
-            cax = ax_divider.append_axes("right", size="5%", pad=0.05)
-            plt.colorbar(ax_obj, cax=cax)
-            if equal_axes:
-                ax.set_aspect('equal')
-            if len(title) > 1:
-                fig1.suptitle(f'{title} - var: {var_id}')
-            else:
-                fig1.suptitle(f'var: {var_id}')
-            ax.set_ylabel(f'Mode {mode_id}', rotation=0, labelpad=30,
-                bbox=dict(facecolor='gray', alpha=0.5))
-
-            # plots per fixed x1 vs. t
-            mode_phase_x2 = np.matmul(mode_x1.T, phase)
-            ax = fig2.add_subplot(spec2[0,cnt])
-            ax_obj = ax.pcolormesh(
-                t, x2,
-                np.real(mode_phase_x2),
-                shading='gouraud',
-                vmin=np.nanmin(mode_phase_x2.real),
-                vmax=np.nanmax(mode_phase_x2.real))
-            # axis management
-            ax.set_xlim(np.nanmin(t )*1.05,np.nanmax(t )*1.05)
-            ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
-
-            ax_divider = make_axes_locatable(ax)
-            cax = ax_divider.append_axes("bottom", size="5%", pad=0.65)
-            plt.colorbar(ax_obj, cax=cax, orientation="horizontal")
-            if equal_axes:
-                ax.set_aspect('equal')
-            if len(title) > 1:
-                fig2.suptitle(f'{title} - var: {var_id}')
-            else:
-                fig2.suptitle(f'var: {var_id}')
-            ax.set_xlabel(f'Mode {mode_id}',
-                bbox=dict(facecolor='gray', alpha=0.5))
-
-            # plots per fixed x2 vs. t
-            mode_phase_x1 = np.matmul(mode_x2, phase.conj())
-            ax = fig3.add_subplot(spec3[cnt,0])
-            ax.pcolormesh(
-                x1, t,
-                np.real(mode_phase_x1).T,
-                shading='gouraud',
-                vmin=np.nanmin(mode_phase_x1.real),
-                vmax=np.nanmax(mode_phase_x1.real))
-            # axis management
-            ax = _set_2d_axes_limits(ax, x1, x2)
-            ax_divider = make_axes_locatable(ax)
-            cax = ax_divider.append_axes("right", size="2.5%", pad=0.05)
-            plt.colorbar(ax_obj, cax=cax)
-            if equal_axes:
-                ax.set_aspect('equal')
-            if len(title) > 1:
-                fig3.suptitle(f'{title} - var: {var_id}')
-            else:
-                fig3.suptitle(f'var: {var_id}')
-            ax.set_ylabel(f'Mode {mode_id}', rotation=0, labelpad=30,
-                bbox=dict(facecolor='gray', alpha=0.5))
-            cnt = cnt + 1
-
-        # save or show plots
-        if filename:
-            basename, ext = splitext(filename)
-            tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
-        _save_show_plots(tmp_name, path, plt)
+# def plot_2d_mode_slice_vs_time(results_path, freq_req, freq,
+#     vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
+#     fftshift=False, title='', figsize=(12,8), equal_axes=False, path='CWD',
+#     filename=None):
+#     '''
+#     Plot the time evolution of SPOD mode slices for 2D problems.
+#
+#     :param str results_path: file containing 2D SPOD modes.
+#     :param double freq_req: frequency to be plotted.
+#     :param numpy.ndarray freq: frequency array.
+#     :param int or sequence(int) vars_idx: variables to be plotted. \
+#         Default, the first variable is plotted.
+#     :param int or sequence(int) modes_idx: modes to be plotted. \
+#         Default, the first mode is plotted.
+#     :param numpy.ndarray x1: x-axis coordinate.
+#     :param numpy.ndarray x2: y-axis coordinate.
+#     :param bool max_each_mode: whether to use the maximum value \
+#         of each mode to color plots. Default is False (use maximum \
+#         of leading mode).
+#     :param bool fftshift: whether to perform fft-shifting. \
+#         Default is False.
+#     :param bool imaginary: whether to plot imaginary part. \
+#         Default is False
+#     :param bool plot_max: whether to plot a dot at maximum value of the plot. \
+#         Default is False.
+#     :param str title: if specified, title of the plot. Default is ''.
+#     :param tuple or list xticks: ticks to be set on x-axis. \
+#         Default is None.
+#     :param tuple or list yticks: ticks to be set on y-axis. \
+#         Default is None.
+#     :param bool equal_axes: if True, the axes will be equal. \
+#         Default is False.
+#     :param tuple(int,int) figsize: size of the figure (width,height). \
+#         Default is (12,8).
+#     :param str path: if specified, the plot is saved at `path`. \
+#         Default is CWD.
+#     :param str filename: if specified, the plot is saved at `filename`. \
+#         Default is None.
+#     '''
+#
+#     # get idx variables
+#     vars_idx = _check_vars(vars_idx)
+#
+#     # get idx modes
+#     if isinstance(modes_idx, int):
+#         modes_idx = [modes_idx]
+#     if not isinstance(modes_idx, (list,tuple)):
+#         raise TypeError('`modes_idx` must be a list or tuple')
+#
+#     # get modes at required frequency
+#     freq_val, freq_idx = find_nearest_freq(freq_req=freq_req, freq=freq)
+#     modes = get_modes_at_freq(results_path=results_path, freq_idx=freq_idx)
+#
+#     # if domain dimensions have not been passed, use data dimensions
+#     if x1 is None and x2 is None:
+#         x1 = np.arange(modes.shape[0])
+#         x2 = np.arange(modes.shape[1])
+#
+#     # calculate period and time vector
+#     n_points = 50
+#     period = 1. / freq_req
+#     t = np.linspace(0,period,n_points)
+#
+#     # pre-compute auxiliary phase vector and shape it accordingly
+#     phase = np.exp(complex(0,1) * np.linspace(0,2*np.pi,n_points))
+#     phase = np.reshape(phase,(1,phase.shape[0]))
+#
+#     # get width and height figure
+#     wsize = figsize[0]
+#     hsize = figsize[1]
+#
+#     # plot mode evolution
+#     cnt = 0
+#
+#     # loop over variables and modes
+#     for var_id in vars_idx:
+#
+#         # instantiate subplot figure 1
+#         fig1, spec1 = plt.subplots(ncols=1, nrows=len(modes_idx),
+#             figsize=(wsize,2.0*len(modes_idx)), sharex=True, squeeze=False)
+#         # instantiate subplot figure 2
+#         fig2, spec2 = plt.subplots(ncols=len(modes_idx), nrows=1,
+#             figsize=(2.0*len(modes_idx),hsize), sharey=True, squeeze=False)
+#         # instantiate subplot figure 3
+#         fig3, spec3 = plt.subplots(ncols=1, nrows=len(modes_idx),
+#             figsize=(wsize,2.0*len(modes_idx)), sharex=True, squeeze=False)
+#
+#         # pre-compute indices leading mode max value
+#         tmp = np.squeeze(modes[:,:,var_id,0])
+#         if fftshift:
+#             tmp = np.fft.fftshift(tmp, axes=1)
+#         idx_x1, idx_x2 = np.where(np.abs(tmp) == np.amax(np.abs(tmp)))
+#
+#         # loop over modes
+#         for mode_id in modes_idx:
+#
+#             # select mode and fft-shift it
+#             mode = np.squeeze(modes[:,:,var_id,mode_id])
+#
+#             # check dimensions
+#             if mode.ndim != 2:
+#                 raise ValueError('Dimension of the modes is not 2D.')
+#
+#             if fftshift:
+#                 mode = np.fft.fftshift(mode, axes=1)
+#
+#             # check dimension axes and data
+#             size_coords = x1.shape[0] * x2.shape[0]
+#             if size_coords != mode.size:
+#                 raise ValueError(
+#                     'Mode dimension does not match coordinates dimensions.')
+#
+#             if x1.shape[0] != mode.shape[1] or x2.shape[0] != mode.shape[0]:
+#                 mode = mode.T
+#
+#             # identify mode max indices per each mode if required
+#             if max_each_mode:
+#                 idx_x1, idx_x2 = np.where(np.abs(mode) == np.amax(np.abs(mode)))
+#
+#             # select modes at maximum values in x1 and x2
+#             mode_x1 = mode[idx_x1,:]
+#             mode_x2 = mode[:,idx_x2]
+#
+#             # plot mode vs. x1, x2 with lines
+#             fig1.add_subplot(spec1[cnt,0])
+#             ax = plt.gca()
+#             ax_obj = ax.contourf(x1, x2, np.real(mode))
+#             ax.axhline(x1[idx_x2], xmin=0, xmax=1,color='k',linestyle='--')
+#             ax.axvline(x2[idx_x1], ymin=0, ymax=1,color='k',linestyle='--')
+#             # axis management
+#             ax = _set_2d_axes_limits(ax, x1, x2)
+#             ax_divider = make_axes_locatable(ax)
+#             cax = ax_divider.append_axes("right", size="5%", pad=0.05)
+#             plt.colorbar(ax_obj, cax=cax)
+#             if equal_axes:
+#                 ax.set_aspect('equal')
+#             if len(title) > 1: fig1.suptitle(f'{title} - var: {var_id}')
+#             else: fig1.suptitle(f'var: {var_id}')
+#             ax.set_ylabel(f'Mode a {mode_id}', rotation=0, labelpad=30,
+#                 bbox=dict(facecolor='gray', alpha=0.5))
+#             # save or show plots
+#             tmp_name = filename
+#             tmp_name = filename
+#             if filename:
+#                 basename, ext = splitext(filename)
+#                 tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
+#             _save_show_plots(tmp_name, path, plt)
+#
+#             # plots per fixed x1 vs. t
+#             mode_phase_x2 = np.matmul(mode_x1.T, phase)
+#             fig2.add_subplot(spec2[0,cnt])
+#             ax = plt.gca()
+#             ax_obj = ax.pcolormesh(
+#                 t, x1,
+#                 np.real(mode_phase_x2),
+#                 shading='gouraud',
+#                 vmin=np.nanmin(mode_phase_x2.real),
+#                 vmax=np.nanmax(mode_phase_x2.real))
+#             # axis management
+#             ax.set_xlim(np.nanmin(t )*1.05,np.nanmax(t )*1.05)
+#             ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
+#             ax_divider = make_axes_locatable(ax)
+#             cax = ax_divider.append_axes("bottom", size="5%", pad=0.65)
+#             plt.colorbar(ax_obj, cax=cax, orientation="horizontal")
+#             if equal_axes:
+#                 ax.set_aspect('equal')
+#             if len(title) > 1: fig2.suptitle(f'{title} - var: {var_id}')
+#             else: fig2.suptitle(f'var: {var_id}')
+#             ax.set_xlabel(f'Mode b {mode_id}',
+#                 bbox=dict(facecolor='gray', alpha=0.5))
+#             # save or show plots
+#             tmp_name = filename
+#             if filename:
+#                 basename, ext = splitext(filename)
+#                 tmp_name = f'x1_t_{basename}_var{var_id}_mode{mode_id}{ext}'
+#             _save_show_plots(tmp_name, path, plt)
+#
+#             # plots per fixed x2 vs. t
+#             mode_phase_x1 = np.matmul(mode_x2, phase.conj())
+#             fig3.add_subplot(spec3[cnt,0])
+#             ax = plt.gca()
+#             ax_obj = ax.pcolormesh(
+#                 x2, t,
+#                 np.real(mode_phase_x1).T,
+#                 shading='gouraud',
+#                 vmin=np.nanmin(mode_phase_x1.real),
+#                 vmax=np.nanmax(mode_phase_x1.real))
+#             # axis management
+#             ax = _set_2d_axes_limits(ax, x1, x2)
+#             ax_divider = make_axes_locatable(ax)
+#             cax = ax_divider.append_axes("right", size="2.5%", pad=0.05)
+#             plt.colorbar(ax_obj, cax=cax)
+#             if equal_axes:
+#                 ax.set_aspect('equal')
+#             if len(title) > 1: fig3.suptitle(f'{title} - var: {var_id}')
+#             else: fig3.suptitle(f'var: {var_id}')
+#             ax.set_ylabel(f'Mode c {mode_id}', rotation=0, labelpad=30,
+#                 bbox=dict(facecolor='gray', alpha=0.5))
+#             # save or show plots
+#             tmp_name = filename
+#             if filename:
+#                 basename, ext = splitext(filename)
+#                 tmp_name = f'x2_t_{basename}_var{var_id}_mode{mode_id}{ext}'
+#             _save_show_plots(tmp_name, path, plt)
+#             cnt = cnt + 1
 
 def plot_3d_modes_slice_at_frequency(
     results_path, freq_req, freq,  vars_idx=[0],
@@ -848,6 +859,7 @@ def plot_3d_modes_slice_at_frequency(
             plt.tight_layout(pad=2.)
 
             # save or show plots
+            tmp_name = filename
             if filename:
                 basename, ext = splitext(filename)
                 tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
@@ -950,11 +962,36 @@ def plot_mode_tracers(
             ax.set_xlabel('time')
 
             # save or show plots
+            tmp_name = filename
             if filename:
                 basename, ext = splitext(filename)
                 tmp_name = \
                     f'{basename}_coords{coords}_var{var_id}_mode{mode_id}{ext}'
             _save_show_plots(tmp_name, path, plt)
+
+def plot_coeffs(coeffs, coeffs_idx=[0], equal_axes=False,
+    figsize=(12,8), path='CWD', filename=None):
+
+    # initialize figure
+    fig = plt.figure(figsize=figsize)
+    for ci in coeffs_idx:
+        plt.plot(coeffs[ci,:])
+        plt.xlabel('time')
+        plt.ylabel(f'coeff {ci}')
+
+        # axis management
+        if equal_axes:
+            real_ax.set_aspect('equal')
+
+        # padding between elements
+        plt.tight_layout()
+
+        # save or show plots
+        tmp_name = filename
+        if filename:
+            basename, ext = splitext(filename)
+            tmp_name = f'{basename}_coeff_id{ci}{ext}'
+        _save_show_plots(tmp_name, path, plt)
 
 def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
     xticks=None, yticks=None, equal_axes=False, title='', coastlines='',
@@ -1050,6 +1087,7 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
             plt.tight_layout(pad=2.)
 
             # save or show plots
+            tmp_name = filename
             if filename:
                 basename, ext = splitext(filename)
                 tmp_name = f'{basename}_var{var_id}_time{time_id}{ext}'
@@ -1118,6 +1156,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
             plt.xlabel('time')
 
             # save or show plots
+            tmp_name = filename
             if filename:
                 basename, ext = splitext(filename)
                 tmp_name = f'{basename}_coords{coords}_var{var_id}{ext}'
