@@ -441,10 +441,6 @@ class Base():
         if t_0 is None: t_0 = 0
         if t_end is None: t_end = data.shape[0]
         d = data[t_0:t_end,...]
-        print(f'{d.shape = :}')
-        print(f'{self._xdim = :}')
-        print(f'{d.ndim = :}')
-        print(f'{self._nv = :}')
         if self._nv == 1 and (d.ndim != self._xdim + 2):
             d = d[...,np.newaxis]
         return d
