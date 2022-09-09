@@ -400,6 +400,7 @@ class Base():
             print(f'Parameters dictionary saved in: {path_params}')
             print(f'Eigenvalues saved in: {path_eigs}')
         self._n_modes = self._eigs.shape[-1]
+        utils_par.barrier(self._comm)
 
 
     def _pr0(self, fstring):

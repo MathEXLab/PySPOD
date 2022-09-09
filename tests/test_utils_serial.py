@@ -101,8 +101,7 @@ def test_io_yaml_optional():
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    file_modes = os.path.join(spod._savedir_sim, 'modes')
-    phi = post.get_all_modes(file_modes)
+    phi = post.get_all_modes(spod._savedir_sim)
     assert((np.min(np.abs(modes_at_freq))<1.088621540690e-09+tol) & \
            (np.min(np.abs(modes_at_freq))>1.088621540690e-09-tol))
     assert((np.max(np.abs(modes_at_freq))<0.3147154781010669+tol) & \

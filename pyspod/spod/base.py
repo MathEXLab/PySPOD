@@ -341,7 +341,7 @@ class Base():
         :return: the dictionary containing the path to the SPOD modes saved.
         :rtype: dict
         '''
-        return self._file_modes
+        return self._modes_dir
 
 
     @property
@@ -469,10 +469,10 @@ class Base():
                 os.makedirs(self._savedir_sim)
 
         ## create folder to save modes
-        self._file_modes = os.path.join(self._savedir_sim, 'modes')
+        self._modes_dir = os.path.join(self._savedir_sim, 'modes')
         if self._rank == 0:
-            if not os.path.exists(self._file_modes):
-                os.makedirs(self._file_modes)
+            if not os.path.exists(self._modes_dir):
+                os.makedirs(self._modes_dir)
 
         ## create folder to save fft blocks
         if self._savefft:
@@ -486,6 +486,8 @@ class Base():
         self._pb_size_c = data.size * self._complex(1).nbytes * B2GB
         data = self._set_dtype(data)
         self._data = data
+        utils_par.barrier(self._comm)
+
         # print parameters to the screen
         self._print_parameters()
         self._pr0(f'------------------------------------')
@@ -716,14 +718,9 @@ class Base():
         '''
         See method implementation in the postproc module.
         '''
-        if self._file_modes is None:
+        if self._modes_dir is None:
             raise ValueError('Modes not found. Consider running fit()')
-        elif isinstance(self._file_modes, str):
-            tmp_str = f'freq_idx_{freq_idx:08d}.npy'
-            mode_path = os.path.join(self._file_modes, tmp_str)
-            m = post.get_data_from_file(mode_path)
-        else:
-            raise TypeError('Modes must be a string to modes.npy')
+        m = post.get_modes_at_freq(self._savedir_sim, freq_idx)
         return m
 
 
@@ -749,28 +746,24 @@ class Base():
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def _are_blocks_present(n_blocks, n_freq, savedir, rank):
-        if rank == 0:
-            print(f'Checking if blocks are already present ...')
+    def _are_blocks_present(n_blocks, n_freq, savedir, comm):
+        utils_par.pr0(f'Checking if blocks are already present ...', comm)
         all_blocks_exist = 0
         for i_blk in range(0,n_blocks):
             all_freq_exist = 0
             for i_freq in range(0,n_freq):
-                file = os.path.join(savedir,
-                    'fft_block{:08d}_freq{:08d}.npy'.format(i_blk,i_freq))
-                if os.path.exists(file):
-                    all_freq_exist = all_freq_exist + 1
+                tmp_name = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
+                filename = os.path.join(savedir, tmp_name)
+                if os.path.exists(filename): all_freq_exist = all_freq_exist + 1
             if (all_freq_exist == n_freq):
-                if rank == 0:
-                    print(f'block {i_blk+1}/{n_blocks} present in: {savedir}')
+                blk = (i_blk + 1) / n_blocks
+                utils_par.pr0(f'block {blk} present in: {savedir}', comm)
                 all_blocks_exist = all_blocks_exist + 1
         if all_blocks_exist == n_blocks:
-            if rank == 0:
-                print(f'... all blocks present; loading from storage.')
+            utils_par.pr0(f'all blocks present; loading from storage.', comm)
             return True
         else:
-            if rank == 0:
-                print(f'... blocks not present; proceeding to compute them.\n')
+            utils_par.pr0(f'blocks not present; computing them now.\n', comm)
             return False
 
 
@@ -834,12 +827,11 @@ class Base():
         See method implementation in the postproc module.
         '''
         post.plot_2d_modes_at_frequency(
-            self._file_modes, freq_req=freq_req, freq=freq,
-            modes_path=self.savedir_sim, vars_idx=vars_idx,
-            modes_idx=modes_idx, x1=x1, x2=x2, fftshift=fftshift,
-            imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
-            title=title, xticks=xticks, yticks=yticks, figsize=figsize,
-            equal_axes=equal_axes, path=self.savedir_sim,
+            self.savedir_sim, freq_req=freq_req, freq=freq,
+            vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
+            fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
+            coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
+            figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
             filename=filename)
 
 
@@ -850,8 +842,7 @@ class Base():
         See method implementation in the postproc module.
         '''
         post.plot_2d_mode_slice_vs_time(
-            self._file_modes, freq_req=freq_req, freq=freq,
-            modes_path=self.savedir_sim, vars_idx=vars_idx,
+            self.savedir_sim, freq_req=freq_req, freq=freq, vars_idx=vars_idx,
             modes_idx=modes_idx, x1=x1, x2=x2, max_each_mode=max_each_mode,
             fftshift=fftshift, title=title, figsize=figsize,
             equal_axes=equal_axes, path=self.savedir_sim,
@@ -867,12 +858,11 @@ class Base():
         See method implementation in the postproc module.
         '''
         post.plot_3d_modes_slice_at_frequency(
-            self._file_modes, freq_req=freq_req, freq=freq,
-            modes_path=self.savedir_sim, vars_idx=vars_idx,
-            modes_idx=modes_idx, x1=x1, x2=x2, x3=x3, slice_dim=slice_dim,
-            slice_id=slice_id, fftshift=fftshift, imaginary=imaginary,
-            plot_max=plot_max, coastlines=coastlines, title=title,
-            xticks=xticks, yticks=yticks, figsize=figsize,
+            self.savedir_sim, freq_req=freq_req, freq=freq,
+            vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2, x3=x3,
+            slice_dim=slice_dim, slice_id=slice_id, fftshift=fftshift,
+            imaginary=imaginary, plot_max=plot_max, coastlines=coastlines,
+            title=title, xticks=xticks, yticks=yticks, figsize=figsize,
             equal_axes=equal_axes, path=self.savedir_sim,
             filename=filename)
 
@@ -884,11 +874,10 @@ class Base():
         See method implementation in the postproc module.
         '''
         post.plot_mode_tracers(
-            self._file_modes, freq_req=freq_req, freq=freq,
-            coords_list=coords_list, modes_path=self.savedir_sim,
-            x=x, vars_idx=vars_idx, modes_idx=modes_idx, fftshift=fftshift,
-            title=title, figsize=figsize, path=self.savedir_sim,
-            filename=filename)
+            self.savedir_sim, freq_req=freq_req, freq=freq,
+            coords_list=coords_list, x=x, vars_idx=vars_idx,
+            modes_idx=modes_idx, fftshift=fftshift, title=title,
+            figsize=figsize, path=self.savedir_sim, filename=filename)
 
 
     def plot_2d_data(self, data, time_idx=[0], vars_idx=[0], x1=None, x2=None,

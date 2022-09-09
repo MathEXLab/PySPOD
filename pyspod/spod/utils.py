@@ -36,7 +36,6 @@ def coeffs_and_reconstruction(
     file_eigs_freq = os.path.join(results_dir, 'eigs_freq.npz')
     file_weights   = os.path.join(results_dir, 'weights.npy')
     file_params    = os.path.join(results_dir, 'params_modes.yaml')
-    file_modes     = os.path.join(results_dir, 'modes')
     ## try to load basic file from modes calculation
     try: eigs_freq = np.load(file_eigs_freq)
     except:
@@ -103,7 +102,7 @@ def coeffs_and_reconstruction(
     ## ...
     cnt_freq = 0
     for i_freq in range(f_idx_lb, f_idx_ub+1):
-        phi = post.get_modes_at_freq(file_modes, freq_idx=i_freq)
+        phi = post.get_modes_at_freq(results_dir, freq_idx=i_freq)
         phi = utils_par.distribute_dimension(\
             data=phi, maxdim_idx=maxdim_idx, comm=comm)
         phi = np.reshape(phi,[data[0,...].size,n_modes_save])
@@ -235,7 +234,6 @@ def compute_coeffs(
     file_eigs_freq = os.path.join(results_dir, 'eigs_freq.npz')
     file_weights   = os.path.join(results_dir, 'weights.npy')
     file_params    = os.path.join(results_dir, 'params_modes.yaml')
-    file_modes     = os.path.join(results_dir, 'modes')
     ## try to load basic file from modes calculation
     try: eigs_freq = np.load(file_eigs_freq)
     except:
@@ -243,7 +241,7 @@ def compute_coeffs(
             'eigs_freq.npz not found. Consider running fit to '
             'compute SPOD modes before computing coefficients.')
     ## load rest of files if found
-    weights   = np.lib.format.open_memmap(file_weights)
+    weights = np.lib.format.open_memmap(file_weights)
     with open(file_params) as f:
         params = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -303,7 +301,7 @@ def compute_coeffs(
     ## ...
     cnt_freq = 0
     for i_freq in range(f_idx_lb, f_idx_ub+1):
-        phi = post.get_modes_at_freq(file_modes, freq_idx=i_freq)
+        phi = post.get_modes_at_freq(results_dir, freq_idx=i_freq)
         phi = utils_par.distribute_dimension(\
             data=phi, maxdim_idx=maxdim_idx, comm=comm)
         phi = np.reshape(phi,[data[0,...].size,n_modes_save])
