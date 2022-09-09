@@ -17,7 +17,7 @@ B2GB = 9.313225746154785e-10
 
 def coeffs_and_reconstruction(
     data, results_dir, modes_idx=None, time_idx=None, tol=1e-10, svd=True,
-    T_lb=None, T_ub=None, savedir=None, dtype=complex, comm=None):
+    T_lb=None, T_ub=None, savedir=None, dtype='float64', comm=None):
     '''
     Compute coefficients through oblique projection and reconstruct solution.
     '''
@@ -31,12 +31,15 @@ def coeffs_and_reconstruction(
     else:
         rank = 0
         size = 1
+
+    ## get dtypes
+    dt_float, dt_complex = _get_dtype(dtype)
+
     nt = data.shape[0]
     results_dir = os.path.join(CWD, results_dir)
     file_eigs_freq = os.path.join(results_dir, 'eigs_freq.npz')
     file_weights   = os.path.join(results_dir, 'weights.npy')
     file_params    = os.path.join(results_dir, 'params_modes.yaml')
-    file_modes     = os.path.join(results_dir, 'modes')
     ## try to load basic file from modes calculation
     try: eigs_freq = np.load(file_eigs_freq)
     except:
@@ -47,6 +50,10 @@ def coeffs_and_reconstruction(
     weights = np.lib.format.open_memmap(file_weights)
     with open(file_params) as f:
         params = yaml.load(f, Loader=yaml.FullLoader)
+
+    ## set datatypes
+    data = _set_dtype(data, dtype)
+    weights = _set_dtype(weights, dtype)
 
     ## get required parameters
     freq   = eigs_freq['freq']
@@ -70,7 +77,7 @@ def coeffs_and_reconstruction(
 
     ## initialize coeffs matrix
     shape_tmp = (n_freq_r*n_modes_save, nt)
-    coeffs = np.zeros(shape_tmp, dtype=dtype)
+    coeffs = np.zeros(shape_tmp, dtype=dt_complex)
 
     ## distribute data and weights if parallel
     data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
@@ -94,8 +101,7 @@ def coeffs_and_reconstruction(
 
     # initialize modes and weights
     shape_tmp = (data[0,...].size, n_freq_r*n_modes_save)
-    phir = np.zeros(shape_tmp, dtype=dtype)
-    # weights_phi = np.zeros(shape_tmp, dtype=complex)
+    phir = np.zeros(shape_tmp, dtype=dt_complex)
     ## order weights and modes such that each frequency contains
     ## all required modes (n_modes_save)
     ## - freq_0: modes from 0 to n_modes_save
@@ -103,7 +109,7 @@ def coeffs_and_reconstruction(
     ## ...
     cnt_freq = 0
     for i_freq in range(f_idx_lb, f_idx_ub+1):
-        phi = post.get_modes_at_freq(file_modes, freq_idx=i_freq)
+        phi = post.get_modes_at_freq(results_dir, freq_idx=i_freq)
         phi = utils_par.distribute_dimension(\
             data=phi, maxdim_idx=maxdim_idx, comm=comm)
         phi = np.reshape(phi,[data[0,...].size,n_modes_save])
@@ -215,7 +221,7 @@ def coeffs_and_reconstruction(
 
 def compute_coeffs(
     data, results_dir, modes_idx=None, T_lb=None, T_ub=None,
-    tol=1e-10, svd=False, savedir=None, dtype=complex, comm=None):
+    tol=1e-10, svd=False, savedir=None, dtype='float64', comm=None):
     '''
     Compute coefficients through oblique projection.
     '''
@@ -230,12 +236,15 @@ def compute_coeffs(
         rank = 0
         size = 1
 
+    ## get dtypes
+    dt_float, dt_complex = _get_dtype(dtype)
+
+    ## load required files
     nt = data.shape[0]
     results_dir = os.path.join(CWD, results_dir)
     file_eigs_freq = os.path.join(results_dir, 'eigs_freq.npz')
     file_weights   = os.path.join(results_dir, 'weights.npy')
     file_params    = os.path.join(results_dir, 'params_modes.yaml')
-    file_modes     = os.path.join(results_dir, 'modes')
     ## try to load basic file from modes calculation
     try: eigs_freq = np.load(file_eigs_freq)
     except:
@@ -243,9 +252,13 @@ def compute_coeffs(
             'eigs_freq.npz not found. Consider running fit to '
             'compute SPOD modes before computing coefficients.')
     ## load rest of files if found
-    weights   = np.lib.format.open_memmap(file_weights)
+    weights = np.lib.format.open_memmap(file_weights)
     with open(file_params) as f:
         params = yaml.load(f, Loader=yaml.FullLoader)
+
+    ## set datatypes
+    data = _set_dtype(data, dtype)
+    weights = _set_dtype(weights, dtype)
 
     ## get required parameters
     freq   = eigs_freq['freq']
@@ -269,7 +282,7 @@ def compute_coeffs(
 
     ## initialize coeffs matrix
     shape_tmp = (n_freq_r*n_modes_save, nt)
-    coeffs = np.zeros(shape_tmp, dtype=dtype)
+    coeffs = np.zeros(shape_tmp, dtype=dt_complex)
 
     ## distribute data and weights if parallel
     data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
@@ -293,8 +306,7 @@ def compute_coeffs(
 
     # initialize modes and weights
     shape_tmp = (data[0,...].size, n_freq_r*n_modes_save)
-    phir = np.zeros(shape_tmp, dtype=dtype)
-    # weights_phi = np.zeros(shape_tmp, dtype=complex)
+    phir = np.zeros(shape_tmp, dtype=dt_complex)
 
     ## order weights and modes such that each frequency contains
     ## all required modes (n_modes_save)
@@ -303,13 +315,12 @@ def compute_coeffs(
     ## ...
     cnt_freq = 0
     for i_freq in range(f_idx_lb, f_idx_ub+1):
-        phi = post.get_modes_at_freq(file_modes, freq_idx=i_freq)
+        phi = post.get_modes_at_freq(results_dir, freq_idx=i_freq)
         phi = utils_par.distribute_dimension(\
             data=phi, maxdim_idx=maxdim_idx, comm=comm)
         phi = np.reshape(phi,[data[0,...].size,n_modes_save])
         for i_mode in range(n_modes_save):
             jump_freq = n_modes_save * cnt_freq + i_mode
-            # weights_phi[:,jump_freq] = np.squeeze(weights[:])
             phir[:,jump_freq] = phi[:,i_mode]
         cnt_freq = cnt_freq + 1
     del phi
@@ -375,7 +386,7 @@ def compute_coeffs(
 
 def compute_reconstruction(
     coeffs_dir, time_idx, coeffs=None, savedir=None, filename=None,
-    dtype=complex, comm=None):
+    dtype='float64', comm=None):
     '''
     Reconstruct original data through oblique projection.
     '''
@@ -389,6 +400,9 @@ def compute_reconstruction(
     else:
         rank = 0
         size = 1
+
+    ## get dtypes
+    dt_float, dt_complex = _get_dtype(dtype)
 
     ## load required files
     coeffs_dir = os.path.join(CWD, coeffs_dir)
@@ -407,6 +421,10 @@ def compute_reconstruction(
             coeffs      = np.lib.format.open_memmap(file_coeffs)
         except:
             raise Exception('`coeffs` file not found.')
+
+    ## set datatypes
+    coeffs = _set_dtype(coeffs, dtype)
+    phir = _set_dtype(phir, dtype)
 
     # get time snapshots to be reconstructed
     nt = coeffs.shape[1]
@@ -495,3 +513,21 @@ def _oblique_projection(phir, weights, data, tol, svd=False, comm=None):
         del Q, M
         del data
     return coeffs
+
+
+def _get_dtype(dtype):
+    if dtype == 'float64':
+        d_float = np.float64
+        d_complex = np.complex128
+    else:
+        d_float = np.float32
+        d_complex = np.complex64
+    return d_float, d_complex
+
+
+def _set_dtype(d, dtype):
+    ## set data type
+    dt_float, dt_complex = _get_dtype(dtype)
+    if   d.dtype == float  : d = d.astype(dt_float  )
+    elif d.dtype == complex: d = d.astype(dt_complex)
+    return d

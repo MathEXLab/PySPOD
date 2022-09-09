@@ -60,15 +60,10 @@ class Standard(Base):
         phi_r.shape = shape
         utils_par.npy_save(
             self._comm, self._file_modes, phi_r, axis=self._maxdim_idx)
-        # else:
-            # np.save(self._file_modes, phi_r)
         self._pr0(f'done. Elapsed time: {time.time() - st} s.')
         self._pr0(f'Modes saved in  {self._file_modes}')
         self._eigs = w
         self._store_and_save()
-        if self._rank == 0:
-            file = os.path.join(self._savedir_sim, 'eigs')
-            np.savez(file, eigs=self._eigs)
         return self
 
 ## ----------------------------------------------------------------------------

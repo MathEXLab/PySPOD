@@ -222,7 +222,7 @@ class Streaming(Base):
         ## save modes
         for f in range(0,n_freq):
             filename = f'freq_idx_{f:08d}.npy'
-            path_modes = os.path.join(self._file_modes, filename)
+            path_modes = os.path.join(self._modes_dir, filename)
             shape = [*self._xshape, self._nv, self._n_modes_save]
             if self._comm:
                 shape[self._maxdim_idx] = -1
@@ -232,8 +232,8 @@ class Streaming(Base):
                 self._comm, path_modes, phif, axis=self._maxdim_idx)
 
         # ## save modes
-        # self._file_modes = 'modes.npy'
-        # path_modes = os.path.join(self._savedir_sim, self._file_modes)
+        # self._modes_dir = 'modes.npy'
+        # path_modes = os.path.join(self._savedir_sim, self._modes_dir)
         # shape = [self._n_freq, *self._xshape, self._nv, self._n_modes_save]
         # if self._comm:
         #     shape[self._maxdim_idx+1] = -1

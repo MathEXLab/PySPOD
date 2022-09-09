@@ -66,32 +66,32 @@ def find_nearest_coords(coords, x, data_space_dim):
         idx += (tmp_idx[cnt],)
     return xi, idx
 
-def get_modes_at_freq(modes_file, freq_idx, modes_path='./'):
+def get_modes_at_freq(results_path, freq_idx):
     '''
     Get the matrix containing the SPOD modes, stored by \
     [frequencies, spatial dimensions data, no. of variables, no. of modes].
 
     :param dict: path to the files where the SPOD modes are stored.
     :param int freq_idx: frequency id requested.
-    :param str modes_path: path to mode files.
     :return: the n_dims, n_vars, n_modes \
         matrix containing the SPOD modes at requested frequency.
     :rtype: numpy.ndarray
     '''
     # load modes from files if saved in storage
-    if isinstance(modes_file, str):
+    if isinstance(results_path, str):
         tmp_str = f'freq_idx_{freq_idx:08d}.npy'
-        filename = os.path.join(modes_path, modes_file, tmp_str)
+        filename = os.path.join(results_path, 'modes', tmp_str)
         m = get_data_from_file(filename)
     else:
         raise TypeError('Modes must be a string to modes.npy')
     return m
 
-def get_all_modes(modes_file, modes_path='./'):
+def get_all_modes(results_path):
     # load modes from files if saved in storage
-    if isinstance(modes_file, str):
+    if isinstance(results_path, str):
         import glob, os
-        os.chdir(modes_file)
+        modes_path = os.path.join(results_path, 'modes')
+        os.chdir(modes_path)
         flist = []
         for filename in glob.glob("*.npy"):
             flist.append(filename)
@@ -292,7 +292,7 @@ def plot_eigs_vs_period(
     # save or show plots
     _save_show_plots(filename, path, plt)
 
-def plot_2d_modes_at_frequency(modes_file, freq_req, freq, modes_path='./',
+def plot_2d_modes_at_frequency(results_path, freq_req, freq,
     vars_idx=[0], modes_idx=[0], x1=None, x2=None, fftshift=False,
     imaginary=False, plot_max=False, coastlines='', title='',
     xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
@@ -300,10 +300,9 @@ def plot_2d_modes_at_frequency(modes_file, freq_req, freq, modes_path='./',
     '''
     Plot SPOD modes for 2D problems.
 
-    :param str modes_file: file containing 2D SPOD modes.
+    :param str results_path: file containing 2D SPOD modes.
     :param double freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
-    :param str modes_path: path to mode files.
     :param int or sequence(int) vars_idx: variables to \
         be plotted. Default, the first variable is plotted.
     :param int or sequence(int) modes_idx: modes to
@@ -341,10 +340,8 @@ def plot_2d_modes_at_frequency(modes_file, freq_req, freq, modes_path='./',
         raise TypeError('`modes_idx` must be a list or tuple')
 
     # get modes at required frequency
-    freq_val, freq_idx = find_nearest_freq(
-        freq_req=freq_req, freq=freq)
-    modes = get_modes_at_freq(
-        modes_file=modes_file, freq_idx=freq_idx, modes_path=modes_path)
+    freq_val, freq_idx = find_nearest_freq(freq_req=freq_req, freq=freq)
+    modes = get_modes_at_freq(results_path=results_path, freq_idx=freq_idx)
 
     # if domain dimensions have not been passed, use data dimensions
     if x1 is None and x2 is None:
@@ -422,11 +419,9 @@ def plot_2d_modes_at_frequency(modes_file, freq_req, freq, modes_path='./',
                     real_ax.set_aspect('equal')
                     imag_ax.set_aspect('equal')
                 if len(title) > 1:
-                    fig.suptitle(title + \
-                        ', mode: {}, variable ID: {}'.format(mode_id, var_id))
+                    fig.suptitle(f'{title}, mode: {mode_id}, var: {var_id}')
                 else:
-                    fig.suptitle('mode: {}, variable ID: {}'.format(
-                        mode_id, var_id))
+                    fig.suptitle(f'mode: {mode_id}, var: {var_id}')
                 real_ax.set_title('Real part')
                 imag_ax.set_title('Imaginary part')
             else:
@@ -453,11 +448,9 @@ def plot_2d_modes_at_frequency(modes_file, freq_req, freq, modes_path='./',
                 real_ax, xticks, yticks = _format_axes(real_ax, xticks, yticks)
                 real_ax = _set_2d_axes_limits(real_ax, x1, x2)
                 if len(title) > 1:
-                    real_ax.set_title(title + \
-                        ', mode: {}, variable ID: {}'.format(mode_id, var_id))
+                    fig.suptitle(f'{title}, mode: {mode_id}, var: {var_id}')
                 else:
-                    real_ax.set_title('mode: {}, variable ID: {}'.format(
-                        mode_id, var_id))
+                    fig.suptitle(f'mode: {mode_id}, var: {var_id}')
 
             # padding between elements
             plt.tight_layout(pad=2.)
@@ -465,21 +458,19 @@ def plot_2d_modes_at_frequency(modes_file, freq_req, freq, modes_path='./',
             # save or show plots
             if filename:
                 basename, ext = splitext(filename)
-                filename = '{0}_var{1}_mode{2}{3}'.format(
-                    basename, var_id, mode_id, ext)
-            _save_show_plots(filename, path, plt)
+                tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
+            _save_show_plots(tmp_name, path, plt)
 
-def plot_2d_mode_slice_vs_time(modes_file, freq_req, freq, modes_path='./',
+def plot_2d_mode_slice_vs_time(results_path, freq_req, freq,
     vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
     fftshift=False, title='', figsize=(12,8), equal_axes=False, path='CWD',
     filename=None):
     '''
     Plot the time evolution of SPOD mode slices for 2D problems.
 
-    :param str modes_file: file containing 2D SPOD modes.
+    :param str results_path: file containing 2D SPOD modes.
     :param double freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
-    :param str modes_path: path to mode files.
     :param int or sequence(int) vars_idx: variables to be plotted. \
         Default, the first variable is plotted.
     :param int or sequence(int) modes_idx: modes to be plotted. \
@@ -523,7 +514,7 @@ def plot_2d_mode_slice_vs_time(modes_file, freq_req, freq, modes_path='./',
     freq_val, freq_idx = find_nearest_freq(
         freq_req=freq_req, freq=freq)
     modes = get_modes_at_freq(
-        modes_file=modes_file, freq_idx=freq_idx, modes_path=modes_path)
+        results_path=results_path, freq_idx=freq_idx)
 
     # if domain dimensions have not been passed, use data dimensions
     if x1 is None and x2 is None:
@@ -595,19 +586,21 @@ def plot_2d_mode_slice_vs_time(modes_file, freq_req, freq, modes_path='./',
                 vmax=np.nanmax(mode.real))
             ax.axhline(x2[idx_x2], xmin=0, xmax=1,color='k',linestyle='--')
             ax.axvline(x1[idx_x1], ymin=0, ymax=1,color='k',linestyle='--')
+
             # axis management
             ax = _set_2d_axes_limits(ax, x1, x2)
+
             ax_divider = make_axes_locatable(ax)
             cax = ax_divider.append_axes("right", size="5%", pad=0.05)
             plt.colorbar(ax_obj, cax=cax)
             if equal_axes:
                 ax.set_aspect('equal')
             if len(title) > 1:
-                fig1.suptitle(title + ' - variable: {}'.format(var_id))
+                fig1.suptitle(f'{title} - var: {var_id}')
             else:
-                fig1.suptitle('variable: {}'.format(var_id))
-            ax.set_ylabel('Mode {}'.format(mode_id), rotation=0, labelpad=30,
-                            bbox=dict(facecolor='gray', alpha=0.5))
+                fig1.suptitle(f'var: {var_id}')
+            ax.set_ylabel(f'Mode {mode_id}', rotation=0, labelpad=30,
+                bbox=dict(facecolor='gray', alpha=0.5))
 
             # plots per fixed x1 vs. t
             mode_phase_x2 = np.matmul(mode_x1.T, phase)
@@ -621,16 +614,17 @@ def plot_2d_mode_slice_vs_time(modes_file, freq_req, freq, modes_path='./',
             # axis management
             ax.set_xlim(np.nanmin(t )*1.05,np.nanmax(t )*1.05)
             ax.set_ylim(np.nanmin(x2)*1.05,np.nanmax(x2)*1.05)
+
             ax_divider = make_axes_locatable(ax)
             cax = ax_divider.append_axes("bottom", size="5%", pad=0.65)
             plt.colorbar(ax_obj, cax=cax, orientation="horizontal")
             if equal_axes:
                 ax.set_aspect('equal')
             if len(title) > 1:
-                fig2.suptitle(title + ' - variable: {}'.format(var_id))
+                fig2.suptitle(f'{title} - var: {var_id}')
             else:
-                fig2.suptitle('variable: {}'.format(var_id))
-            ax.set_xlabel('Mode {}'.format(mode_id),
+                fig2.suptitle(f'var: {var_id}')
+            ax.set_xlabel(f'Mode {mode_id}',
                 bbox=dict(facecolor='gray', alpha=0.5))
 
             # plots per fixed x2 vs. t
@@ -650,22 +644,21 @@ def plot_2d_mode_slice_vs_time(modes_file, freq_req, freq, modes_path='./',
             if equal_axes:
                 ax.set_aspect('equal')
             if len(title) > 1:
-                fig3.suptitle(title + ' - variable: {}'.format(var_id))
+                fig3.suptitle(f'{title} - var: {var_id}')
             else:
-                fig3.suptitle('variable: {}'.format(var_id))
-            ax.set_ylabel('Mode {}'.format(mode_id), rotation=0, labelpad=30,
-                            bbox=dict(facecolor='gray', alpha=0.5))
+                fig3.suptitle(f'var: {var_id}')
+            ax.set_ylabel(f'Mode {mode_id}', rotation=0, labelpad=30,
+                bbox=dict(facecolor='gray', alpha=0.5))
             cnt = cnt + 1
 
         # save or show plots
         if filename:
             basename, ext = splitext(filename)
-            filename = '{0}_var{1}_mode{2}{3}'.format(\
-                basename, var_id, mode_id, ext)
-        _save_show_plots(filename, path, plt)
+            tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
+        _save_show_plots(tmp_name, path, plt)
 
 def plot_3d_modes_slice_at_frequency(
-    modes_file, freq_req, freq, modes_path='./', vars_idx=[0],
+    results_path, freq_req, freq,  vars_idx=[0],
     modes_idx=[0], x1=None, x2=None, x3=None, slice_dim=0,
     slice_id=None, fftshift=False, imaginary=False, plot_max=False,
     coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
@@ -673,10 +666,9 @@ def plot_3d_modes_slice_at_frequency(
     '''
     Plot SPOD modes for 3D problems.
 
-    :param str modes_file: file containing 3D SPOD modes.
+    :param str results_path: file containing 3D SPOD modes.
     :param double freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
-    :param str modes_path: path to mode files.
     :param int or sequence(int) vars_idx: variables to \
         be plotted. Default, the first variable is plotted.
     :param int or sequence(int) modes_idx: modes to be \
@@ -722,7 +714,7 @@ def plot_3d_modes_slice_at_frequency(
     freq_val, freq_idx = find_nearest_freq(
         freq_req=freq_req, freq=freq)
     modes = get_modes_at_freq(
-        modes_file=modes_file, freq_idx=freq_idx, modes_path=modes_path)
+        results_path=results_path, freq_idx=freq_idx)
 
     # if domain dimensions have not been passed, use data dimensions
     if x1 is None and x2 is None and x3 is None:
@@ -811,11 +803,9 @@ def plot_3d_modes_slice_at_frequency(
                 real_ax.set_xlabel(flag1); imag_ax.set_xlabel(flag1)
                 real_ax.set_ylabel(flag2); imag_ax.set_ylabel(flag2)
                 if len(title) > 1:
-                    fig.suptitle(title + \
-                        ', mode: {}, variable ID: {}'.format(mode_id, var_id))
+                    fig.suptitle(f'{title}, mode: {mode_id}, var: {var_id}')
                 else:
-                    fig.suptitle('mode: {}, variable ID: {}'.format(
-                        mode_id, var_id))
+                    fig.suptitle(f'mode: {mode_id}, var: {var_id}')
                 real_ax.set_title('Real part')
                 imag_ax.set_title('Imaginary part')
 
@@ -833,8 +823,7 @@ def plot_3d_modes_slice_at_frequency(
                     real_ax = _apply_2d_vertical_lines(
                         real_ax, x1, x2, idx_x1, idx_x2)
                 real_divider = make_axes_locatable(real_ax)
-                real_cax = real_divider.append_axes(\
-                    "right", size="5%", pad=0.05)
+                real_cax = real_divider.append_axes("right",size="5%",pad=0.05)
                 plt.colorbar(real, cax=real_cax)
 
                 # overlay coastlines if required
@@ -849,12 +838,11 @@ def plot_3d_modes_slice_at_frequency(
                 real_ax.set_xlabel(flag1)
                 real_ax.set_ylabel(flag2)
                 if len(title) > 1:
-                    real_ax.set_title(title + \
-                        ', slice mode: {}, variable ID: {}'.format(
-                            mode_id, var_id))
+                    real_ax.set_title(\
+                        f'{title}, slice mode: {mode_id}, var: {var_id}')
                 else:
-                    real_ax.set_title('slice mode: {}, variable ID: {}'.format(
-                        mode_id, var_id))
+                    real_ax.set_title(\
+                        f'slice mode: {mode_id}, var: {var_id}')
 
             # padding between elements
             plt.tight_layout(pad=2.)
@@ -862,23 +850,21 @@ def plot_3d_modes_slice_at_frequency(
             # save or show plots
             if filename:
                 basename, ext = splitext(filename)
-                filename = '{0}_var{1}_mode{2}{3}'.format(
-                    basename, var_id, mode_id, ext)
-            _save_show_plots(filename, path, plt)
+                tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
+            _save_show_plots(tmp_name, path, plt)
 
 def plot_mode_tracers(
-    modes_file, freq_req, freq, coords_list, modes_path='./',
+    results_path, freq_req, freq, coords_list,
     x=None, vars_idx=[0], modes_idx=[0], fftshift=False,
     title='', figsize=(12,8), path='CWD', filename=None):
     '''
     Plot SPOD mode tracers for nD problems.
 
-    :param str modes_file: file containing nD SPOD modes.
+    :param str results_path: file containing nD SPOD modes.
     :param double freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
     :param list(tuple(*),) coords_list: list of tuples \
         containing coordinates to be plotted.
-    :param str modes_path: path to mode files.
     :param numpy.ndarray x: data coordinates. Default is None.
     :type int or sequence(int) vars_idx: variables to be plotted. \
         Default, the first variable is plotted.
@@ -918,7 +904,7 @@ def plot_mode_tracers(
     freq_val, freq_idx = find_nearest_freq(
         freq_req=freq_req, freq=freq)
     modes = get_modes_at_freq(
-        modes_file=modes_file, freq_idx=freq_idx, modes_path=modes_path)
+        results_path=results_path, freq_idx=freq_idx)
     xdim = modes[...,0,0].shape
 
     # get default coordinates if not provided
@@ -954,27 +940,25 @@ def plot_mode_tracers(
                 mode_point_phase = mode[idx_coords] * phase.conj()
                 ax = fig.add_subplot(spec[cnt,0])
                 _ = ax.plot(t, np.real(mode_point_phase), 'k-')
-                ax.set_ylabel('mode {}'.format(mode_id),
-                                rotation=0,
-                                labelpad=30,
-                                bbox=dict(facecolor='gray',alpha=0.5))
+                ax.set_ylabel(f'mode {mode_id}', rotation=0, labelpad=30,
+                    bbox=dict(facecolor='gray',alpha=0.5))
                 if len(title) > 1:
-                    fig.suptitle(title + ', mode tracers at {}'.format(coords))
+                    fig.suptitle(f'{title}, mode tracers at {coords}')
                 else:
-                    fig.suptitle('mode tracers at {}'.format(coords))
+                    fig.suptitle(f'mode tracers at {coords}')
                 cnt = cnt + 1
             ax.set_xlabel('time')
 
             # save or show plots
             if filename:
                 basename, ext = splitext(filename)
-                filename = '{0}_coords{1}_var{2}_mode{3}{4}'.format(
-                    basename, coords, var_id, mode_id, ext)
-            _save_show_plots(filename, path, plt)
+                tmp_name = \
+                    f'{basename}_coords{coords}_var{var_id}_mode{mode_id}{ext}'
+            _save_show_plots(tmp_name, path, plt)
 
 def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
-    title='', coastlines='', figsize=(12,8), path='CWD', filename=None,
-    origin=None):
+    xticks=None, yticks=None, equal_axes=False, title='', coastlines='',
+    figsize=(12,8), path='CWD', filename=None, origin=None):
     '''
     Plot 2D data.
 
@@ -1021,12 +1005,11 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
         for time_id in time_idx:
 
             fig = plt.figure(figsize=figsize)
+            ax = plt.gca()
             if len(title) > 1:
-                fig.suptitle(title + ', time index {}, variable {}'.format(
-                    time_id, var_id))
+                fig.suptitle(f'{title}, time id {time_id}, variable {var_id}')
             else:
-                fig.suptitle('time index {}, variable {}'.format(
-                    time_id, var_id))
+                fig.suptitle(f'time id {time_id}, variable {var_id}')
 
             # get 2D data
             x = np.real(X[time_id,...,var_id])
@@ -1037,33 +1020,40 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
                 raise ValueError(\
                     'Data dimension does not match coordinates dimensions.')
 
-            if x1.shape[0] != x.shape[1] or x2.shape[0] != x.shape[0]:
+            if (x1.shape[0] != x.shape[1]) or (x2.shape[0] != x.shape[0]):
                 x = x.T
 
             # plot data
-            contour = plt.contourf(
+            contour = ax.contourf(
                 x1, x2, x,
                 vmin=np.nanmin(x),
                 vmax=np.nanmax(x),
                 origin=origin)
-            fig.colorbar(contour)
+
+            # colorbar
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            plt.colorbar(contour, cax=cax)
 
             # overlay coastlines if required
-            if coastlines.lower() == 'regular':
-                coast = loadmat(os.path.join(plot_support,'coast.mat'))
-                plt.scatter(coast['coastlon'], coast['coastlat'],
-                    marker='.', c='k', s=1)
-            elif coastlines.lower() == 'centred':
-                coast = loadmat(os.path.join(plot_support, 'coast_centred.mat'))
-                plt.scatter(coast['coastlon'], coast['coastlat'],
-                    marker='.', c='k', s=1)
+            ax = _apply_2d_coastlines(coastlines, ax)
+
+            # axis management
+            if equal_axes:
+                ax.set_aspect('equal')
+
+            # axis management
+            ax, xticks, yticks = _format_axes(ax, xticks, yticks)
+            ax = _set_2d_axes_limits(ax, x1, x2)
+
+            # padding between elements
+            plt.tight_layout(pad=2.)
 
             # save or show plots
             if filename:
                 basename, ext = splitext(filename)
-                filename = '{0}_var{1}_time{2}{3}'.format(
-                    basename, var_id, time_id, ext)
-            _save_show_plots(filename, path, plt)
+                tmp_name = f'{basename}_var{var_id}_time{time_id}{ext}'
+            _save_show_plots(tmp_name, path, plt)
 
 def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
     vars_idx=[0], title='', figsize=(12,8), path='CWD', filename=None):
@@ -1122,17 +1112,16 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
 
             plt.plot(time_range, x_time, 'k-')
             if len(title) > 1:
-                plt.title(title + ',    data tracers at {}'.format(coords))
+                plt.title(f'{title},    data tracers at {coords}')
             else:
-                plt.title('Data tracers at {}'.format(coords))
+                plt.title(f'Data tracers at {coords}')
             plt.xlabel('time')
 
             # save or show plots
             if filename:
                 basename, ext = splitext(filename)
-                filename = '{0}_coords{1}_var{2}{3}'.format(\
-                    basename, coords, var_id, ext)
-            _save_show_plots(filename, path, plt)
+                tmp_name = f'{basename}_coords{coords}_var{var_id}{ext}'
+            _save_show_plots(tmp_name, path, plt)
 
 def generate_2d_subplot(
     var1, title1, var2=None, title2=None, var3=None, title3=None,
@@ -1338,10 +1327,10 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
         a = animation.ArtistAnimation(
             fig, frames, interval=70, blit=False, repeat=False)
         if path == 'CWD': path = CWD
-        filename = '{0}_var{1}{2}'.format(basename, i, ext)
+        tmp_name = f'{basename}_var{i}{ext}'
         Writer = animation.writers['ffmpeg']
         writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-        a.save(os.path.join(path,filename), writer=writer)
+        a.save(os.path.join(path, tmp_name), writer=writer)
         plt.close('all')
 
 # ---------------------------------------------------------------------------

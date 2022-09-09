@@ -15,7 +15,8 @@ CWD = os.getcwd()
 
 
 def coeffs_and_reconstruction(
-    data, results_dir, modes_idx=None, time_idx=None, savedir=None, comm=None):
+    data, results_dir, modes_idx=None, time_idx=None,
+    savedir=None, dtype='float64', comm=None):
     '''
     Compute coefficients through projection and reconstruct solution.
     '''
@@ -29,9 +30,12 @@ def coeffs_and_reconstruction(
     else:
         rank = 0
         size = 1
-    nt = data.shape[0]
+
+    ## get dtypes
+    dt_float, dt_complex = _get_dtype(dtype)
 
     ## load required files
+    nt = data.shape[0]
     file_weights = os.path.join(results_dir, 'weights.npy')
     file_modes   = os.path.join(results_dir, 'modes.npy')
     file_eigs    = os.path.join(results_dir, 'eigs.npz')
@@ -46,6 +50,11 @@ def coeffs_and_reconstruction(
     nv     = params['n_variables']
     xdim   = params['n_space_dims']
     n_modes_save = phir.shape[-1]
+
+    ## set datatypes
+    data = _set_dtype(data, dtype)
+    phir = _set_dtype(phir, dtype)
+    weights = _set_dtype(weights, dtype)
 
     ## distribute data and weights if parallel
     data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
@@ -79,6 +88,7 @@ def coeffs_and_reconstruction(
     coeffs = utils_par.allreduce(data=coeffs, comm=comm)
     utils_par.pr0(f'- phi x data: {time.time() - s0} s.', comm)
     st = time.time()
+    del data
 
     ## create coeffs folder
     coeffs_dir = os.path.join(results_dir, f'coeffs')
@@ -86,7 +96,7 @@ def coeffs_and_reconstruction(
         coeffs_dir = os.path.join(coeffs_dir, savedir)
     if rank == 0:
         if not os.path.exists(coeffs_dir): os.makedirs(coeffs_dir)
-    if comm: comm.Barrier()
+    utils_par.barrier(comm)
 
     # save coefficients
     file_coeffs = os.path.join(coeffs_dir, 'coeffs.npy')
@@ -139,18 +149,20 @@ def coeffs_and_reconstruction(
     Q_reconstructed = phir @ coeffs[:,time_idx]
     utils_par.pr0(f'- phir x coeffs completed: {time.time() - s0} s.', comm)
     st = time.time()
+    del phir, coeffs
 
     ## add time mean
     Q_reconstructed = Q_reconstructed + lt_mean[...,None]
     utils_par.pr0(f'- added time mean: {time.time() - st} s.', comm)
     st = time.time()
+    del lt_mean
 
     ## reshape and save reconstructed solution
     if savedir is not None:
         coeffs_dir = os.path.join(coeffs_dir, savedir)
     if rank == 0:
         if not os.path.exists(coeffs_dir): os.makedirs(coeffs_dir)
-    if comm: comm.Barrier()
+    utils_par.barrier(comm)
     file_dynamics = os.path.join(coeffs_dir, 'reconstructed.npy')
     shape = [*xshape_nv,len(time_idx)]
     if comm:
@@ -167,7 +179,8 @@ def coeffs_and_reconstruction(
     return file_coeffs, file_dynamics
 
 
-def compute_coeffs(data, results_dir, modes_idx=None, savedir=None, comm=None):
+def compute_coeffs(data, results_dir, modes_idx=None,
+    savedir=None, dtype='float64', comm=None):
     '''
     Compute coefficients through projection.
     '''
@@ -179,9 +192,12 @@ def compute_coeffs(data, results_dir, modes_idx=None, savedir=None, comm=None):
     else:
         rank = 0
         size = 1
-    nt = data.shape[0]
+
+    ## get dtypes
+    dt_float, dt_complex = _get_dtype(dtype)
 
     ## load required files
+    nt = data.shape[0]
     file_weights = os.path.join(results_dir, 'weights.npy')
     file_modes   = os.path.join(results_dir, 'modes.npy')
     file_eigs    = os.path.join(results_dir, 'eigs.npz')
@@ -196,6 +212,11 @@ def compute_coeffs(data, results_dir, modes_idx=None, savedir=None, comm=None):
     nv     = params['n_variables']
     xdim   = params['n_space_dims']
     n_modes_save = phir.shape[-1]
+
+    ## set datatypes
+    data = _set_dtype(data, dtype)
+    phir = _set_dtype(phir, dtype)
+    weights = _set_dtype(weights, dtype)
 
     ## distribute data and weights if parallel
     data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
@@ -229,6 +250,7 @@ def compute_coeffs(data, results_dir, modes_idx=None, savedir=None, comm=None):
     coeffs = utils_par.allreduce(data=coeffs, comm=comm)
     utils_par.pr0(f'- phir x data: {time.time() - s0} s.', comm)
     st = time.time()
+    del data
 
     ## create coeffs folder
     coeffs_dir = os.path.join(results_dir, f'coeffs')
@@ -236,7 +258,7 @@ def compute_coeffs(data, results_dir, modes_idx=None, savedir=None, comm=None):
         coeffs_dir = os.path.join(coeffs_dir, savedir)
     if rank == 0:
         if not os.path.exists(coeffs_dir): os.makedirs(coeffs_dir)
-    if comm: comm.Barrier()
+    utils_par.barrier(comm)
 
     # save coefficients
     file_coeffs = os.path.join(coeffs_dir, 'coeffs.npy')
@@ -272,7 +294,8 @@ def compute_coeffs(data, results_dir, modes_idx=None, savedir=None, comm=None):
 
 
 def compute_reconstruction(
-    coeffs_dir, time_idx, coeffs=None, savedir=None, filename=None, comm=None):
+    coeffs_dir, time_idx, coeffs=None,
+    savedir=None, filename=None, dtype='float64', comm=None):
     '''
     Reconstruct original data through oblique projection.
     '''
@@ -284,6 +307,9 @@ def compute_reconstruction(
     else:
         rank = 0
         size = 1
+
+    ## get dtypes
+    dt_float, dt_complex = _get_dtype(dtype)
 
     ## load required files
     coeffs_dir = os.path.join(CWD, coeffs_dir)
@@ -302,6 +328,10 @@ def compute_reconstruction(
             coeffs      = np.lib.format.open_memmap(file_coeffs)
         except:
             raise Exception('`coeffs` file not found.')
+
+    ## set datatypes
+    coeffs = _set_dtype(coeffs, dtype)
+    phir = _set_dtype(phir, dtype)
 
     # get time snapshots to be reconstructed
     nt = coeffs.shape[1]
@@ -328,11 +358,13 @@ def compute_reconstruction(
     Q_reconstructed = phir @ coeffs[:,time_idx]
     utils_par.pr0(f'- phi x coeffs completed: {time.time() - s0} s.', comm)
     st = time.time()
+    del phir, coeffs
 
     ## add time mean
     Q_reconstructed = Q_reconstructed + lt_mean[...,None]
     utils_par.pr0(f'- added time mean: {time.time() - st} s.', comm)
     st = time.time()
+    del lt_mean
 
     ## reshape and save reconstructed solution
     if filename is None: filename = 'reconstructed'
@@ -340,7 +372,7 @@ def compute_reconstruction(
         coeffs_dir = os.path.join(coeffs_dir, savedir)
     if rank == 0:
         if not os.path.exists(coeffs_dir): os.makedirs(coeffs_dir)
-    if comm: comm.Barrier()
+    utils_par.barrier(comm)
     file_dynamics = os.path.join(coeffs_dir, filename+'.npy')
     shape = [*xshape_nv,len(time_idx)]
     if comm:
@@ -353,3 +385,21 @@ def compute_reconstruction(
     utils_par.pr0(f'Reconstructed data saved in: {file_dynamics}', comm)
     utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'         , comm)
     return file_dynamics, coeffs_dir
+
+
+def _get_dtype(dtype):
+    if dtype == 'float64':
+        d_float = np.float64
+        d_complex = np.complex128
+    else:
+        d_float = np.float32
+        d_complex = np.complex64
+    return d_float, d_complex
+
+
+def _set_dtype(d, dtype):
+    ## set data type
+    dt_float, dt_complex = _get_dtype(dtype)
+    if   d.dtype == float  : d = d.astype(dt_float  )
+    elif d.dtype == complex: d = d.astype(dt_complex)
+    return d

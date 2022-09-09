@@ -41,7 +41,7 @@ class Standard(Base):
         blocks_present = False
         if self._reuse_blocks:
             blocks_present = self._are_blocks_present(
-                self._n_blocks, self._n_freq, self._blocks_folder, self._rank)
+                self._n_blocks, self._n_freq, self._blocks_folder, self._comm)
 
         # loop over number of blocks and generate Fourier realizations,
         # if blocks are not saved in storage
@@ -204,7 +204,7 @@ class Standard(Base):
 
             ## save modes
             filename = f'freq_idx_{f:08d}.npy'
-            p_modes = os.path.join(self._file_modes, filename)
+            p_modes = os.path.join(self._modes_dir, filename)
             shape = [*self._xshape,self._nv,self._n_modes_save]
             if self._comm:
                 shape[self._maxdim_idx] = -1
