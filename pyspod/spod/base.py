@@ -629,8 +629,8 @@ class Base():
         utils_par.barrier(self._comm)
 
 
-    def _pr0(self, fstring):
-        utils_par.pr0(fstring=fstring, comm=self._comm)
+    def _pr0(self, string):
+        utils_par.pr0(string=string, comm=self._comm)
 
 
     def _set_dtype(self, d):

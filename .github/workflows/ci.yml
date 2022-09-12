@@ -15,7 +15,7 @@ jobs:
 
   test:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -73,31 +73,31 @@ jobs:
     - name: Coverage report
       run: coverage report
 
-test-no-mpi:
-  runs-on: ${{ matrix.os }}
-  timeout-minutes: 45
-  strategy:
-    fail-fast: false
-    matrix:
-      os:
-        - ubuntu-22.04
-        - macos-12
-      py:
-        - "3"
+  test-no-mpi:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - macos-12
+        py:
+          - "3"
 
-  steps:
+    steps:
 
-  - name: Checkout
-    uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
 
-  - name: Use Python ${{ matrix.py }}
-    uses: actions/setup-python@v3
-    with:
-      python-version: ${{ matrix.py }}
-      architecture: x64
+    - name: Use Python ${{ matrix.py }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.py }}
+        architecture: x64
 
-  - name: Install
-    run: python -m pip install .[test,ai]
+    - name: Install
+      run: python -m pip install .[test,ai]
 
-  - name: Test package
-    run: pytest -v tests/
+    - name: Test package
+      run: pytest -v tests/

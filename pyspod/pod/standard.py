@@ -33,8 +33,8 @@ class Standard(Base):
         '''
         start = time.time()
 
-        self._pr0(' ')
-        self._pr0('Initialize data ...')
+        self._pr0(f' ')
+        self._pr0(f'Initialize data ...')
         self._initialize(data, nt)
 
         ## reshape data and remove mean
@@ -48,8 +48,8 @@ class Standard(Base):
         w, v = scipy.linalg.eig(Q)
 
         # bases
-        self._pr0(' ')
-        self._pr0('Calculating standard POD ...')
+        self._pr0(f' ')
+        self._pr0(f'Calculating standard POD ...')
         st = time.time()
         phi = np.real(d @ v) / np.sqrt(w[:])
 

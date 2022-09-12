@@ -20,7 +20,7 @@ def compute_coeffs(data, results_dir, modes_idx=None,
     Compute coefficients through projection.
     '''
     s0 = time.time()
-    utils_par.pr0('\nComputing coefficients ...', comm)
+    utils_par.pr0(f'\nComputing coefficients ...', comm)
     if comm:
         rank = comm.rank
         size = comm.size

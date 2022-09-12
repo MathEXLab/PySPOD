@@ -311,12 +311,14 @@ def _oblique_projection(phir, weights, data, tol, svd=False,
 
 
 def _get_dtype(dtype):
-    if dtype == 'double':
+    if (dtype == 'double') or (dtype == np.float64):
         d_float = np.float64
         d_complex = np.complex128
-    else:
+    elif (dtype == 'single') or (dtype == np.float32):
         d_float = np.float32
         d_complex = np.complex64
+    else:
+        raise ValueError(f'invalid dtype {dtype}.')
     return d_float, d_complex
 
 
