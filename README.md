@@ -30,7 +30,7 @@
   </a>
 </p>
 
-# **PySPOD**: A parallel and distributed Python Spectral Proper Orthogonal Decomposition + latent space emulation
+# *PySPOD*: A parallel, distributed Python SPOD package
 
 ## Table of contents
 
