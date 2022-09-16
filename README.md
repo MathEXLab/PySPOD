@@ -30,7 +30,7 @@
   </a>
 </p>
 
-**PySPOD**: Python Spectral Proper Orthogonal Decomposition + **latent space emulation**
+# **PySPOD**: A parallel and distributed Python Spectral Proper Orthogonal Decomposition + latent space emulation
 
 ## Table of contents
 
@@ -59,6 +59,10 @@ In this package we implement two versions of SPOD, both available as **parallel 
 We additionally implement the calculation of time coefficients and the reconstruction of the solution, given a set of modes $\phi$ and coefficients *a*, as explained in [] and []. The library comes with a package to emulating the reduced space, that is to forecasting the time coefficients using neural networks, as described in [].
 
 To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tutorials/README.md).
+
+### What data can we apply SPOD to?
+
+SPOD can be applied to wide-sense stationary data, that is ergodic processes. Examples of these arise in different fields, including fluidmechanics, and weather and climate, among others. 
 
 ### SPOD method
 
