@@ -49,6 +49,17 @@
 
 ## Description
 
+### What do we implement?
+
+In this package we implement two versions of SPOD, both available as **parallel and distributed** (i.e. they can run on multiple cores/nodes on large-scale HPC machines): 
+
+  - **spod_standard**: this is the **batch** algorithm as described in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
+  - **spod_streaming**: that is the **streaming** algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
+
+We additionally implement the calculation of time coefficients and the reconstruction of the solution, given a set of modes $\phi$ and coefficients *a*, as explained in [] and []. The library comes with a package to emulating the reduced space, that is to forecasting the time coefficients using neural networks, as described in [].
+
+To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tutorials/README.md).
+
 ### SPOD method
 
 **PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by [(Picard and Delville 2000)](#picard-and-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al-2018), [(Schmidt and Towne 2019)](#schmidt-and-towne-2019).
@@ -59,12 +70,7 @@ The SPOD approach targets statistically stationary problems and involves the dec
 
 This can help identifying relations to multiple variables or understanding the reduced order behavior of a given phenomenon of interest and represent a powerful tool for the data-driven analysis of nonlinear dynamical systems. The SPOD approach shares some relationships with the dynamic mode decomposition (DMD), and the resolvent analysis,  [(Towne et al. 2018)](#Towne-et-al-2018), that are also widely used approaches for the data-driven analysis of nonlinear systems. SPOD can be used for both experimental and simulation data, and a general description of its key parameters can be found in [(Schmidt and Colonius 2020)](#schmidt-and-colonius-2020).  
 
-In this package we implement two versions of SPOD
 
-  - spod_standard: this is the batch algorithm as described in [(Schmidt and Towne 2019)](schmidt-and-towne-2019)
-  - spod_streaming: that is the **streaming** algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
-
-To see how to use the **PySPOD** package and its user-friendly interface, you can look at the [**Tutorials**](tutorials/README.md).
 
 
 
@@ -148,7 +154,7 @@ The guidelines to contribute are as follows:
 5. commit your changes with a self-explanatory commit message.
 6. push your commits and submit a pull request. Please, remember to rebase properly in order to maintain a clean, linear git history.
 
-[Contact me](mailto:mpegim@nus.edu.sg) by email for further information or questions about **PySPOD** or ways on how to contribute.
+[Contact us](mailto:mpegim@nus.edu.sg) by email for further information or questions about **PySPOD** or ways on how to contribute.
 
 
 ## License
