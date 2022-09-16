@@ -234,10 +234,10 @@ class Base():
 
         ## distribute data and weights
         if self._comm: self._pr0('- distributing data')
-        data, self._maxdim_idx, self._global_shape = \
+        data, self._max_axis, self._global_shape = \
             utils_par.distribute_data(data=data, comm=self._comm)
         self._weights = utils_par.distribute_dimension(\
-            data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
+            data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
         ## get data and add axis for single variable
         st = time.time()
@@ -385,10 +385,10 @@ class Base():
         path_eigs  = os.path.join(self._savedir_sim, 'eigs')
         ## save weights
         shape = [*self._xshape,self._nv]
-        if self._comm: shape[self._maxdim_idx] = -1
+        if self._comm: shape[self._max_axis] = -1
         self._weights.shape = shape
         utils_par.npy_save(
-            self._comm, path_weights, self._weights, axis=self._maxdim_idx)
+            self._comm, path_weights, self._weights, axis=self._max_axis)
         # save params; eigs and freq
         if self._rank == 0:
             ## save dictionaries of modes and params

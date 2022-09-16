@@ -59,7 +59,7 @@ class Standard(Base):
                     path = os.path.join(self._blocks_folder, file)
                     Q_hat[i_freq,...,i_blk] = np.load(path)
             Q_hat = utils_par.distribute_dimension(
-                data=Q_hat, maxdim_idx=self._maxdim_idx+1, comm=self._comm)
+                data=Q_hat, max_axis=self._max_axis+1, comm=self._comm)
             shape = [Q_hat.shape[0], Q_hat[0,...,0].size, Q_hat.shape[-1]]
             Q_hat = np.reshape(Q_hat, shape)
         else:
@@ -79,11 +79,11 @@ class Standard(Base):
                         file = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
                         path = os.path.join(self._blocks_folder, file)
                         shape = [*self._xshape]
-                        if self._comm: shape[self._maxdim_idx] = -1
+                        if self._comm: shape[self._max_axis] = -1
                         Q_blk_hat_fr.shape = shape
                         utils_par.npy_save(
                             self._comm, path, Q_blk_hat_fr,
-                            axis=self._maxdim_idx)
+                            axis=self._max_axis)
                     del Q_blk_hat_fr
 
                 # print info file
@@ -141,8 +141,8 @@ class Standard(Base):
 
         # normalize by pointwise variance
         if self._normalize_data:
-            Q_var = np.sum(
-                (Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / (self._n_dft-1)
+            den = self._n_dft - 1
+            Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / den
             # address division-by-0 problem with NaNs
             Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
             Q_blk = Q_blk / Q_var
@@ -151,18 +151,12 @@ class Standard(Base):
         Q_blk = self._set_dtype(Q_blk)
         Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
         Q_blk_hat = Q_blk_hat[0:self._n_freq,:]
-
-        # correct Fourier coefficients for one-sided spectrum
-        if self._isrealx:
-            Q_blk_hat[1:-1,:] = 2 * Q_blk_hat[1:-1,:]
-
         return Q_blk_hat, offset
 
 
     def _compute_standard_spod(self, Q_hat):
         '''Compute standard SPOD.'''
         # compute inner product in frequency space, for given frequency
-
         st = time.time()
         M = [None]*self._n_freq
         for f in range(0,self._n_freq):
@@ -180,6 +174,7 @@ class Standard(Base):
         del M
 
         # reorder eigenvalues and eigenvectors
+        ## double non-zero freq and non-Nyquist
         for f, Lf in enumerate(L):
             idx = np.argsort(Lf)[::-1]
             L[f,:] = L[f,idx]
@@ -199,28 +194,22 @@ class Standard(Base):
             ## compute
             phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag[f,None,:])
             phi = phi[...,0:self._n_modes_save]
-            # self._pr0(f'- compute: {time.time() - st} s.')
-            # st = time.time()
-
             ## save modes
             filename = f'freq_idx_{f:08d}.npy'
             p_modes = os.path.join(self._modes_dir, filename)
             shape = [*self._xshape,self._nv,self._n_modes_save]
             if self._comm:
-                shape[self._maxdim_idx] = -1
+                shape[self._max_axis] = -1
             phi.shape = shape
-            # self._pr0(f'- reshape: {time.time() - st} s.')
-            # st = time.time()
-            utils_par.npy_save(self._comm, p_modes, phi, axis=self._maxdim_idx)
-            # self._pr0(f'- save: {time.time() - st} s.')
-            # st = time.time()
+            utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
             self._pr0(f'freq: {f}/{self._n_freq};  '
                       f'Elapsed time: {time.time() - s0} s.')
 
-        self._pr0(f'- Modes computation  and saving: {time.time() - st} s.')
+        self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
 
-        # phi = np.stack(phi)
-        # phi = phi[...,0:self._n_modes_save]
+        ## correct Fourier for one-sided spectrum
+        if self._isrealx:
+            L[1:-1,:] = 2 * L[1:-1,:]
 
         # get eigenvalues and confidence intervals
         self._eigs = np.abs(L)

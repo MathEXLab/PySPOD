@@ -71,7 +71,7 @@ def test_lstm_pod():
     pod_class = pod_standard(params=params_pod)
     pod = pod_class.fit(data=d_train, nt=nt_train)
     phi = np.load(os.path.join(pod._savedir_sim, 'modes.npy'))
-    # coeffs_train, phi, tm, file_coeffs, maxdim_idx = utils_pod.compute_coeffs(
+    # coeffs_train, phi, tm, file_coeffs, max_axis = utils_pod.compute_coeffs(
     #     data=d_train, results_dir=pod._savedir_sim)
     results_dir = pod._savedir_sim
     c_train_file, dir_train = utils_pod.compute_coeffs(

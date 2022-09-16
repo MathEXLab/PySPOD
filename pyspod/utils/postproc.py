@@ -235,6 +235,7 @@ def plot_eigs_vs_frequency(
         plt.title(title)
     # save or show plots
     _save_show_plots(filename, path, plt)
+    print(f'{filename = :}')
 
 def plot_eigs_vs_period(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
@@ -292,8 +293,9 @@ def plot_eigs_vs_period(
     # save or show plots
     _save_show_plots(filename, path, plt)
 
-def plot_2d_modes_at_frequency(results_path, freq_req, freq,
-    vars_idx=[0], modes_idx=[0], x1=None, x2=None, fftshift=False,
+def plot_2d_modes_at_frequency(results_path, freq_req,
+    freq, vars_idx=[0], modes_idx=[0], x1=None, x2=None,
+    limits_x1=(None,), limits_x2=(None,), fftshift=False,
     imaginary=False, plot_max=False, coastlines='', title='',
     xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
     equal_axes=False, path='CWD', filename=None, origin=None):
@@ -309,6 +311,8 @@ def plot_2d_modes_at_frequency(results_path, freq_req, freq,
         be plotted. Default, the first mode is plotted.
     :param numpy.ndarray x1: x-axis coordinate.
     :param numpy.ndarray x2: y-axis coordinate.
+    :param tuple limits_x1: x-axis coordinate limits indices.
+    :param tuple limits_x2: y-axis coordinate limits indices.
     :param bool fftshift: whether to perform fft-shifting. \
         Default is False.
     :param bool imaginary: whether to plot imaginary part. \
@@ -317,7 +321,7 @@ def plot_2d_modes_at_frequency(results_path, freq_req, freq,
         value of the plot. Default is False.
     :param str coastlines: whether to overlay coastlines. \
         Options are `regular` (longitude from 0 to 360) \
-        and    `centred` (longitude from -180 to 180) \
+        and `centred` (longitude from -180 to 180) \
         Default is '' (no coastlines).
     :param str title: if specified, title of the plot. Default is ''.
     :param tuple or list xticks: ticks to be set on x-axis. Default is None.
@@ -348,35 +352,51 @@ def plot_2d_modes_at_frequency(results_path, freq_req, freq,
         x1 = np.arange(modes.shape[0])
         x2 = np.arange(modes.shape[1])
 
-    # loop over variables and modes
+    x1_tmp = x1
+    x2_tmp = x2
+    limits_x1 = slice(*limits_x1)
+    limits_x2 = slice(*limits_x2)
+    x1 = x1[limits_x1]
+    x2 = x2[limits_x2]
+
+    ## loop over variables and modes
     for var_id in vars_idx:
 
         for mode_id in modes_idx:
 
-            # initialize figure
+            ## initialize figure
             fig = plt.figure(
                 figsize=figsize, frameon=True, constrained_layout=False)
             plt.set_cmap(cmap)
 
-            # extract mode
+            ## extract mode
             mode = np.squeeze(modes[:,:,var_id,mode_id])
 
-            # check dimensions
+            ## check dimensions
             if mode.ndim != 2:
                 raise ValueError('Dimension of the modes is not 2D.')
 
-            # perform fft shift if required
+            ## perform fft shift if required
             if fftshift:
                 mode = np.fft.fftshift(mode, axes=1)
+
+            ## check modes
+            if x1_tmp.shape[0] != mode.shape[1] or \
+               x2_tmp.shape[0] != mode.shape[0]:
+                mode = mode.T
+            print(f'{x1.shape = :}')
+            print(f'{x2.shape = :}')
+            print(f'{mode.shape = :}')
+            mode = mode[limits_x2,limits_x1]
+            print(f'{x1.shape = :}')
+            print(f'{x2.shape = :}')
+            print(f'{mode.shape = :}')
 
             # check dimension axes and data
             size_coords = x1.shape[0] * x2.shape[0]
             if size_coords != mode.size:
                 raise ValueError(
                     'Mode dimension does not match coordinates dimensions.')
-
-            if x1.shape[0] != mode.shape[1] or x2.shape[0] != mode.shape[0]:
-                mode = mode.T
 
             # plot data
             if imaginary:

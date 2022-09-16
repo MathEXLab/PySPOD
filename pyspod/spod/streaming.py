@@ -225,20 +225,20 @@ class Streaming(Base):
             path_modes = os.path.join(self._modes_dir, filename)
             shape = [*self._xshape, self._nv, self._n_modes_save]
             if self._comm:
-                shape[self._maxdim_idx] = -1
+                shape[self._max_axis] = -1
             phif = phi[f,...]
             phif.shape = shape
             utils_par.npy_save(
-                self._comm, path_modes, phif, axis=self._maxdim_idx)
+                self._comm, path_modes, phif, axis=self._max_axis)
 
         # ## save modes
         # self._modes_dir = 'modes.npy'
         # path_modes = os.path.join(self._savedir_sim, self._modes_dir)
         # shape = [self._n_freq, *self._xshape, self._nv, self._n_modes_save]
         # if self._comm:
-        #     shape[self._maxdim_idx+1] = -1
+        #     shape[self._max_axis+1] = -1
         # phi.shape = shape
-        # utils_par.npy_save(self._comm, path_modes, phi, axis=self._maxdim_idx+1)
+        # utils_par.npy_save(self._comm, path_modes, phi, axis=self._max_axis+1)
 
         ## transpose eigs
         self._eigs = self._eigs.T

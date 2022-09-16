@@ -54,13 +54,13 @@ def compute_coeffs(data, results_dir, modes_idx=None,
     weights = _set_dtype(weights, dtype)
 
     ## distribute data and weights if parallel
-    data, maxdim_idx, _ = utils_par.distribute_data(data=data, comm=comm)
+    data, max_axis, _ = utils_par.distribute_data(data=data, comm=comm)
     weights = utils_par.distribute_dimension(
-        data=weights, maxdim_idx=maxdim_idx, comm=comm)
+        data=weights, max_axis=max_axis, comm=comm)
 
     # distribute modes if parallel
     phir = utils_par.distribute_dimension(\
-        data=phir, maxdim_idx=maxdim_idx, comm=comm)
+        data=phir, max_axis=max_axis, comm=comm)
     phir = np.reshape(phir, [data[0,...].size,n_modes_save])
 
     ## add axis for single variable
@@ -106,19 +106,19 @@ def compute_coeffs(data, results_dir, modes_idx=None,
     shape_phir = [*shape_tmp]
     shape_lt_mean = [*xshape_nv]
     if comm:
-        shape_phir[maxdim_idx] = -1
-        shape_lt_mean[maxdim_idx] = -1
+        shape_phir[max_axis] = -1
+        shape_lt_mean[max_axis] = -1
     phir.shape = shape_tmp
     lt_mean.shape = xshape_nv
-    utils_par.npy_save(comm, file_phir, phir, axis=maxdim_idx)
-    utils_par.npy_save(comm, file_lt_mean, lt_mean, axis=maxdim_idx)
+    utils_par.npy_save(comm, file_phir, phir, axis=max_axis)
+    utils_par.npy_save(comm, file_lt_mean, lt_mean, axis=max_axis)
     utils_par.pr0(f'- /O: {time.time() - s0} s.', comm)
     st = time.time()
 
     ## dump file with coeffs params
     params['coeffs_dir' ] = str(coeffs_dir)
     params['modes_idx'  ] = modes_idx
-    params['maxdim_idx' ] = int(maxdim_idx)
+    params['max_axis' ] = int(max_axis)
     path_params_coeffs = os.path.join(coeffs_dir, 'params_coeffs.yaml')
     with open(path_params_coeffs, 'w') as f: yaml.dump(params, f)
     utils_par.pr0(f'- saving completed: {time.time() - st} s.', comm)
@@ -184,11 +184,11 @@ def compute_reconstruction(
         raise TypeError('`time_idx` parameter type not recognized.')
 
     ## distribute modes_r and longtime mean
-    maxdim_idx = params['maxdim_idx']
+    max_axis = params['max_axis']
     phir = utils_par.distribute_dimension(
-        data=phir, maxdim_idx=maxdim_idx, comm=comm)
+        data=phir, max_axis=max_axis, comm=comm)
     lt_mean = utils_par.distribute_dimension(
-        data=lt_mean, maxdim_idx=maxdim_idx, comm=comm)
+        data=lt_mean, max_axis=max_axis, comm=comm)
 
     ## phi x coeffs
     Q_reconstructed = phir @ coeffs[:,time_idx]
@@ -212,10 +212,10 @@ def compute_reconstruction(
     file_dynamics = os.path.join(coeffs_dir, filename+'.npy')
     shape = [*xshape_nv,len(time_idx)]
     if comm:
-        shape[maxdim_idx] = -1
+        shape[max_axis] = -1
     Q_reconstructed.shape = shape
     Q_reconstructed = np.moveaxis(Q_reconstructed, -1, 0)
-    utils_par.npy_save(comm, file_dynamics, Q_reconstructed, axis=maxdim_idx+1)
+    utils_par.npy_save(comm, file_dynamics, Q_reconstructed, axis=max_axis+1)
     utils_par.pr0(f'- data saved: {time.time() - st} s.'         , comm)
     utils_par.pr0(f'--------------------------------------------', comm)
     utils_par.pr0(f'Reconstructed data saved in: {file_dynamics}', comm)

@@ -46,8 +46,6 @@ def pvar(data, comm):
     return v, m, n
 
 
-
-
 def create_subcomm(comm):
     '''Create subcommunicator'''
     MPI = _get_module_MPI(comm)
@@ -82,7 +80,29 @@ def create_subcomm(comm):
     # cart.Free()
 
 
+def distribute(data, comm):
+    """
+    Distribute largest spatial dimension of data.
+    """
+    ## distribute largest spatial dimension based on data
+    global_shape = data.shape
+    max_axis = np.argmax(global_shape)
+    if comm is not None:
+        size = comm.size
+        rank = comm.rank
+        shape = data.shape
+        index = [np.s_[:]] * len(shape)
+        N = shape[max_axis]
+        n, s = _blockdist(N, size, rank)
+        index[max_axis] = np.s_[s:s+n]
+        index = tuple(index)
+        data = data[index]
+        comm.Barrier()
+    else:
+        data = data
+    return data, max_axis, global_shape
 
+    
 def distribute_data(data, comm):
     """
     Distribute largest spatial dimension of data, assuming:
@@ -95,24 +115,24 @@ def distribute_data(data, comm):
     # space_size = data[0,...].size
     # ratio = space_size / time_size
     global_shape = data[0,...].shape ## spatial dimension
-    maxdim_idx = np.argmax(global_shape)
+    max_axis = np.argmax(global_shape)
     if comm is not None:
         size = comm.size
         rank = comm.rank
         shape = data.shape
         index = [np.s_[:]] * len(shape)
-        N = shape[maxdim_idx+1]
+        N = shape[max_axis+1]
         n, s = _blockdist(N, size, rank)
-        index[maxdim_idx+1] = np.s_[s:s+n]
+        index[max_axis+1] = np.s_[s:s+n]
         index = tuple(index)
         data = data[index]
         comm.Barrier()
     else:
         data = data
-    return data, maxdim_idx, global_shape
+    return data, max_axis, global_shape
 
 
-def distribute_dimension(data, maxdim_idx, comm):
+def distribute_dimension(data, max_axis, comm):
     """
     Distribute desired spatial dimension, splitting partitions
     by value // comm.size, with remaind = value % comm.size
@@ -123,9 +143,9 @@ def distribute_dimension(data, maxdim_idx, comm):
         rank = comm.rank
         shape = data.shape
         index = [np.s_[:]] * len(shape)
-        N = shape[maxdim_idx]
+        N = shape[max_axis]
         n, s = _blockdist(N, size, rank)
-        index[maxdim_idx] = np.s_[s:s+n]
+        index[max_axis] = np.s_[s:s+n]
         index = tuple(index)
         data = data[index]
         comm.Barrier()
@@ -157,7 +177,7 @@ def barrier(comm):
     if comm is not None:
         comm.Barrier()
 
-    
+
 def pr0(string, comm):
     if comm is not None:
         if comm.rank == 0:

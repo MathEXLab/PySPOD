@@ -14,6 +14,7 @@ import psutil
 import warnings
 import numpy as np
 import scipy.special as sc
+from scipy.linalg import toeplitz
 
 # Import custom Python packages
 import pyspod.spod.utils as utils_spod
@@ -399,10 +400,10 @@ class Base():
 
         ## distribute data and weights
         self._pr0(f'- distributing data (if parallel)')
-        data, self._maxdim_idx, self._global_shape = \
+        data, self._max_axis, self._global_shape = \
             utils_par.distribute_data(data=data, comm=self._comm)
         self._weights = utils_par.distribute_dimension(\
-            data=self._weights, maxdim_idx=self._maxdim_idx, comm=self._comm)
+            data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
         ## get data and add axis for single variable
         st = time.time()
@@ -602,10 +603,10 @@ class Base():
         path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq')
         ## save weights
         shape = [*self._xshape,self._nv]
-        if self._comm: shape[self._maxdim_idx] = -1
+        if self._comm: shape[self._max_axis] = -1
         self._weights.shape = shape
         self._lt_mean.shape = shape
-        md = self._maxdim_idx
+        md = self._max_axis
         utils_par.npy_save(self._comm, path_weights, self._weights, axis=md)
         utils_par.npy_save(self._comm, path_lt_mean, self._lt_mean, axis=md)
 
@@ -758,11 +759,29 @@ class Base():
     @staticmethod
     def _hamming_window(N):
         '''
-            Standard Hamming window of length N
+        Standard Hamming window of length N
         '''
         x = np.arange(0,N,1)
         window = (0.54 - 0.46 * np.cos(2 * np.pi * x / (N-1))).T
         return window
+
+
+    # @staticmethod
+    # def _slepsec(n_dft, bw, n_tapers):
+    #     '''
+    #     SLEPSEC Discrete prolate spheroidal sequences of length nDFT and
+    #     time-halfbandwidth product bw
+    #     '''
+    #     df      = bw / n_dft
+    #     j       = np.arange(0:n_dft-1)
+    #     r1      = [df * 2 * np.pi, np.sin(2 * np.pi * df * j) ./ j]
+    #     # S       = toeplitz(r1)
+    #     S       = toeplitz(r1)
+    #     [U,L]   = np.eig(S)
+    #     [~,idx] = np.sort(diag(L),'descend')
+    #     U       = U[:,idx]
+    #     window  = U[:,1:n_tapers]
+    # return window
 
     # --------------------------------------------------------------------------
 

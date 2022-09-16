@@ -57,10 +57,10 @@ class Standard(Base):
         phi_r = phi[:,0:self._n_modes_save]
         self._file_modes = os.path.join(self._savedir_sim, 'modes.npy')
         shape = [*self._xshape,self._nv,self._n_modes_save]
-        if self._comm: shape[self._maxdim_idx] = -1
+        if self._comm: shape[self._max_axis] = -1
         phi_r.shape = shape
         utils_par.npy_save(
-            self._comm, self._file_modes, phi_r, axis=self._maxdim_idx)
+            self._comm, self._file_modes, phi_r, axis=self._max_axis)
         self._pr0(f'done. Elapsed time: {time.time() - st} s.')
         self._pr0(f'Modes saved in  {self._file_modes}')
         self._eigs = w

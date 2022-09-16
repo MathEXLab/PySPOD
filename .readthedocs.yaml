@@ -1,0 +1,19 @@
+# https://readthedocs.org/projects/pyspod/builds/
+
+version: 2
+
+formats: all
+
+build:
+  os: ubuntu-20.04
+  tools:
+    python: "3.10"
+
+python:
+   install:
+     - path: .
+     - requirements: conf/requirements-docs.txt
+
+sphinx:
+   configuration: docs/source/conf.py
+   fail_on_warning: true

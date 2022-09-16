@@ -332,6 +332,17 @@ def test_standard_freq_utils_compute():
         svd=False, T_lb=0.5, T_ub=1.1, comm=comm)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all', comm=comm)
+    flag1, o1 = utils_spod.check_orthogonality(
+        results_dir=results_dir, mode_idx1=[1], mode_idx2=[0],
+        freq_idx=[5], dtype='double', comm=comm)
+    flag2, o2 = utils_spod.check_orthogonality(
+        results_dir=results_dir, mode_idx1=[1], mode_idx2=[0],
+        freq_idx=[5], dtype='single', comm=comm)
+    flag3, o3 = utils_spod.check_orthogonality(
+        results_dir=results_dir, mode_idx1=[1], mode_idx2=[1],
+        freq_idx=[5], dtype='single', comm=comm)
+
+
     T_ = 12.5;     tol1 = 1e-3;  tol2 = 1e-8
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
@@ -339,10 +350,19 @@ def test_standard_freq_utils_compute():
         coeffs = np.load(file_coeffs)
         recons = np.load(file_dynamics)
         ## fit
+        # print(f'{flag1 = :}')
+        # print(f'{np.abs(o1) = :}')
+        # print(f'{flag2 = :}')
+        # print(f'{np.abs(o2) = :}')
+        # print(f'{flag3 = :}')
+        # print(f'{np.abs(o3) = :}')
         assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) & \
                (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol2))
         assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
                (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
+        assert(flag1==True); assert(np.abs(o1)<1e-15)
+        assert(flag2==True); assert((np.abs(o2)<1e-7 )&(np.abs(o2)>1e-9 ))
+        assert(flag3==True); assert((np.abs(o3)<1.00 )&(np.abs(o3)>0.99 ))
         ## transform
         # print(f'{np.real(np.min(coeffs)) = :}')
         # print(f'{np.real(np.max(coeffs)) = :}')
@@ -513,6 +533,15 @@ def test_streaming_freq():
         tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1, comm=comm)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all', comm=comm)
+    flag1, o1 = utils_spod.check_orthogonality(
+        results_dir=results_dir, mode_idx1=[1], mode_idx2=[0],
+        freq_idx=[5], dtype='double', comm=comm)
+    flag2, o2 = utils_spod.check_orthogonality(
+        results_dir=results_dir, mode_idx1=[1], mode_idx2=[0],
+        freq_idx=[5], dtype='single', comm=comm)
+    flag3, o3 = utils_spod.check_orthogonality(
+        results_dir=results_dir, mode_idx1=[1], mode_idx2=[1],
+        freq_idx=[5], dtype='single', comm=comm)
     T_ = 12.5;     tol1 = 1e-3;  tol2 = 1e-8
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
@@ -521,11 +550,20 @@ def test_streaming_freq():
         recons = np.load(file_dynamics)
         # print(f'{np.min(np.abs(modes_at_freq)) = :}')
         # print(f'{np.max(np.abs(modes_at_freq)) = :}')
+        # print(f'{flag1 = :}')
+        # print(f'{np.abs(o1) = :}')
+        # print(f'{flag2 = :}')
+        # print(f'{np.abs(o2) = :}')
+        # print(f'{flag3 = :}')
+        # print(f'{np.abs(o3) = :}')
         ## fit
         assert((np.min(np.abs(modes_at_freq))<0+tol2) & \
                (np.min(np.abs(modes_at_freq))>0-tol2))
         assert((np.max(np.abs(modes_at_freq))<0.17575077060057+tol2) & \
                (np.max(np.abs(modes_at_freq))>0.17575077060057-tol2))
+        assert(flag1==True); assert(np.abs(o1)<1e-15)
+        assert(flag2==True); assert((np.abs(o2)<1e-7 )&(np.abs(o2)>1e-9 ))
+        assert(flag3==True); assert((np.abs(o3)<1.00 )&(np.abs(o3)>0.99 ))
         ## transform
         # print(f'{np.real(np.min(recons)) = :}')
         # print(f'{np.real(np.min(coeffs)) = :}')
