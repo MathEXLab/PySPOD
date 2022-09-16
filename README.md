@@ -64,7 +64,7 @@ To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tu
 
 SPOD can be applied to wide-sense stationary data, that is ergodic processes. Examples of these arise in different fields, including fluidmechanics, and weather and climate, among others. 
 
-### SPOD method
+### What is SPOD?
 
 **PySPOD** is a Python package that implements the so-called **Spectral Proper Orthgonal Decomposition** whose name was first conied by [(Picard and Delville 2000)](#picard-and-delville-2000), and goes back to the original work by [(Lumley 1970)](#lumley-1970). The implementation proposed here follows the original contributions by [(Towne et al. 2018)](#towne-et-al-2018), [(Schmidt and Towne 2019)](#schmidt-and-towne-2019).
 
