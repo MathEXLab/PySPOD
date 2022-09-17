@@ -75,7 +75,7 @@ jobs:
 
   test-no-mpi:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
