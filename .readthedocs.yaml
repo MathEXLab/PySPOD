@@ -11,7 +11,7 @@ build:
 
 python:
    install:
-     - path: .
+     - path: .[docs]
      - requirements: conf/requirements-docs.txt
 
 sphinx:
