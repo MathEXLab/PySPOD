@@ -235,7 +235,6 @@ def plot_eigs_vs_frequency(
         plt.title(title)
     # save or show plots
     _save_show_plots(filename, path, plt)
-    print(f'{filename = :}')
 
 def plot_eigs_vs_period(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
@@ -384,13 +383,7 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
             if x1_tmp.shape[0] != mode.shape[1] or \
                x2_tmp.shape[0] != mode.shape[0]:
                 mode = mode.T
-            print(f'{x1.shape = :}')
-            print(f'{x2.shape = :}')
-            print(f'{mode.shape = :}')
             mode = mode[limits_x2,limits_x1]
-            print(f'{x1.shape = :}')
-            print(f'{x2.shape = :}')
-            print(f'{mode.shape = :}')
 
             # check dimension axes and data
             size_coords = x1.shape[0] * x2.shape[0]
