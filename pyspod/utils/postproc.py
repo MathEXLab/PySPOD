@@ -466,7 +466,7 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
                     fig.suptitle(f'mode: {mode_id}, var: {var_id}')
 
             # padding between elements
-            plt.tight_layout(pad=2.)
+            plt.tight_layout()
 
             # save or show plots
             tmp_name = filename
