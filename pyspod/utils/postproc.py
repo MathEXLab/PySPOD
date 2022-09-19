@@ -24,17 +24,19 @@ plot_support = os.path.join(CFD, '../', 'plotting_support')
 
 def find_nearest_freq(freq_req, freq):
     '''
-    Get nearest frequency to requested `freq_value`.
+    Get nearest frequency to requested `freq_req`
+    given an array of frequencies `freq`.
 
     :param double freq_req: requested frequency.
     :param np.ndarray freq: array of frequencies.
 
-    :return: the nearest frequecy to the `freq_value` requested and its id.
+    :return: the nearest frequecy to the `freq_req` requested and its id.
     :rtype: double, int
     '''
     freq = np.asarray(freq)
     idx = (np.abs(freq - freq_req)).argmin()
     return freq[idx], idx
+
 
 def find_nearest_coords(coords, x, data_space_dim):
     '''
@@ -66,12 +68,14 @@ def find_nearest_coords(coords, x, data_space_dim):
         idx += (tmp_idx[cnt],)
     return xi, idx
 
+
 def get_modes_at_freq(results_path, freq_idx):
     '''
-    Get the matrix containing the SPOD modes, stored by \
-    [frequencies, spatial dimensions data, no. of variables, no. of modes].
+    Get the matrix containing the SPOD modes at given frequency `freq_idx`,
+    stored by [frequencies, spatial dimensions data, no. of variables,
+    no. of modes].
 
-    :param dict: path to the files where the SPOD modes are stored.
+    :param str results_path: path to the files where the SPOD modes are stored.
     :param int freq_idx: frequency id requested.
     :return: the n_dims, n_vars, n_modes \
         matrix containing the SPOD modes at requested frequency.
@@ -86,8 +90,16 @@ def get_modes_at_freq(results_path, freq_idx):
         raise TypeError('Modes must be a string to modes.npy')
     return m
 
+
 def get_all_modes(results_path):
-    # load modes from files if saved in storage
+    '''
+    Get the matrix containing all SPOD modes, stored by
+    [frequencies, spatial dimensions data, no. of variables, no. of modes].
+
+    :param str results_path: path to the files where the SPOD modes are stored.
+    :return: [n_freq, n_dims, n_vars, n_modes] matrix containing all SPOD modes.
+    :rtype: numpy.ndarray
+    '''
     if isinstance(results_path, str):
         import glob, os
         modes_path = os.path.join(results_path, 'modes')
@@ -103,6 +115,7 @@ def get_all_modes(results_path):
     else:
         raise TypeError('Modes must be a string to modes.npy')
     return m
+
 
 def get_data_from_file(filename):
     '''
@@ -184,6 +197,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
     # save or show plots
     _save_show_plots(filename, path, plt)
 
+
 def plot_eigs_vs_frequency(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
     equal_axes=False, figsize=(12,8), fontname='Times New Roman',
@@ -235,6 +249,7 @@ def plot_eigs_vs_frequency(
         plt.title(title)
     # save or show plots
     _save_show_plots(filename, path, plt)
+
 
 def plot_eigs_vs_period(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
@@ -292,6 +307,7 @@ def plot_eigs_vs_period(
     # save or show plots
     _save_show_plots(filename, path, plt)
 
+
 def plot_2d_modes_at_frequency(results_path, freq_req,
     freq, vars_idx=[0], modes_idx=[0], x1=None, x2=None,
     limits_x1=(None,), limits_x2=(None,), fftshift=False,
@@ -299,37 +315,35 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
     xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
     equal_axes=False, path='CWD', filename=None, origin=None):
     '''
-    Plot SPOD modes for 2D problems.
+    Plot SPOD modes for 2D problems at a given frequency `freq_req`.
 
     :param str results_path: file containing 2D SPOD modes.
     :param double freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
-    :param int or sequence(int) vars_idx: variables to \
-        be plotted. Default, the first variable is plotted.
+    :param int or sequence(int) vars_idx: variables to be plotted.
+        Default, the first variable is plotted.
     :param int or sequence(int) modes_idx: modes to
         be plotted. Default, the first mode is plotted.
     :param numpy.ndarray x1: x-axis coordinate.
     :param numpy.ndarray x2: y-axis coordinate.
     :param tuple limits_x1: x-axis coordinate limits indices.
     :param tuple limits_x2: y-axis coordinate limits indices.
-    :param bool fftshift: whether to perform fft-shifting. \
+    :param bool fftshift: whether to perform fft-shifting. Default is False.
+    :param bool imaginary: whether to plot imaginary part. Default is False
+    :param bool plot_max: whether to plot a dot at maximum value of the plot.
         Default is False.
-    :param bool imaginary: whether to plot imaginary part. \
-        Default is False
-    :param bool plot_max: whether to plot a dot at maximum \
-        value of the plot. Default is False.
     :param str coastlines: whether to overlay coastlines. \
         Options are `regular` (longitude from 0 to 360) \
-        and `centred` (longitude from -180 to 180) \
+        and `centred` (longitude from -180 to 180).
         Default is '' (no coastlines).
     :param str title: if specified, title of the plot. Default is ''.
     :param tuple or list xticks: ticks to be set on x-axis. Default is None.
     :param tuple or list yticks: ticks to be set on y-axis. Default is None.
-    :param bool equal_axes: if True, the axes will be equal. Default is False.
+    :param cmap: contour map for plot. Default is 'coolwarm'.
     :param tuple(int,int) figsize: size of the figure (width,height). \
         Default is (12,8).
-    :param str path: if specified, the plot is saved at `path`. \
-        Default is CWD.
+    :param bool equal_axes: if True, the axes will be equal. Default is False.
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
     :param str filename: if specified, the plot is saved at `filename`. \
         Default is None.
     '''
@@ -688,20 +702,19 @@ def plot_3d_modes_slice_at_frequency(
     coastlines='', title='', xticks=None, yticks=None, figsize=(12,8),
     equal_axes=False, path='CWD', filename=None, origin=None):
     '''
-    Plot SPOD modes for 3D problems.
+    Plot SPOD modes for 3D problems at a given frequency `freq_req`.
 
     :param str results_path: file containing 3D SPOD modes.
     :param double freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
-    :param int or sequence(int) vars_idx: variables to \
-        be plotted. Default, the first variable is plotted.
-    :param int or sequence(int) modes_idx: modes to be \
-        plotted. Default, the first mode is plotted.
+    :param int or sequence(int) vars_idx: variables to be plotted.
+        Default, the first variable is plotted.
+    :param int or sequence(int) modes_idx: modes to be plotted.
+        Default, the first mode is plotted.
     :param numpy.ndarray x1: x-axis coordinate. Default is None.
     :param numpy.ndarray x2: y-axis coordinate. Default is None.
     :param numpy.ndarray x3: z-axis coordinate. Default is None.
-    :param int slice_dim: axis to slice. Either 0, 1, or 2. \
-        Default is 0.
+    :param int slice_dim: axis to slice. Either 0, 1, or 2. Default is 0.
     :param int slice_id: id of the slice to extract along \
         `slice_dim`. Default is None. In this case, the slice_id is selected \
         as the one that corresponds to the maximum value along `slice_dim`.
@@ -716,11 +729,10 @@ def plot_3d_modes_slice_at_frequency(
     :param str title: if specified, title of the plot. Default is ''.
     :param tuple or list xticks: ticks to be set on x-axis. Default is None.
     :param tuple or list yticks: ticks to be set on y-axis. Default is None.
-    :param bool equal_axes: if True, the axes will be equal. Default is False.
     :param tuple(int,int) figsize: size of the figure (width,height). \
         Default is (12,8).
-    :param str path: if specified, the plot is saved at `path`. \
-        Default is CWD.
+    :param bool equal_axes: if True, the axes will be equal. Default is False.
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
     :param str filename: if specified, the plot is saved at `filename`. \
         Default is None.
     '''
@@ -883,25 +895,23 @@ def plot_mode_tracers(
     x=None, vars_idx=[0], modes_idx=[0], fftshift=False,
     title='', figsize=(12,8), path='CWD', filename=None):
     '''
-    Plot SPOD mode tracers for nD problems.
+    Plot SPOD mode tracers for nD problems at given frequency `freq_req`.
 
     :param str results_path: file containing nD SPOD modes.
     :param double freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
-    :param list(tuple(*),) coords_list: list of tuples \
-        containing coordinates to be plotted.
+    :param list(tuple(*),) coords_list: list
+        of tuples containing coordinates to be plotted.
     :param numpy.ndarray x: data coordinates. Default is None.
     :type int or sequence(int) vars_idx: variables to be plotted. \
         Default, the first variable is plotted.
     :type int or sequence(int) modes_idx: modes to be plotted. \
         Default, the first mode is plotted.
-    :param bool fftshift: whether to perform fft-shifting. \
-        Default is False.
+    :param bool fftshift: whether to perform fft-shifting. Default is False.
     :param str title: if specified, title of the plot. Default is ''.
     :param tuple(int,int) figsize: size of the figure (width,height). \
         Default is (12,8).
-    :param str path: if specified, the plot is saved at `path`. \
-        Default is CWD.
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
     :param str filename: if specified, the plot is saved at `filename`. \
         Default is None.
     '''
@@ -1027,8 +1037,7 @@ def plot_2d_data(X, time_idx=[0], vars_idx=[0], x1=None, x2=None,
         Default is '' (no coastlines).
     :param tuple(int,int) figsize: size of the figure (width,height). \
         Default is (12,8).
-    :param str path: if specified, the plot is saved at `path`. \
-        Default is CWD.
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
     :param str filename: if specified, the plot is saved at `filename`.
 
     '''
@@ -1122,8 +1131,7 @@ def plot_data_tracers(X, coords_list, x=None, time_limits=[0,10],
     :param str title: if specified, title of the plot. Default is ''.
     :param tuple(int,int) figsize: size of the figure (width,height).
         Default is (12,8).
-    :param str path: if specified, the plot is saved at `path`.
-        Default is CWD.
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
     :param str filename: if specified, the plot is saved at `filename`.
         Default is None.
     '''
@@ -1179,45 +1187,54 @@ def generate_2d_subplot(
     var1, title1, var2=None, title2=None, var3=None, title3=None,
     N_round=6, path='CWD', filename=None):
     '''
-    Generate two 2D subplots in the same figure
+    Generate three 2D subplots of 1d data in the same figure.
+
+    :param numpy.ndarray var1: 1D data for first variable.
+    :param str title1: title for first subplot.
+    :param numpy.ndarray var2: 1D data for second variable. Default is None.
+    :param str title2: title for first subplot. Default is None.
+    :param numpy.ndarray var3: 1D data for third variable. Default is None.
+    :param str title3: title for first subplot. Default is None.
+    :param int N_round: dimension of text and axis.
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
+    :param str filename: if specified, the plot is saved at `filename`.
+        Default is None.
     '''
     csfont = {'fontname':'Times New Roman'}
     multiplier = 10 ** N_round
-    maxVal = np.ceil (np.max(var1.real) * multiplier) / multiplier
-    minVal = np.floor(np.min(var1.real) * multiplier) / multiplier
-    ticks_range = np.linspace(minVal, maxVal, num=5)
-    nSubplots = 1
-    if var2 is not None:
-        nSubplots = 2
-    if var3 is not None:
-        nSubplots = 3
-    if nSubplots == 1:
+    max_val = np.ceil (np.max(var1.real) * multiplier) / multiplier
+    min_val = np.floor(np.min(var1.real) * multiplier) / multiplier
+    ticks_range = np.linspace(min_val, max_val, num=5)
+    n_subplots = 1
+    if var2 is not None: n_subplots = 2
+    if var3 is not None: n_subplots = 3
+    if n_subplots == 1:
         fig, (ax1) = plt.subplots(1, 1, sharex=True, sharey=True)
-    if nSubplots == 2:
+    if n_subplots == 2:
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
-    if nSubplots == 3:
+    if n_subplots == 3:
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=True)
-    fig.set_size_inches(10, 8/3*nSubplots)
+    fig.set_size_inches(10, 8/3*n_subplots)
     plt.set_cmap('coolwarm')
     fig.tight_layout(pad=5.0)
-    cax1 = ax1.contourf(var1[:,:], levels=np.linspace(minVal, maxVal, 9))
+    cax1 = ax1.contourf(var1[:,:], levels=np.linspace(min_val, max_val, 9))
     ax1.tick_params(labelsize=11)
     cb1=plt.colorbar(cax1, ax=ax1, ticks=ticks_range, aspect=10)
     cb1.ax.tick_params(labelsize=12)
     ax1.set_title(title1, fontsize=18,**csfont)
     ax1.set_xlabel('x', fontsize=16,**csfont)
     ax1.set_ylabel('y',fontsize=16,**csfont)
-    if (nSubplots == 2) or (nSubplots == 3):
+    if (n_subplots == 2) or (n_subplots == 3):
         ax2.tick_params(labelsize=11)
-        cax2 = ax2.contourf(var2, levels=np.linspace(minVal, maxVal, 9))
+        cax2 = ax2.contourf(var2, levels=np.linspace(min_val, max_val, 9))
         cb2=plt.colorbar(cax2, ax=ax2, ticks=ticks_range, aspect=10)
         cb2.ax.tick_params(labelsize=12)
         ax2.set_title(title2, fontsize=18, **csfont)
         ax2.set_xlabel('x', fontsize=16, **csfont)
         ax2.set_ylabel('y',fontsize=16, **csfont)
-    if nSubplots == 3:
+    if n_subplots == 3:
         ax3.tick_params(labelsize=11)
-        cax3 = ax3.contourf(var3, levels=np.linspace(minVal, maxVal, 9))
+        cax3 = ax3.contourf(var3, levels=np.linspace(min_val, max_val, 9))
         cb3=plt.colorbar(cax3, ax=ax3, ticks=ticks_range, aspect=10)
         cb3.ax.tick_params(labelsize=12)
         ax3.set_title(title3, fontsize=18, **csfont)
@@ -1228,6 +1245,20 @@ def generate_2d_subplot(
 def plot_compare_time_series(
     series1, series2, label1='', label2='', figsize=(12,8),
     legendLocation='upper left', path='CWD', filename=None):
+    '''
+    Compare two time series in the same figure.
+
+    :param numpy.ndarray series1: first time series.
+    :param numpy.ndarray series2: second time series.
+    :param str label1: title for first time series. Default is ''.
+    :param str label2: title for first time series. Default is ''.
+    :param tuple(int,int) figsize: size of the figure (width,height).
+        Default is (12,8).
+    :param str legendLocation: location of the legend. Default is 'upper left'
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
+    :param str filename: if specified, the plot is saved at `filename`.
+        Default is None.
+    '''
     fig = plt.figure(figsize=figsize)
     ax = plt.gca()
     ax.tick_params(axis = 'both', which='major', labelsize=18)
@@ -1242,6 +1273,17 @@ def plot_compare_time_series(
 
 def plot_training_histories(
     loss, val_loss, figsize=(12,8), path='CWD', filename=None):
+    '''
+    Plot training history of training used in emulation.
+
+    :param numpy.ndarray loss: training loss.
+    :param numpy.ndarray val_loss: validation loss.
+    :param tuple(int,int) figsize: size of the figure (width,height).
+        Default is (12,8).
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
+    :param str filename: if specified, the plot is saved at `filename`.
+        Default is None.
+    '''
     fig = plt.figure(figsize=figsize)
     ax = plt.gca()
     ax.tick_params(axis='both', which='major', labelsize=18)
@@ -1266,7 +1308,7 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
     sampling=1, x1=None, x2=None, coastlines='', figsize=(12,8),
     path='CWD', filename='data_video.mp4'):
     '''
-        Make movie of 2D data.
+    Make movie of 2D data.
 
     :param numpy.ndarray X: 2D data to be plotted. \
         First dimension must be time. Last dimension must be variable.
@@ -1282,8 +1324,7 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
         Default is '' (no coastlines).
     :param tuple(int,int) figsize: size of the figure (width,height). \
         Default is (12,8).
-    :param str path: if specified, the plot is saved at `path`. \
-        Default is CWD.
+    :param str path: if specified, the plot is saved at `path`. Default is CWD.
     :param str filename: if specified, the plot is saved at `filename`.
     '''
     command = shutil.which("ffmpeg")

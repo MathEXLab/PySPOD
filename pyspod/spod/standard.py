@@ -15,18 +15,20 @@ import pyspod.utils.parallel as utils_par
 
 class Standard(Base):
     '''
-    Class that implements a distributed batch version
-    Spectral Proper Orthogonal Decomposition algorithm
-    to the inputdata (for large datasets).
+    Class that implements a distributed batch version of the
+    Spectral Proper Orthogonal Decomposition algorithm to the input data.
 
     The computation is performed on the `data` passed
-    to the constructor of the `Standard` class, derived
+    to the `fit` method of the `Standard` class, derived
     from the `Base` class.
     '''
     def fit(self, data, nt):
         '''
-        Class-specific method to fit the data matrix using
-        the SPOD low ram algorithm.
+        Class-specific method to fit the data matrix using the SPOD
+        batch algorithm.
+
+        :param numpy.ndarray data: data for which to compute the SPOD.
+        :param int nt: number of time snapshots to consider for SPOD.
         '''
         start = time.time()
 

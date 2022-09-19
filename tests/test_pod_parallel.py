@@ -6,7 +6,6 @@ import h5py
 import shutil
 import pytest
 import numpy as np
-from mpi4py import MPI
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -17,6 +16,7 @@ CFD = os.path.dirname(CF)
 from pyspod.pod.standard import Standard as pod_standard
 import pyspod.pod.utils      as utils_pod
 import pyspod.utils.io       as utils_io
+import pyspod.utils.parallel as utils_par
 import pyspod.utils.errors   as utils_errors
 import pyspod.utils.postproc as post
 
@@ -42,9 +42,12 @@ def test_standard_class_compute():
         'savedir'          : os.path.join(CFD, 'results')
     }
     ## -------------------------------------------------------------------------
-
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     ## fit and transform pod
-    comm = MPI.COMM_WORLD
     pod_class = pod_standard(params=params, comm=comm)
     pod = pod_class.fit(data=data, nt=nt)
     results_dir = pod._savedir_sim
@@ -153,7 +156,11 @@ def test_standard_utils_compute():
         'savedir'          : os.path.join(CFD, 'results')
     }
     ## -------------------------------------------------------------------------
-
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     ## fit and transform pod
     comm = MPI.COMM_WORLD
     pod_class = pod_standard(params=params, comm=comm)
@@ -261,9 +268,12 @@ def test_standard_convergence():
         'savedir'          : os.path.join(CFD, 'results')
     }
     ## -------------------------------------------------------------------------
-
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     ## fit and transform pod
-    comm = MPI.COMM_WORLD
     pod_class = pod_standard(params=params, comm=comm)
     pod = pod_class.fit(data=data, nt=nt)
     results_dir = pod._savedir_sim

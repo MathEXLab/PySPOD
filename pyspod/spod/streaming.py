@@ -12,19 +12,21 @@ from pyspod.spod.base import Base
 
 class Streaming(Base):
     '''
-    Class that implements the Spectral Proper Orthogonal Decomposition
-    to the input `data` using a streaming algorithn to reduce the amount
-    of I/O and disk storage (for small datasets / large RAM machines).
+    Class that implements a distributed streaming version of the
+    Spectral Proper Orthogonal Decomposition algorithm to the input data.
 
-    The computation is performed on the `data` passed to the
-    constructor of the `Streaming` class, derived from
-    the `Base` class.
+    The computation is performed on the `data` passed
+    to the `fit` method of the `Streaming` class, derived
+    from the `Base` class.
     '''
 
     def fit(self, data, nt):
         '''
         Class-specific method to fit the data matrix using the SPOD
         streaming algorithm.
+
+        :param numpy.ndarray data: data for which to compute the SPOD.
+        :param int nt: number of time snapshots to consider for SPOD.
         '''
         start = time.time()
 

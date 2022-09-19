@@ -5,17 +5,18 @@ import numpy as np
 import pyspod.utils.parallel as utils_par
 
 
-
 def geo_trapz_2D(x1_dim, x2_dim, n_vars, **kwargs):
     '''
-    2D integration weights for geospatial
-        data via trapezoidal rule
+    2D integration weights for geospatial data via trapezoidal rule.
+
+    :param numpy.ndarray x1_dim: first spatial coordinate.
+    :param numpy.ndarray x2_dim: second spatial coordinate.
+    :param int n_vars: number of variables.
     '''
-    # get optional parameter (radius of e.g. Earth)
-    # default is 1
+    ## get optional parameter (radius of e.g. Earth). Default is 1
     R = kwargs.get('R', 1)
 
-    # define latitude and longitude coordinates
+    ## define latitude and longitude coordinates
     lat = np.linspace(-90, 90, x1_dim)
     lon = np.linspace(  0,360, x2_dim+1)
     lon = lon[0:-1]
@@ -32,7 +33,7 @@ def geo_trapz_2D(x1_dim, x2_dim, n_vars, **kwargs):
     d_lat = np.tile(d_lat, [x2_dim, 1])
     d_lon = np.tile(d_lon, [x1_dim, 1])
 
-    # cos(latitude) since lat \in [-90 90] deg
+    ## cos(latitude) since lat \in [-90 90] deg
     dA = np.abs(R**2 * np.cos(lat_rad) * d_lon.T * d_lat).T
     dA = np.tile(dA, [n_vars, 1, 1])
     dA = np.einsum('ijk->jki', dA)
@@ -40,17 +41,19 @@ def geo_trapz_2D(x1_dim, x2_dim, n_vars, **kwargs):
     return w
 
 
-
 def geo_trapz_3D(x1_dim, x2_dim, x3_dim, n_vars, **kwargs):
     '''
-    3D integration weights for geospatial
-        data via trapezoidal rule
+    3D integration weights for geospatial data via trapezoidal rule.
+
+    :param numpy.ndarray x1_dim: first spatial coordinate.
+    :param numpy.ndarray x2_dim: second spatial coordinate.
+    :param numpy.ndarray x3_dim: third spatial coordinate.
+    :param int n_vars: number of variables.
     '''
-    # get optional parameter (radius of e.g. Earth)
-    # default is 1
+    ## get optional parameter (radius of e.g. Earth). Default is 1
     R = kwargs.get('R', 1)
 
-    # define latitude and longitude coordinates
+    ## define latitude and longitude coordinates
     lat = np.linspace(-90,90,x1_dim)
     lon = np.linspace(0,360,x2_dim+1)
     lon = lon[0:-1]
@@ -67,14 +70,13 @@ def geo_trapz_3D(x1_dim, x2_dim, x3_dim, n_vars, **kwargs):
     d_lat = np.tile(d_lat, [x2_dim, 1])
     d_lon = np.tile(d_lon, [x1_dim, 1])
 
-    # cos(latitude) since lat \in [-90 90] deg
+    ## cos(latitude) since lat \in [-90 90] deg
     dA = np.abs(R**2 * np.cos(lat_rad) * d_lon.T * d_lat).T
     dA = np.tile(dA, [x3_dim, 1, 1])
     dA = np.einsum('ijk->jki', dA)
     dA = np.tile(dA, [n_vars, 1, 1])
     w = { 'weights_name': 'geo_trapz_3D', 'weights': dA }
     return w
-
 
 
 def custom(**kwargs):
@@ -91,9 +93,9 @@ def custom(**kwargs):
 
 def apply_normalization(
     data, weights, n_variables, method='variance', comm=None):
-    '''Normalization of weights if required.'''
+    '''Normalization of weights if required by data variance.'''
 
-    # variable-wise normalization by variance via weight matrix
+    ## variable-wise normalization by variance via weight matrix
     if comm is not None:
         if method.lower() == 'variance':
             if comm.rank == 0:

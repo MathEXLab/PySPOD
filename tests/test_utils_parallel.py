@@ -6,7 +6,6 @@ import shutil
 import pytest
 import numpy as np
 import xarray as xr
-from mpi4py import MPI
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -20,7 +19,11 @@ import pyspod.utils.parallel as utils_par
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_pvar():
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     rank = comm.rank
     ## ------------------------------------------------------------------------
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
@@ -36,7 +39,11 @@ def test_parallel_pvar():
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_distribute():
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     rank = comm.rank
     ## ------------------------------------------------------------------------
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
@@ -90,7 +97,11 @@ def test_parallel_distribute():
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_allreduce():
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     rank = comm.rank
     ## ------------------------------------------------------------------------
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
@@ -111,13 +122,21 @@ def test_parallel_allreduce():
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_pr0():
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     rank = comm.rank
     utils_par.pr0(f'data rank: {rank}', comm=comm)
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_npy(axis=0, dtype="d", order='C'):
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     rank = comm.rank
     path = os.path.join(CFD, 'tmp')
     filename = os.path.join(path, 'tmp.npy')

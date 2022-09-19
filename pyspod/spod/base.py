@@ -570,6 +570,9 @@ class Base():
 
     def compute_coeffs(self, data, results_dir, modes_idx=None,
         tol=1e-10, svd=True, T_lb=None, T_ub=None):
+        '''
+        See method implementation in the spod.utils module.
+        '''
         file_coeffs, coeffs_dir = utils_spod.compute_coeffs(\
             data, results_dir=self._savedir_sim, modes_idx=modes_idx,
             tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub, comm=self._comm)
@@ -579,6 +582,9 @@ class Base():
 
 
     def compute_reconstruction(self, coeffs_dir, time_idx=None):
+        '''
+        See method implementation in the spod.utils module.
+        '''
         if not hasattr(self, '_file_coeffs'):
             raise ValueError(
                 'Coeffs not computed; you need to run `compute_coeffs`.')
@@ -631,17 +637,19 @@ class Base():
 
 
     def _pr0(self, string):
+        '''Print rank 0 only.'''
         utils_par.pr0(string=string, comm=self._comm)
 
 
     def _set_dtype(self, d):
+        '''Set data type.'''
         if   d.dtype == float  : d = d.astype(self._float  )
         elif d.dtype == complex: d = d.astype(self._complex)
         return d
 
 
     def _print_parameters(self):
-        # display parameter summary
+        '''Display parameter summary.'''
         self._pr0(f'SPOD parameters')
         self._pr0(f'------------------------------------')
         self._pr0(f'Problem size (real)      : {self._pb_size_f} GB.')

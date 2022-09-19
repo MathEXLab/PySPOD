@@ -6,7 +6,6 @@ import h5py
 import pytest
 import shutil
 import numpy as np
-from mpi4py import MPI
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -19,14 +18,18 @@ from pyspod.spod.streaming import Streaming as spod_streaming
 import pyspod.spod.utils     as utils_spod
 import pyspod.utils.weights  as utils_weights
 import pyspod.utils.errors   as utils_errors
-import pyspod.utils.io         as utils_io
+import pyspod.utils.io       as utils_io
 import pyspod.utils.postproc as post
 
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_fullspectrum():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -62,7 +65,11 @@ def test_standard_fullspectrum():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_reuse_blocks():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -117,7 +124,11 @@ def test_standard_reuse_blocks():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_svd():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -176,7 +187,11 @@ def test_standard_svd():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_inv():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -236,7 +251,11 @@ def test_standard_inv():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_freq_class_compute():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -310,7 +329,11 @@ def test_standard_freq_class_compute():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_freq_utils_compute():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -341,8 +364,6 @@ def test_standard_freq_utils_compute():
     flag3, o3 = utils_spod.check_orthogonality(
         results_dir=results_dir, mode_idx1=[1], mode_idx2=[1],
         freq_idx=[5], dtype='single', comm=comm)
-
-
     T_ = 12.5;     tol1 = 1e-3;  tol2 = 1e-8
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
@@ -404,7 +425,11 @@ def test_standard_freq_utils_compute():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_normalize():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -470,7 +495,11 @@ def test_standard_normalize():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_streaming_fullspectrum():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -511,7 +540,11 @@ def test_streaming_fullspectrum():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_streaming_freq():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T
@@ -605,7 +638,11 @@ def test_streaming_freq():
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_parallel_postproc():
     ## -------------------------------------------------------------------
-    comm = MPI.COMM_WORLD
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
     data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
     data_dict = utils_io.read_data(data_file=data_file)
     data = data_dict['p'].T

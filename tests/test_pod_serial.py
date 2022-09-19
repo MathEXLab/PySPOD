@@ -5,7 +5,6 @@ import sys
 import h5py
 import shutil
 import numpy as np
-from mpi4py import MPI
 
 # Current, parent and file paths
 CWD = os.getcwd()
