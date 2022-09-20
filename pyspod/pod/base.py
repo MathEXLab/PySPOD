@@ -13,8 +13,8 @@ import warnings
 import numpy as np
 import scipy as scipy
 import pyspod.pod.utils      as utils_pod
-import pyspod.utils.parallel as utils_par
-import pyspod.utils.weights  as utils_weights
+import pypod.utils.parallel as utils_par
+import pypod.utils.weights  as utils_weights
 CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
@@ -355,6 +355,9 @@ class Base():
 
     def compute_coeffs(self, data, results_dir, modes_idx=None,
         tol=1e-10, svd=True, T_lb=None, T_ub=None):
+        '''
+        See method implementation in the pod.utils module.
+        '''
         file_coeffs, coeffs_dir = utils_pod.compute_coeffs(\
             data, results_dir=self._savedir_sim, modes_idx=modes_idx,
             comm=self._comm)
@@ -364,6 +367,9 @@ class Base():
 
 
     def compute_reconstruction(self, coeffs_dir, coeffs=None, time_idx=None):
+        '''
+        See method implementation in the pod.utils module.
+        '''
         if not hasattr(self, '_file_coeffs'):
             raise ValueError(
                 'Coeffs not computed; you need to run `compute_coeffs`.')
@@ -377,6 +383,9 @@ class Base():
 
 
     def _store_and_save(self):
+        '''
+        See method implementation in the pod.utils module.
+        '''
         '''Store and save results.'''
         self._params['results_folder'] = str(self._savedir_sim)
         self._params['time_step'] = float(self._dt)
@@ -403,10 +412,16 @@ class Base():
 
 
     def _pr0(self, string):
+        '''
+        See method implementation in the pod.utils module.
+        '''
         utils_par.pr0(string=string, comm=self._comm)
 
 
     def _set_dtype(self, d):
+        '''
+        See method implementation in the pod.utils module.
+        '''
         if   d.dtype == float  : d = d.astype(self._float  )
         elif d.dtype == complex: d = d.astype(self._complex)
         return d

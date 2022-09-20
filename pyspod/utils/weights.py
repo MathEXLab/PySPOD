@@ -12,6 +12,9 @@ def geo_trapz_2D(x1_dim, x2_dim, n_vars, **kwargs):
     :param numpy.ndarray x1_dim: first spatial coordinate.
     :param numpy.ndarray x2_dim: second spatial coordinate.
     :param int n_vars: number of variables.
+
+    :return: the computed weights.
+    :rtype: numpy.ndarray
     '''
     ## get optional parameter (radius of e.g. Earth). Default is 1
     R = kwargs.get('R', 1)
@@ -49,6 +52,9 @@ def geo_trapz_3D(x1_dim, x2_dim, x3_dim, n_vars, **kwargs):
     :param numpy.ndarray x2_dim: second spatial coordinate.
     :param numpy.ndarray x3_dim: third spatial coordinate.
     :param int n_vars: number of variables.
+
+    :return: the computed weights.
+    :rtype: numpy.ndarray
     '''
     ## get optional parameter (radius of e.g. Earth). Default is 1
     R = kwargs.get('R', 1)
@@ -92,8 +98,19 @@ def custom(**kwargs):
 
 
 def apply_normalization(
-    data, weights, n_variables, method='variance', comm=None):
-    '''Normalization of weights if required by data variance.'''
+    data, weights, n_vars, method='variance', comm=None):
+    '''
+    Normalization of weights if required by data variance.
+
+    :param numpy.ndarray data: data.
+    :param numpy.ndarray weights: weights.
+    :param int n_vars: number of variables.
+    :param int method: normalization method. Default is 'variance'.
+    :param MPI.Comm comm: MPI communicator.
+
+    :return: the nomralized weights.
+    :rtype: numpy.ndarray
+    '''
 
     ## variable-wise normalization by variance via weight matrix
     if comm is not None:
@@ -103,7 +120,7 @@ def apply_normalization(
                 print('Normalization by variance - parallel')
                 print('------------------------------------')
             axis = tuple(np.arange(0, data[...,0].ndim))
-            for i in range(0, n_variables):
+            for i in range(0, n_vars):
                 var, _, _ = utils_par.pvar(data[...,i], comm=comm)
                 weights[...,i] = weights[...,i] / var
         else:
@@ -117,7 +134,7 @@ def apply_normalization(
             print('Normalization by variance - serial')
             print('----------------------------------')
             axis = tuple(np.arange(0, data[...,0].ndim))
-            for i in range(0, n_variables):
+            for i in range(0, n_vars):
                 var = np.nanvar(data[...,i], axis=axis)
                 weights[...,i] = weights[...,i] / var
         else:

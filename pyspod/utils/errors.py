@@ -5,7 +5,14 @@ from numpy import linalg
 
 def compute_l_errors(data, data_ref, norm_type='l2'):
     '''
-    Compute error norms of a 1D array with respect to a reference data
+    Compute error l norms of data with respect to a reference data
+
+    :param numpy.ndarray data: data.
+    :param numpy.ndarray data: reference data.
+    :param str norm_type: type of norm to be used. Default is 'l2'.
+
+    :return: the computed error.
+    :rtype: numpy.ndarray
     '''
     n = data.size
     e = np.abs(data - data_ref)
@@ -23,6 +30,17 @@ def compute_l_errors(data, data_ref, norm_type='l2'):
 
 
 def compute_h_errors(data, data_ref, dt, norm_type='h1'):
+    '''
+    Compute error h norms of data with respect to a reference data
+
+    :param numpy.ndarray data: data.
+    :param numpy.ndarray data: reference data.
+    :param float dt: data time step.
+    :param str norm_type: type of norm to be used. Default is 'h1'.
+
+    :return: the computed error.
+    :rtype: numpy.ndarray
+    '''
     # warnings.warn("warning: for h1 calculation, dim0 must be time.")
     if norm_type == 'h1':
         err_h1 = 0

@@ -19,7 +19,18 @@ B2GB = 9.313225746154785e-10
 def check_orthogonality(results_dir, mode_idx1, mode_idx2,
     freq_idx, dtype='double', savedir=None, comm=None):
     '''
-    Compute coefficients through oblique projection.
+    Check orthogonality of SPOD modes.
+
+    :param str results_dir: path to results folder where to find SPOD modes.
+    :param int mode_idx1: id first mode used for comparison.
+    :param int mode_idx2: id second mode used for comparison.
+    :param int freq_idx: frequency id to be used.
+    :param str dtype: datatype to be used. Default is 'double'.
+    :param str savedir: path where to save the data.
+    :param MPI.Comm comm: MPI communicator.
+
+    :return: orthogonality check and value.
+    :rtype: bool, float
     '''
     s0 = time.time()
     st = time.time()
@@ -67,6 +78,23 @@ def compute_coeffs(
     tol=1e-10, svd=False, savedir=None, dtype='double', comm=None):
     '''
     Compute coefficients through oblique projection.
+
+    :param numpy.ndarray data: data.
+    :param str results_dir: path to results folder.
+    :param list mode_idx: ids modes used for building coefficients.
+        Default is None.
+    :param list freq_idx: frequency ids to be used. Default is None.
+    :param float T_lb: lower bound period. Default is None.
+    :param float T_ub: upper bound period. Default is None.
+    :param float tol: tolerance for pseudoinverse. Default is 1e-10.
+    :param float svd: whether to use svd pseudoinverse. Default is None.
+    :param str savedir: path where to save the data. Default is None.
+    :param str dtype: datatype to be used. Default is 'double'.
+    :param MPI.Comm comm: MPI communicator. Default is None.
+
+    :return: where the file with the coefficients is saved,
+        and associated folder.
+    :rtype: str, str
     '''
     s0 = time.time()
     st = time.time()
@@ -194,6 +222,19 @@ def compute_reconstruction(
     dtype='double', comm=None):
     '''
     Reconstruct original data through oblique projection.
+
+    :param str coeffs_dir: path to coefficients folder.
+    :param list time_idx: ids of times to be used for building reconstruction.
+    :param list coeffs: coefficients. Default is None.
+    :param str savedir: path where to save the data. Default is None.
+    :param str filename: filename to use for saving reconstruction.
+        Default is None.
+    :param str dtype: datatype to be used. Default is 'double'.
+    :param MPI.Comm comm: MPI communicator. Default is None.
+
+    :return: where the file with the reconstruction is saved,
+        and associated folder.
+    :rtype: str, str
     '''
     s0 = time.time()
     st = time.time()
@@ -214,7 +255,7 @@ def compute_reconstruction(
     with open(file_params) as f:
         params = yaml.load(f, Loader=yaml.FullLoader)
     xshape_nv = lt_mean.shape
-    ## try to load coeffiecients from file if not provided
+    ## try to load coefficients from file if not provided
     if coeffs is None:
         try:
             file_coeffs = os.path.join(coeffs_dir, 'coeffs.npy')

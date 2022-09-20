@@ -11,6 +11,16 @@ from os.path import splitext
 
 
 def read_data(data_file, format=None, comm=None):
+    '''
+    Read data file provided in some standard formats.
+
+    :param str data_file: path to data file.
+    :param str format: type of format to be read. Default is None.
+    :param MPI.Comm comm: parallel communicator. Default is None.
+
+    :return: the data from the data_file.
+    :rtype: numpy.ndarray
+    '''
     if not format:
         _, format = splitext(data_file)
     if comm:
@@ -31,7 +41,15 @@ def read_data(data_file, format=None, comm=None):
 
 
 def read_config(parsed_file=None):
-    ## parse command line
+    '''
+    Parse command line for a config file.
+
+    :param str parsed_file: file to be parsed. Default is None.
+        Parsing happens on the command line.
+
+    :return: the parameters read from the config file.
+    :rtype: dict
+    '''
     parser = argparse.ArgumentParser(description='Config file.')
     parser.add_argument('--config_file', help='Configuration file.')
     if parsed_file:

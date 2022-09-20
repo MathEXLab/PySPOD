@@ -30,7 +30,7 @@ def find_nearest_freq(freq_req, freq):
     :param double freq_req: requested frequency.
     :param np.ndarray freq: array of frequencies.
 
-    :return: the nearest frequecy to the `freq_req` requested and its id.
+    :return: the nearest frequency to the `freq_req` requested and its id.
     :rtype: double, int
     '''
     freq = np.asarray(freq)
