@@ -1,0 +1,28 @@
+name: site
+on:
+  push:
+    branches:
+      - main
+      - restructuring
+  pull_request:
+    branches:
+      - main
+      - restructuring
+  workflow_dispatch:
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create site
+        uses: actions/checkout@v2
+        with:
+          site-folder: "site/"
+
+      # Deploy documentationa using packages
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site/build/html
+          allow_empty_commit: true
