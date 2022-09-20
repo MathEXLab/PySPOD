@@ -13,8 +13,8 @@ import warnings
 import numpy as np
 import scipy as scipy
 import pyspod.pod.utils      as utils_pod
-import pypod.utils.parallel as utils_par
-import pypod.utils.weights  as utils_weights
+import pyspod.utils.parallel as utils_par
+import pyspod.utils.weights  as utils_weights
 CWD = os.getcwd()
 CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
