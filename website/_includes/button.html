@@ -1,0 +1,19 @@
+{% comment %}
+
+    Bootstrap button link, https://getbootstrap.com/docs/4.5/components/button/
+
+    e.g. --> {% include button.html text="Example Button Link" link="https://example.com" color="success" %}
+
+    Options:
+    - "text" = main button text
+    - "link" = button link
+    - "color" = a bootstrap color (primary, secondary, success, danger, warning, info, light, dark)
+    - "size" = optional btn size, choose from "lg", "sm" (defaults to normal size)
+    - "width" = will use Bootstrap sizing to set the % size, choose from "25", "50", "75", or "100" 
+    - "centered" = give "true" to add the button to a div and center on page
+    - "float" = will use Bootstrap float utility to add float, choose from "left" or "right" (not recommended)
+
+{%- endcomment -%}
+{% if include.centered %}<div class="text-center mb-3">{%- endif -%}
+<a class="btn{% if include.size %} btn-{{ include.size }}{% endif %} btn-{{ include.color | default: 'secondary' }}{% if include.float %} float-{{ include.float }}{% endif %}{% if include.width %} w-{{ include.width }}{% endif %}" href="{{ include.link }}"  target="_blank" rel="noopener">{{ include.text }}</a>
+{% if include.centered %}</div>{%- endif -%}

@@ -1,0 +1,39 @@
+{% comment %}
+
+    Bootstrap Jumbotron, https://getbootstrap.com/docs/4.5/components/jumbotron/
+    This include adds a Jumbotron feature from an image. By default it is configured to work with the About page option "about-featured-image" set in theme.yml without any options necessary. 
+    Options:
+    - "img" = the filename of the image located in the /images/ folder
+    - "position" = set background-position, "center", "top", "bottom"
+    - "heading" = major heading to display. 
+    - "text" = paragraph text below heading.
+    - "color" = text color using bootstrap options, white, primary, info, secondary, etc. 
+    - "align" = text align option, center, right
+    - "padding" = additional padding added to the feature to increase size. Give value in em or px, e.g. "5em".
+
+{%- endcomment -%}
+
+<style>
+#jumbo-feature {
+    background-image: url({{ include.img | prepend: '/images/' | relative_url }});
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: {{ include.position | default: 'center' }};
+}
+{% if include.padding %}
+#home-title-box {
+    padding-top: {{ include.padding }};
+    padding-bottom: {{ include.padding }};
+}
+{%- endif -%}
+</style>
+<div class="jumbotron feature px-0 py-5 border" id="jumbo-feature">
+    <div id="home-title-box">
+        {% if include.heading or include.text %}
+        <div class="title-card p-2{% if include.align %} text-{{ include.align }}{% endif %}{% if include.color %} text-{{ include.color }}{% endif %}">
+            {% if include.heading %}<h1 class="display-4">{{ include.heading }}</h1>{% endif %}
+            {% if include.text %}<p id="home-tagline">{{ include.text | markdownify }}</p>{% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>

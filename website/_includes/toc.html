@@ -1,0 +1,14 @@
+<div class="row justify-content-center">
+    <div class="m-3 col-md-8" >
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Contents:</h5>
+                <ul>
+                    {% for section in site.html_pages %}{% if section.nav %}
+                    <li><a href="{{ section.url | relative_url }}">{{ section.title }}</a> {% if section.topics %}<small>| topics: {{ section.topics }}</small>{% endif %}</li>
+                    {% endif %}{%- endfor -%}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

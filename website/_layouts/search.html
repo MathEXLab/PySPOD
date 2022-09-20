@@ -1,0 +1,36 @@
+---
+layout: default 
+---
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#operators">Search Operators!</button>
+<!-- Modal -->
+<div class="modal fade" id="operators" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Lunr Search Operators</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li>Specific fields (e.g. title:foo, text:1911)</li>
+                    <li>Wildcards (e.g. foo*, *oo)</li>
+                    <li>Fuzzy match, helps with misspelling (e.g. foo~1)</li>
+                    <li>Boost term (e.g. foo^10)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ content }}
+
+<div class="ml-3">
+    <input type="text" id="search" class="form-control" placeholder="Enter your search term...">
+    <table id="results" class="table table-responsive"></table>
+</div>
+
+<div class="mt-3">
+    <p class="text-muted">Fuzzy search powered by <a href="https://lunrjs.com/" target="_blank" rel="noopener">Lunr.js</a>. <em>May take a second to load large workshops!</em></p>
+</div>

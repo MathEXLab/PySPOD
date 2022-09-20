@@ -1,0 +1,115 @@
+/* skip nav for accessibility, based on https://webaim.org/techniques/skipnav/ */
+#skip-to-content a {
+	padding:6px;
+	position: absolute;
+	top:-45px;
+	left:0px;
+	color:white;
+	border-right:1px solid white;
+	border-bottom:1px solid white;
+	border-bottom-right-radius:8px;
+	background:#BF1722;
+	-webkit-transition: top 1s ease-out;
+    transition: top 1s ease-out;
+    z-index: 100;
+}
+#skip-to-content a:focus {
+	position:absolute;
+	left:0px;
+	top:0px;
+	outline-color:transparent;	
+	-webkit-transition: top .1s ease-in;
+    transition: top .1s ease-in;
+}
+/* add decorative borders  */
+header {
+    border-top: solid 4px $top-border;
+    .nav-tabs {
+        border-bottom: none;
+    }
+}
+footer {
+    border-top: solid 1px $top-border;
+    .nav-link { 
+        color: rgba(0,0,0,.5);
+        &.active { 
+            text-decoration: underline;
+            color: rgba(0,0,0,.9);
+        }
+        &:hover {
+            color: rgba(0,0,0,.7);
+        }
+    }
+}
+
+/* change default colors */
+body {
+    color: $text-color;
+}
+a {
+    color: $link-color;
+}
+
+/* change container size for easier reading */
+@media (min-width:576px){
+    .container{max-width:540px}
+}
+@media (min-width:768px){
+    .container{max-width:750px}
+}
+@media (min-width:992px){
+    .container{max-width:$container-max}
+}
+@media (min-width:1200px){
+    .container{max-width:$container-max}
+}
+
+/* feature include tweaks */
+.feature-alert p:last-of-type { margin-bottom: 0; }
+@media (min-width: 768px) {
+    .feature-w-25 {
+        width: 25%!important;
+    }
+    .feature-w-50 {
+        width: 50%!important;
+    }
+    .feature-w-75 {
+        width: 75%!important;
+    }
+    .feature-w-100 {
+        width: 100%!important;
+    }
+    .feature-float-right {
+        float: right!important;
+    }
+    .feature-float-left {
+        float: left!important;
+    } 
+}
+
+/* code blocks */
+div.highlighter-rouge {
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
+    overflow: auto;
+    padding: 1rem 1.5rem;
+    border-radius: .25rem;
+}
+
+/* term highlighting */
+.term {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+/* scroll to top */
+#scroll-to-top {
+    display: none; 
+    position: fixed; 
+    bottom: 35px; 
+    right: 20px; 
+    z-index: 99;
+    font-size: 40px; 
+}
