@@ -428,7 +428,7 @@ class Base():
             self._pr0('- normalizing weights')
             self._weights = utils_weights.apply_normalization(
                 data=data, weights=self._weights,
-                n_variables=self._nv, comm=self._comm, method='variance')
+                n_vars=self._nv, comm=self._comm, method='variance')
 
         ## flatten weights to number of space x variables points
         try:
