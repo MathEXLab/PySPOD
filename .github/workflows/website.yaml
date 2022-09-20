@@ -1,4 +1,4 @@
-name: site
+name: website
 on:
   push:
     branches:
@@ -17,12 +17,12 @@ jobs:
       - name: Create site
         uses: actions/checkout@v2
         with:
-          site-folder: "site/"
+          site-folder: "website/"
 
       # Deploy documentationa using packages
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site/build/html
+          publish_dir: ./website/build/html
           allow_empty_commit: true
