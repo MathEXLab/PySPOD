@@ -102,7 +102,7 @@ def distribute(data, comm):
         data = data
     return data, max_axis, global_shape
 
-    
+
 def distribute_data(data, comm):
     """
     Distribute largest spatial dimension of data, assuming:
@@ -204,13 +204,12 @@ def npy_save(comm, filename, array, axis=0):
         sizes[axis] = int(gcount)
         starts = [0] * len(sizes)
         starts[axis] = int(gdispl)
+
+        array = np.ascontiguousarray(array)
         if array.flags.c_contiguous:
             mpi_order = MPI.ORDER_C
         elif array.flags.f_contiguous:
             mpi_order = MPI.ORDER_FORTRAN
-        else:
-            array = np.ascontiguousarray(array)
-            mpi_order = MPI.ORDER_C
 
         file = MPI.File.Open(comm, filename, MPI.MODE_CREATE | MPI.MODE_WRONLY)
         file.Set_size(0)  # truncate if the file exists
@@ -231,18 +230,24 @@ def npy_save(comm, filename, array, axis=0):
         offset = np.array(offset, dtype=np.int64)
         comm.Bcast(offset, root=0)
         datatype = dtlib.from_numpy_dtype(dtype)
-        subarray = datatype.Create_subarray(
-            sizes=sizes,
-            subsizes=shape,
-            starts=starts,
-            order=mpi_order,
-        )
+
+        if shape[axis] > 0:
+            subarray = datatype.Create_subarray(
+                sizes=sizes,
+                subsizes=shape,
+                starts=starts,
+                order=mpi_order,
+            )
+        else:
+            subarray = datatype.Create_contiguous(0)
+
         datatype.Commit()
         subarray.Commit()
         file.Set_view(disp=offset, etype=datatype, filetype=subarray)
         datatype.Free()
         subarray.Free()
         file.Write_all(array)
+        file.Sync()
         file.Close()
     else:
         np.save(filename, array)
@@ -298,12 +303,17 @@ def npy_load(comm, filename, axis=0, count=None):
         else:
             mpi_order = MPI.ORDER_FORTRAN
         datatype = dtlib.from_numpy_dtype(dtype)
-        subarray = datatype.Create_subarray(
-            sizes=sizes,
-            subsizes=shape,
-            starts=starts,
-            order=mpi_order,
-        )
+
+        if shape[axis] > 0:
+            subarray = datatype.Create_subarray(
+                sizes=sizes,
+                subsizes=shape,
+                starts=starts,
+                order=mpi_order,
+            )
+        else:
+            subarray = datatype.Create_contiguous(0)
+
         datatype.Commit()
         subarray.Commit()
         file.Set_view(disp=offset, etype=datatype, filetype=subarray)
