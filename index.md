@@ -1,7 +1,7 @@
 ---
 layout: default
 title: PySPOD
-tagline: Python Spectral Proper Orthogonal Decomposition
+tagline: A parallel SPOD package
 ---
 
 PySPOD is a parallel (distributed) library, that implements the spectral proper orthogonal decomposition, briefly SPOD, in Python.
