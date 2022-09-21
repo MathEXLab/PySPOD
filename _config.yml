@@ -1,6 +1,7 @@
 # Site settings
 title: "PySPOD"
 title-icon:
+tagline: A parallel SPOD package
 description: "A parallel SPOD package"
 keywords: "modal decomposition, dynamical system, computational physics"
 featured-image:
