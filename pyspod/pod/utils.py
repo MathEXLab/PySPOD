@@ -125,6 +125,7 @@ def compute_coeffs(data, results_dir, modes_idx=None,
     utils_par.pr0(f'---------------------------------------'  , comm)
     utils_par.pr0(f'Coefficients saved in: {file_coeffs}'     , comm)
     utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'      , comm)
+    utils_par.barrier(comm)
     return file_coeffs, coeffs_dir
 
 
@@ -184,6 +185,7 @@ def compute_reconstruction(
         raise TypeError('`time_idx` parameter type not recognized.')
 
     ## distribute modes_r and longtime mean
+    print(params)
     max_axis = params['max_axis']
     phir = utils_par.distribute_dimension(
         data=phir, max_axis=max_axis, comm=comm)
@@ -220,6 +222,7 @@ def compute_reconstruction(
     utils_par.pr0(f'--------------------------------------------', comm)
     utils_par.pr0(f'Reconstructed data saved in: {file_dynamics}', comm)
     utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'         , comm)
+    utils_par.barrier(comm)
     return file_dynamics, coeffs_dir
 
 

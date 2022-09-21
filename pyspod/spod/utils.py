@@ -70,6 +70,7 @@ def check_orthogonality(results_dir, mode_idx1, mode_idx2,
         ortho_check = ((O < 1+tol) & (O>1-tol))
     else:
         ortho_check = ((O < 0+tol) & (O>0-tol))
+    utils_par.barrier(comm)
     return ortho_check, O
 
 
@@ -214,6 +215,7 @@ def compute_coeffs(
     utils_par.pr0(f'-----------------------------------------'  , comm)
     utils_par.pr0(f'Coefficients saved in folder: {file_coeffs}', comm)
     utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'        , comm)
+    utils_par.barrier(comm)
     return file_coeffs, coeffs_dir
 
 
@@ -316,6 +318,7 @@ def compute_reconstruction(
     utils_par.pr0(f'--------------------------------------------', comm)
     utils_par.pr0(f'Reconstructed data saved in: {file_dynamics}', comm)
     utils_par.pr0(f'Elapsed time: {time.time() - s0} s.'         , comm)
+    utils_par.barrier(comm)
     return file_dynamics, coeffs_dir
 
 
