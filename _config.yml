@@ -4,8 +4,9 @@ title-icon:
 tagline: A parallel SPOD package
 description: "A parallel SPOD package"
 keywords: "modal decomposition, dynamical system, computational physics"
-featured-image:
 show_downloads: true
+featured-image:
+
 
 # author settings for cc-by, appears in the footer and credits
 author: mathe-lab
