@@ -383,7 +383,7 @@ def test_standard_freq_utils_compute():
                (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
         assert(flag1==True); assert(np.abs(o1)<1e-15)
         assert(flag2==True); assert((np.abs(o2)<1e-7 )&(np.abs(o2)>1e-9 ))
-        assert(flag3==True); assert((np.abs(o3)<1.00 )&(np.abs(o3)>0.99 ))
+        assert(flag3==True); assert((np.abs(o3)<1.001 )&(np.abs(o3)>0.999 ))
         ## transform
         # print(f'{np.real(np.min(coeffs)) = :}')
         # print(f'{np.real(np.max(coeffs)) = :}')
@@ -596,7 +596,7 @@ def test_streaming_freq():
                (np.max(np.abs(modes_at_freq))>0.17575077060057-tol2))
         assert(flag1==True); assert(np.abs(o1)<1e-15)
         assert(flag2==True); assert((np.abs(o2)<1e-7 )&(np.abs(o2)>1e-9 ))
-        assert(flag3==True); assert((np.abs(o3)<1.00 )&(np.abs(o3)>0.99 ))
+        assert(flag3==True); assert((np.abs(o3)<1.001 )&(np.abs(o3)>0.999 ))
         ## transform
         # print(f'{np.real(np.min(recons)) = :}')
         # print(f'{np.real(np.min(coeffs)) = :}')
