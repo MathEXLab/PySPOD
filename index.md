@@ -8,8 +8,6 @@ Text can be **bold**, _italic_, or ~~strikethrough~~.
 
 There should be whitespace between paragraphs.
 
-There should be whitespace between paragraphs. We recommend including a README, or a file with information about your project.
-
 # Header 1
 
 This is a normal paragraph following a header. GitHub is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.
@@ -34,6 +32,28 @@ var fun = function lang(l) {
 # Ruby code with syntax highlighting
 GitHubPages::Dependencies.gems.each do |gem, version|
   s.add_dependency(gem, "= #{version}")
+end
+```
+
+```python
+# Python code with syntax highlighting
+def oblique_projection(Phi_tilde, W_phi, W, Q, svd=True):
+	if svd:
+		PhiTWPhi = Phi_tilde.conj().T @ (W_phi * Phi_tilde)
+		PhiTWQ = Phi_tilde.conj().T @ (W * Q)
+		u, l, v = np.linalg.svd(PhiTWPhi)
+		l_inv = np.zeros([len(l), len(l)], dtype='complex_')
+		for i in range(len(l)):
+			if (l[i] > 1e-10):
+				l_inv[i,i] = 1 / l[i]
+		PhiTWPhi_inv = (v.conj().T @ l_inv) @ u.conj().T
+		coeffs = PhiTWPhi_inv @ PhiTWQ
+	else:
+		PhiTWPhi = Phi_tilde.conj().T @ (W_phi * Phi_tilde)
+		PhiTWQ = Phi_tilde.conj().T @ (W * Q)
+		tmp1_inv = np.linalg.pinv(PhiTWPhi)
+		coeffs = tmp1_inv @ PhiTWQ
+	return coeffs
 end
 ```
 
