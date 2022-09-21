@@ -2,6 +2,8 @@
 layout: default
 ---
 
+PySPOD is a parallel (distributed) library, that implements the spectral proper orthogonal decomposition, briefly SPOD, in Python.
+ 
 Text can be **bold**, _italic_, or ~~strikethrough~~.
 
 [Link to another page](./another-page.html).

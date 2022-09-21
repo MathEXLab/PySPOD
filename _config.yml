@@ -1,5 +1,5 @@
 # Site settings
-title: "PySPOD: A parallel distributed SPOD package"
+title: "PySPOD"
 title-icon:
 description: "PySPOD: A parallel distributed SPOD package"
 keywords: "modal decomposition, dynamical system, computational physics"
