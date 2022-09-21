@@ -49,7 +49,7 @@
   {% include site-header.html %}
 
   {% if page.layout == 'home' %}
-  {% assign page-tagline = page.description | default: site.description | default: site.github.project_tagline | escape %}
+  {% assign page-tagline = page.tagline | escape %}
   {% endif %}
 
   {% if page.layout == 'page' %}
@@ -61,7 +61,7 @@
   {% endif %}
 
   <section class="page-header">
-    <!-- <h1 class="project-name">{{ page-title }}</h1> -->
+    <h1 class="project-name">{{ page-title }}</h1>
     <h2 class="project-tagline">{{ page-tagline }}</h2>
     {% if page.layout == 'home' %}
     <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
