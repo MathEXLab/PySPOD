@@ -28,3 +28,5 @@ defaults:
 
 # Build settings
 theme: jekyll-theme-cayman
+
+header_page_refs: ['now', 'about', 'contact']
