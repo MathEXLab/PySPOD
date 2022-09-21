@@ -1,0 +1,25 @@
+{% comment %}
+    
+    Youtube video embed.
+    This include adds a video embed to the page using Bootstrap responsive embed styles, https://getbootstrap.com/docs/4.5/utilities/embed/
+
+    It requires an "youtubeid" which is used to get the video from YouTube. 
+    You can find the youtube id by looking at the end of the "share" link on a youtube video.
+    e.g. in https://youtu.be/SWVjQsvQocA the id is = SWVjQsvQocA
+
+    Options:
+    - "youtubeid" = a youtube id 
+    - "width" will use Bootstrap sizing to set the % size, choose from "25", "50", "75", or "100"
+    - "float" will use Bootstrap float utility to add float, choose from "left" or "right"
+    - "caption" by default the figure include automatically adds the title of the item from your metadata. The caption option allows you to manually add a different caption, or give the value false for none.
+    - "ratio" use Bootstrap embed ratio options "21by9", "16by9", "4by3", or "1by1" to customize the responsive aspect ratio. 16by9 is default.
+
+{%- endcomment -%}
+<div class="text-center ">
+    <figure class="figure {% if include.float %} float-{{ include.float }}{% endif %} w-{{ include.width | default: '100' }}">
+        <div class="embed-responsive embed-responsive-{{ include.ratio | default: '16by9' }}">
+            <iframe class="embed-responsive-item" src="https://www.youtube-nocookie.com/embed/{{ include.youtubeid }}?rel=0&modestbranding=1" allowfullscreen></iframe>
+        </div>
+        {% if include.caption %}<figcaption class="figure-caption">{{ include.caption }}</figcaption>{% endif %}
+    </figure>
+</div>

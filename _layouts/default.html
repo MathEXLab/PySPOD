@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+  {% include template/head.html %}
+  </head>
+
+  <body>
+    <div id="skip-to-content"><a href="#maincontent">Skip to main content</a></div>
+    <header>
+    {% include template/top-nav.html %}
+    </header>
+
+    <main id="maincontent" role="main" aria-label="Content">
+      <div class="container my-4">
+      {{ content }}
+      </div>
+    </main>
+
+    {% include template/footer.html %}
+    {% include template/foot.html %}
+
+  </body>
+
+</html>

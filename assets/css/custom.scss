@@ -1,0 +1,20 @@
+---
+# front matter
+---
+
+// add color at page top
+$top-border: #424242;
+// limit container size to make reading easier
+$container-max: 750px;
+
+$text-color: #111 !default;
+$link-color: #2a7ae2 !default;
+
+$grey-color: #828282 !default;
+$grey-color-light: lighten($grey-color, 40%) !default;
+$grey-color-dark: darken($grey-color, 25%) !default;
+
+// Import partials.
+@import
+  "custom"
+;
