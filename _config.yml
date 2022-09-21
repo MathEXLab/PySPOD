@@ -27,6 +27,13 @@ defaults:
       layout: "section"
 
 # Build settings
-theme: jekyll-theme-cayman
+# theme: jekyll-theme-cayman
+theme:
+
+plugins:
+  - jekyll-target-blank
+
+target-blank:
+    rel: nofollow
 
 header_page_refs: ['now', 'about', 'contact']
