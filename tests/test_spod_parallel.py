@@ -149,7 +149,7 @@ def test_standard_svd():
         data=data, results_dir=results_dir, svd=True, comm=comm)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all', comm=comm)
-    T_ = 12.5;     tol = 1e-10
+    T_ = 12.5;     tol = 1e-8
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
         modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
