@@ -1,5 +1,5 @@
 ---
-layout: home
+layout: default
 title: PySPOD
 tagline: Python Spectral Proper Orthogonal Decomposition
 permalink: /home.html
