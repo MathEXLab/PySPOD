@@ -51,9 +51,11 @@
   {% if page.layout == 'home' %}
   {% assign page-tagline = site.description | default: site.github.project_tagline | escape %}
   {% endif %}
+
   {% if page.layout == 'page' %}
   {% assign page-tagline = page.tagline | escape %}
   {% endif %}
+
   {% if page.layout == 'post' %}
   {% assign page-tagline = page.tagline | escape  %}
   {% endif %}
