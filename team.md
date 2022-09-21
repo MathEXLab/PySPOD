@@ -2,7 +2,7 @@
 layout: page
 title: Team
 tagline: Developers and Contributors
-ref: contact
+ref: team
 order: 1
 ---
 

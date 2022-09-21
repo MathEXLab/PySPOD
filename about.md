@@ -36,52 +36,33 @@ This can help identifying relations to multiple variables or understanding the r
 
 ## References
 
-### (Lumley 1970)
-*Stochastic Tools in Turbulence.* [[DOI](https://www.elsevier.com/books/stochastic-tools-in-turbulence/lumey/978-0-12-395772-6?aaref=https%3A%2F%2Fwww.google.com)]
+### (Lumley 1970) *Stochastic Tools in Turbulence.* [[DOI](https://www.elsevier.com/books/stochastic-tools-in-turbulence/lumey/978-0-12-395772-6?aaref=https%3A%2F%2Fwww.google.com)]
 
-### (Picard and Delville 2000)
-
-*Pressure velocity coupling in a subsonic round jet.*
+### (Picard and Delville 2000) *Pressure velocity coupling in a subsonic round jet.*
 [[DOI](https://www.sciencedirect.com/science/article/abs/pii/S0142727X00000217)]
 
-### (Tutkun and George 2017)
-
-*Lumley decomposition of turbulent boundary layer at high Reynolds numbers.*
+### (Tutkun and George 2017) *Lumley decomposition of turbulent boundary layer at high Reynolds numbers.*
 [[DOI](https://aip.scitation.org/doi/10.1063/1.4974746)]
 
-### (Schmidt et al 2017)
-
-*Wavepackets and trapped acoustic modes in a turbulent jet: coherent structure eduction and global stability.*
+### (Schmidt et al 2017) *Wavepackets and trapped acoustic modes in a turbulent jet: coherent structure eduction and global stability.*
 [[DOI](https://doi.org/10.1017/jfm.2017.407)]
 
-### (Araya et al 2017)
-
-*Transition to bluff-body dynamics in the wake of vertical-axis wind turbines.*
+### (Araya et al 2017) *Transition to bluff-body dynamics in the wake of vertical-axis wind turbines.*
 [[DOI]( https://doi.org/10.1017/jfm.2016.862)]
 
-### (Taira et al 2017)
-
-*Modal analysis of fluid flows: An overview.*
+### (Taira et al 2017) *Modal analysis of fluid flows: An overview.*
 [[DOI](https://doi.org/10.2514/1.J056060)]
 
-### (Towne et al 2018)
-
-*Spectral proper orthogonal decomposition and its relationship to dynamic mode decomposition and resolvent analysis.*
+### (Towne et al 2018) *Spectral proper orthogonal decomposition and its relationship to dynamic mode decomposition and resolvent analysis.*
 [[DOI]( https://doi.org/10.1017/jfm.2018.283)]
 
-### (Schmidt and Towne 2019)
-
-*An efficient streaming algorithm for spectral proper orthogonal decomposition.*
+### (Schmidt and Towne 2019) *An efficient streaming algorithm for spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.1016/j.cpc.2018.11.009)]
 
-### (Schmidt et al 2019)
-
-*Spectral empirical orthogonal function analysis of weather and climate data.*
+### (Schmidt et al 2019) *Spectral empirical orthogonal function analysis of weather and climate data.*
 [[DOI](https://doi.org/10.1175/MWR-D-18-0337.1)]
 
-### (Schmidt and Colonius 2020)
-
-*Guide to spectral proper orthogonal decomposition.*
+### (Schmidt and Colonius 2020) *Guide to spectral proper orthogonal decomposition.*
 [[DOI](https://doi.org/10.2514/1.J058809)]
 
 
