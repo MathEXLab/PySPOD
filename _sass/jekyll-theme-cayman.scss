@@ -1,8 +1,7 @@
 @import "normalize";
 @import "rouge-github";
 @import "variables";
-@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700');
-@import "blog";
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap');
 
 @mixin large {
   @media screen and (min-width: #{$large-breakpoint}) {
@@ -160,25 +159,6 @@ a {
   }
 }
 
-.project-date {
-  margin-bottom: 0rem;
-  font-weight: normal;
-  opacity: 0.7;
-  font-style: italic;
-
-  @include large {
-    font-size: 1.0rem;
-  }
-
-  @include medium {
-    font-size: 0.95rem;
-  }
-
-  @include small {
-    font-size: 0.75rem;
-  }
-}
-
 .main-content {
   word-wrap: break-word;
 
@@ -188,27 +168,21 @@ a {
 
   @include large {
     max-width: 64rem;
-    padding: 3rem 6rem;
+    padding: 2rem 6rem;
     margin: 0 auto;
     font-size: 1.1rem;
   }
 
   @include medium {
-    padding: 3rem 4rem;
+    padding: 2rem 4rem;
     font-size: 1.1rem;
   }
 
   @include small {
     padding: 2rem 1rem;
     font-size: 1rem;
-
-    ul,
-    ol {
-      margin-top: 0;
-      padding-left: 0;
-    }    
   }
-
+  
   kbd {
     background-color: #fafbfc;
     border: 1px solid #c6cbd1;
@@ -391,7 +365,6 @@ a {
 
   @include small {
     font-size: 0.9rem;
-    margin-bottom: 0.5rem;
   }
 }
 
@@ -402,72 +375,4 @@ a {
 
 .site-footer-credits {
   color: $blockquote-text-color;
-}
-
-.site-footer {
-
-  @include large {
-  }
-
-  @include medium {
-  }
-
-  @include small {
-  }
-
-  .my-span-icon {
-
-    a {
-    	text-decoration: none;
-    }
-    a:hover {
-      text-decoration: none;
-    }
-
-    @include large {
-      padding: 0px 5px 0px 5px;
-    }
-
-    @include medium {
-      //font-size: 1rem;
-      padding: 0px 10px 10px 10px;
-    }
-
-    @include small {
-      padding: 0px 10px 10px 10px;
-    }
-  }
-
-  .my-svg-icon {
-
-    color: $body-text-color; // IE8
-    fill: $body-text-color; // IE8
-    width: 24px;
-    height: 24px;
-
-    &:hover {
-      text-decoration: none;
-      color: $section-headings-color; // IE8
-      fill: $section-headings-color;
-      transform: scale(1.25);
-      transition: color .5s, transform .2s ease-out
-    }
-
-    @include large {
-      width: 28px;
-      height: 28px;
-    }
-
-    @include medium {
-      width: 32px;
-      height: 32px;
-    }
-
-    @include small {
-      width: 36px;
-      height: 36px;
-    }
-
-  } // social-icons
-
 }

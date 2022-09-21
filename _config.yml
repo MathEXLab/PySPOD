@@ -1,30 +1,30 @@
-title: Cayman Blog Theme
-description: Cayman Blog Theme is a clean, responsive blogging theme for Jekyll and Gitlab/GitHub Pages.
-show_downloads: true
+# Site settings
+title: "PySPOD: A parallel distributed SPOD package"
+title-icon:
+description: "PySPOD: A parallel distributed SPOD package"
+keywords: "modal decomposition, dynamical system, computational physics"
+featured-image:
 
-baseurl: "/cayman-blog" # change this to the subpath of your site, e.g. /blog. Leave it empty if you don't need it.
-url: "https://lorepirri.github.io" # change this to the base hostname & protocol for your site
+# author settings for cc-by, appears in the footer and credits
+author: mathe-lab
+pub_year: 2022
+github_username: mathe-lab
+repo: "https://github.com/mathe-lab/PySPOD/"
 
+# add search box to footer?
+search: false
 
+# add google analytics if desired (optional)
+# if blank, it will be ignored
+# use JEKYLL_ENV=production on build command
 google_analytics:
 
-# cayman-blog date format
-# refer to http://shopify.github.io/liquid/filters/date/ if you want to customize this
-cayman-blog:
-  date_format: "%b %-d, %Y"
+# defaults (to simplify front matter)
+defaults:
+  - scope:
+      path: "content"
+    values:
+      layout: "section"
 
-theme: # leave it empty
-
-# social
-author: lorepirri
-image: /thumbnail-jumbo.png
-twitter:
-  username: lorepirri
-
-plugins:
-  - jekyll-target-blank
-
-target-blank:
-    rel: nofollow
-
-header_page_refs: ['now', 'about', 'contact']
+# Build settings
+theme: jekyll-theme-cayman
