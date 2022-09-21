@@ -49,7 +49,7 @@
   {% include site-header.html %}
 
   {% if page.layout == 'home' %}
-  {% assign page-tagline = page.tagline | escape %}
+  {% assign page-tagline = site.tagline | escape %}
   {% endif %}
 
   {% if page.layout == 'page' %}
