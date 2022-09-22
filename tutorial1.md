@@ -14,12 +14,13 @@ In this tutorial we explore a small dataset provided with this package
 that contains pressure data of the flow exiting a nozzle (also referred
 to as a jet). Cylindrical coordinates _(r,x)_ are used and they are equally
 spaced. In particular, starting from a database of pre computed solutions,
-we want to:
+we show how to:
 
-- extract the SPOD (coherent in space and time) modes,
-- compute the coefficients, by projecting the data on
+1. load the required libraries, data and parameters,
+2. extract the SPOD modes,
+3. compute the time coefficients, by projecting the data on
 the SPOD basis built by gathering the modes, and
-- reconstruct the high-dimensional data from the coefficients
+4. reconstruct the high-dimensional data from the coefficients
 
 In detail, the starting dataset consists of 1000 flow realizations which
 represent the pressure field at different time instants. The time step
@@ -30,7 +31,7 @@ is 12 hours.
 |<span style="color:#858986;"> **Animation of the data used in this tutorial.**</span>|
 
 
-## Loading libraries, data and parameters
+## 1. Load libraries, data and parameters
 
 The dataset is part of the data used for the regression tests that come
 with this library and is stored into `tests/data/fluidmechanics_data.mat`.
@@ -75,9 +76,9 @@ params['time_step'] = dt
 
 where `dt` has been previously defined when loadin the data.
 
-## Computing SPOD modes and visualizing useful quantities
+## 2. Compute SPOD modes and visualize useful quantities
 
-### Computing SPOD modes
+### 2.1 Computation SPOD modes
 We can now run the PySPOD library on our data to obtain the SPOD modes.
 This is done by initializing the class and running the fit method:
 
@@ -112,7 +113,7 @@ where we retrieved the path where the SPOD modes were saved, using
 for the modes considered, should return: `flag = True`, and `ortho < 1e-15`
 (i.e., the mode 1 and mode 0 for frequency id 5, are orthogonal as expected).
 
-### Visualization
+### 2.2 Visualization
 
 PySPOD comes with some useful postprocessing routines.
 These can for instance visualize:
@@ -159,9 +160,9 @@ if rank == 0:
 > Note that we are performing these visualization steps in rank = 0, only.
 
 
-## Computing time coefficients and reconstructing the high-dimensional solution
+## 3. Compute time coefficients
 
-We can finally compute the time coefficients and reconstruct the
+We can then compute the time coefficients and reconstruct the
 high-dimensional solution using a reduced set of them, and the
 associated SPOD modes.
 
@@ -170,16 +171,60 @@ These two steps can be achieved as follows
 ```python
 file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
     data=data, results_dir=results_dir, comm=comm)
-
-file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
-    coeffs_dir=coeffs_dir, time_idx='all', comm=comm)
-```    
+```
 
 where we retrieved the path where the SPOD modes were saved,
 using the previously ran command `results_dir = spod.savedir_sim`.
 
+We can visualize them as follows
+```python
+coeffs = np.load(file_coeffs)
+post.plot_coeffs(coeffs, coeffs_idx=[0,1], path=results_dir,
+    filename='coeffs.png')
+```
+
+![](./figures/tutorial1_coeffs_coeff_id0.jpg) | ![](./figures/tutorial1_coeffs_coeff_id1.jpg)
+:-------------------------:|:-------------------------:
+<span style="color:#858986;"> **Coefficient 0**</span> | <span style="color:#858986;"> **Coefficient 1**</span>
 
 
+## 4. Reconstruct high-dimensional data
+
+We can finally reconstruct the high-dimensional data using the
+SPOD modes and time coefficients computed in the previous steps.
+This can be achieved as follows
+
+```python
+file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
+    coeffs_dir=coeffs_dir, time_idx='all', comm=comm)
+```    
+
+where we retrieved the path where the SPOD coefficients were saved,
+using `coeffs_dir`, that was given when computing the coefficient
+in the previous step.
+
+> The argument `time_idx` can be chosen to reconstruct only some
+time snapshots (by specifying a list of ids) instead of the entire solution.  
+
+Also in this case, we can visualize the reconstructed solution, and compare
+it against the original data. Below, we compare time ids 0, and 10:
+
+```python
+## plot reconstruction
+recons = np.load(file_dynamics)
+post.plot_2d_data(recons, time_idx=[0,10], filename='recons.png',
+    path=results_dir, x1=x2, x2=x1, equal_axes=True)
+
+## plot data
+data = spod.get_data(data)
+post.plot_2d_data(data, time_idx=[0,10], filename='data.png',
+    path=results_dir, x1=x2, x2=x1, equal_axes=True)
+```
+
+![](./figures/tutorial1_data_var0_time0.jpg) | ![](./figures/tutorial1_data_var0_time10.jpg)
+![](./figures/tutorial1_recons_var0_time0.jpg) | ![](./figures/tutorial1_recons_var0_time10.jpg)
+:-------------------------:|:-------------------------:
+<span style="color:#858986;"> **Time id 0, true data (top); reconstructed data (bottom)**</span> | <span style="color:#858986;"> **Time id 1, true data (top); reconstructed data (bottom)**</span>
 
 
 [Go to the Home Page]({{ '/' | absolute_url }})
