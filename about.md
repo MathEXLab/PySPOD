@@ -9,18 +9,18 @@ order: 0
 
 ## What do we implement?
 
-In this package we implement two versions of SPOD, both available as **parallel and distributed** (i.e. they can run on multiple cores/nodes on large-scale HPC machines) via mpi4py:
+We implement two versions of SPOD, both available as **parallel (distributed)** (i.e. they can run on multiple cores/nodes on large-scale HPC machines) via mpi4py:
 
-  - **spod_standard**: this is the **batch** algorithm as described in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
-  - **spod_streaming**: that is the **streaming** algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
+  - **spod_standard**: this is the **batch** algorithm as described in [Towne 2018](https://doi.org/10.1017/jfm.2018.283).
+  - **spod_streaming**: that is the **streaming** algorithm presented in [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).
 
-We additionally implement the calculation of time coefficients and the reconstruction of the solution, given a set of modes $\phi$ and coefficients *a*, as explained in [] and []. The library comes with a package to emulating the reduced space, that is to forecasting the time coefficients using neural networks, as described in [].
+We additionally implement the calculation of time coefficients and the reconstruction of the solution, given a set of modes $\phi$ and coefficients *a*, as explained in e.g., [Lario et al.](https://www.sciencedirect.com/science/article/pii/S002199912200537X).
 
-To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tutorials/README.md).
+To see how to use the **PySPOD** package, you can look at the [**Tutorials**](./tutorials).
 
 ## What data can we apply SPOD to?
 
-SPOD can be applied to wide-sense stationary data, that is ergodic processes. Examples of these arise in different fields, including fluidmechanics, and weather and climate, among others.
+SPOD can be applied to wide-sense stationary data, that is ergodic processes. Examples of these arise in different fields, including fluidmechanics, and weather and climate, among others. An animation of such data can be found in [**Tutorial 1**](./tutorials/tutorial1).
 
 ## What is SPOD?
 
