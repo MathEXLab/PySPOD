@@ -118,16 +118,12 @@ if rank == 0:
     spod.plot_eigs_vs_period(filename='eigs_period.png')
 ```
 
-<div class="row">
-  <div class="column">
-    <img src="./figures/tutorial1_eigs.jpg"
-         alt="Eigenvalues" style="width:100%">
-  </div>
-  <div class="column">
-    <img src="./figures/tutorial1_eigs_period.jpg"
-         alt="Eigenvalues vs period" style="width:100%">
-  </div>
-</div>
+
+
+![](./figures/tutorial1_eigs.jpg)  |  ![](./figures/tutorial1_eigs_period.jpg)
+:-------------------------:|:-------------------------:
+Eigenvalues            |  Eigenvalues vs period
+
 
 - the SPOD modes for different frequencies
 ```python
