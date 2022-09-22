@@ -121,7 +121,8 @@ if rank == 0:
 ![](./figures/tutorial1_eigs.jpg) | ![](./figures/tutorial1_eigs_period.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
-<p>
+
+<br/><br/>
 
 - the SPOD modes for different frequencies
 ```python
