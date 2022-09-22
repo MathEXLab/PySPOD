@@ -147,6 +147,7 @@ if rank == 0:
         modes_idx=[0,1,2], x1=x2, x2=x1, equal_axes=True,
         filename='modes_f2.png')
 ```
+
 ![Mode 0, T = 0.85](./figures/tutorial1_mode0_f1.jpg) | ![Mode 1, T = 0.85](./figures/tutorial1_mode1_f1.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Mode 0, Period = 0.85**</span> | <span style="color:#858986;"> **Mode 1, Period = 0.85**</span>
