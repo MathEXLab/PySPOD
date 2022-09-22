@@ -107,7 +107,11 @@ flag, ortho = utils_spod.check_orthogonality(
 ```
 
 where we retrieved the path where the SPOD modes were saved, using
-`results_dir = spod.savedir_sim`.
+`results_dir = spod.savedir_sim`. The above orthogonality check,
+for the modes considered, should return: `flag = True`, and `ortho < 1e-15`
+(i.e., the mode 1 and mode 0 for frequency id 5, are orthogonal as expected).
+
+<br/><br/>
 
 We can also visualize
 
