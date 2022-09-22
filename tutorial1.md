@@ -12,7 +12,7 @@ order: 2
 
 In this tutorial we explore a small dataset provided with this package
 that contains pressure data of the flow exiting a nozzle (also referred
-to as a jet). Cylindrical coordinates $(r,x)$ are used and they are equally
+to as a jet). Cylindrical coordinates _(r,x)_ are used and they are equally
 spaced. In particular, starting from a database of pre computed solutions,
 we want to:
 
@@ -26,6 +26,9 @@ represent the pressure field at different time instants. The time step
 is 12 hours.
 
 ![Data animation](./figures/tutorial1_data_video.mp4)
+<p align = "center">
+Animation of the data used in this tutorial.
+</p>
 
 ## Loading libraries, data and parameters
 
