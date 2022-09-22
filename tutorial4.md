@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Tutorial 4
-tagline: Two tutorials to highlight PySPOD usage
+tagline: 3D Quasi-Biennial Oscillation (QBO)
 permalink: /tutorials/tutorial4.html
 ref: tutorials/tutorial4
 order: 2
