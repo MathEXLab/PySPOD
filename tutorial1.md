@@ -2,7 +2,7 @@
 layout: page
 title: Tutorial 1
 tagline: 2D pressure fluctuations in a turbulent jet
-permalink: ./tutorials/tutorial1.html
+permalink: /tutorials/tutorial1.html
 ref: tutorials/tutorial1
 order: 2
 ---

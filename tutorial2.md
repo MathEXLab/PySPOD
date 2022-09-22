@@ -1,14 +1,14 @@
 ---
 layout: page
-title: Tutorials
-tagline: Two tutorials to highlight PySPOD usage
-permalink: /tutorials/tutorial1.html
-ref: tutorials/tutorial1
+title: Tutorial 2
+tagline: 2D relative humidity on North American Forecast (NAM) System data
+permalink: /tutorials/tutorial2.html
+ref: tutorials/tutorial2
 order: 2
 ---
 
 
-# Tutorial 1: 2D exploration of Relative Humidity from NAM data
+# Tutorial 2: 2D exploration of Relative Humidity from NAM data
 
 In this tutorial we will explore the NAM dataset provided by NOAA. In particular, we will use the daily relative humidity reanalysis data for a period of ten years (2008-10-28) to (2018-09-20). We will just use the first years worth of data for a quick assessment. The readers are encouraged to increase the number of snapshots.
 
