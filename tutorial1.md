@@ -1,14 +1,14 @@
 ---
 layout: page
-title: Tutorials
-tagline: Two tutorials to highlight PySPOD usage
+title: Tutorial 1
+tagline: 2D pressure fluctuations in a turbulent jet
 permalink: /tutorials/tutorial1.html
 ref: tutorials/tutorial1
 order: 2
 ---
 
 
-# Tutorial 1: 2D pressure fluctuations in a turbulent jet
+## Description
 
 In this tutorial we explore a small dataset provided with this package that contains pressure data of the flow exiting a nozzle (also referred to as a jet). Cylindrical coordinates $(r,x)$ are used and they are equally spaced. In particular, starting from a database of pre computed solutions, we want to:
 
