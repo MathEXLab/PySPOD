@@ -20,12 +20,30 @@ In detail, the starting dataset consists of 1000 flow realizations which represe
 
 ## Loading libraries and data
 
-The dataset is part of the data used for the regression tests that come with this library and is stored into tests/data/fluidmechanic_data.mat. The first step to analyze this dataset is to import the required libraries, including the custom libraries
+The dataset is part of the data used for the regression tests that come with this library and is stored into `tests/data/fluidmechanics_data.mat`. The first step to analyze this dataset is to import the required libraries, including the custom libraries
 
 ```python
-pip install pyspod
+import numpy as np
+
+# Current, parent and file paths
+CWD = os.getcwd()
+CF  = os.path.realpath(__file__)
+CFD = os.path.dirname(CF)
+
+# Import library specific modules
+from pyspod.spod.standard  import Standard  as spod_standard
+from pyspod.spod.streaming import Streaming as spod_streaming
 ```
 
+The second step consists of loading the data from the `fluidmechanics_data.mat`.
+To this end, we provide a reader that accept `.nc`, `.npy`, and `.mat` formats.
 
+```python
+data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
+data_dict = utils_io.read_data(data_file=data_file)
+data = data_dict['p'].T
+dt = data_dict['dt'][0,0]
+nt = data.shape[0]
+```
 
 [Go to the Home Page]({{ '/' | absolute_url }})
