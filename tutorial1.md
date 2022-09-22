@@ -75,8 +75,9 @@ params['time_step'] = dt
 
 where `dt` has been previously defined when loadin the data.
 
-## Computing SPOD modes
+## Computing SPOD modes and visualizing useful quantities
 
+### Computing SPOD modes
 We can now run the PySPOD library on our data to obtain the SPOD modes.
 This is done by initializing the class and running the fit method:
 
@@ -111,9 +112,10 @@ where we retrieved the path where the SPOD modes were saved, using
 for the modes considered, should return: `flag = True`, and `ortho < 1e-15`
 (i.e., the mode 1 and mode 0 for frequency id 5, are orthogonal as expected).
 
-<br/><br/>
+### Visualization
 
-We can also visualize
+PySPOD comes with some useful postprocessing routines.
+These can for instance visualize:
 
 - the eigenvalues, and the eigenvalues vs period (and frequency),
 ```python
@@ -145,13 +147,12 @@ if rank == 0:
         modes_idx=[0,1,2], x1=x2, x2=x1, equal_axes=True,
         filename='modes_f2.png')
 ```
-![Mode 0, T = 0.85](./figures/tutorial1_mode0_f1.jpg)
-![Mode 1, T = 0.85](./figures/tutorial1_mode1_f1.jpg)
 
-![Mode 0, T = 4](./figures/tutorial1_mode0_f2.jpg)
-![Mode 1, T = 4](./figures/tutorial1_mode1_f2.jpg)
+![Mode 0, T = 4](./figures/tutorial1_mode0_f2.jpg) | ![Mode 1, T = 4](./figures/tutorial1_mode1_f2.jpg)
+:-------------------------:|:-------------------------:
+<span style="color:#858986;"> **Mode 0, Period = 4**</span> | <span style="color:#858986;"> **Mode 1, Period = 4**</span>
 
-> Note that we are performing these postprocessing steps in only one rank.
+> Note that we are performing these visualization steps in rank = 0, only.
 
 
 ## Computing time coefficients and reconstructing the high-dimensional solution
