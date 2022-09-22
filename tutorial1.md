@@ -27,7 +27,7 @@ is 12 hours.
 
 |![Data animation](./figures/tutorial1_data_video.mp4)|
 |:--:|
-| <b>Animation of the data used in this tutorial.</b>|
+|<span style="color:#858986;"> **Animation of the data used in this tutorial.**</span>|
 
 
 ## Loading libraries, data and parameters
@@ -120,7 +120,8 @@ if rank == 0:
 
 ![](./figures/tutorial1_eigs.jpg) | ![](./figures/tutorial1_eigs_period.jpg)
 :-------------------------:|:-------------------------:
-<span style="color:#7dcea0"> **Eigenvalues** text</span> | <span style="color:#7dcea0"> **Eigenvalues vs period** text</span>
+<span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
+<p>
 
 - the SPOD modes for different frequencies
 ```python
