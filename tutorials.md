@@ -1,26 +1,21 @@
 ---
 layout: page
 title: Tutorials
-tagline: Two tutorials to highlight PySPOD usage
+tagline: Some tutorials to highlight PySPOD usage
 permalink: /tutorials.html
 ref: tutorials
 order: 2
 ---
 
+We provide the following tutorials to highlight the usage of the PySPOD library, and its capabilities:
 
-# Tutorial 1: 2D exploration of Relative Humidity from NAM data
+[Tutorial 1: 2D pressure fluctuations in a turbulent jet](./tutorial1)
 
-In this tutorial we will explore the NAM dataset provided by NOAA. In particular, we will use the daily relative humidity reanalysis data for a period of ten years (2008-10-28) to (2018-09-20). We will just use the first years worth of data for a quick assessment. The readers are encouraged to increase the number of snapshots.
+[Tutorial 2: 2D relative humidity on North American Forecast (NAM) System data](./tutorial2)
 
-## Dataset
+[Tutorial 3: 2D multivariate El Nino Southern Oscillation (ENSO) index](./tutorial3)
 
-We have provided a smaller (filtered) version of the data set based on a classical POD method. The flow field can be reconstructed with ~40 MB of data rather than the original snapshot data (3.5 GB). This data was preprocessed in a custom manner before this analysis could run. Please contact [Romit Maulik](rmaulik@anl.gov) for access to the raw data (and for other covariates such as Temperature, Wind Speed, Pressure, etc.).
-
-The purpose of this tutorial is to get you going with an analysis on publicly available weather data that doesn't require a heavy duty data transfer. The details of this data set are available at: https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/north-american-mesoscale-forecast-system-nam
-
-## Loading and configuring data
-
-Now we import some basic libraries that can be used to reconstruct our data set and set a seed (the latter because its good practice).
+[Tutorial 4: 3D Quasi-Biennial Oscillation (QBO)](./tutorial4)
 
 
 [Go to the Home Page]({{ '/' | absolute_url }})

@@ -8,19 +8,24 @@ order: 2
 ---
 
 
-# Tutorial 1: 2D exploration of Relative Humidity from NAM data
+# Tutorial 1: 2D pressure fluctuations in a turbulent jet
 
-In this tutorial we will explore the NAM dataset provided by NOAA. In particular, we will use the daily relative humidity reanalysis data for a period of ten years (2008-10-28) to (2018-09-20). We will just use the first years worth of data for a quick assessment. The readers are encouraged to increase the number of snapshots.
+In this tutorial we explore a small dataset provided with this package that contains pressure data of the flow exiting a nozzle (also referred to as a jet). Cylindrical coordinates $(r,x)$ are used and they are equally spaced. In particular, starting from a database of pre computed solutions, we want to:
 
-## Dataset
+- extract the SPOD (coherent in space and time) modes,
+- compute the coefficients, by projecting the data on the SPOD basis built by gathering the modes, and
+- reconstruct the high-dimensional data from the coefficients
 
-We have provided a smaller (filtered) version of the data set based on a classical POD method. The flow field can be reconstructed with ~40 MB of data rather than the original snapshot data (3.5 GB). This data was preprocessed in a custom manner before this analysis could run. Please contact [Romit Maulik](rmaulik@anl.gov) for access to the raw data (and for other covariates such as Temperature, Wind Speed, Pressure, etc.).
+In detail, the starting dataset consists of 1000 flow realizations which represent the pressure field at different time instants. The time step is 12 hours.
 
-The purpose of this tutorial is to get you going with an analysis on publicly available weather data that doesn't require a heavy duty data transfer. The details of this data set are available at: https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/north-american-mesoscale-forecast-system-nam
+## Loading libraries and data
 
-## Loading and configuring data
+The dataset is part of the data used for the regression tests that come with this library and is stored into tests/data/fluidmechanic_data.mat. The first step to analyze this dataset is to import the required libraries, including the custom libraries
 
-Now we import some basic libraries that can be used to reconstruct our data set and set a seed (the latter because its good practice).
+```python
+pip install pyspod
+```
+
 
 
 [Go to the Home Page]({{ '/' | absolute_url }})
