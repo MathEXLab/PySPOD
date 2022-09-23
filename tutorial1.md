@@ -183,7 +183,7 @@ post.plot_coeffs(coeffs, coeffs_idx=[0,1], path=results_dir,
     filename='coeffs.png')
 ```
 
-![](./figures/tutorial1_coeffs_coeff_id0.jpg) | ![](./figures/tutorial1_coeffs_coeff_id1.jpg)
+![](./figures/tutorial1_coeffs_coeff_id0.png) | ![](./figures/tutorial1_coeffs_coeff_id1.png)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Coefficient 0**</span> | <span style="color:#858986;"> **Coefficient 1**</span>
 
