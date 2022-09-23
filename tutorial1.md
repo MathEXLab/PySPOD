@@ -221,8 +221,8 @@ post.plot_2d_data(data, time_idx=[0,10], filename='data.png',
     path=results_dir, x1=x2, x2=x1, equal_axes=True)
 ```
 
-![](./figures/tutorial1_data_var0_time0.png) | ![](./figures/tutorial1_data_var0_time10.png)
-![](./figures/tutorial1_recons_var0_time0.png) | ![](./figures/tutorial1_recons_var0_time10.png)
+![](./figures/tutorial1_data_var0_time0.jpg) | ![](./figures/tutorial1_data_var0_time10.jpg)
+![](./figures/tutorial1_recons_var0_time0.jpg) | ![](./figures/tutorial1_recons_var0_time10.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Time id 0, true data (top); reconstructed data (bottom)**</span> | <span style="color:#858986;"> **Time id 1, true data (top); reconstructed data (bottom)**</span>
 
