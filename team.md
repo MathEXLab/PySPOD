@@ -18,11 +18,9 @@ Key developers:
   - [Andrea Lario](https://www.math.sissa.it/users/andrea-lario), SISSA, Italy
 
 [Mathematical Engineering Laboratory](https://github.com/mathe-lab)
-acknowledges funding from:
+acknowledges funding from NUS startup grant #22-3565-A0001-1, and
+MOE Tier 2 grant #22-5191-A0001-0.
 
-  - NUS startup grant #22-3565-A0001-1 ![](./figures/NUS_Logo.jpeg){:height="80" width="65px"}
-  - MOE Tier 2 grant #22-5191-A0001-0 ![](./figures/MOE_Singapore.png){:height="92px" width="58px"}
-
-
+![](./figures/NUS_Logo.jpeg){:width="30%"} | ![](./figures/MOE_Singapore.png){:width="30%"}
 
 [Go to the Home Page]({{ '/' | absolute_url }})
