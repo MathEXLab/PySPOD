@@ -26,13 +26,9 @@ In detail, the starting dataset consists of 1000 flow realizations which
 represent the pressure field at different time instants. The time step
 is 12 hours.
 
-|<img src="./figures/tutorial1_data_video.mp4" alt="drawing" width="50%"/>|
+|![](./figures/tutorial1_data_video.mp4)|
 |:--:|
 |<span style="color:#858986;"> **Animation of the data used in this tutorial.**</span>|
-
-<!-- |![](./figures/tutorial1_data_video.mp4)| -->
-<!-- |:--:| -->
-<!-- |<span style="color:#858986;"> **Animation of the data used in this tutorial.**</span>| -->
 
 
 ## 1. Load libraries, data and parameters
