@@ -13,6 +13,7 @@ import yaml
 import psutil
 import warnings
 import numpy as np
+import xarray as xr
 import scipy.special as sc
 from scipy.linalg import toeplitz
 
@@ -731,8 +732,13 @@ class Base():
         if t_0 is None: t_0 = 0
         if t_end is None: t_end = data.shape[0]
         X = data[t_0:t_end,...]
+        print(X.shape)
+        print(type(X))
         if self._nv == 1 and (X.ndim != self._xdim + 2):
-            X = X[...,np.newaxis]
+            if isinstance(X, xr.DataArray): 
+                X = X.expand_dims(axis=-1)
+            else:
+                X = X[...,np.newaxis]
         return X
 
     # --------------------------------------------------------------------------

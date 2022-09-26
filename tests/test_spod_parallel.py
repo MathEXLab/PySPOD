@@ -205,7 +205,7 @@ def test_standard_inv():
     params['overlap'     ] = 50
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
-    SPOD_analysis = spod_standard(params=params,  comm=comm)
+    SPOD_analysis = spod_standard(params=params, comm=comm)
     spod = SPOD_analysis.fit(data=data, nt=nt)
     results_dir = spod.savedir_sim
     file_coeffs, coeffs_dir = utils_spod.compute_coeffs(

@@ -998,13 +998,13 @@ def plot_coeffs(coeffs, coeffs_idx=[0], equal_axes=False,
     # initialize figure
     fig = plt.figure(figsize=figsize)
     for ci in coeffs_idx:
-        plt.plot(coeffs[ci,:])
+        plt.plot(coeffs[ci,:], 'k-')
         plt.xlabel('time')
         plt.ylabel(f'coeff {ci}')
 
         # axis management
         if equal_axes:
-            real_ax.set_aspect('equal')
+            plt.axis('equal')
 
         # padding between elements
         plt.tight_layout()
@@ -1381,12 +1381,12 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
             if transpose:
                 frames = [
                     [plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
-                                    shading='gouraud',
-                                    vmin=-0.9*vmean,
-                                    vmax= 0.9*vmean),
+                        shading='gouraud',
+                        vmin=-0.9*vmean,
+                        vmax= 0.9*vmean),
                      plt.scatter(coast['coastlon'],
-                                 coast['coastlat'],
-                                 marker='.', c='k', s=1)]
+                        coast['coastlat'],
+                        marker='.', c='k', s=1)]
                     for state in time_range
                 ]
             else:
@@ -1404,17 +1404,13 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
             if transpose:
                 frames = [
                     [plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
-                                    shading='gouraud',
-                                    vmin=-0.9*vmean,
-                                    vmax= 0.9*vmean)]
+                        shading='gouraud')]
                     for state in time_range
                 ]
             else:
                 frames = [
                     [plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
-                                    shading='gouraud',
-                                    vmin=-0.9*vmean,
-                                    vmax= 0.9*vmean)]
+                        shading='gouraud')]
                     for state in time_range
                 ]
         a = animation.ArtistAnimation(
