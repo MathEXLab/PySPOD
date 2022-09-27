@@ -363,12 +363,14 @@ class Base():
     # common methods
     # --------------------------------------------------------------------------
 
-    def _initialize(self, data, nt):
+    def _initialize(self, data_list):
 
         self._pr0(f' ')
         self._pr0(f'Initialize data')
         self._pr0(f'------------------------------------')
-        self._nt = nt
+
+        ## extract first element of data list
+        data = data_list[0]
 
         self._pr0(f'- reading first time snapshot for data dimensions')
         if not isinstance(data[[0],...], np.ndarray):
@@ -387,7 +389,12 @@ class Base():
         self._xdim   = x_tmp[0,...,0].ndim
         self._xshape = x_tmp[0,...,0].shape
 
-        ## Determine whether data is real-valued or complex-valued-valued
+        self._nt = 0
+        for d in data_list:
+            assert d[0,...].shape == self._xshape
+            self._nt += d.shape[0]
+
+        ## Determine whether data is real-valued or complex-valued
         ## to decide on one- or two-sided spectrum from data
         self._isrealx = np.isreal(data[0]).all()
 
@@ -401,15 +408,18 @@ class Base():
 
         ## distribute data and weights
         self._pr0(f'- distributing data (if parallel)')
-        data, self._max_axis, self._global_shape = \
-            utils_par.distribute_data(data=data, comm=self._comm)
+        data = [None]*len(data_list)
+        for i, d in enumerate(data_list):
+            d, self._max_axis, self._global_shape = \
+                utils_par.distribute_data(data=d, comm=self._comm)
+            data[i] = d
+        data = np.vstack(data)
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
         ## get data and add axis for single variable
         st = time.time()
         if not isinstance(data,np.ndarray): data = data.values
-
         if (self._nv == 1) and (data.ndim != self._xdim + 2):
             data = data[...,np.newaxis]
         self._pr0(f'- loaded data into memory: {time.time() - st} s.')
@@ -731,15 +741,10 @@ class Base():
         '''
         if t_0 is None: t_0 = 0
         if t_end is None: t_end = data.shape[0]
-        X = data[t_0:t_end,...]
-        print(X.shape)
-        print(type(X))
-        if self._nv == 1 and (X.ndim != self._xdim + 2):
-            if isinstance(X, xr.DataArray): 
-                X = X.expand_dims(axis=-1)
-            else:
-                X = X[...,np.newaxis]
-        return X
+        d = data[t_0:t_end,...]
+        if self._nv == 1 and (d.ndim != self._xdim + 2):
+            d = d[...,np.newaxis]
+        return d
 
     # --------------------------------------------------------------------------
 

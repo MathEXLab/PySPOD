@@ -106,7 +106,7 @@ def pod_emulation():
 		)
 
 	# fit 
-	pod = POD_analysis.fit(data=X_train, nt=nt_train)
+	pod = POD_analysis.fit(data_list=X_train, nt=nt_train)
 
 	# transform
 	coeffs_train = pod.transform(data=X_train, nt=nt_train)

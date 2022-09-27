@@ -77,7 +77,7 @@ SPOD_analysis = SPOD_low_ram(
 	weights=weights)
 
 # Fit SPOD
-spod = SPOD_analysis.fit(data=X, nt=nt)
+spod = SPOD_analysis.fit(data_list=X)
 
 # Show results
 T_approx = 744 # approximate period (in days)

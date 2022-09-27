@@ -90,7 +90,7 @@ SPOD_analysis = SPOD_low_ram(
 	weights=weights)
 
 # Fit SPOD
-spod = SPOD_analysis.fit(data=ds, nt=nt)
+spod = SPOD_analysis.fit(data_list=ds)
 
 
 # Show results

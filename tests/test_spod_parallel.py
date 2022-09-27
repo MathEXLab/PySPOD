@@ -41,7 +41,7 @@ def test_standard_fullspectrum():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     spod_class = spod_standard(params=params, comm=comm)
-    spod = spod_class.fit(data=data, nt=nt)
+    spod = spod_class.fit(data_list=data)
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
@@ -83,7 +83,7 @@ def test_standard_reuse_blocks():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     spod_class = spod_standard(params=params, comm=comm)
-    spod = spod_class.fit(data=data, nt=nt)
+    spod = spod_class.fit(data_list=data)
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
@@ -101,7 +101,7 @@ def test_standard_reuse_blocks():
     ## now reuse blocks
     params['reuse_blocks'] = True
     spod_class = spod_standard(params=params,  comm=comm)
-    spod = spod_class.fit(data=data, nt=nt)
+    spod = spod_class.fit(data_list=data)
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
@@ -143,7 +143,7 @@ def test_standard_svd():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params,  comm=comm)
-    spod = SPOD_analysis.fit(data=data, nt=nt)
+    spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
     file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
         data=data, results_dir=results_dir, svd=True, comm=comm)
@@ -206,7 +206,7 @@ def test_standard_inv():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params, comm=comm)
-    spod = SPOD_analysis.fit(data=data, nt=nt)
+    spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
     file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
         data=data, results_dir=results_dir,
@@ -270,7 +270,7 @@ def test_standard_freq_class_compute():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params,  comm=comm)
-    spod = SPOD_analysis.fit(data=data, nt=nt)
+    spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
     file_coeffs, coeffs_dir = spod.compute_coeffs(
         data=data, results_dir=results_dir, tol=1e-10,
@@ -348,7 +348,7 @@ def test_standard_freq_utils_compute():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params,  comm=comm)
-    spod = SPOD_analysis.fit(data=data, nt=nt)
+    spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
     file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
         data=data, results_dir=results_dir, tol=1e-10,
@@ -446,7 +446,7 @@ def test_standard_normalize():
     params['normalize_data'   ] = True
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_standard(params=params,  comm=comm)
-    spod = SPOD_analysis.fit(data=data, nt=nt)
+    spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
     file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
         data=data, results_dir=results_dir,
@@ -511,7 +511,7 @@ def test_streaming_fullspectrum():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     spod_class = spod_streaming(params=params,  comm=comm)
-    spod = spod_class.fit(data=data, nt=nt)
+    spod = spod_class.fit(data_list=data)
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
@@ -559,7 +559,7 @@ def test_streaming_freq():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     SPOD_analysis = spod_streaming(params=params,  comm=comm)
-    spod = SPOD_analysis.fit(data=data, nt=nt)
+    spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
     file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
         data=data, results_dir=results_dir,
@@ -659,7 +659,7 @@ def test_parallel_postproc():
     params['fullspectrum'] = True
     ## -------------------------------------------------------------------
     spod_class = spod_standard(params=params,  comm=comm)
-    spod = spod_class.fit(data=data, nt=nt)
+    spod = spod_class.fit(data_list=data)
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:

@@ -57,7 +57,7 @@ params['savedir'          ] = os.path.join(CWD, 'results', 'simple_test') # fold
 
 # Initialize libraries for the low_storage algorithm
 spod_ls = SPOD_low_storage(params=params, data_handler=False, )
-spod_ls.fit(data=p, nt=t.shape[0])
+spod_ls.fit(data_list=p, nt=t.shape[0])
 
 # Let's plot the data
 spod_ls.plot_2d_data(time_idx=[1,2])
@@ -83,7 +83,7 @@ spod_ls.plot_2d_modes_at_frequency(
 
 # Let's try the low_ram algorithm
 spod_ram = SPOD_low_ram(params=params, data_handler=False, )
-spod_ram.fit(data=p, nt=t.shape[0])
+spod_ram.fit(data_list=p, nt=t.shape[0])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)
@@ -103,7 +103,7 @@ spod_ram.plot_2d_modes_at_frequency(
 
 # Finally, we can try the streaming algorithm
 spod_st = SPOD_streaming(params=params, data_handler=False, )
-spod_st.fit(data=p, nt=t.shape[0])
+spod_st.fit(data_list=p, nt=t.shape[0])
 
 # Show results
 T_approx = 10 # approximate period = 10 days (in days)

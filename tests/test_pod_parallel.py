@@ -49,7 +49,7 @@ def test_standard_class_compute():
         comm = None
     ## fit and transform pod
     pod_class = pod_standard(params=params, comm=comm)
-    pod = pod_class.fit(data=data, nt=nt)
+    pod = pod_class.fit(data_list=data)
     results_dir = pod._savedir_sim
     file_coeffs, coeffs_dir = pod.compute_coeffs(
         data=data, results_dir=results_dir)
@@ -59,7 +59,7 @@ def test_standard_class_compute():
     ## assert test
     savedir = pod._savedir
     assert(pod.dim         ==4)
-    assert(pod.shape       ==(1000, 20, 88, 1))
+    assert(pod.shape       ==(1, 20, 88, 1))
     assert(pod.nt          ==1000)
     assert(pod.nx          ==1760)
     assert(pod.nv          ==1)
@@ -164,7 +164,7 @@ def test_standard_utils_compute():
     ## fit and transform pod
     comm = MPI.COMM_WORLD
     pod_class = pod_standard(params=params, comm=comm)
-    pod = pod_class.fit(data=data, nt=nt)
+    pod = pod_class.fit(data_list=data)
     results_dir = pod._savedir_sim
     file_coeffs, coeffs_dir = utils_pod.compute_coeffs(
         data=data, results_dir=results_dir, comm=comm)
@@ -174,7 +174,7 @@ def test_standard_utils_compute():
     ## assert test
     savedir = pod._savedir
     assert(pod.dim         ==4)
-    assert(pod.shape       ==(1000, 20, 88, 1))
+    assert(pod.shape       ==(1, 20, 88, 1))
     assert(pod.nt          ==1000)
     assert(pod.nx          ==1760)
     assert(pod.nv          ==1)
@@ -275,7 +275,7 @@ def test_standard_convergence():
         comm = None
     ## fit and transform pod
     pod_class = pod_standard(params=params, comm=comm)
-    pod = pod_class.fit(data=data, nt=nt)
+    pod = pod_class.fit(data_list=data)
     results_dir = pod._savedir_sim
     file_coeffs, coeffs_dir = utils_pod.compute_coeffs(
         data=data, results_dir=results_dir, comm=comm)

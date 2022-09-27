@@ -27,15 +27,19 @@ class Standard(Base):
     '''
     Class that implements the standard Proper Orthogonal Decomposition.
     '''
-    def fit(self, data, nt):
+    def fit(self, data_list):
         '''
         Class-specific method to fit the data matrix `data` using standard POD.
         '''
         start = time.time()
 
+        ## if user forgets to pass list for single data list,
+        ## make it to be a list
+        if not isinstance(data_list, list): data_list = [data_list]
+        
         self._pr0(f' ')
         self._pr0(f'Initialize data ...')
-        self._initialize(data, nt)
+        self._initialize(data_list)
 
         ## reshape data and remove mean
         d = self._data.reshape(self._nt, self._data[0,...].size)

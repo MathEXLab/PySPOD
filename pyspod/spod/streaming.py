@@ -20,18 +20,22 @@ class Streaming(Base):
     from the `Base` class.
     '''
 
-    def fit(self, data, nt):
+    def fit(self, data_list):
         '''
         Class-specific method to fit the data matrix using the SPOD
         streaming algorithm.
 
-        :param numpy.ndarray data: data for which to compute the SPOD.
-        :param int nt: number of time snapshots to consider for SPOD.
+        :param list data_list: list containing data matrices for which
+            to compute the SPOD.
         '''
         start = time.time()
 
+        ## if user forgets to pass list for single data list,
+        ## make it to be a list
+        if not isinstance(data_list, list): data_list = [data_list]
+
         ## initialize data and variables
-        self._initialize(data, nt)
+        self._initialize(data_list)
 
         ## sqrt of weights
         sqrt_w = np.sqrt(self._weights)

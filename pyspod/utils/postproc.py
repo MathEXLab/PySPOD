@@ -1381,9 +1381,7 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
             if transpose:
                 frames = [
                     [plt.pcolormesh(x1, x2, np.real(X[state,...,i].T),
-                        shading='gouraud',
-                        vmin=-0.9*vmean,
-                        vmax= 0.9*vmean),
+                        shading='gouraud'),
                      plt.scatter(coast['coastlon'],
                         coast['coastlat'],
                         marker='.', c='k', s=1)]
@@ -1392,9 +1390,7 @@ def generate_2d_data_video(X, time_limits=[0,10], vars_idx=[0],
             else:
                 frames = [
                     [plt.pcolormesh(x1, x2, np.real(X[state,...,i]),
-                                    shading='gouraud',
-                                    vmin=-0.9*vmean,
-                                    vmax= 0.9*vmean),
+                                    shading='gouraud'),
                      plt.scatter(coast['coastlon'],
                                  coast['coastlat'],
                                  marker='.', c='k', s=1)]

@@ -58,7 +58,7 @@ params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # fo
 
 # Perform SPOD analysis using low storage module
 SPOD_analysis = SPOD_streaming(params=params, data_handler=False, )
-spod = SPOD_analysis.fit(data=X, nt=nt)
+spod = SPOD_analysis.fit(data_list=X)
 
 # Show results
 T_approx = 12.5 # approximate period

@@ -69,7 +69,7 @@ def test_lstm_pod():
 
     ## fit and transform pod
     pod_class = pod_standard(params=params_pod)
-    pod = pod_class.fit(data=d_train, nt=nt_train)
+    pod = pod_class.fit(data_list=d_train)
     phi = np.load(os.path.join(pod._savedir_sim, 'modes.npy'))
     # coeffs_train, phi, tm, file_coeffs, max_axis = utils_pod.compute_coeffs(
     #     data=d_train, results_dir=pod._savedir_sim)
@@ -141,7 +141,7 @@ def test_lstm_pod():
     tol = 1e-6
     savedir = pod._savedir
     assert(pod.dim         ==4)
-    assert(pod.shape       ==(800, 20, 88, 1))
+    assert(pod.shape       ==(1, 20, 88, 1))
     assert(pod.nt          ==800)
     assert(pod.nx          ==1760)
     assert(pod.nv          ==1)
@@ -152,7 +152,7 @@ def test_lstm_pod():
     assert((np.real(pod.eigs[0])   <90699.72245430+tol) & \
            (np.real(pod.eigs[0])   >90699.72245430-tol))
     assert((pod.weights[0,0]       <19934.84235881+tol) & \
-           (pod.weights[0,0]          >19934.84235881-tol))
+           (pod.weights[0,0]       >19934.84235881-tol))
     assert((np.abs(e_rec[0,1,0])   <4.467810376724+tol) & \
            (np.abs(e_rec[0,1,0])   >4.467810376724-tol))
     assert((np.abs(e_rec[100,1,0]) <4.467810376724+tol) & \
@@ -223,7 +223,7 @@ def test_lstm_spod():
 
     ## fit and transform spod
     spod_class = spod_standard(params=params_spod)
-    spod = spod_class.fit(d_train, nt=nt_train)
+    spod = spod_class.fit(data_list=d_train)
     results_dir = spod.savedir_sim
     c_train_file, dir_train = utils_spod.compute_coeffs(
         d_train, results_dir, savedir='train')
@@ -382,7 +382,7 @@ def test_cnn_spod():
 
     ## fit and transform spod
     spod_class = spod_standard(params=params_spod)
-    spod = spod_class.fit(d_train, nt=nt_train)
+    spod = spod_class.fit(data_list=d_train)
     results_dir = spod.savedir_sim
     c_train_file, dir_train = utils_spod.compute_coeffs(
         d_train, results_dir, savedir='train')

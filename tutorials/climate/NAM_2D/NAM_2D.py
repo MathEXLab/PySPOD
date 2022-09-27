@@ -70,7 +70,7 @@ SPOD_analysis = SPOD_low_storage(
 	weights=weights)
 
 # Fit SPOD
-spod = SPOD_analysis.fit(data=snapshots, nt=nt)
+spod = SPOD_analysis.fit(data_list=snapshots)
 
 # Show results
 T_approx = 30 # approximate period = 30 days (1 month)

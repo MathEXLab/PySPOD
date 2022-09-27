@@ -206,24 +206,34 @@ class Base():
     # main methods
     # -------------------------------------------------------------------------
 
-    def _initialize(self, data, nt):
+    def _initialize(self, data_list):
         '''
         Initialize fit method for POD.
         '''
-        self._nt = nt
 
-        self._pr0('- correcting data dimension for single-variable data')
+        ## extract first element of data list
+        data = data_list[0]
+
+        self._pr0(f'- reading first time snapshot for data dimensions')
+        if not isinstance(data[[0],...], np.ndarray):
+            x_tmp = data[[0],...].values
+        else:
+            x_tmp = data[[0],...]
         ## correct last dimension for single variable data
-        if self._nv == 1 and (data.ndim != self._xdim + 2):
-            data = data[...,np.newaxis]
+        if self._nv == 1 and (x_tmp.ndim != self._xdim + 2):
+            x_tmp = x_tmp[...,np.newaxis]
 
         ## get data dimensions and store in class
         self._pr0('- getting data dimensions')
-        self._nx     = data[0,...,0].size
-        self._dim    = data.ndim
-        self._shape  = data.shape
-        self._xdim   = data[0,...,0].ndim
-        self._xshape = data[0,...,0].shape
+        self._nx     = x_tmp[0,...,0].size
+        self._dim    = x_tmp.ndim
+        self._shape  = x_tmp.shape
+        self._xdim   = x_tmp[0,...,0].ndim
+        self._xshape = x_tmp[0,...,0].shape
+        self._nt = 0
+        for d in data_list:
+            assert d[0,...].shape == self._xshape
+            self._nt += d.shape[0]
 
         # # Determine whether data is real-valued or complex-valued-valued
         # # to decide on one- or two-sided spectrum from data
@@ -233,9 +243,13 @@ class Base():
         self.define_weights()
 
         ## distribute data and weights
-        if self._comm: self._pr0('- distributing data')
-        data, self._max_axis, self._global_shape = \
-            utils_par.distribute_data(data=data, comm=self._comm)
+        self._pr0(f'- distributing data (if parallel)')
+        data = [None]*len(data_list)
+        for i, d in enumerate(data_list):
+            d, self._max_axis, self._global_shape = \
+                utils_par.distribute_data(data=d, comm=self._comm)
+            data[i] = d
+        data = np.vstack(data)
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
