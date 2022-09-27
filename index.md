@@ -9,12 +9,11 @@ PySPOD is a **parallel (distributed) library**, that implements the
 Python.
 
 The library uses [mpi4py](https://github.com/mpi4py/mpi4py) to deploy
-parallel capabilities. If you want to use the parallel capabilities
-of the PySPOD library, you need to have a version of MPI (Message
+parallel capabilities that needs a version of MPI (Message
 Passing Interface) installed in your machine. Currently tested
 MPI libraries include [Open MPI](https://www.open-mpi.org)
 and [mpich](https://www.mpich.org). If MPI is not found,
-the library will still work, but in serial.
+the PySPOD will still work, but in serial.
 
 PySPOD is conveniently available as part of _pip_.
 To install the library you can type:
@@ -32,4 +31,5 @@ to make sure the library is fully functional.
 
 - To checkout the team developing PySPOD, go to [Team](./team).
 
-> Please, refer to our [GitHub repository](https://github.com/mathe-lab/PySPOD) for additional information and latest updates.
+> Please, refer to our [GitHub repository](https://github.com/mathe-lab/PySPOD)
+for additional information and latest updates.

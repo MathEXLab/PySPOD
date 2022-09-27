@@ -11,22 +11,23 @@ order: 2
 ## Description
 
 In this tutorial we explore a small dataset provided with this package
-that contains pressure data of the flow exiting a nozzle (also referred
-to as a jet). Cylindrical coordinates _(r,x)_ are used and they are equally
-spaced. In particular, starting from a database of pre computed solutions,
-we show how to:
+that contains the flow exiting a nozzle (also referred to as a jet).
+The data is two-dimensional and it is provided in equally-spaced
+cylindrical coordinates _(r,x)_.
+
+Starting from this dataset, we show how to:
 
 1. load the required libraries, data and parameters,
 2. extract the SPOD modes,
-3. compute the time coefficients, by projecting the data on
-the SPOD basis built by gathering the modes, and
+3. compute the time coefficients, by projecting the
+data on the SPOD basis built by gathering the modes, and
 4. reconstruct the high-dimensional data from the coefficients
 
-In detail, the starting dataset consists of 1000 flow realizations which
-represent the pressure field at different time instants. The time step
-is 12 hours.
+In detail, the dataset consists of 1000 flow realizations
+which represent the pressure field at different time instants.
+The time step is 0.01 seconds.
 
-|![](./figures/tutorial1_data_video.mp4)|
+|![](./figures/tutorial1/data_video.mp4)|
 |:--:|
 |<span style="color:#858986;"> **Animation of the data used in this tutorial.**</span>|
 
@@ -57,12 +58,12 @@ x1 = data_dict['r'].T; x1 = x1[:,0]
 x2 = data_dict['x'].T; x2 = x2[0,:]
 ```
 
-The third step is to read the parameters, that are should be provided
+The third step is to read the parameters, that should be provided
 in Python dictionary format. We conveniently provide a yaml configuration
 file reader tailored to PySPOD.
 
 ```python
-config_file = os.path.join(CFD, 'data', 'input_spod.yaml')
+config_file = os.path.join(CFD, 'data', 'input_tutorial1.yaml')
 params = utils_io.read_config(config_file)
 ```
 
@@ -79,22 +80,23 @@ where `dt` has been previously defined when loadin the data.
 ## 2. Compute SPOD modes and visualize useful quantities
 
 ### 2.1 Computation SPOD modes
-We can now run the PySPOD library on our data to obtain the SPOD modes.
-This is done by initializing the class and running the fit method:
+We can now run the PySPOD library on our data to obtain the SPOD
+modes. This is done by initializing the class and running the
+fit method:
 
 ```python
 standard = spod_standard(params=params, comm=comm)
-spod = standard.fit(data=data, nt=nt)
+spod = standard.fit(data_list=data)
 ```
 
-where `params`, `comm`, `data`, and `nt` have all been defined above.
-The `spod_standard` class implements the SPOD batch algorithm, as described
-in [About](./about). We can alternatively choose the streaming algorithm,
-by writing
+where `params`, `comm`, and `data` have all been defined above.
+The `spod_standard` class implements the SPOD batch algorithm,
+as described in [About](./about). We can alternatively choose
+the streaming algorithm, by writing
 
 ```python
 streaming = spod_streaming(params=params, comm=comm)
-spod = streaming.fit(data=data, nt=nt)
+spod = streaming.fit(data_list=data)
 ```
 
 After computing the SPOD modes, we can check their orthogonality,
@@ -125,7 +127,7 @@ if rank == 0:
     spod.plot_eigs_vs_period(filename='eigs_period.png')
 ```
 
-![](./figures/tutorial1_eigs.jpg) | ![](./figures/tutorial1_eigs_period.jpg)
+![](./figures/tutorial1/eigs.jpg) | ![](./figures/tutorial1/eigs_period.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
 
@@ -149,11 +151,11 @@ if rank == 0:
         filename='modes_f2.png')
 ```
 
-![Mode 0, T = 0.85](./figures/tutorial1_mode0_f1.jpg) | ![Mode 1, T = 0.85](./figures/tutorial1_mode1_f1.jpg)
+![Mode 0, T = 0.85](./figures/tutorial1/mode0_f1.jpg) | ![Mode 1, T = 0.85](./figures/tutorial1/mode1_f1.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Mode 0, Period = 0.85**</span> | <span style="color:#858986;"> **Mode 1, Period = 0.85**</span>
 
-![Mode 0, T = 4](./figures/tutorial1_mode0_f2.jpg) | ![Mode 1, T = 4](./figures/tutorial1_mode1_f2.jpg)
+![Mode 0, T = 4](./figures/tutorial1/mode0_f2.jpg) | ![Mode 1, T = 4](./figures/tutorial1/mode1_f2.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Mode 0, Period = 4**</span> | <span style="color:#858986;"> **Mode 1, Period = 4**</span>
 
@@ -183,7 +185,7 @@ post.plot_coeffs(coeffs, coeffs_idx=[0,1], path=results_dir,
     filename='coeffs.png')
 ```
 
-![](./figures/tutorial1_coeffs_coeff_id0.png) | ![](./figures/tutorial1_coeffs_coeff_id1.png)
+![](./figures/tutorial1/coeffs_coeff_id0.png) | ![](./figures/tutorial1/coeffs_coeff_id1.png)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Coefficient 0**</span> | <span style="color:#858986;"> **Coefficient 1**</span>
 
@@ -206,8 +208,9 @@ in the previous step.
 > The argument `time_idx` can be chosen to reconstruct only some
 time snapshots (by specifying a list of ids) instead of the entire solution.  
 
-Also in this case, we can visualize the reconstructed solution, and compare
-it against the original data. Below, we compare time ids 0, and 10:
+Also in this case, we can visualize the reconstructed solution, and
+compare it against the original data. Below, we compare time ids 0,
+and 10:
 
 ```python
 ## plot reconstruction
@@ -221,10 +224,11 @@ post.plot_2d_data(data, time_idx=[0,10], filename='data.png',
     path=results_dir, x1=x2, x2=x1, equal_axes=True)
 ```
 
-![](./figures/tutorial1_data_var0_time0.jpg) | ![](./figures/tutorial1_data_var0_time10.jpg)
-![](./figures/tutorial1_recons_var0_time0.jpg) | ![](./figures/tutorial1_recons_var0_time10.jpg)
+![](./figures/tutorial1/data_var0_time0.jpg) | ![](./figures/tutorial1/data_var0_time10.jpg)
+![](./figures/tutorial1/recons_var0_time0.jpg) | ![](./figures/tutorial1/recons_var0_time10.jpg)
 :-------------------------:|:-------------------------:
-<span style="color:#858986;"> **Time id 0, true data (top); reconstructed data (bottom)**</span> | <span style="color:#858986;"> **Time id 1, true data (top); reconstructed data (bottom)**</span>
+<span style="color:#858986;"> **Time id 0**: true data (top); reconstructed data (bottom)</span> | <span style="color:#858986;"> **Time id 1**: true data (top); reconstructed data (bottom)**</span>
+
 
 
 [Go to the Home Page]({{ '/' | absolute_url }})
