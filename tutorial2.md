@@ -132,7 +132,7 @@ if rank == 0:
     spod.plot_eigs_vs_period(filename='eigs_period.png')
 ```
 
-![](./figures/tutorial2/eigs.jpg) | ![](./figures/tutorial2/eigs_period.jpg)
+![](./figures/tutorial2/eigs.png) | ![](./figures/tutorial2/eigs_period.png)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
 
@@ -165,11 +165,11 @@ if rank == 0:
         filename='modes_f2.png')
 ```
 
-![Mode 0, T = 960](./figures/tutorial2/mode0_f1.jpg) | ![Mode 1, T = 960](./figures/tutorial2/mode1_f1.jpg)
+![Mode 0, T = 960](./figures/tutorial2/mode0_f1.png) | ![Mode 1, T = 960](./figures/tutorial2/mode1_f1.png)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Mode 0, Period = 960**</span> | <span style="color:#858986;"> **Mode 1, Period = 960**</span>
 
-![Mode 0, T = 1008](./figures/tutorial2/mode0_f2.jpg) | ![Mode 1, T = 1008](./figures/tutorial2/mode1_f2.jpg)
+![Mode 0, T = 1008](./figures/tutorial2/mode0_f2.png) | ![Mode 1, T = 1008](./figures/tutorial2/mode1_f2.png)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Mode 0, Period = 1008**</span> | <span style="color:#858986;"> **Mode 1, Period = 1008**</span>
 
@@ -243,8 +243,8 @@ post.plot_2d_data(data, time_idx=[0,10], filename='data.png',
     path=results_dir, x1=x2, x2=x1, equal_axes=True)
 ```
 
-![](./figures/tutorial2/data_var0_time0.jpg) | ![](./figures/tutorial2/data_var0_time10.jpg)
-![](./figures/tutorial2/recons_var0_time0.jpg) | ![](./figures/tutorial2/recons_var0_time10.jpg)
+![](./figures/tutorial2/data_var0_time0.png) | ![](./figures/tutorial2/data_var0_time10.png)
+![](./figures/tutorial2/recons_var0_time0.png) | ![](./figures/tutorial2/recons_var0_time10.png)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Time id 0, true data (top); reconstructed data (bottom)**</span> | <span style="color:#858986;"> **Time id 1, true data (top); reconstructed data (bottom)**</span>
 
