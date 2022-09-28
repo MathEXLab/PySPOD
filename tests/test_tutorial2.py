@@ -43,7 +43,7 @@ def test_tutorial2():
     ## read data and params
     ## -------------------------------------------------------------------
     ## data
-    data_file = os.path.join(CFD, '../../data/ei', 'EI_2008_2017_TP228128_lowr6.nc')
+    data_file = os.path.join(CFD, './data/', 'era_interim_data.nc')
     ds = utils_io.read_data(data_file=data_file)
     print(ds)
     ## we extract time, longitude and latitude
