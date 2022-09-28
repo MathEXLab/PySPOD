@@ -7,6 +7,13 @@ ref: tutorials/tutorial2
 order: 2
 ---
 
+## Preliminaries
+
+For this tutorial:
+
+- The data can be found here [era_interim_data.nc]()
+- The complete Python script here [tutorial2.py]()
+- The configuration file here [input_tutorial2.yaml]()
 
 ## Description
 
@@ -128,11 +135,11 @@ These can for instance visualize:
 - the eigenvalues, and the eigenvalues vs period (and frequency),
 ```python
 if rank == 0:
-    spod.plot_eigs(filename='eigs.png')
-    spod.plot_eigs_vs_period(filename='eigs_period.png')
+    spod.plot_eigs(filename='eigs.jpg')
+    spod.plot_eigs_vs_period(filename='eigs_period.jpg')
 ```
 
-![](./figures/tutorial2/eigs.png) | ![](./figures/tutorial2/eigs_period.png)
+![](./figures/tutorial2/eigs.jpg) | ![](./figures/tutorial2/eigs_period.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
 
@@ -157,19 +164,19 @@ if rank == 0:
     ## plot 2d modes at frequency of interest
     spod.plot_2d_modes_at_frequency(freq_req=f1, freq=spod.freq,
         modes_idx=[0,1,2], x1=x2, x2=x1, equal_axes=True,
-        filename='modes_f1.png')
+        filename='modes_f1.jpg')
 
     ## plot 2d modes at frequency of interest
     spod.plot_2d_modes_at_frequency(freq_req=f2, freq=spod.freq,
         modes_idx=[0,1,2], x1=x2, x2=x1, equal_axes=True,
-        filename='modes_f2.png')
+        filename='modes_f2.jpg')
 ```
 
-![Mode 0, T = 960](./figures/tutorial2/mode0_f1.png) | ![Mode 1, T = 960](./figures/tutorial2/mode1_f1.png)
+![Mode 0, T = 960](./figures/tutorial2/mode0_f1.jpg) | ![Mode 1, T = 960](./figures/tutorial2/mode1_f1.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Mode 0, Period = 960**</span> | <span style="color:#858986;"> **Mode 1, Period = 960**</span>
 
-![Mode 0, T = 1008](./figures/tutorial2/mode0_f2.png) | ![Mode 1, T = 1008](./figures/tutorial2/mode1_f2.png)
+![Mode 0, T = 1008](./figures/tutorial2/mode0_f2.jpg) | ![Mode 1, T = 1008](./figures/tutorial2/mode1_f2.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Mode 0, Period = 1008**</span> | <span style="color:#858986;"> **Mode 1, Period = 1008**</span>
 
@@ -201,10 +208,10 @@ We can visualize them as follows
 ```python
 coeffs = np.load(file_coeffs)
 post.plot_coeffs(coeffs, coeffs_idx=[0,1], path=results_dir,
-    filename='coeffs.png')
+    filename='coeffs.jpg')
 ```
 
-![](./figures/tutorial2/coeffs_coeff_id0.png) | ![](./figures/tutorial2/coeffs_coeff_id1.png)
+![](./figures/tutorial2/coeff0.jpg) | ![](./figures/tutorial2/coeff1.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Coefficient 0**</span> | <span style="color:#858986;"> **Coefficient 1**</span>
 
@@ -234,17 +241,17 @@ it against the original data. Below, we compare time ids 0, and 10:
 ```python
 ## plot reconstruction
 recons = np.load(file_dynamics)
-post.plot_2d_data(recons, time_idx=[0,10], filename='recons.png',
+post.plot_2d_data(recons, time_idx=[0,10], filename='recons.jpg',
     path=results_dir, x1=x2, x2=x1, equal_axes=True)
 
 ## plot data
 data = spod.get_data(data)
-post.plot_2d_data(data, time_idx=[0,10], filename='data.png',
+post.plot_2d_data(data, time_idx=[0,10], filename='data.jpg',
     path=results_dir, x1=x2, x2=x1, equal_axes=True)
 ```
 
-![](./figures/tutorial2/data_var0_time0.png) | ![](./figures/tutorial2/data_var0_time10.png)
-![](./figures/tutorial2/recons_var0_time0.png) | ![](./figures/tutorial2/recons_var0_time10.png)
+![](./figures/tutorial2/data_var0_time0.jpg) | ![](./figures/tutorial2/data_var0_time10.jpg)
+![](./figures/tutorial2/recons_var0_time0.jpg) | ![](./figures/tutorial2/recons_var0_time10.jpg)
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Time id 0, true data (top); reconstructed data (bottom)**</span> | <span style="color:#858986;"> **Time id 1, true data (top); reconstructed data (bottom)**</span>
 
