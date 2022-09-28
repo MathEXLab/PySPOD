@@ -9,9 +9,9 @@ use_math: true
 math_engine: mathjax
 ---
 
-## What is SPOD?
 
-### At glance
+
+## What is SPOD?
 
 **Spectral Proper Orthgonal Decomposition (SPOD)** is a modal analysis
 tool [Taira et al 2017](https://doi.org/10.2514/1.J056060), that allows
@@ -51,131 +51,45 @@ systems. SPOD can be used for both **experimental** and **simulation data**,
 and a general description of its key parameters can be found in
 [Schmidt and Colonius 2020](https://doi.org/10.2514/1.J058809).
 
-In PySPOD, we implement two versions, the so-called **batch algorithm**
-[Towne 2018](https://doi.org/10.1017/jfm.2018.283),
-and the **streaming algorithm**
-[Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).
 
-Both are based on their Matlab implementation counterpart:
-- [batch_spod_matlab](https://github.com/SpectralPOD/spod_matlab)
-- [streaming_spod_matlab](https://nl.mathworks.com/matlabcentral/fileexchange/69963-streaming-spectral-proper-orthogonal-decomposition)
-
-### Some math
-
-The SPOD approach seeks to identify a **deterministic (set of) function(s)**
-$\phivec(\vm{x},t)$ that best approximates a
-**weakly stationary zero-mean stochastic process**
-$\vm{q}(\vm{x},t;\, \xi)$, where $\vm{x}$ are the spatial variables,
-$t$ is time, and $\xi$ is the parametrization of the probability space.
-In mathematical terms, this translates into maximizing
-
-$$
-\lambda = \frac{E\{|\langle \vm{q}(\vm{x},t),\phivec(\vm{x},t) \rangle_{\vm{x},t}|^2\}}{\langle \phivec(\vm{x},t),\phivec(\vm{x},t) \rangle_{\vm{x},t}},
-$$
-
-where we assume that any realization of $\{\vm{q}(\vm{x},t)\}$ span
-a **Hilbert space** $H$ with inner product $\langle \cdot,\cdot \rangle_{\vm{x},t}$
-and **expectation operator** $E\{\cdot\}$, here taken to be the **ensemble mean**.
-The inner product $\langle \cdot,\cdot \rangle_{\vm{x},t}$ is defined as
-
-$$
-\langle \vm{u},\vm{v} \rangle_{\vm{x},t} &=& \int_{-\infty}^{\infty} \int_{S} \vm{u}^*(\vm{x},t) \vm{W} \vm{v}(\vm{x},t) \, \text{d}S_r  \, \text{d}t,
-$$
-
-where $\text{d} S_r$ is a generic surface element and $\vm{W}$ is a spatial
-weighting matrix. We observe that, if we omit the integration with respect
-to time, we readily obtain the associated spatial inner product. Given the
-assumption that any realization of $\{\vm{q}(\vm{x},t)\}$ span $H$, and
-thanks to Karhunen– Lo{\'e}ve (KL) theorem, we know that there exists a
-set of mutually orthogonal deterministic functions that forms a complete
-basis in $H$
-
-$$
-\vm{q}(\vm{x},t;\,\xi) = \sum_{j=1}^{\infty} a_j\phi_{k}(\vm{x},t;\,\xi).
-$$
-
-In the above equation, $\phi_{k}$ are eigenfunctions whose associated
-eigenvalues $\lambda_{k}$ arise from the solution of the Fredholm
-integral equation
-
-$$
-\int_{-\infty}^{\infty} \int_{S} \mathcal{C}(\vm{x},\vm{x}',t,t') \phivec(\vm{x}',t') \, \dd \vm{x}' \, \text{d}t\ = \lambda \phivec(\vm{x},t),
-$$
-
-where $\mathcal{C}(\vm{x},\vm{x}',t,t')=E\{\vm{q}(\vm{x},t)\vm{q}^*(\vm{x}',t')\}$
-is the two-point space-time correlation tensor.
-Due to the stationarity assumption, that means that the correlation function
-is invariant under a translation $\tau = t - t'$ in time, i.e.
-$\mathcal{C}(\vm{x},\vm{x}',t,t') = \mathcal{C}(\vm{x},\vm{x}',\tau)$,
-we can recast the Fredholm integral equation just written in the frequency-space
-domain as follows
-
-$$
-\int_{S} \mathcal{S}(\vm{x},\vm{x}',f) \psivec(\vm{x}',f) \, \text{d}\vm{x}' = \lambda(f) \vb{\phi}(\vm{x},f),
-$$
-
-where $\mathcal{S}(\vm{x},\vm{x}',f)$ is the Fourier transform
-of the correlation tensor $\mathcal{C}(\vm{x},\vm{x}',\tau)$,
-also referred to as the cross-spectral density tensor
-
-$$
-\mathcal{S}(\vm{x},\vm{x}',f) = \int_{-\infty}^{\infty} \mathcal{C}(\vm{x},\vm{x}',\tau) e^{\mathrm{i}2\pi f \tau} \text{d}\tau
-$$
-
-At each frequency, the frequency-space eigenvalue problem (\ref{eq:seof})
-yields a countably infinite number of _SEOF modes_ $\vb{\phi}(\vm{x},f)$
-as eigenvectors (principal components) of the cross-spectral density tensor,
-and the same number of corresponding \emph{modal energies} $\lambda_i(f)$.
-For any given frequency $f$, the SEOF modes have the following useful
-(not necessarily mutually exclusive) properties:
-
-- time-harmonic with a single frequency $f$,
-- space-time coherent and orthogonal under equation~\eqref{eq:innerprod_spacetime}:
-$\langle \psivec_i(\vm{x}',f)e^{\mathrm{i}2\pi f t},\psivec_j(\vm{x}',f)e^{\mathrm{i}2\pi f t} \rangle_{\vm{x},t} = \delta_{ij}$,
-- optimally represent the space-time flow statistics, and
-- optimally ranked in terms of variance \newline $\lambda_i(f)$: $\lambda_1(f)\geq\lambda_2(f)\geq\lambda_3(f)\geq\dots\geq0$,
-
-
-|![](./figures/batch_algorithm.jpg){:width="30%"}|![](./figures/streaming_algorithm.jpg){:width="30%"}
-:-------------------------:|:-------------------------:
-|Batch algorithm. Figure from [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).|Streaming algorithm. Figure from [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).|
-
-#### The batch algorithm
-
-
-
-
-
-#### The streaming algorithm
 
 ## What do we implement?
 
-**PySPOD** is a Python package that implements the so-called
-**Spectral Proper Orthgonal Decomposition**.
+In PySPOD, we implement two versions, the so-called **batch algorithm**
+[Towne 2018](https://doi.org/10.1017/jfm.2018.283),
+and the **streaming algorithm**
+[Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009),
+both parallel and distributed via [mpi4py](https://github.com/mpi4py/mpi4py).
 
-We implement two versions of SPOD, both available as **parallel (distributed)**
-via [mpi4py](https://github.com/mpi4py/mpi4py):
+The two versions are based on their Matlab serial implementation:
+- [batch_spod_matlab](https://github.com/SpectralPOD/spod_matlab)
+- [streaming_spod_matlab](https://nl.mathworks.com/matlabcentral/fileexchange/69963-streaming-spectral-proper-orthogonal-decomposition)
 
-  - **spod_standard**: this is the **batch** algorithm as described
+The figures below show the two algorithms. For more algorithmic details
+please refer to [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).
 
-  - **spod_streaming**: that is the **streaming** algorithm presented
-    in [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).
-
-
+|![](./figures/batch_algorithm.jpg){:width="60%"}|![](./figures/streaming_algorithm.jpg){:width="60%"}
+:-------------------------:|:-------------------------:
+|Batch algorithm. Figure from [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).|Streaming algorithm. Figure from [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).|
 
 We additionally implement the calculation of time coefficients
-and the reconstruction of the solution, given a set of modes
+_a_ and the reconstruction of the solution, given a set of modes
 $\phi$ and coefficients _a_, as explained in e.g.,
 [Lario et al. 2022](https://www.sciencedirect.com/science/article/pii/S002199912200537X).
 
 To see how to use the **PySPOD** package, you can look at the
 [**Tutorials**](./tutorials).
 
+
+
 ## What data can we apply SPOD to?
 
 SPOD can be applied to wide-sense stationary data, that is ergodic
 processes. Examples of these arise in different fields, including
 fluidmechanics, and weather and climate, among others. An example
-of ergodic data can be found in [**Tutorial 1**](./tutorials/tutorial1).
+of ergodic data can be found in [**Tutorial 1**](./tutorials/tutorial1),
+and [**Tutorial 2**](./tutorials/tutorial2).
+
+
 
 [Go to the Home Page]({{ '/' | absolute_url }})
