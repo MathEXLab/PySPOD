@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 import numpy as np
 
 # Current, parent and file paths
 CWD = os.getcwd()
-CF  = os.path.realpath(__file__)
-CFD = os.path.dirname(CF)
+CFD = os.path.abspath('')
+
+# project libraries
+sys.path.append(os.path.join(CFD,"../../"))
 
 # Import library specific modules
 from pyspod.spod.standard  import Standard  as spod_standard
@@ -36,7 +39,7 @@ except:
 ## read data and params
 ## -------------------------------------------------------------------
 ## data
-data_file = os.path.join(CFD,'../../tests/data', 'fluidmechanics_data.mat')
+data_file = os.path.join(CFD, '../../tests/data', 'fluidmechanics_data.mat')
 data_dict = utils_io.read_data(data_file=data_file)
 data = data_dict['p'].T
 dt = data_dict['dt'][0,0]
@@ -62,6 +65,7 @@ flag, ortho = utils_spod.check_orthogonality(
     results_dir=results_dir, mode_idx1=[1],
     mode_idx2=[0], freq_idx=[5], dtype='double',
     comm=comm)
+print(f'flag = {flag},  ortho = {ortho}')
 ## -------------------------------------------------------------------
 
 

@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 import numpy as np
 
 # Current, parent and file paths
 CWD = os.getcwd()
-CF  = os.path.realpath(__file__)
-CFD = os.path.dirname(CF)
+CFD = os.path.abspath('')
+
+# project libraries
+sys.path.append(os.path.join(CFD,"../../"))
 
 # Import library specific modules
 from pyspod.spod.standard  import Standard  as spod_standard
@@ -71,6 +74,7 @@ flag, ortho = utils_spod.check_orthogonality(
     results_dir=results_dir, mode_idx1=[1],
     mode_idx2=[0], freq_idx=[5], dtype='single',
     comm=comm)
+print(f'flag = {flag},  ortho = {ortho}')
 ## -------------------------------------------------------------------
 
 
@@ -96,9 +100,6 @@ file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
 
 ## only rank 0
 if rank == 0:
-    ## ---------------------------------------------------------------
-    ## postprocessing
-    ## ---------------------------------------------------------------
     ## plot eigenvalues
     spod.plot_eigs(filename='eigs.jpg')
     spod.plot_eigs_vs_frequency(filename='eigs_freq.jpg')
@@ -132,7 +133,7 @@ if rank == 0:
         equal_axes=True)
 
     ## plot data
-    data = data.values[...,None]
+    data = spod.get_data(data)
     post.plot_2d_data(data, time_idx=[0,10], filename='data.jpg',
         path=results_dir, x1=x1, x2=x2, coastlines='centred',
         equal_axes=True)
