@@ -145,12 +145,9 @@ def test_tutorial2():
         post.plot_data_tracers(data, coords_list=[(5,0.5)],
             time_limits=[0,nt], path=results_dir, filename='data_tracers.jpg')
         post.generate_2d_data_video(
-            data, sampling=5,
-            time_limits=[0,nt],
-            x1=x1, x2=x2,
-            coastlines='centred',
-            path=results_dir,
-            filename='data_movie1.mp4')
+            data, sampling=5, time_limits=[0,nt],
+            x1=x1, x2=x2, coastlines='centred',
+            path=results_dir, filename='data_movie1.mp4')
         ## -------------------------------------------------------------
 
 
