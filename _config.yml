@@ -39,3 +39,7 @@ target-blank:
     rel: nofollow
 
 header_page_refs: ['about', 'tutorials', 'team']
+
+markdown:           kramdown
+kramdown:
+    math_engine:    katex
