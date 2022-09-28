@@ -5,7 +5,6 @@ description: "A parallel SPOD package"
 keywords: "modal decomposition, dynamical system, computational physics"
 show_downloads: true
 featured-image:
-mathjax: true
 
 
 # author settings for cc-by, appears in the footer and credits
