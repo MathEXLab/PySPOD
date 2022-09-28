@@ -5,6 +5,7 @@ description: "A parallel SPOD package"
 keywords: "modal decomposition, dynamical system, computational physics"
 show_downloads: true
 featured-image:
+mathjax: true
 
 
 # author settings for cc-by, appears in the footer and credits
@@ -39,7 +40,3 @@ target-blank:
     rel: nofollow
 
 header_page_refs: ['about', 'tutorials', 'team']
-
-markdown:           kramdown
-kramdown:
-    math_engine:    katex
