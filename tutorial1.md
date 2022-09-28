@@ -138,7 +138,7 @@ if rank == 0:
 :-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
 
-<br/><br/>
+<br/>
 
 - the SPOD modes for different frequencies
 ```python

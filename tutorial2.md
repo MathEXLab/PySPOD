@@ -56,7 +56,8 @@ from pyspod.spod.streaming import Streaming as spod_streaming
 ```
 
 The second step consists of loading the data from the `era_interim_data.nc`.
-To this end, we provide a reader that accept `.nc`, `.npy`, and `.mat` formats.
+To this end, we provide a reader that accept `.nc`, `.npy`, and `.mat`
+formats.
 
 ```python
 data_file = os.path.join(CFD, './data/', 'era_interim_data.nc')
