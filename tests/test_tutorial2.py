@@ -43,7 +43,7 @@ def test_tutorial2():
     ## read data and params
     ## -------------------------------------------------------------------
     ## data
-    data_file = os.path.join(CFD, './data/', 'era_interim_data.nc')
+    data_file = os.path.join(CFD, '../../data/ei', 'EI_2008_2017_TP228128_lowr6.nc')
     ds = utils_io.read_data(data_file=data_file)
     print(ds)
     ## we extract time, longitude and latitude
@@ -94,7 +94,8 @@ def test_tutorial2():
     # ## compute reconstruction
     # ## -------------------------------------------------------------------
     # file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
-    #     coeffs_dir=coeffs_dir, time_idx='all', comm=comm)
+    #     coeffs_dir=coeffs_dir, time_idx=[0,1,2,3,4,5,6,7,8,9,10],
+    #     comm=comm)
     # ## -------------------------------------------------------------------
 
 
@@ -127,17 +128,20 @@ def test_tutorial2():
 
         ## plot coefficients
         coeffs = np.load(file_coeffs)
-        post.plot_coeffs(coeffs, coeffs_idx=[0,1], path=results_dir, filename='coeffs.jpg')
+        post.plot_coeffs(coeffs, coeffs_idx=[0,1], path=results_dir,
+            filename='coeffs.jpg')
 
         # plot reconstruction
         recons = np.load(file_dynamics)
         post.plot_2d_data(recons, time_idx=[0,10], filename='recons.jpg',
-            path=results_dir, x1=x1, x2=x2, coastlines='centred', equal_axes=True)
+            path=results_dir, x1=x1, x2=x2, coastlines='centred',
+            equal_axes=True)
 
         ## plot data
         data = data.values[...,None]
         post.plot_2d_data(data, time_idx=[0,10], filename='data.jpg',
-            path=results_dir, x1=x1, x2=x2, coastlines='centred', equal_axes=True)
+            path=results_dir, x1=x1, x2=x2, coastlines='centred',
+            equal_axes=True)
         post.plot_data_tracers(data, coords_list=[(5,0.5)],
             time_limits=[0,nt], path=results_dir, filename='data_tracers.jpg')
         post.generate_2d_data_video(
