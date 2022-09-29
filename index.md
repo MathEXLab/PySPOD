@@ -6,7 +6,7 @@ tagline: A parallel SPOD package
 
 PySPOD is a **parallel (distributed) library**, that implements the
 **spectral proper orthogonal decomposition**, briefly **SPOD**, in
-Python.
+Python. It is based on the serial Matlab implementations of the classical [batch algorithm](https://www.mathworks.com/matlabcentral/fileexchange/65683-spectral-proper-orthogonal-decomposition-spod) and the [streaming version](https://www.mathworks.com/matlabcentral/fileexchange/69963-streaming-spectral-proper-orthogonal-decomposition).
 
 The library uses [mpi4py](https://github.com/mpi4py/mpi4py) to deploy
 parallel capabilities. This needs a version of MPI (Message
