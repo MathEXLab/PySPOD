@@ -250,7 +250,7 @@ class Base():
             d, self._max_axis, self._global_shape = \
                 utils_par.distribute_data(data=d, comm=self._comm)
             if i == 0:
-                data = np.zeros((self._nt,) + d.shape[1:])
+                data = np.zeros((self._nt,) + d.shape[1:], self._float)
             data[tmp_nt:tmp_nt+d.shape[0],...] = d
             tmp_nt += d.shape[0]
         self._weights = utils_par.distribute_dimension(\
