@@ -320,7 +320,7 @@ def test_tutorial2():
         ## -------------------------------------------------------------
         ## check results
         ## -------------------------------------------------------------
-        tol = 1e-10
+        tol = 1e-8
         ## identify frequency of interest
         f_, f_idx = spod.find_nearest_freq(freq_req=1/12.5, freq=spod.freq)
         modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
