@@ -17,8 +17,8 @@
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
   </a>
 
-  <a href="https://github.com/mathe-lab/PySPOD/actions" target="_blank">
-    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/workflows/ci/badge.svg">	  
+  <a href="https://github.com/mathe-lab/PySPOD/actions/workflows/continuous-integration.yml" target="_blank">
+    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
   </a>
 
   <a href="https://coveralls.io/github/mathe-lab/PySPOD?branch=main" target="_blank">
