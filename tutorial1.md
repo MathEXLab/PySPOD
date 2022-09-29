@@ -18,9 +18,9 @@ For this tutorial:
 ## Description
 
 In this tutorial we explore a small dataset provided with this package
-that contains the flow exiting a nozzle (also referred to as a jet).
-The data is two-dimensional and it is provided in equally-spaced
-cylindrical coordinates _(r,x)_.
+that contains the flow exiting a nozzle (also referred to as a jet) from [Bres et al.](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/importance-of-the-nozzleexit-boundarylayer-state-in-subsonic-turbulent-jets/1202408D48E0FC3CB31BC9E9D7DE3BD4).
+The data is the symmetric component of a three-dimensional jet, and therefore itself two-dimensional. It is provided in equally-spaced
+cylindrical coordinates _(r,x)_. 
 
 Starting from this dataset, we show how to:
 
@@ -169,11 +169,11 @@ if rank == 0:
 > Note that we are performing these visualization steps in rank = 0, only.
 
 
-## 3. Compute time coefficients
+## 3. Approximate time-dependent coefficients via oblique projection
 
 We can then compute the time coefficients and reconstruct the
 high-dimensional solution using a reduced set of them, and the
-associated SPOD modes.
+associated SPOD modes. The method used here is the one referred to as oblique projection by [Nekkanti and Schmidt](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/frequencytime-analysis-lowrank-reconstruction-and-denoising-of-turbulent-flows-using-spod/185209DE4D89853B8F3F2D4B9305EFDD).
 
 These two steps can be achieved as follows
 
