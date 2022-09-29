@@ -9,13 +9,13 @@ they cover different functionalities of the library and practical
 application areas.
 
 
-### [Tutorial 1: 2D](tutorial1/tutorial1.ipynb)
+### [Tutorial 1: 2D pressure fluctuations in a turbulent jet](tutorial1/tutorial1.ipynb)
 
 This tutorial shows a simple 2D application to a turbulent jet.
 The variable studied is pressure.
 
 
-### [Tutorial 2: 2D](tutorial2/tutorial2.ipynb)
+### [Tutorial 2: 2D total precipitation from the ERA Interim dataset](tutorial2/tutorial2.ipynb)
 
 This tutorial shows a 2D application to climate reanalysis data from the
 ERA Interim dataset. The variable studied is total precipitation, and the
