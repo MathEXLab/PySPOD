@@ -326,10 +326,10 @@ def test_tutorial2():
         modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
         # coeffs = np.load(file_coeffs)
         # recons = np.load(file_dynamics)
-        print(f'{flag = :}')
-        print(f'{ortho = :}')
-        print(f'{np.min(np.abs(modes_at_freq)) = :}')
-        print(f'{np.max(np.abs(modes_at_freq)) = :}')
+        # print(f'{flag = :}')
+        # print(f'{ortho = :}')
+        # print(f'{np.min(np.abs(modes_at_freq)) = :}')
+        # print(f'{np.max(np.abs(modes_at_freq)) = :}')
         ## fit
         assert(flag==True); assert(np.abs(ortho)<1e-7)
         assert((np.min(np.abs(modes_at_freq))<1.6945059542e-06+tol) & \
