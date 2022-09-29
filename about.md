@@ -32,7 +32,7 @@ datasets under the name Spectral Empirical Orthogonal Function, or SEOF,
 [Lario et al. 2022](https://www.sciencedirect.com/science/article/pii/S002199912200537X).
 
 The SPOD approach targets **statistically stationary problems** and involves
-the **decomposition** of the **cross-spectral density tensor**. This means
+the **decomposition** of the **cross-spectral density matrices**. This means
 that the SPOD leads to a set of spatial modes that oscillate in time at
 a single frequency and that optimally capture the variance of an ensemble
 of stochastic data [Towne et al. 2018](https://doi.org/10.1017/jfm.2018.283).
@@ -62,8 +62,8 @@ and the **streaming algorithm**
 both parallel and distributed via [mpi4py](https://github.com/mpi4py/mpi4py).
 
 The two versions are based on their Matlab serial implementation:
-- [batch_spod_matlab](https://github.com/SpectralPOD/spod_matlab)
-- [streaming_spod_matlab](https://nl.mathworks.com/matlabcentral/fileexchange/69963-streaming-spectral-proper-orthogonal-decomposition)
+- [batch_spod_matlab](https://www.mathworks.com/matlabcentral/fileexchange/65683-spectral-proper-orthogonal-decomposition-spod)
+- [streaming_spod_matlab](https://www.mathworks.com/matlabcentral/fileexchange/69963-streaming-spectral-proper-orthogonal-decomposition)
 
 The figures below show the two algorithms. For more algorithmic details
 please refer to [Schmidt and Towne 2019](https://doi.org/10.1016/j.cpc.2018.11.009).
