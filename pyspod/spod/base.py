@@ -408,12 +408,15 @@ class Base():
 
         ## distribute data and weights
         self._pr0(f'- distributing data (if parallel)')
-        data = [None]*len(data_list)
+        tmp_nt = 0
+        data = np.empty(0)
         for i, d in enumerate(data_list):
             d, self._max_axis, self._global_shape = \
                 utils_par.distribute_data(data=d, comm=self._comm)
-            data[i] = d
-        data = np.vstack(data)
+            if i == 0:
+                data = np.zeros((self._nt,) + d.shape[1:])
+            data[tmp_nt:tmp_nt+d.shape[0],...] = d
+            tmp_nt += d.shape[0]
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
