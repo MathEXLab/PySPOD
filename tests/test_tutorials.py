@@ -320,16 +320,16 @@ def test_tutorial2():
         ## -------------------------------------------------------------
         ## check results
         ## -------------------------------------------------------------
-        tol = 1e-8
+        tol = 1e-3
         ## identify frequency of interest
         f_, f_idx = spod.find_nearest_freq(freq_req=1/12.5, freq=spod.freq)
         modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
         # coeffs = np.load(file_coeffs)
         # recons = np.load(file_dynamics)
-        # print(f'{flag = :}')
-        # print(f'{ortho = :}')
-        # print(f'{np.min(np.abs(modes_at_freq)) = :}')
-        # print(f'{np.max(np.abs(modes_at_freq)) = :}')
+        print(f'{flag = :}')
+        print(f'{ortho = :}')
+        print(f'{np.min(np.abs(modes_at_freq)) = :}')
+        print(f'{np.max(np.abs(modes_at_freq)) = :}')
         ## fit
         assert(flag==True); assert(np.abs(ortho)<1e-7)
         assert((np.min(np.abs(modes_at_freq))<1.6945059542e-06+tol) & \
