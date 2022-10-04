@@ -32,7 +32,6 @@ jobs:
           - "3.10"
 
     steps:
-
     - name: Configure hostname
       if:   runner.os == 'Linux' || runner.os == 'macOS'
       run:  echo 127.0.0.1 `hostname` | sudo tee -a /etc/hosts > /dev/null
@@ -63,14 +62,22 @@ jobs:
     - name: Test mpiexec_utils
       run: mpiexec -n 2 python -m coverage run tests/test_utils_parallel.py
 
-    - name: Test serial
-      run: coverage run -m pytest -v tests/ --with-mpi
-
     - name: Coverage combine
       run: coverage combine
 
     - name: Coverage report
       run: coverage report
+
+    - name: Pytest --with-mpi
+      run: python -m pytest --cov=pyspod --cov-report=xml tests/ --with-mpi -v
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+        files: ./coverage.xml
+        verbose: true
 
   test-no-mpi:
     runs-on: ${{ matrix.os }}
@@ -99,4 +106,4 @@ jobs:
       run: python -m pip install .[test,ai]
 
     - name: Test package
-      run: pytest -v tests/
+      run: python -m pytest -v tests/
