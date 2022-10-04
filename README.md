@@ -64,7 +64,7 @@ SPOD can be applied to **wide-sense stationary data**, that is **ergodic process
 
 ## How do I install the library?
 
-If you want to download and install the latest version from `main`; 
+If you want to download and install the latest version from `main`:
 - download the library
 - from the top directory of PySPOD, type
 
@@ -72,7 +72,13 @@ If you want to download and install the latest version from `main`;
 python3 setup.py install
 ```
 
-> To allow for parallel capabilities, you need to have installed an MPI distribution in your machine. Currently MPI distribution tested are Open MPI, and Mpich. Note that the library will still work in serial (no parallel capabilities), if you do not have MPI.
+If you want to install from pip3 released version:
+
+```bash
+pip3 install pyspod
+```
+
+> To allow for parallel capabilities, you need to have installed an MPI distribution in your machine. Currently MPI distributions tested are [Open MPI](https://www.open-mpi.org), and [Mpich](https://www.mpich.org). Note that the library will still work in **serial** (no parallel capabilities), if you **do not have MPI**.
 
 
 
