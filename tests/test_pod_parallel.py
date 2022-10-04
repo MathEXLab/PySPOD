@@ -51,7 +51,7 @@ def test_standard_class_compute():
     pod_class = pod_standard(params=params, comm=comm)
     pod = pod_class.fit(data_list=data)
     results_dir = pod._savedir_sim
-    file_coeffs, coeffs_dir = pod.compute_coeffs(
+    file_coeffs, coeffs_dir = pod.compute_coeffs_op(
         data=data, results_dir=results_dir)
     file_dynamics, coeffs_dir = pod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all')
@@ -166,7 +166,7 @@ def test_standard_utils_compute():
     pod_class = pod_standard(params=params, comm=comm)
     pod = pod_class.fit(data_list=data)
     results_dir = pod._savedir_sim
-    file_coeffs, coeffs_dir = utils_pod.compute_coeffs(
+    file_coeffs, coeffs_dir = utils_pod.compute_coeffs_op(
         data=data, results_dir=results_dir, comm=comm)
     file_dynamics, coeffs_dir = utils_pod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all', comm=comm)
@@ -277,7 +277,7 @@ def test_standard_convergence():
     pod_class = pod_standard(params=params, comm=comm)
     pod = pod_class.fit(data_list=data)
     results_dir = pod._savedir_sim
-    file_coeffs, coeffs_dir = utils_pod.compute_coeffs(
+    file_coeffs, coeffs_dir = utils_pod.compute_coeffs_op(
         data=data, results_dir=results_dir, comm=comm)
     file_dynamics, coeffs_dir = utils_pod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all', comm=comm)

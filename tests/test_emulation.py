@@ -71,12 +71,12 @@ def test_lstm_pod():
     pod_class = pod_standard(params=params_pod)
     pod = pod_class.fit(data_list=d_train)
     phi = np.load(os.path.join(pod._savedir_sim, 'modes.npy'))
-    # coeffs_train, phi, tm, file_coeffs, max_axis = utils_pod.compute_coeffs(
+    # coeffs_train, phi, tm, file_coeffs, max_axis = utils_pod.compute_coeffs_op(
     #     data=d_train, results_dir=pod._savedir_sim)
     results_dir = pod._savedir_sim
-    c_train_file, dir_train = utils_pod.compute_coeffs(
+    c_train_file, dir_train = utils_pod.compute_coeffs_op(
         d_train, results_dir, savedir='train')
-    c_test_file, dir_test = utils_pod.compute_coeffs(
+    c_test_file, dir_test = utils_pod.compute_coeffs_op(
         d_test, results_dir, savedir='test')
 
     ## compute test coefficients
@@ -225,9 +225,9 @@ def test_lstm_spod():
     spod_class = spod_standard(params=params_spod)
     spod = spod_class.fit(data_list=d_train)
     results_dir = spod.savedir_sim
-    c_train_file, dir_train = utils_spod.compute_coeffs(
+    c_train_file, dir_train = utils_spod.compute_coeffs_op(
         d_train, results_dir, savedir='train')
-    c_test_file, dir_test = utils_spod.compute_coeffs(
+    c_test_file, dir_test = utils_spod.compute_coeffs_op(
         d_test, results_dir, savedir='test')
 
     ## initialization of variables and structures
@@ -384,9 +384,9 @@ def test_cnn_spod():
     spod_class = spod_standard(params=params_spod)
     spod = spod_class.fit(data_list=d_train)
     results_dir = spod.savedir_sim
-    c_train_file, dir_train = utils_spod.compute_coeffs(
+    c_train_file, dir_train = utils_spod.compute_coeffs_op(
         d_train, results_dir, savedir='train')
-    c_test_file, dir_test = utils_spod.compute_coeffs(
+    c_test_file, dir_test = utils_spod.compute_coeffs_op(
         d_test, results_dir, savedir='test')
 
     ## initialization of variables and structures

@@ -6,6 +6,7 @@ import sys
 import time
 import numpy as np
 from numpy import linalg as la
+import scipy.io.matlab as siom
 
 # Import custom Python packages
 from pyspod.spod.base import Base
@@ -181,6 +182,7 @@ class Standard(Base):
         L = np.real_if_close(L, tol=1000000)
         del M
 
+
         # reorder eigenvalues and eigenvectors
         ## double non-zero freq and non-Nyquist
         for f, Lf in enumerate(L):
@@ -193,14 +195,13 @@ class Standard(Base):
         st = time.time()
 
         # compute spatial modes for given frequency
-        L_diag = 1. / np.sqrt(L) / np.sqrt(self._n_blocks)
-        V_hat = V * L_diag[:,None,:]
-        # phi = [None] * self._n_freq
+        L_diag = np.sqrt(self._n_blocks) * np.sqrt(L)
+        L_diag_inv = 1. / L_diag
         for f in range(0,self._n_freq):
             s0 = time.time()
             st = time.time()
             ## compute
-            phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag[f,None,:])
+            phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag_inv[f,None,:])
             phi = phi[...,0:self._n_modes_save]
             ## save modes
             filename = f'freq_idx_{f:08d}.npy'
@@ -210,8 +211,9 @@ class Standard(Base):
                 shape[self._max_axis] = -1
             phi.shape = shape
             utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
-            self._pr0(f'freq: {f}/{self._n_freq};  '
-                      f'Elapsed time: {time.time() - s0} s.')
+            self._pr0(
+                f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
+                f'Elapsed time: {(time.time() - s0):.5f} s.')
 
         self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
 
@@ -221,6 +223,7 @@ class Standard(Base):
 
         # get eigenvalues and confidence intervals
         self._eigs = np.abs(L)
+
         fac_lower = 2 * self._n_blocks / self._xi2_lower
         fac_upper = 2 * self._n_blocks / self._xi2_upper
         self._eigs_c[...,0] = self._eigs * fac_lower

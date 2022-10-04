@@ -14,7 +14,7 @@ import pyspod.utils.postproc as post
 CWD = os.getcwd()
 
 
-def compute_coeffs(data, results_dir, modes_idx=None,
+def compute_coeffs_op(data, results_dir, modes_idx=None,
     savedir=None, dtype='double', comm=None):
     '''
     Compute coefficients through projection.
@@ -185,7 +185,6 @@ def compute_reconstruction(
         raise TypeError('`time_idx` parameter type not recognized.')
 
     ## distribute modes_r and longtime mean
-    print(params)
     max_axis = params['max_axis']
     phir = utils_par.distribute_dimension(
         data=phir, max_axis=max_axis, comm=comm)

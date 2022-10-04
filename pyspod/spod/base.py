@@ -91,7 +91,7 @@ class Base():
         # get default spectral estimation parameters and options
         # define default spectral estimation parameters
         if isinstance(self._n_dft, int):
-            self._window = Base._hamming_window(self._n_dft)
+            self._window = utils_spod._hamming_window(self._n_dft)
             self._window = self._set_dtype(self._window)
             self._window_name = 'hamming'
         else:
@@ -362,7 +362,6 @@ class Base():
 
     # common methods
     # --------------------------------------------------------------------------
-
     def _initialize(self, data_list):
 
         self._pr0(f' ')
@@ -579,12 +578,12 @@ class Base():
         self._n_freq = len(self._freq)
 
 
-    def compute_coeffs(self, data, results_dir, modes_idx=None,
+    def compute_coeffs_op(self, data, results_dir, modes_idx=None,
         tol=1e-10, svd=True, T_lb=None, T_ub=None):
         '''
         See method implementation in the spod.utils module.
         '''
-        file_coeffs, coeffs_dir = utils_spod.compute_coeffs(\
+        file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(\
             data, results_dir=self._savedir_sim, modes_idx=modes_idx,
             tol=tol, svd=svd, T_lb=T_lb, T_ub=T_ub, comm=self._comm)
         self._file_coeffs = file_coeffs
@@ -598,7 +597,7 @@ class Base():
         '''
         if not hasattr(self, '_file_coeffs'):
             raise ValueError(
-                'Coeffs not computed; you need to run `compute_coeffs`.')
+                'Coeffs not computed; you need to run `compute_coeffs_op`.')
         else:
             file_recons, coeffs_dir = utils_spod.compute_reconstruction(\
                 coeffs_dir=self._coeffs_dir, time_idx=time_idx, comm=self._comm)
@@ -613,6 +612,8 @@ class Base():
         self._params['results_folder'] = str(self._savedir_sim)
         self._params['time_step'] = float(self._dt)
         self._params['n_dft'] = int(self._n_dft)
+        self._params['n_blocks'] = int(self._n_blocks)
+        self._params['n_overlap'] = int(self._n_overlap)
         self._params['n_modes_save'] = int(self._n_modes_save)
         path_weights = os.path.join(self._savedir_sim, 'weights.npy')
         path_lt_mean = os.path.join(self._savedir_sim, 'ltm_modes.npy')
@@ -773,34 +774,6 @@ class Base():
         else:
             utils_par.pr0(f'blocks not present; computing them now.\n', comm)
             return False
-
-
-    @staticmethod
-    def _hamming_window(N):
-        '''
-        Standard Hamming window of length N
-        '''
-        x = np.arange(0,N,1)
-        window = (0.54 - 0.46 * np.cos(2 * np.pi * x / (N-1))).T
-        return window
-
-
-    # @staticmethod
-    # def _slepsec(n_dft, bw, n_tapers):
-    #     '''
-    #     SLEPSEC Discrete prolate spheroidal sequences of length nDFT and
-    #     time-halfbandwidth product bw
-    #     '''
-    #     df      = bw / n_dft
-    #     j       = np.arange(0:n_dft-1)
-    #     r1      = [df * 2 * np.pi, np.sin(2 * np.pi * df * j) ./ j]
-    #     # S       = toeplitz(r1)
-    #     S       = toeplitz(r1)
-    #     [U,L]   = np.eig(S)
-    #     [~,idx] = np.sort(diag(L),'descend')
-    #     U       = U[:,idx]
-    #     window  = U[:,1:n_tapers]
-    # return window
 
     # --------------------------------------------------------------------------
 
