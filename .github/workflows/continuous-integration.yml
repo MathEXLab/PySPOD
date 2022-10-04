@@ -54,13 +54,13 @@ jobs:
       run: python -m pip install .[mpi,test,ai]
 
     - name: Test mpiexec_pod
-      run: mpiexec -n 2 python -m coverage run tests/test_pod_parallel.py
+      run: mpiexec -n 2 python tests/test_pod_parallel.py
 
     - name: Test mpiexec_spod
-      run: mpiexec -n 2 python -m coverage run tests/test_spod_parallel.py
+      run: mpiexec -n 2 python tests/test_spod_parallel.py
 
     - name: Test mpiexec_utils
-      run: mpiexec -n 2 python -m coverage run tests/test_utils_parallel.py
+      run: mpiexec -n 2 python tests/test_utils_parallel.py
 
     - name: Pytest --with-mpi
       run: pytest --cov=pyspod --cov-report=xml tests/ --with-mpi -v
