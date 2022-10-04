@@ -11,10 +11,11 @@ import numpy as np
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
+sys.path.append(os.path.join(CFD,'../'))
 
 # Import library specific modules
-from pyspod.pod.standard          import Standard    as pod_standard
-from pyspod.spod.standard         import Standard    as spod_standard
+from pyspod.pod.standard  import Standard as pod_standard
+from pyspod.spod.standard import Standard as spod_standard
 from pyspod.emulation.neural_nets import Neural_Nets as emulation_nn
 import pyspod.pod.utils      as utils_pod
 import pyspod.spod.utils     as utils_spod

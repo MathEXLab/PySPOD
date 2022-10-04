@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 import pytest
 import shutil
 import numpy as np
@@ -9,6 +10,7 @@ import numpy as np
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
+sys.path.append(os.path.join(CFD,'../'))
 
 # Import library specific modules
 from pyspod.spod.standard  import Standard  as spod_standard
