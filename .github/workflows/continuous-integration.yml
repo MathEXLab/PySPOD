@@ -28,9 +28,10 @@ jobs:
         py:
           - "3.7"
           - "3.8"
+          - "3.9"
+          - "3.10"
 
     steps:
-
     - name: Configure hostname
       if:   runner.os == 'Linux' || runner.os == 'macOS'
       run:  echo 127.0.0.1 `hostname` | sudo tee -a /etc/hosts > /dev/null
@@ -61,17 +62,20 @@ jobs:
     - name: Test mpiexec_utils
       run: mpiexec -n 2 python -m coverage run tests/test_utils_parallel.py
 
-    - name: Test serial
-      run: coverage run -m pytest -v tests/ --with-mpi
+    - name: Pytest --with-mpi
+      run: pytest --cov=pyspod --cov-report=xml tests/ --with-mpi -v
 
-    - name: Coverage combine
-      run: coverage combine
-
-    - name: Coverage report
-      run: coverage report
-
-    # - name: Coveralls
-    #   run: coveralls
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./coverage/reports/
+        env_vars: os,py
+        fail_ci_if_error: true
+        files: ./coverage1.xml,./coverage2.xml
+        flags: unittests
+        name: codecov-umbrella
+        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
 
   test-no-mpi:
     runs-on: ${{ matrix.os }}
