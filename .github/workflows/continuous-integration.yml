@@ -72,6 +72,9 @@ jobs:
     - name: Coverage report
       run: coverage report
 
+    - name: Coveralls
+      run: coveralls
+
   test-no-mpi:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 120
