@@ -32,21 +32,6 @@
 
 # *PySPOD*: A parallel (distributed) Python SPOD package
 
-## Table of contents
-
-  * [Description](#description)
-    * [SPOD method](#spod-method)
-    * [SPOD emulation](#spod-emulation)
-  * [Installation and dependencies](#installation-and-dependencies)
-    * [Installing via PIP](#installing-via-pip)
-    * [Installing from source](#installing-from-source)
-  * [Documentation](#documentation)
-  * [Testing](#testing)
-  * [References](#references)
-  * [Recent works with PySPOD](#recent-works-with-pyspod)
-  * [Authors and contributors](#authors-and-contributors)
-  * [License](#license)
-
 ## What do we implement?
 
 In this package we implement two versions of SPOD, both available as **parallel and distributed** (i.e. they can run on multiple cores/nodes on large-scale HPC machines) via [mpi4py](https://github.com/mpi4py/mpi4py): 
