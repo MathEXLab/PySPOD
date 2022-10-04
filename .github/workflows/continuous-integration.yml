@@ -62,14 +62,14 @@ jobs:
     - name: Test mpiexec_utils
       run: mpiexec -n 2 python -m coverage run tests/test_utils_parallel.py
 
-    - name: Pytest --with-mpi
-      run: pytest --cov=pyspod --cov-report=xml tests/ --with-mpi -v
-
     - name: Coverage combine
       run: coverage combine
 
     - name: Coverage report
       run: coverage report
+
+    - name: Pytest --with-mpi
+      run: pytest --cov=pyspod --cov-report=xml tests/ --with-mpi -v
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
