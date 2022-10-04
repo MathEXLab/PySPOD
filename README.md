@@ -21,9 +21,9 @@
     <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
   </a>
 
-  <a href="https://coveralls.io/github/mathe-lab/PySPOD?branch=main" target="_blank">
-    <img src="https://coveralls.io/repos/github/mathe-lab/PySPOD/badge.svg?branch=main" alt="Coverage Status" />
-  </a>
+  <a href="https://codecov.io/gh/mathe-lab/PySPOD" > 
+   <img src="https://codecov.io/gh/mathe-lab/PySPOD/branch/main/graph/badge.svg?token=JWA0OIMK2J"/> 
+   </a>
 
   <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mathe-lab/PySPOD&amp;utm_campaign=Badge_Grade">
     <img src="https://app.codacy.com/project/badge/Grade/7ac24e711aea47df806ad52ab067e3a6"/>
