@@ -82,7 +82,7 @@ print(f'flag = {flag},  ortho = {ortho}')
 ## -------------------------------------------------------------------
 ## compute coefficients
 ## -------------------------------------------------------------------
-file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
     data=data, results_dir=results_dir, comm=comm)
 ## -------------------------------------------------------------------
 

@@ -370,12 +370,12 @@ class Base():
         return t_mean
 
 
-    def compute_coeffs(self, data, results_dir, modes_idx=None,
+    def compute_coeffs_op(self, data, results_dir, modes_idx=None,
         tol=1e-10, svd=True, T_lb=None, T_ub=None):
         '''
         See method implementation in the pod.utils module.
         '''
-        file_coeffs, coeffs_dir = utils_pod.compute_coeffs(\
+        file_coeffs, coeffs_dir = utils_pod.compute_coeffs_op(\
             data, results_dir=self._savedir_sim, modes_idx=modes_idx,
             comm=self._comm)
         self._file_coeffs = file_coeffs
@@ -389,7 +389,7 @@ class Base():
         '''
         if not hasattr(self, '_file_coeffs'):
             raise ValueError(
-                'Coeffs not computed; you need to run `compute_coeffs`.')
+                'Coeffs not computed; you need to run `compute_coeffs_op`.')
         else:
             file_recons, coeffs_dir = utils_pod.compute_reconstruction(\
                 coeffs_dir=self._coeffs_dir, coeffs=coeffs, time_idx=time_idx,

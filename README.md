@@ -17,13 +17,13 @@
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
   </a>
 
-  <a href="https://github.com/mathe-lab/PySPOD/actions" target="_blank">
-    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/workflows/ci/badge.svg">	  
+  <a href="https://github.com/mathe-lab/PySPOD/actions/workflows/continuous-integration.yml" target="_blank">
+    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
   </a>
 
-  <a href="https://coveralls.io/github/mathe-lab/PySPOD?branch=main" target="_blank">
-    <img src="https://coveralls.io/repos/github/mathe-lab/PySPOD/badge.svg?branch=main" alt="Coverage Status" />
-  </a>
+  <a href="https://codecov.io/gh/mathe-lab/PySPOD" > 
+   <img src="https://codecov.io/gh/mathe-lab/PySPOD/branch/main/graph/badge.svg?token=JWA0OIMK2J"/> 
+   </a>
 
   <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mathe-lab/PySPOD&amp;utm_campaign=Badge_Grade">
     <img src="https://app.codacy.com/project/badge/Grade/7ac24e711aea47df806ad52ab067e3a6"/>
@@ -31,21 +31,6 @@
 </p>
 
 # *PySPOD*: A parallel (distributed) Python SPOD package
-
-## Table of contents
-
-  * [Description](#description)
-    * [SPOD method](#spod-method)
-    * [SPOD emulation](#spod-emulation)
-  * [Installation and dependencies](#installation-and-dependencies)
-    * [Installing via PIP](#installing-via-pip)
-    * [Installing from source](#installing-from-source)
-  * [Documentation](#documentation)
-  * [Testing](#testing)
-  * [References](#references)
-  * [Recent works with PySPOD](#recent-works-with-pyspod)
-  * [Authors and contributors](#authors-and-contributors)
-  * [License](#license)
 
 ## What do we implement?
 
@@ -64,9 +49,21 @@ SPOD can be applied to **wide-sense stationary data**, that is **ergodic process
 
 ## How do I install the library?
 
+If you want to download and install the latest version from `main`:
+- download the library
+- from the top directory of PySPOD, type
 
+```bash
+python3 setup.py install
+```
 
+If you want to install from pip3 released version:
 
+```bash
+pip3 install pyspod
+```
+
+> To allow for parallel capabilities, you need to have installed an MPI distribution in your machine. Currently MPI distributions tested are [Open MPI](https://www.open-mpi.org), and [Mpich](https://www.mpich.org). Note that the library will still work in **serial** (no parallel capabilities), if you **do not have MPI**.
 
 
 

@@ -10,6 +10,7 @@ import numpy as np
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
+sys.path.append(os.path.join(CFD,'../'))
 
 # Import library specific modules
 from pyspod.spod.standard  import Standard  as spod_standard
@@ -127,7 +128,7 @@ def test_standard_svd():
     SPOD_analysis = spod_standard(params=params, )
     spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
-    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
         data=data, results_dir=results_dir, svd=True)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all')
@@ -183,7 +184,7 @@ def test_standard_inv():
     SPOD_analysis = spod_standard(params=params, )
     spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
-    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
         data=data, results_dir=results_dir)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
         coeffs_dir=coeffs_dir, time_idx='all')
@@ -239,7 +240,7 @@ def test_standard_freq_class_compute():
     SPOD_analysis = spod_standard(params=params)
     spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
-    file_coeffs, coeffs_dir = spod.compute_coeffs(
+    file_coeffs, coeffs_dir = spod.compute_coeffs_op(
         data=data, results_dir=results_dir, tol=1e-10,
         svd=False, T_lb=0.5, T_ub=1.1)
     file_dynamics, coeffs_dir = spod.compute_reconstruction(
@@ -310,7 +311,7 @@ def test_standard_freq_utils_compute():
     SPOD_analysis = spod_standard(params=params)
     spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
-    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
         data=data, results_dir=results_dir, tol=1e-10,
         svd=False, T_lb=0.5, T_ub=1.1)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
@@ -383,7 +384,7 @@ def test_standard_normalize():
     SPOD_analysis = spod_standard(params=params, )
     spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
-    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
         data=data, results_dir=results_dir,
         tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
@@ -478,7 +479,7 @@ def test_streaming_freq():
     SPOD_analysis = spod_streaming(params=params, )
     spod = SPOD_analysis.fit(data_list=data)
     results_dir = spod.savedir_sim
-    file_coeffs, coeffs_dir = utils_spod.compute_coeffs(
+    file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
         data=data, results_dir=results_dir,
         tol=1e-10, svd=False, T_lb=0.5, T_ub=1.1)
     file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
