@@ -11,9 +11,10 @@ order: 2
 
 For this tutorial:
 
-- The data can be found here [era_interim_data.nc]()
-- The complete Python script here [tutorial2.py]()
-- The configuration file here [input_tutorial2.yaml]()
+- The data can be found here [era_interim_data.nc](https://github.com/mathe-lab/PySPOD/blob/7ec12b3b6e79e162acb2c79a79ef7eb78ec5a769/tests/data/era_interim_data.nc)
+- The configuration file here [input_tutorial2.yaml](https://github.com/mathe-lab/PySPOD/blob/7ec12b3b6e79e162acb2c79a79ef7eb78ec5a769/tests/data/input_tutorial2.yaml)
+- The complete Python script here [tutorial2.py](https://github.com/mathe-lab/PySPOD/blob/7ec12b3b6e79e162acb2c79a79ef7eb78ec5a769/tutorials/tutorial2/tutorial2.py)
+
 
 ## Description
 

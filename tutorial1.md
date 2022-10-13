@@ -11,15 +11,18 @@ order: 2
 
 For this tutorial:
 
-- The data can be found here [fluidmechanics_data.mat]()
-- The complete Python script here [tutorial1.py]()
-- The configuration file here [input_tutorial1.yaml]()
+- The data can be found here [fluidmechanics_data.mat](https://github.com/mathe-lab/PySPOD/blob/7ec12b3b6e79e162acb2c79a79ef7eb78ec5a769/tests/data/fluidmechanics_data.mat)
+- The configuration file here [input_tutorial1.yaml](https://github.com/mathe-lab/PySPOD/blob/7ec12b3b6e79e162acb2c79a79ef7eb78ec5a769/tests/data/input_tutorial1.yaml)
+- The complete Python script here [tutorial1.py](https://github.com/mathe-lab/PySPOD/blob/7ec12b3b6e79e162acb2c79a79ef7eb78ec5a769/tutorials/tutorial1/tutorial1.py)
+
 
 ## Description
 
 In this tutorial we explore a small dataset provided with this package
-that contains the flow exiting a nozzle (also referred to as a jet) from [Bres et al.](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/importance-of-the-nozzleexit-boundarylayer-state-in-subsonic-turbulent-jets/1202408D48E0FC3CB31BC9E9D7DE3BD4).
-The data is the symmetric component of a three-dimensional jet, and therefore itself two-dimensional. It is provided in equally-spaced
+that contains the flow exiting a nozzle (also referred to as a jet) 
+from [Bres et al.](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/importance-of-the-nozzleexit-boundarylayer-state-in-subsonic-turbulent-jets/1202408D48E0FC3CB31BC9E9D7DE3BD4).
+The data is the symmetric component of a three-dimensional jet, 
+and therefore itself two-dimensional. It is provided in equally-spaced
 cylindrical coordinates _(r,x)_. 
 
 Starting from this dataset, we show how to:
