@@ -43,7 +43,7 @@ We additionally implement the calculation of time coefficients and the reconstru
 
 To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tutorials/README.md).
 
-For additional information, you can also consult the PySPOD website: [https://mathe-lab.github.io/PySPOD/](https://mathe-lab.github.io/PySPOD/).
+For additional information, you can also consult the PySPOD website: [**https://mathe-lab.github.io/PySPOD/**](https://mathe-lab.github.io/PySPOD/).
 
 ## What data can we apply SPOD to?
 
