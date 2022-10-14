@@ -3,7 +3,11 @@ import time
 import numpy as np
 import xarray as xr
 import pyspod.utils.parallel as utils_par
-from mpi4py import MPI
+
+try:
+    from mpi4py import MPI
+except:
+    pass
 
 # TODO: implement a streaming reader
 
@@ -168,6 +172,8 @@ class reader_1stage():
 ########################################################################################
 class reader_2stage():
     def __init__(self, data_list, xdim, dtype, comm, nv, variable):
+        assert comm is not None, "2-stage reader requires MPI"
+
         st = time.time()
         self._dtype = dtype
         self._comm = comm
