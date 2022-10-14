@@ -44,15 +44,15 @@ def test_standard_fullspectrum():
     # print(f'{np.abs(modes_at_freq[14,15,0,1]) = :}')
     # print(f'{np.min(np.abs(modes_at_freq))  = :}')
     # print(f'{np.max(np.abs(modes_at_freq)) = :}')
-    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
+    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) and \
            (np.abs(modes_at_freq[0,1,0,0])  >0.00046343628114412-tol))
-    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00015920889387988+tol) & \
+    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00015920889387988+tol) and \
            (np.abs(modes_at_freq[10,3,0,2]) >0.00015920889387988-tol))
-    assert((np.abs(modes_at_freq[14,15,0,1])<0.00022129956393462+tol) & \
+    assert((np.abs(modes_at_freq[14,15,0,1])<0.00022129956393462+tol) and \
            (np.abs(modes_at_freq[14,15,0,1])>0.00022129956393462-tol))
-    assert((np.min(np.abs(modes_at_freq))   <1.1110799348607e-05+tol) & \
+    assert((np.min(np.abs(modes_at_freq))   <1.1110799348607e-05+tol) and \
            (np.min(np.abs(modes_at_freq))   >1.1110799348607e-05-tol))
-    assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) & \
+    assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) and \
            (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
@@ -78,15 +78,15 @@ def test_standard_reuse_blocks():
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
+    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) and \
            (np.abs(modes_at_freq[0,1,0,0])  >0.00046343628114412-tol))
-    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00015920889387988+tol) & \
+    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00015920889387988+tol) and \
            (np.abs(modes_at_freq[10,3,0,2]) >0.00015920889387988-tol))
-    assert((np.abs(modes_at_freq[14,15,0,1])<0.00022129956393462+tol) & \
+    assert((np.abs(modes_at_freq[14,15,0,1])<0.00022129956393462+tol) and \
            (np.abs(modes_at_freq[14,15,0,1])>0.00022129956393462-tol))
-    assert((np.min(np.abs(modes_at_freq))   <1.1110799348607e-05+tol) & \
+    assert((np.min(np.abs(modes_at_freq))   <1.1110799348607e-05+tol) and \
            (np.min(np.abs(modes_at_freq))   >1.1110799348607e-05-tol))
-    assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) & \
+    assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) and \
            (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
     ## now reuse blocks
     params['reuse_blocks'] = True
@@ -95,15 +95,15 @@ def test_standard_reuse_blocks():
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) & \
+    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00046343628114412+tol) and \
            (np.abs(modes_at_freq[0,1,0,0])  >0.00046343628114412-tol))
-    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00015920889387988+tol) & \
+    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00015920889387988+tol) and \
            (np.abs(modes_at_freq[10,3,0,2]) >0.00015920889387988-tol))
-    assert((np.abs(modes_at_freq[14,15,0,1])<0.00022129956393462+tol) & \
+    assert((np.abs(modes_at_freq[14,15,0,1])<0.00022129956393462+tol) and \
            (np.abs(modes_at_freq[14,15,0,1])>0.00022129956393462-tol))
-    assert((np.min(np.abs(modes_at_freq))   <1.1110799348607e-05+tol) & \
+    assert((np.min(np.abs(modes_at_freq))   <1.1110799348607e-05+tol) and \
            (np.min(np.abs(modes_at_freq))   >1.1110799348607e-05-tol))
-    assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) & \
+    assert((np.max(np.abs(modes_at_freq))   <0.10797565399041009+tol) and \
            (np.max(np.abs(modes_at_freq))   >0.10797565399041009-tol))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
@@ -138,14 +138,14 @@ def test_standard_svd():
     coeffs = np.load(file_coeffs)
     recons = np.load(file_dynamics)
     ## fit
-    assert((np.min(np.abs(modes_at_freq))<3.685998997e-06+tol) & \
+    assert((np.min(np.abs(modes_at_freq))<3.685998997e-06+tol) and \
            (np.min(np.abs(modes_at_freq))>3.685998997e-06-tol))
-    assert((np.max(np.abs(modes_at_freq))<0.1674285987544+tol) & \
+    assert((np.max(np.abs(modes_at_freq))<0.1674285987544+tol) and \
            (np.max(np.abs(modes_at_freq))>0.1674285987544-tol))
     ## transform
-    assert((np.real(np.max(coeffs))<0.086430605471409+tol) & \
+    assert((np.real(np.max(coeffs))<0.086430605471409+tol) and \
            (np.real(np.max(coeffs))>0.086430605471409-tol))
-    assert((np.real(np.max(recons))<4.498864853598955+tol) & \
+    assert((np.real(np.max(recons))<4.498864853598955+tol) and \
            (np.real(np.max(recons))>4.498864853598955-tol))
     x = data[...,None]
     l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -155,12 +155,12 @@ def test_standard_svd():
     l2_r = utils_errors.compute_l_errors(recons, x, norm_type='l2_rel')
     li_r = utils_errors.compute_l_errors(recons, x, norm_type='linf_rel')
     ## errors
-    assert((l1  <2.48238393194e-06+tol) & (l1  >2.48238393194e-06-tol))
-    assert((l2  <1.68617429317e-08+tol) & (l2  >1.68617429317e-08-tol))
-    assert((li  <0.002026691589296+tol) & (li  >0.002026691589296-tol))
-    assert((l1_r<5.56566193217e-07+tol) & (l1_r>5.56566193217e-07-tol))
-    assert((l2_r<3.78105921025e-09+tol) & (l2_r>3.78105921025e-09-tol))
-    assert((li_r<0.000454925304459+tol) & (li_r>0.000454925304459-tol))
+    assert((l1  <2.48238393194e-06+tol) and (l1  >2.48238393194e-06-tol))
+    assert((l2  <1.68617429317e-08+tol) and (l2  >1.68617429317e-08-tol))
+    assert((li  <0.002026691589296+tol) and (li  >0.002026691589296-tol))
+    assert((l1_r<5.56566193217e-07+tol) and (l1_r>5.56566193217e-07-tol))
+    assert((l2_r<3.78105921025e-09+tol) and (l2_r>3.78105921025e-09-tol))
+    assert((li_r<0.000454925304459+tol) and (li_r>0.000454925304459-tol))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
     except OSError as e:
@@ -194,14 +194,14 @@ def test_standard_inv():
     coeffs = np.load(file_coeffs)
     recons = np.load(file_dynamics)
     ## fit
-    assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol) & \
+    assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol) and \
            (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol))
-    assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol) & \
+    assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol) and \
            (np.max(np.abs(modes_at_freq))>0.1874697574930-tol))
     ## transform
-    assert((np.real(np.max(coeffs))<0.13950582200756+tol) & \
+    assert((np.real(np.max(coeffs))<0.13950582200756+tol) and \
            (np.real(np.max(coeffs))>0.13950582200756-tol))
-    assert((np.real(np.max(recons))<4.49886478858618+tol) & \
+    assert((np.real(np.max(recons))<4.49886478858618+tol) and \
            (np.real(np.max(recons))>4.49886478858618-tol))
     x = data[...,None]
     l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -211,12 +211,12 @@ def test_standard_inv():
     l2_r = utils_errors.compute_l_errors(recons, x, norm_type='l2_rel')
     li_r = utils_errors.compute_l_errors(recons, x, norm_type='linf_rel')
     ## errors
-    assert((l1  <4.77703783599e-07+tol) & (l1  >4.77703783599e-07-tol))
-    assert((l2  <5.83926118831e-09+tol) & (l2  >5.83926118831e-09-tol))
-    assert((li  <0.000614800089066+tol) & (li  >0.000614800089066-tol))
-    assert((l1_r<1.07101850791e-07+tol) & (l1_r>1.07101850791e-07-tol))
-    assert((l2_r<1.30918399202e-09+tol) & (l2_r>1.30918399202e-09-tol))
-    assert((li_r<0.000137704603970+tol) & (li_r>0.000137704603970-tol))
+    assert((l1  <4.77703783599e-07+tol) and (l1  >4.77703783599e-07-tol))
+    assert((l2  <5.83926118831e-09+tol) and (l2  >5.83926118831e-09-tol))
+    assert((li  <0.000614800089066+tol) and (li  >0.000614800089066-tol))
+    assert((l1_r<1.07101850791e-07+tol) and (l1_r>1.07101850791e-07-tol))
+    assert((l2_r<1.30918399202e-09+tol) and (l2_r>1.30918399202e-09-tol))
+    assert((li_r<0.000137704603970+tol) and (li_r>0.000137704603970-tol))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
     except OSError as e:
@@ -251,22 +251,22 @@ def test_standard_freq_class_compute():
     coeffs = np.load(file_coeffs)
     recons = np.load(file_dynamics)
     ## fit
-    assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) & \
+    assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) and \
            (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol2))
-    assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
+    assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) and \
            (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
     ## transform
     # print(f'{np.real(np.min(coeffs)) = :}')
     # print(f'{np.real(np.max(coeffs)) = :}')
     # print(f'{np.real(np.min(recons)) = :}')
     # print(f'{np.real(np.max(recons)) = :}')
-    assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) & \
+    assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) and \
            (np.real(np.min(coeffs))>-101.6470600168104-tol1))
-    assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) & \
+    assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) and \
            (np.real(np.max(coeffs))> 117.3492244840017-tol1))
-    assert((np.real(np.min(recons))< 4.340606772197322+tol1) & \
+    assert((np.real(np.min(recons))< 4.340606772197322+tol1) and \
            (np.real(np.min(recons))> 4.340606772197322-tol1))
-    assert((np.real(np.max(recons))< 4.498677772159833+tol1) & \
+    assert((np.real(np.max(recons))< 4.498677772159833+tol1) and \
            (np.real(np.max(recons))> 4.498677772159833-tol1))
     x = data[...,None]
     l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -282,12 +282,12 @@ def test_standard_freq_class_compute():
     # print(f'{l1_r = :}')
     # print(f'{l2_r = :}')
     # print(f'{li_r = :}')
-    assert((l1  <0.00104122273134+tol2) & (l1  >0.00104122273134-tol2))
-    assert((l2  <1.1276085475e-06+tol2) & (l2  >1.1276085475e-06-tol2))
-    assert((li  <0.01784020507579+tol2) & (li  >0.01784020507579-tol2))
-    assert((l1_r<0.00023355591009+tol2) & (l1_r>0.00023355591009-tol2))
-    assert((l2_r<2.5299012083e-07+tol2) & (l2_r>2.5299012083e-07-tol2))
-    assert((li_r<0.00403310279450+tol2) & (li_r>0.00403310279450-tol2))
+    assert((l1  <0.00104122273134+tol2) and (l1  >0.00104122273134-tol2))
+    assert((l2  <1.1276085475e-06+tol2) and (l2  >1.1276085475e-06-tol2))
+    assert((li  <0.01784020507579+tol2) and (li  >0.01784020507579-tol2))
+    assert((l1_r<0.00023355591009+tol2) and (l1_r>0.00023355591009-tol2))
+    assert((l2_r<2.5299012083e-07+tol2) and (l2_r>2.5299012083e-07-tol2))
+    assert((li_r<0.00403310279450+tol2) and (li_r>0.00403310279450-tol2))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
     except OSError as e:
@@ -322,22 +322,22 @@ def test_standard_freq_utils_compute():
     coeffs = np.load(file_coeffs)
     recons = np.load(file_dynamics)
     ## fit
-    assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) & \
+    assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol2) and \
            (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol2))
-    assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) & \
+    assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol2) and \
            (np.max(np.abs(modes_at_freq))>0.1874697574930-tol2))
     ## transform
     # print(f'{np.real(np.min(coeffs)) = :}')
     # print(f'{np.real(np.max(coeffs)) = :}')
     # print(f'{np.real(np.min(recons)) = :}')
     # print(f'{np.real(np.max(recons)) = :}')
-    assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) & \
+    assert((np.real(np.min(coeffs))<-101.6470600168104+tol1) and \
            (np.real(np.min(coeffs))>-101.6470600168104-tol1))
-    assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) & \
+    assert((np.real(np.max(coeffs))< 117.3492244840017+tol1) and \
            (np.real(np.max(coeffs))> 117.3492244840017-tol1))
-    assert((np.real(np.min(recons))< 4.340606772197322+tol1) & \
+    assert((np.real(np.min(recons))< 4.340606772197322+tol1) and \
            (np.real(np.min(recons))> 4.340606772197322-tol1))
-    assert((np.real(np.max(recons))< 4.498677772159833+tol1) & \
+    assert((np.real(np.max(recons))< 4.498677772159833+tol1) and \
            (np.real(np.max(recons))> 4.498677772159833-tol1))
     x = data[...,None]
     l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -353,12 +353,12 @@ def test_standard_freq_utils_compute():
     # print(f'{l1_r = :}')
     # print(f'{l2_r = :}')
     # print(f'{li_r = :}')
-    assert((l1  <0.00104122273134+tol2) & (l1  >0.00104122273134-tol2))
-    assert((l2  <1.1276085475e-06+tol2) & (l2  >1.1276085475e-06-tol2))
-    assert((li  <0.01784020507579+tol2) & (li  >0.01784020507579-tol2))
-    assert((l1_r<0.00023355591009+tol2) & (l1_r>0.00023355591009-tol2))
-    assert((l2_r<2.5299012083e-07+tol2) & (l2_r>2.5299012083e-07-tol2))
-    assert((li_r<0.00403310279450+tol2) & (li_r>0.00403310279450-tol2))
+    assert((l1  <0.00104122273134+tol2) and (l1  >0.00104122273134-tol2))
+    assert((l2  <1.1276085475e-06+tol2) and (l2  >1.1276085475e-06-tol2))
+    assert((li  <0.01784020507579+tol2) and (li  >0.01784020507579-tol2))
+    assert((l1_r<0.00023355591009+tol2) and (l1_r>0.00023355591009-tol2))
+    assert((l2_r<2.5299012083e-07+tol2) and (l2_r>2.5299012083e-07-tol2))
+    assert((li_r<0.00403310279450+tol2) and (li_r>0.00403310279450-tol2))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
     except OSError as e:
@@ -395,14 +395,14 @@ def test_standard_normalize():
     coeffs = np.load(file_coeffs)
     recons = np.load(file_dynamics)
     ## fit
-    assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol2) & \
+    assert((np.min(np.abs(modes_at_freq))<1.600183827320e-09+tol2) and \
            (np.min(np.abs(modes_at_freq))>1.600183827320e-09-tol2))
-    assert((np.max(np.abs(modes_at_freq))<0.0071528728753325+tol2) & \
+    assert((np.max(np.abs(modes_at_freq))<0.0071528728753325+tol2) and \
            (np.max(np.abs(modes_at_freq))>0.0071528728753325-tol2))
     ## transform
-    assert((np.real(np.max(coeffs))<2156.676391925318+tol1) & \
+    assert((np.real(np.max(coeffs))<2156.676391925318+tol1) and \
            (np.real(np.max(coeffs))>2156.676391925318-tol1))
-    assert((np.real(np.max(recons))<4.474232181561473+tol1) & \
+    assert((np.real(np.max(recons))<4.474232181561473+tol1) and \
            (np.real(np.max(recons))>4.474232181561473-tol1))
     x = data[...,None]
     l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -412,12 +412,12 @@ def test_standard_normalize():
     l2_r = utils_errors.compute_l_errors(recons, x, norm_type='l2_rel')
     li_r = utils_errors.compute_l_errors(recons, x, norm_type='linf_rel')
     ## errors
-    assert((l1  <0.003262458870240+tol2) & (l1  >0.003262458870240-tol2))
-    assert((l2  <3.85087739991e-06+tol2) & (l2  >3.85087739991e-06-tol2))
-    assert((li  <0.111822437047942+tol2) & (li  >0.111822437047942-tol2))
-    assert((l1_r<0.000732038850593+tol2) & (l1_r>0.000732038850593-tol2))
-    assert((l2_r<8.64671493204e-07+tol2) & (l2_r>8.64671493204e-07-tol2))
-    assert((li_r<0.025767738920132+tol2) & (li_r>0.025767738920132-tol2))
+    assert((l1  <0.003262458870240+tol2) and (l1  >0.003262458870240-tol2))
+    assert((l2  <3.85087739991e-06+tol2) and (l2  >3.85087739991e-06-tol2))
+    assert((li  <0.111822437047942+tol2) and (li  >0.111822437047942-tol2))
+    assert((l1_r<0.000732038850593+tol2) and (l1_r>0.000732038850593-tol2))
+    assert((l2_r<8.64671493204e-07+tol2) and (l2_r>8.64671493204e-07-tol2))
+    assert((li_r<0.025767738920132+tol2) and (li_r>0.025767738920132-tol2))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
     except OSError as e:
@@ -446,15 +446,15 @@ def test_streaming_fullspectrum():
     # print(f'{np.abs(modes_at_freq[14,15,0,1]) = :}')
     # print(f'{np.min(np.abs(modes_at_freq)) = :}')
     # print(f'{np.max(np.abs(modes_at_freq)) = :}')
-    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00034252270314601+tol) & \
+    assert((np.abs(modes_at_freq[0,1,0,0])  <0.00034252270314601+tol) and \
            (np.abs(modes_at_freq[0,1,0,0])  >0.00034252270314601-tol))
-    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00017883224454813+tol) & \
+    assert((np.abs(modes_at_freq[10,3,0,2]) <0.00017883224454813+tol) and \
            (np.abs(modes_at_freq[10,3,0,2]) >0.00017883224454813-tol))
-    assert((np.abs(modes_at_freq[14,15,0,1])<0.00020809153783069+tol) & \
+    assert((np.abs(modes_at_freq[14,15,0,1])<0.00020809153783069+tol) and \
            (np.abs(modes_at_freq[14,15,0,1])>0.00020809153783069-tol))
-    assert((np.min(np.abs(modes_at_freq))   <4.5039283294598e-06+tol) & \
+    assert((np.min(np.abs(modes_at_freq))   <4.5039283294598e-06+tol) and \
            (np.min(np.abs(modes_at_freq))   >4.5039283294598e-06-tol))
-    assert((np.max(np.abs(modes_at_freq))   <0.11068809881000957+tol) & \
+    assert((np.max(np.abs(modes_at_freq))   <0.11068809881000957+tol) and \
            (np.max(np.abs(modes_at_freq))   >0.11068809881000957-tol))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
@@ -492,22 +492,22 @@ def test_streaming_freq():
     # print(f'{np.min(np.abs(modes_at_freq)) = :}')
     # print(f'{np.max(np.abs(modes_at_freq)) = :}')
     ## fit
-    assert((np.min(np.abs(modes_at_freq))<0+tol2) & \
+    assert((np.min(np.abs(modes_at_freq))<0+tol2) and \
            (np.min(np.abs(modes_at_freq))>0-tol2))
-    assert((np.max(np.abs(modes_at_freq))<0.17575077060057+tol2) & \
+    assert((np.max(np.abs(modes_at_freq))<0.17575077060057+tol2) and \
            (np.max(np.abs(modes_at_freq))>0.17575077060057-tol2))
     ## transform
     # print(f'{np.real(np.min(recons)) = :}')
     # print(f'{np.real(np.min(coeffs)) = :}')
     # print(f'{np.real(np.max(recons)) = :}')
     # print(f'{np.real(np.max(coeffs)) = :}')
-    assert((np.real(np.min(coeffs))<-95.19671159637073+tol1) & \
+    assert((np.real(np.min(coeffs))<-95.19671159637073+tol1) and \
            (np.real(np.min(coeffs))>-95.19671159637073-tol1))
-    assert((np.real(np.max(coeffs))< 92.4498133690795+tol1) & \
+    assert((np.real(np.max(coeffs))< 92.4498133690795+tol1) and \
            (np.real(np.max(coeffs))> 92.4498133690795-tol1))
-    assert((np.real(np.min(recons))< 4.340179150964369+tol1) & \
+    assert((np.real(np.min(recons))< 4.340179150964369+tol1) and \
            (np.real(np.min(recons))> 4.340179150964369-tol1))
-    assert((np.real(np.max(recons))< 4.498808236142374+tol1) & \
+    assert((np.real(np.max(recons))< 4.498808236142374+tol1) and \
            (np.real(np.max(recons))> 4.498808236142374-tol1))
     x = data[...,None]
     l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -523,12 +523,12 @@ def test_streaming_freq():
     # print(f'{l1_r = :}')
     # print(f'{l2_r = :}')
     # print(f'{li_r = :}')
-    assert((l1  <0.00107942380613+tol2) & (l1  >0.00107942380613-tol2))
-    assert((l2  <1.1519824371e-06+tol2) & (l2  >1.1519824371e-06-tol2))
-    assert((li  <0.01834080799354+tol2) & (li  >0.01834080799354-tol2))
-    assert((l1_r<0.00024212332147+tol2) & (l1_r>0.00024212332147-tol2))
-    assert((l2_r<2.5845390761e-07+tol2) & (l2_r>2.5845390761e-07-tol2))
-    assert((li_r<0.00413503874851+tol2) & (li_r>0.00413503874851-tol2))
+    assert((l1  <0.00107942380613+tol2) and (l1  >0.00107942380613-tol2))
+    assert((l2  <1.1519824371e-06+tol2) and (l2  >1.1519824371e-06-tol2))
+    assert((li  <0.01834080799354+tol2) and (li  >0.01834080799354-tol2))
+    assert((l1_r<0.00024212332147+tol2) and (l1_r>0.00024212332147-tol2))
+    assert((l2_r<2.5845390761e-07+tol2) and (l2_r>2.5845390761e-07-tol2))
+    assert((li_r<0.00413503874851+tol2) and (li_r>0.00413503874851-tol2))
     try:
         shutil.rmtree(os.path.join(CWD, params['savedir']))
     except OSError as e:

@@ -150,21 +150,21 @@ def test_lstm_pod():
     assert(pod.xshape      ==(20, 88))
     assert(pod.dt          ==0.2)
     assert(pod.n_modes_save==8)
-    assert((np.real(pod.eigs[0])   <90699.72245430+tol) & \
+    assert((np.real(pod.eigs[0])   <90699.72245430+tol) and \
            (np.real(pod.eigs[0])   >90699.72245430-tol))
-    assert((pod.weights[0,0]       <19934.84235881+tol) & \
+    assert((pod.weights[0,0]       <19934.84235881+tol) and \
            (pod.weights[0,0]       >19934.84235881-tol))
-    assert((np.abs(e_rec[0,1,0])   <4.467810376724+tol) & \
+    assert((np.abs(e_rec[0,1,0])   <4.467810376724+tol) and \
            (np.abs(e_rec[0,1,0])   >4.467810376724-tol))
-    assert((np.abs(e_rec[100,1,0]) <4.467810376724+tol) & \
+    assert((np.abs(e_rec[100,1,0]) <4.467810376724+tol) and \
            (np.abs(e_rec[100,1,0]) >4.467810376724-tol))
-    assert((np.abs(e_rec[150,1,0]) <4.467810376761+tol) & \
+    assert((np.abs(e_rec[150,1,0]) <4.467810376761+tol) and \
            (np.abs(e_rec[150,1,0]) >4.467810376761-tol))
-    assert((np.abs(e_rec[100,10,5])<4.463844748293+tol) & \
+    assert((np.abs(e_rec[100,10,5])<4.463844748293+tol) and \
            (np.abs(e_rec[100,10,5])>4.463844748293-tol))
-    assert((np.abs(e_rec[50,7,20]) <4.459104904890+tol) & \
+    assert((np.abs(e_rec[50,7,20]) <4.459104904890+tol) and \
            (np.abs(e_rec[50,7,20]) >4.459104904890-tol))
-    assert((np.abs(e_rec[60,8,9])  <4.463696917777+tol) & \
+    assert((np.abs(e_rec[60,8,9])  <4.463696917777+tol) and \
            (np.abs(e_rec[60,8,9])  >4.463696917777-tol))
     # clean up results
     try:
@@ -313,17 +313,17 @@ def test_lstm_spod():
     # print(f'{np.abs(e_rec[0,0,0,0]) = :}')
     # print(f'{np.abs(e_rec[10,0,0,0]) = :}')
     # print(f'{np.abs(e_rec[15,5,12,0]) = :}')
-    assert((np.abs(p_rec[0,0,0,0])  <4.467528967599+tol) & \
+    assert((np.abs(p_rec[0,0,0,0])  <4.467528967599+tol) and \
            (np.abs(p_rec[0,0,0,0])  >4.467528967599-tol))
-    assert((np.abs(p_rec[10,0,0,0]) <4.465600418067+tol) & \
+    assert((np.abs(p_rec[10,0,0,0]) <4.465600418067+tol) and \
            (np.abs(p_rec[10,0,0,0]) >4.465600418067-tol))
-    assert((np.abs(p_rec[15,5,12,0])<4.457098452307+tol) & \
+    assert((np.abs(p_rec[15,5,12,0])<4.457098452307+tol) and \
            (np.abs(p_rec[15,5,12,0])>4.457098452307-tol))
-    assert((np.abs(e_rec[0,0,0,0])  <4.467528967599+tol) & \
+    assert((np.abs(e_rec[0,0,0,0])  <4.467528967599+tol) and \
            (np.abs(e_rec[0,0,0,0])  >4.467528967599-tol))
-    assert((np.abs(e_rec[10,0,0,0]) <4.465600418067+tol) & \
+    assert((np.abs(e_rec[10,0,0,0]) <4.465600418067+tol) and \
            (np.abs(e_rec[10,0,0,0]) >4.465600418067-tol))
-    assert((np.abs(e_rec[15,5,12,0])<4.457098452307+tol) & \
+    assert((np.abs(e_rec[15,5,12,0])<4.457098452307+tol) and \
            (np.abs(e_rec[15,5,12,0])>4.457098452307-tol))
     # # clean up results
     # try:

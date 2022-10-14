@@ -43,13 +43,13 @@ def test_errors():
     h1_proj = utils_errors.compute_h_errors(
         data=data+1, data_ref=data, dt=dt, norm_type='h1')
     tol = 1e-10
-    assert((l1_proj    <1.0           +tol)&(l1_proj    >1.0           -tol))
-    assert((l2_proj    <0.000753778361+tol)&(l1_proj    >0.000753778361-tol))
-    assert((li_proj    <1.0           +tol)&(li_proj    >1.0           -tol))
-    assert((l1_rel_proj<0.224216581408+tol)&(l1_rel_proj>0.224216581408-tol))
-    assert((l2_rel_proj<0.000169009826+tol)&(l2_rel_proj>0.000169009826-tol))
-    assert((li_rel_proj<0.230434424435+tol)&(li_rel_proj>0.230434424435-tol))
-    assert((h1_proj    <0.0           +tol)&(h1_proj    >0.0           -tol))
+    assert((l1_proj    <1.0           +tol)and(l1_proj    >1.0           -tol))
+    assert((l2_proj    <0.000753778361+tol)and(l1_proj    >0.000753778361-tol))
+    assert((li_proj    <1.0           +tol)and(li_proj    >1.0           -tol))
+    assert((l1_rel_proj<0.224216581408+tol)and(l1_rel_proj>0.224216581408-tol))
+    assert((l2_rel_proj<0.000169009826+tol)and(l2_rel_proj>0.000169009826-tol))
+    assert((li_rel_proj<0.230434424435+tol)and(li_rel_proj>0.230434424435-tol))
+    assert((h1_proj    <0.0           +tol)and(h1_proj    >0.0           -tol))
     try:
         shutil.rmtree(os.path.join(CWD,'results'))
     except OSError as e:
@@ -74,9 +74,9 @@ def test_io_yaml_required():
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    assert((np.min(np.abs(modes_at_freq))<1.891400529444e-10+tol) & \
+    assert((np.min(np.abs(modes_at_freq))<1.891400529444e-10+tol) and \
            (np.min(np.abs(modes_at_freq))>1.891400529444e-10-tol))
-    assert((np.max(np.abs(modes_at_freq))<0.5493553307032446+tol) & \
+    assert((np.max(np.abs(modes_at_freq))<0.5493553307032446+tol) and \
            (np.max(np.abs(modes_at_freq))>0.5493553307032446-tol))
     try:
         shutil.rmtree(os.path.join(CWD,'results'))
@@ -103,9 +103,9 @@ def test_io_yaml_optional():
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
     phi = post.get_all_modes(spod._savedir_sim)
-    assert((np.min(np.abs(modes_at_freq))<1.088621540690e-09+tol) & \
+    assert((np.min(np.abs(modes_at_freq))<1.088621540690e-09+tol) and \
            (np.min(np.abs(modes_at_freq))>1.088621540690e-09-tol))
-    assert((np.max(np.abs(modes_at_freq))<0.3147154781010669+tol) & \
+    assert((np.max(np.abs(modes_at_freq))<0.3147154781010669+tol) and \
            (np.max(np.abs(modes_at_freq))>0.3147154781010669-tol))
     try:
         shutil.rmtree(os.path.join(CWD,'spod_results'))
@@ -132,15 +132,15 @@ def test_postproc_2d():
     T_ = 12.5;     tol = 1e-10
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    assert((np.abs(modes_at_freq[0,1,0,0])  <8.574136171525e-05+tol) & \
+    assert((np.abs(modes_at_freq[0,1,0,0])  <8.574136171525e-05+tol) and \
            (np.abs(modes_at_freq[0,1,0,0])  >8.574136171525e-05-tol))
-    assert((np.abs(modes_at_freq[10,3,0,2]) <0.0008816145245031+tol) & \
+    assert((np.abs(modes_at_freq[10,3,0,2]) <0.0008816145245031+tol) and \
            (np.abs(modes_at_freq[10,3,0,2]) >0.0008816145245031-tol))
-    assert((np.abs(modes_at_freq[14,15,0,1])<0.0018284295461606+tol) & \
+    assert((np.abs(modes_at_freq[14,15,0,1])<0.0018284295461606+tol) and \
            (np.abs(modes_at_freq[14,15,0,1])>0.0018284295461606-tol))
-    assert((np.min(np.abs(modes_at_freq))   <8.819039169527e-10+tol) & \
+    assert((np.min(np.abs(modes_at_freq))   <8.819039169527e-10+tol) and \
            (np.min(np.abs(modes_at_freq))   >8.819039169527e-10-tol))
-    assert((np.max(np.abs(modes_at_freq))   <0.2862741540284579+tol) & \
+    assert((np.max(np.abs(modes_at_freq))   <0.2862741540284579+tol) and \
            (np.max(np.abs(modes_at_freq))   >0.2862741540284579-tol))
     spod.plot_eigs(filename='eigs.png', equal_axes=True, title='eigs')
     spod.plot_eigs_vs_frequency(
@@ -415,11 +415,11 @@ def test_weights_2d():
     freq = spod.freq
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    assert((np.abs(modes_at_freq[5,10,0,0])<0.16561370950286056+tol) & \
+    assert((np.abs(modes_at_freq[5,10,0,0])<0.16561370950286056+tol) and \
            (np.abs(modes_at_freq[5,10,0,0])>0.16561370950286056-tol))
-    assert((np.abs(modes_at_freq[0,0,0,0]) <0.20034824428826448+tol) & \
+    assert((np.abs(modes_at_freq[0,0,0,0]) <0.20034824428826448+tol) and \
            (np.abs(modes_at_freq[0,0,0,0]) >0.20034824428826448-tol))
-    assert((np.max(np.abs(modes_at_freq))  <0.49212975276929255+tol) & \
+    assert((np.max(np.abs(modes_at_freq))  <0.49212975276929255+tol) and \
            (np.max(np.abs(modes_at_freq))  >0.49212975276929255-tol))
     try:
         shutil.rmtree(os.path.join(CWD,'results'))
@@ -471,11 +471,11 @@ def test_weights_3d():
     freq = spod.freq
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=freq)
     modes_at_freq = spod.get_modes_at_freq(freq_idx=f_idx)
-    assert((np.abs(modes_at_freq[5,10,0,0,0])<0.0221012979473301+tol) & \
+    assert((np.abs(modes_at_freq[5,10,0,0,0])<0.0221012979473301+tol) and \
            (np.abs(modes_at_freq[5,10,0,0,0])>0.0221012979473301-tol))
-    assert((np.abs(modes_at_freq[0,0,0,0,0]) <0.0657147460775701+tol) & \
+    assert((np.abs(modes_at_freq[0,0,0,0,0]) <0.0657147460775701+tol) and \
            (np.abs(modes_at_freq[0,0,0,0,0]) >0.0657147460775701-tol))
-    assert((np.max(np.abs(modes_at_freq))    <0.2073217409901779+tol) & \
+    assert((np.max(np.abs(modes_at_freq))    <0.2073217409901779+tol) and \
            (np.max(np.abs(modes_at_freq))    >0.2073217409901779-tol))
     try:
         shutil.rmtree(os.path.join(CWD,'results'))
