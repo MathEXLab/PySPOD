@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      - restructuring
+      - io
   pull_request:
     branches:
       - main
-      - restructuring
+      - io
   workflow_dispatch:
 
 jobs:
