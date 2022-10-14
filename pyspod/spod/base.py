@@ -372,7 +372,7 @@ class Base():
         self._pr0(f'------------------------------------')
 
         if isinstance(data_list[0], str):
-            self._reader = utils_reader_2stage_1d(data_list, self._xdim, self._float, self._comm, self._nv, variable)
+            self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variable)
         else:
             self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variable)
 

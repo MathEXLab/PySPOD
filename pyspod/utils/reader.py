@@ -202,7 +202,7 @@ class reader_2stage():
                 d.close()
 
             self._max_axes = np.argsort(shape[1:])
-            print(f'--- max axes: {self._max_axes} {shape = :}')
+            print(f'--- max axes: {self._max_axes} shape {shape}')
 
             if self._nv == 1 and (d.ndim != xdim + 2):
                 self._shape = (nt,) + shape[1:] + (1,)
@@ -215,7 +215,7 @@ class reader_2stage():
 
         data = xr.open_dataset(data_list[0],cache=False)[variable]
         x_tmp = data[[0],...].values
-        print(f'--- {x_tmp.shape = :}')
+        print(f'--- x_tmp.shape {x_tmp.shape}')
 
         ## correct last dimension for single variable data
         if self._nv == 1 and (x_tmp.ndim != xdim + 2):
@@ -232,7 +232,7 @@ class reader_2stage():
         if comm.rank == 0:
             print(f'--- init finished in {time.time()-st:.2f} s')
 
-    def read_data(self):
+    def read_data_for_time(self, ts, te):
         stime = time.time()
         comm = self._comm
 
@@ -244,9 +244,9 @@ class reader_2stage():
         n_readers = min(7,mpi_size) # use max N readers for the first stage
 
         # fist distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
-        n, s = utils_par._blockdist(self.nt, n_readers, mpi_rank)
-        js = s
-        je = s+n
+        n, s = utils_par._blockdist(te-ts, n_readers, mpi_rank)
+        js = ts + s
+        je = ts + s+n
 
         cum_t = 0
         cum_read = 0
@@ -288,8 +288,8 @@ class reader_2stage():
                     if len(input_idx) == len(d_idx)+1:
                         input_idx[-1] = 0
 
-                    print(f'{input_idx = :}')
-                    print(f'{d_idx = :}')
+                    print(f'input_idx {input_idx}')
+                    print(f'd_idx {d_idx}')
 
                     print(f'proc {mpi_rank} reading {input_idx} from {d_idx} so far got {cum_read}/{je-js}')
                     tmp = d[tuple(d_idx)].to_numpy()
@@ -332,15 +332,16 @@ class reader_2stage():
 
         recvcounts = np.zeros(mpi_size)
         for irank in range(mpi_size):
-            nt,            _ = utils_par._blockdist(self.nt, n_readers, irank)            # time (distributed on the reader)
+            nt,            _ = utils_par._blockdist(te-ts, n_readers, irank)                    # time (distributed on the reader)
             n_distributed, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)  # max_axis (distributed in the output)
-            n_entire         = np.product(np.array(self._shape)[axes])                # not distributed over remaining axes
+            n_entire         = np.product(np.array(self._shape)[axes])                          # not distributed over remaining axes
             recvcounts[irank] = nt*n_distributed*n_entire
 
         # allocate local data
         n, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)
-        shape_output = np.array(self._shape) # do not overwrite the original time dimension
-        shape_output[max_axis] = n     # distributed dimension
+        shape_output = np.array(self._shape) # start with the original shape
+        shape_output[0] = te - ts            # overwrite the time dimension
+        shape_output[max_axis] = n           # distributed dimension
         for axis in axes:
             shape_output[axis] = self._shape[axis]
         # print(f'shape output is {shape_output}')
@@ -410,6 +411,14 @@ class reader_2stage():
 
         comm.Barrier()
         # return data, self.get_max_axes()[-1], self._shape[1:]
+
+    def read_data(self):
+        return self.read_data_for_time(0, self.nt)
+
+    def read_block(self, iblk):
+        time_first = iblk*self._n_dft
+        time_last = min((iblk+1)*self._n_dft, self._shape[0])
+        return self.read_data_for_time(time_first, time_last)
 
     def print_proc_averages(self):
         mean = self._data.mean()
@@ -547,7 +556,7 @@ class reader_2stage_1d():
                 d.close()
 
             self._max_axes = np.argsort(shape[1:])
-            print(f'--- max axes: {self._max_axes} {shape = :}')
+            print(f'--- max axes: {self._max_axes} shape {shape}')
 
             if self._nv == 1 and (d.ndim != xdim + 2):
                 self._shape = (nt,) + shape[1:] + (1,)
@@ -560,7 +569,7 @@ class reader_2stage_1d():
 
         data = xr.open_dataset(data_list[0],cache=False)[variable]
         x_tmp = data[[0],...].values
-        print(f'--- {x_tmp.shape = :}')
+        print(f'--- x_tmp.shape {x_tmp.shape}')
 
         ## correct last dimension for single variable data
         if self._nv == 1 and (x_tmp.ndim != xdim + 2):
@@ -633,8 +642,8 @@ class reader_2stage_1d():
                     if len(input_idx) == len(d_idx)+1:
                         input_idx[-1] = 0
 
-                    print(f'{input_idx = :}')
-                    print(f'{d_idx = :}')
+                    print(f'input_idx {input_idx}')
+                    print(f'd_idx {d_idx}')
 
                     print(f'proc {mpi_rank} reading {input_idx} from {d_idx} so far got {cum_read}/{je-js}')
                     tmp = d[tuple(d_idx)].to_numpy()
