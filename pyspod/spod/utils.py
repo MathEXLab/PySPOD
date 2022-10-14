@@ -69,9 +69,9 @@ def check_orthogonality(results_dir, mode_idx1, mode_idx2,
     O = utils_par.allreduce(data=O, comm=comm)
     tol = 1e-6
     if mode_idx1 == mode_idx2:
-        ortho_check = ((O < 1+tol) & (O>1-tol))
+        ortho_check = ((O < 1+tol) and (O>1-tol))
     else:
-        ortho_check = ((O < 0+tol) & (O>0-tol))
+        ortho_check = ((O < 0+tol) and (O>0-tol))
     utils_par.barrier(comm)
     return ortho_check, O
 

@@ -153,16 +153,16 @@ def test_tutorial1():
         # print(f'{np.max(np.abs(modes_at_freq)) = :}')
         ## fit
         assert(flag==True); assert(np.abs(ortho)<1e-15)
-        assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol) & \
+        assert((np.min(np.abs(modes_at_freq))<8.971537836e-07+tol) and \
                (np.min(np.abs(modes_at_freq))>8.971537836e-07-tol))
-        assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol) & \
+        assert((np.max(np.abs(modes_at_freq))<0.1874697574930+tol) and \
                (np.max(np.abs(modes_at_freq))>0.1874697574930-tol))
         ## transform
         # print(f'{np.real(np.max(coeffs)) = :}')
         # print(f'{np.real(np.max(recons)) = :}')
-        assert((np.real(np.max(coeffs))<29.749494933937+tol2) & \
+        assert((np.real(np.max(coeffs))<29.749494933937+tol2) and \
                (np.real(np.max(coeffs))>29.749494933937-tol2))
-        assert((np.real(np.max(recons))< 4.498868461587+tol) & \
+        assert((np.real(np.max(recons))< 4.498868461587+tol) and \
                (np.real(np.max(recons))> 4.498868461587-tol))
         x = data
         l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -334,16 +334,16 @@ def test_tutorial2():
         # print(f'{np.max(np.abs(modes_at_freq)) = :}')
         ## fit
         assert(flag==True); assert(np.abs(ortho)<1e-7)
-        assert((np.min(np.abs(modes_at_freq))<1.6945059542e-06+tol) & \
+        assert((np.min(np.abs(modes_at_freq))<1.6945059542e-06+tol) and \
                (np.min(np.abs(modes_at_freq))>1.6945059542e-06-tol))
-        assert((np.max(np.abs(modes_at_freq))<4.50340747833251+tol) & \
+        assert((np.max(np.abs(modes_at_freq))<4.50340747833251+tol) and \
                (np.max(np.abs(modes_at_freq))>4.50340747833251-tol))
         ## transform
         # print(f'{np.real(np.max(coeffs)) = :}')
         # print(f'{np.real(np.max(recons)) = :}')
-        # assert((np.real(np.max(coeffs))<29.7494889132212+tol) & \
+        # assert((np.real(np.max(coeffs))<29.7494889132212+tol) and \
         #        (np.real(np.max(coeffs))>29.7494889132212-tol))
-        # assert((np.real(np.max(recons))< 4.4988684614862+tol) & \
+        # assert((np.real(np.max(recons))< 4.4988684614862+tol) and \
         #        (np.real(np.max(recons))> 4.4988684614862-tol))
         # x = data
         # l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')

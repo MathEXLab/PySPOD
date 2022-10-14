@@ -35,8 +35,8 @@ def test_parallel_pvar():
     v, m, n = utils_par.pvar(data, comm=comm)
     tol = 1e-10
     if comm.rank == 0:
-        assert((v<5.12904124410e-05+tol )&(v>5.12904124410e-05-tol ))
-        assert((m<4.459984976871076+tol )&(m>4.459984976871076-tol ))
+        assert((v<5.12904124410e-05+tol )and(v>5.12904124410e-05-tol ))
+        assert((m<4.459984976871076+tol )and(m>4.459984976871076-tol ))
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_distribute():
@@ -118,7 +118,7 @@ def test_parallel_allreduce():
     tol = 1e-1
     if rank == 0:
         assert(maxidx==1)
-        assert((np.sum(dts_r)<35009021572.78676+tol) & \
+        assert((np.sum(dts_r)<35009021572.78676+tol) and \
                (np.sum(dts_r)>35009021572.78676-tol))
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
