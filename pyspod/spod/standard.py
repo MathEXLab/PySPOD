@@ -23,7 +23,7 @@ class Standard(Base):
     to the `fit` method of the `Standard` class, derived
     from the `Base` class.
     '''
-    def fit(self, data_list):
+    def fit(self, data_list, variable = None):
         '''
         Class-specific method to fit the data matrix using the SPOD
         batch algorithm.
@@ -33,14 +33,10 @@ class Standard(Base):
         '''
         start = time.time()
 
-        ## if user forgets to pass list for single data list,
-        ## make it to be a list
-        if not isinstance(data_list, list): data_list = [data_list]
-
         ## initialize data and variables
         self._pr0(f' ')
         self._pr0(f'Initialize data ...')
-        self._initialize(data_list)
+        self._initialize(data_list, variable)
 
         self._pr0(f' ')
         self._pr0(f'Calculating temporal DFT (parallel)')
@@ -54,8 +50,8 @@ class Standard(Base):
 
         # loop over number of blocks and generate Fourier realizations,
         # if blocks are not saved in storage
-        size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
-        Q_hat = np.empty(size_Q_hat, dtype=self._complex)
+        size_Q_hat = [self._n_freq, self._reader.data[0,...].size, self._n_blocks]
+        Q_hat = None
         ## check if blocks already computed or not
         if blocks_present:
             # load blocks if present
@@ -73,7 +69,7 @@ class Standard(Base):
             Q_hat = np.reshape(Q_hat, shape)
         else:
             # loop over number of blocks and generate Fourier realizations
-            size_Q_hat = [self._n_freq, self._data[0,...].size, self._n_blocks]
+            size_Q_hat = [self._n_freq, self._reader.data[0,...].size, self._n_blocks]
             Q_hat = np.empty(size_Q_hat, dtype=self._complex)
             for i_blk in range(0,self._n_blocks):
                 st = time.time()
@@ -103,7 +99,7 @@ class Standard(Base):
                 ## store FFT blocks in RAM
                 Q_hat[:,:,i_blk] = Q_blk_hat
             del Q_blk_hat
-        del self._data
+        del self._reader.data
 
         self._pr0(f'------------------------------------')
         self._pr0(f'Time to compute DFT: {time.time() - start} s.')
@@ -137,8 +133,8 @@ class Standard(Base):
             + self._n_dft, self._nt) - self._n_dft
 
         # Get data
-        Q_blk = self._data[offset:self._n_dft+offset,...]
-        Q_blk = Q_blk.reshape(self._n_dft, self._data[0,...].size)
+        Q_blk = self._reader.data[offset:self._n_dft+offset,...]
+        Q_blk = Q_blk.reshape(self._n_dft, self._reader.data[0,...].size)
 
         # Subtract longtime or provided mean
         Q_blk = Q_blk[:] - self._t_mean

@@ -6,6 +6,7 @@ import shutil
 import pytest
 import numpy as np
 import xarray as xr
+from pyspod.utils.reader import reader_2stage as utils_reader_2stage
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -173,6 +174,35 @@ def test_parallel_npy(axis=0, dtype="d", order='C'):
         except OSError as e:
             pass
 
+@pytest.mark.mpi(minsize=2, maxsize=2)
+def test_parallel_distribute_2phase():
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
+    ## ------------------------------------------------------------------------
+    data_file = os.path.join(CFD,'./data', 'earthquakes_data.nc')
+    ds        = xr.open_dataset(data_file)
+    da        = ds['slip_potency']
+    ## ------------------------------------------------------------------------
+
+    # reference 1 phase distribution
+    dataRef,    maxAxisRef,    globShapeRef    = utils_par.distribute_data(da, comm=comm)
+    # dts2stage, maxidx2stage, gs2stage = utils_par.distribute_data_2stage(da.shape, [da], comm, np.float64)
+
+    # 2 phase distribution
+    xdim = 2
+    nv = 1
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, 'slip_potency')
+    reader.read_data()
+    data = reader.data
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+
+    assert np.allclose(dataRef.to_numpy().flatten(),data.flatten(),atol=0.0001,rtol=0)
+    assert maxAxisRef == maxAxis
+    assert globShapeRef == globShape
 
 
 if __name__ == "__main__":
@@ -180,6 +210,8 @@ if __name__ == "__main__":
     test_parallel_distribute()
     test_parallel_allreduce()
     test_parallel_pr0()
+    test_parallel_distribute_2phase()
+
     for axis in range(3):
         for dtype in "iIqQfdFD":
             for order in "CF":

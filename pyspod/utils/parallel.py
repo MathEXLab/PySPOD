@@ -155,7 +155,7 @@ def _blockdist(N, size, rank):
     q, r = divmod(N, size)
     n = q + (1 if r > rank else 0)
     s = rank * q + min(rank, r)
-    return (n, s)
+    return (n, s) if rank < size else (0, 0)
 
 
 def allreduce(data, comm):

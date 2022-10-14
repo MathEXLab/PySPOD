@@ -23,6 +23,9 @@ import pyspod.utils.parallel as utils_par
 import pyspod.utils.io       as utils_io
 import pyspod.utils.weights  as utils_weights
 import pyspod.utils.postproc as post
+from pyspod.utils.reader import reader_1stage as utils_reader_1stage
+from pyspod.utils.reader import reader_2stage as utils_reader_2stage
+from pyspod.utils.reader import reader_2stage_1d as utils_reader_2stage_1d
 
 # Current file path
 CWD = os.getcwd()
@@ -362,40 +365,38 @@ class Base():
 
     # common methods
     # --------------------------------------------------------------------------
-    def _initialize(self, data_list):
+    def _initialize(self, data_list, variable = None):
 
         self._pr0(f' ')
         self._pr0(f'Initialize data')
         self._pr0(f'------------------------------------')
 
-        ## extract first element of data list
-        data = data_list[0]
+        if isinstance(data_list[0], str):
+            self._reader = utils_reader_2stage_1d(data_list, self._xdim, self._float, self._comm, self._nv, variable)
+        else:
+            self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variable)
 
         self._pr0(f'- reading first time snapshot for data dimensions')
-        if not isinstance(data[[0],...], np.ndarray):
-            x_tmp = data[[0],...].values
-        else:
-            x_tmp = data[[0],...]
-        ## correct last dimension for single variable data
-        if self._nv == 1 and (x_tmp.ndim != self._xdim + 2):
-            x_tmp = x_tmp[...,np.newaxis]
 
         ## get data dimensions and store in class
         self._pr0('- getting data dimensions')
-        self._nx     = x_tmp[0,...,0].size
-        self._dim    = x_tmp.ndim
-        self._shape  = x_tmp.shape
-        self._xdim   = x_tmp[0,...,0].ndim
-        self._xshape = x_tmp[0,...,0].shape
+        self._nx     = self._reader.nx
+        self._dim    = self._reader.dim
+        self._shape  = self._reader.shape
+        self._xdim   = self._reader.xdim
+        self._xshape = self._reader.xshape
+        self._nt     = self._reader.nt
 
-        self._nt = 0
-        for d in data_list:
-            assert d[0,...].shape == self._xshape
-            self._nt += d.shape[0]
+        self._pr0(f'nx: {self._nx}')
+        self._pr0(f'dim: {self._dim}')
+        self._pr0(f'shape: {self._shape}')
+        self._pr0(f'xdim: {self._xdim}')
+        self._pr0(f'xshape: {self._xshape}')
+        self._pr0(f'nt: {self._nt}')
 
         ## Determine whether data is real-valued or complex-valued
         ## to decide on one- or two-sided spectrum from data
-        self._isrealx = np.isreal(data[0]).all()
+        self._isrealx = self._reader.is_real
 
         # define number of blocks
         num = self._nt    - self._n_overlap
@@ -406,24 +407,18 @@ class Base():
         self.define_weights()
 
         ## distribute data and weights
-        self._pr0(f'- distributing data (if parallel)')
-        tmp_nt = 0
-        data = np.empty(0)
-        for i, d in enumerate(data_list):
-            d, self._max_axis, self._global_shape = \
-                utils_par.distribute_data(data=d, comm=self._comm)
-            if i == 0:
-                data = np.zeros((self._nt,) + d.shape[1:], dtype=self._float)
-            data[tmp_nt:tmp_nt+d.shape[0],...] = d
-            tmp_nt += d.shape[0]
+        self._reader.read_data()
+        self._reader.print_proc_averages()
+        # data = self._reader.data
+        self._max_axis = self._reader.max_axis
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
         ## get data and add axis for single variable
         st = time.time()
-        if not isinstance(data,np.ndarray): data = data.values
-        if (self._nv == 1) and (data.ndim != self._xdim + 2):
-            data = data[...,np.newaxis]
+        if not isinstance(self._reader.data,np.ndarray): self._reader.data = self._reader.data.values
+        # if (self._nv == 1) and (self._reader.data.ndim != self._xdim + 2):
+        #     self._reader.data = self._reader.data[...,np.newaxis]
         self._pr0(f'- loaded data into memory: {time.time() - st} s.')
         st = time.time()
 
@@ -432,21 +427,21 @@ class Base():
             raise ValueError('Spectral estimation parameters not meaningful.')
 
         # apply mean
-        self.select_mean(data)
+        self.select_mean(self._reader.data)
         self._pr0(f'- computed mean: {time.time() - st} s.')
         st = time.time()
 
-        ## normalize weigths if required
+        ## normalize weights if required
         if self._normalize_weights:
             self._pr0('- normalizing weights')
             self._weights = utils_weights.apply_normalization(
-                data=data, weights=self._weights,
+                data=self._reader.data, weights=self._weights,
                 n_vars=self._nv, comm=self._comm, method='variance')
 
         ## flatten weights to number of space x variables points
         try:
             self._weights = np.reshape(
-                self._weights, [data[0,...].size,1])
+                self._weights, [self._reader.data[0,...].size,1])
         except:
             raise ValueError(
                 'parameter ``weights`` must be cast into '
@@ -496,12 +491,18 @@ class Base():
                     os.makedirs(self._blocks_folder)
 
         # compute approx problem size
-        self._pb_size_f = self._size*data.size * self._float(1).nbytes * B2GB
-        self._pb_size_c = self._size*data.size * self._complex(1).nbytes * B2GB
-        data = self._set_dtype(data)
-        self._data = data
+        pb_size_min_max_total = self._reader.get_sizes()
+        self._pb_size_f = (pb_size_min_max_total[0] * self._float(1).nbytes * B2GB,
+                           pb_size_min_max_total[1] * self._float(1).nbytes * B2GB,
+                           pb_size_min_max_total[2] * self._float(1).nbytes * B2GB)
+
+        self._pb_size_c = (pb_size_min_max_total[0] * self._complex(1).nbytes * B2GB,
+                           pb_size_min_max_total[1] * self._complex(1).nbytes * B2GB,
+                           pb_size_min_max_total[2] * self._complex(1).nbytes * B2GB)
+        # data = self._set_dtype(data)
+        # self._data = data
         utils_par.barrier(self._comm)
-        del data
+        # del data
 
         # print parameters to the screen
         self._print_parameters()
@@ -518,7 +519,7 @@ class Base():
                 raise ValueError(
                     'parameter ``weights`` must have the '
                     'same size as flattened data spatial '
-                    'dimensions, that is: ', int(self.nx * self.nv))
+                    'dimensions, that is: ', int(self.nx * self.nv), np.size(self._weights))
         else:
             self._weights = np.ones(self._xshape+(self._nv,))
             self._weights_name = 'uniform'
@@ -667,8 +668,8 @@ class Base():
         '''Display parameter summary.'''
         self._pr0(f'SPOD parameters')
         self._pr0(f'------------------------------------')
-        self._pr0(f'Problem size (real)      : {self._pb_size_f} GB.')
-        self._pr0(f'Problem size (complex)   : {self._pb_size_c} GB.')
+        self._pr0(f'Problem size (real)      : {self._pb_size_f[2]:.2f} GB (min {self._pb_size_f[0]:.2f} GB/proc, max {self._pb_size_f[1]:.2f} GB/proc)')
+        self._pr0(f'Problem size (complex)   : {self._pb_size_c[2]:.2f} GB (min {self._pb_size_c[0]:.2f} GB/proc, max {self._pb_size_c[1]:.2f} GB/proc)')
         self._pr0(f'Data type for real       : {self._float}')
         self._pr0(f'Data type for complex    : {self._complex}')
         self._pr0(f'No. snapshots per block  : {self._n_dft}')
