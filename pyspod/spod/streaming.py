@@ -56,10 +56,10 @@ class Streaming(Base):
         self._pr0(f'------------------------------------')
 
         ## obtain first snapshot to determine data size
-        flat_dim = int(self._reader.data[0,...].size)
+        flat_dim = int(self.data[0,...].size)
         n_m_save = self._n_modes_save
         n_freq = self._n_freq
-        x_new = self._reader.data[0,...]
+        x_new = self.data[0,...]
         x_new = np.reshape(x_new,(flat_dim,1))
 
         ## allocate data arrays
@@ -97,7 +97,7 @@ class Streaming(Base):
             ## get new snapshot and abort if data stream runs dry
             if ti > 0:
                 try:
-                    x_new = self._reader._data[ti,...]
+                    x_new = self.data[ti,...]
                     x_new = np.reshape(x_new,(flat_dim,1))
                 except:
                     self._pr0(f'--> Data stream ended.')

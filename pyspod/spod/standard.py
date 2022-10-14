@@ -50,7 +50,7 @@ class Standard(Base):
 
         # loop over number of blocks and generate Fourier realizations,
         # if blocks are not saved in storage
-        size_Q_hat = [self._n_freq, self._reader.data[0,...].size, self._n_blocks]
+        size_Q_hat = [self._n_freq, self.data[0,...].size, self._n_blocks]
         Q_hat = None
         ## check if blocks already computed or not
         if blocks_present:
@@ -69,7 +69,7 @@ class Standard(Base):
             Q_hat = np.reshape(Q_hat, shape)
         else:
             # loop over number of blocks and generate Fourier realizations
-            size_Q_hat = [self._n_freq, self._reader.data[0,...].size, self._n_blocks]
+            size_Q_hat = [self._n_freq, self.data[0,...].size, self._n_blocks]
             Q_hat = np.empty(size_Q_hat, dtype=self._complex)
             for i_blk in range(0,self._n_blocks):
                 st = time.time()
@@ -99,8 +99,7 @@ class Standard(Base):
                 ## store FFT blocks in RAM
                 Q_hat[:,:,i_blk] = Q_blk_hat
             del Q_blk_hat
-        del self._reader.data
-
+        del self.data
         self._pr0(f'------------------------------------')
         self._pr0(f'Time to compute DFT: {time.time() - start} s.')
         if self._comm: self._comm.Barrier()
@@ -133,8 +132,8 @@ class Standard(Base):
             + self._n_dft, self._nt) - self._n_dft
 
         # Get data
-        Q_blk = self._reader.data[offset:self._n_dft+offset,...]
-        Q_blk = Q_blk.reshape(self._n_dft, self._reader.data[0,...].size)
+        Q_blk = self.data[offset:self._n_dft+offset,...]
+        Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
 
         # Subtract longtime or provided mean
         Q_blk = Q_blk[:] - self._t_mean

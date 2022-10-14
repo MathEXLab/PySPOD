@@ -25,7 +25,11 @@ import pyspod.utils.weights  as utils_weights
 import pyspod.utils.postproc as post
 from pyspod.utils.reader import reader_1stage as utils_reader_1stage
 from pyspod.utils.reader import reader_2stage as utils_reader_2stage
-from pyspod.utils.reader import reader_2stage_1d as utils_reader_2stage_1d
+
+try:
+    from mpi4py import MPI
+except:
+    pass
 
 # Current file path
 CWD = os.getcwd()
@@ -407,18 +411,26 @@ class Base():
         self.define_weights()
 
         ## distribute data and weights
-        self._reader.read_data()
-        self._reader.print_proc_averages()
-        # data = self._reader.data
+        self.data = self._reader.get_data()
+
+        # debugging
+        mean = self.data.mean()
+        if self._comm is None:
+            print(f'--- proc averages: {mean}')
+        else:
+            means = self._comm.gather(mean, root=0)
+            if self._comm.rank == 0:
+                print(f'--- proc averages: {means}')
+
         self._max_axis = self._reader.max_axis
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
         ## get data and add axis for single variable
         st = time.time()
-        if not isinstance(self._reader.data,np.ndarray): self._reader.data = self._reader.data.values
-        # if (self._nv == 1) and (self._reader.data.ndim != self._xdim + 2):
-        #     self._reader.data = self._reader.data[...,np.newaxis]
+        if not isinstance(self.data,np.ndarray): self.data = self.data.values
+        # if (self._nv == 1) and (self.data.ndim != self._xdim + 2):
+        #     self.data = self.data[...,np.newaxis]
         self._pr0(f'- loaded data into memory: {time.time() - st} s.')
         st = time.time()
 
@@ -427,7 +439,7 @@ class Base():
             raise ValueError('Spectral estimation parameters not meaningful.')
 
         # apply mean
-        self.select_mean(self._reader.data)
+        self.select_mean(self.data)
         self._pr0(f'- computed mean: {time.time() - st} s.')
         st = time.time()
 
@@ -435,13 +447,13 @@ class Base():
         if self._normalize_weights:
             self._pr0('- normalizing weights')
             self._weights = utils_weights.apply_normalization(
-                data=self._reader.data, weights=self._weights,
+                data=self.data, weights=self._weights,
                 n_vars=self._nv, comm=self._comm, method='variance')
 
         ## flatten weights to number of space x variables points
         try:
             self._weights = np.reshape(
-                self._weights, [self._reader.data[0,...].size,1])
+                self._weights, [self.data[0,...].size,1])
         except:
             raise ValueError(
                 'parameter ``weights`` must be cast into '
@@ -490,8 +502,8 @@ class Base():
                 if not os.path.exists(self._blocks_folder):
                     os.makedirs(self._blocks_folder)
 
-        # compute approx problem size
-        pb_size_min_max_total = self._reader.get_sizes()
+        # compute min/max/total problem size
+        pb_size_min_max_total = self.get_sizes()
         self._pb_size_f = (pb_size_min_max_total[0] * self._float(1).nbytes * B2GB,
                            pb_size_min_max_total[1] * self._float(1).nbytes * B2GB,
                            pb_size_min_max_total[2] * self._float(1).nbytes * B2GB)
@@ -929,3 +941,12 @@ class Base():
             figsize=figsize, path=self.savedir_sim, filename=filename)
 
     # --------------------------------------------------------------------------
+
+    def get_sizes(self):
+        if self._comm is None:
+            return self.data.size, self.data.size, self.data.size
+        else:
+            min_size = self._comm.allreduce(self.data.size, op=MPI.MIN)
+            max_size = self._comm.allreduce(self.data.size, op=MPI.MAX)
+            tot_size = self._comm.allreduce(self.data.size, op=MPI.SUM)
+            return min_size, max_size, tot_size
