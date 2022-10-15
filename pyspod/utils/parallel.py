@@ -132,7 +132,7 @@ def distribute_data(data, comm):
 def distribute_dimension(data, max_axis, comm):
     """
     Distribute desired spatial dimension, splitting partitions
-    by value // comm.size, with remaind = value % comm.size
+    by value // comm.size, with remainder = value % comm.size
     """
     ## distribute largest spatial dimension based on data
     if comm is not None:

@@ -35,7 +35,7 @@ class Streaming(Base):
         if not isinstance(data_list, list): data_list = [data_list]
 
         ## initialize data and variables
-        self._initialize(data_list)
+        self._initialize(data_list, streaming = True)
 
         ## sqrt of weights
         sqrt_w = np.sqrt(self._weights)
@@ -56,10 +56,12 @@ class Streaming(Base):
         self._pr0(f'------------------------------------')
 
         ## obtain first snapshot to determine data size
-        flat_dim = int(self.data[0,...].size)
+        data = self._reader.get_data(ts=0)
+        assert data.shape[0] == 1, 'Data returned should have been a single snapshot'
+        flat_dim = int(data[0,...].size)
         n_m_save = self._n_modes_save
         n_freq = self._n_freq
-        x_new = self.data[0,...]
+        x_new = data[0,...]
         x_new = np.reshape(x_new,(flat_dim,1))
 
         ## allocate data arrays
@@ -97,7 +99,7 @@ class Streaming(Base):
             ## get new snapshot and abort if data stream runs dry
             if ti > 0:
                 try:
-                    x_new = self.data[ti,...]
+                    x_new = self._reader.get_data(ti)
                     x_new = np.reshape(x_new,(flat_dim,1))
                 except:
                     self._pr0(f'--> Data stream ended.')

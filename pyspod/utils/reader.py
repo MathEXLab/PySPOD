@@ -54,29 +54,53 @@ class reader_1stage():
         self._xdim = x_tmp[0,...,0].ndim
         self._xshape = x_tmp[0,...,0].shape
         self._is_real = np.isreal(x_tmp).all()
+        self._max_axis = np.argmax(self._shape[1:])
         del x_tmp
         del data
 
-    def get_data(self):
+    def get_data(self, ts = None):
+        # return self.old_get_data()
+
+        if ts is None:
+            return self.get_data_for_time(0, self.nt)
+        else:
+            return self.get_data_for_time(ts, ts+1)
+
+    def get_data_for_time(self, ts, te):
         st = time.time()
         if self._comm is None or self._comm.rank == 0:
             print(f'- distributing data (if parallel)')
         tmp_nt = 0
-        data = np.empty(0)
+        cum_read = 0
+        data = None
         for i, d in enumerate(self._data_list):
-            d, self._max_axis, self._global_shape = \
-                utils_par.distribute_data(data=d, comm=self._comm)
-            if i == 0:
-                # add extra dimension for 1 variable data
-                shape = (self._nt,) + d.shape[1:]
-                if len(shape) < len(self.shape):
-                    shape = (self._nt,) + d.shape[1:] + (1,)
-                data = np.zeros(shape, dtype=self._dtype)
-            idx = [np.s_[:]]*len(self.shape)
-            idx[0] = np.s_[tmp_nt:tmp_nt+d.shape[0]]
-            if len(self.shape) == len(d.shape)+1:
-                idx[-1] = 0
-            data[tuple(idx)] = d
+            file_ts_start = tmp_nt
+            file_ts_end = tmp_nt + d.shape[0]
+
+            read_js = max(ts, file_ts_start)
+            read_je = min(te, file_ts_end)
+
+            if read_je > read_js:
+                d, _, self._global_shape = \
+                    utils_par.distribute_data(data=d, comm=self._comm)
+                if data is None:
+                    # add extra dimension for 1 variable data
+                    shape = (te-ts,) + d.shape[1:]
+                    if len(shape) < len(self.shape):
+                        shape = (te-ts,) + d.shape[1:] + (1,)
+                    data = np.zeros(shape, dtype=self._dtype)
+
+                data_idx = [np.s_[:]]*len(self.shape)
+                data_idx[0] = np.s_[cum_read:cum_read+read_je-read_js]
+                if len(self.shape) == len(d.shape)+1:
+                    data_idx[-1] = 0
+
+                d_idx = [np.s_[:]]*len(d.shape)
+                d_idx[0] = np.s_[read_js-cum_read:read_je-cum_read]
+                # print(f'{d_idx = :} and {d.shape = :}')
+                data[tuple(data_idx)] = d[tuple(d_idx)]
+
+                cum_read += read_je-read_js
             tmp_nt += d.shape[0]
         if self._comm is None or self._comm.rank == 0:
             print(f'--- reading data (1 stage reader) finished in {time.time()-st:.2f} s')
@@ -142,7 +166,7 @@ class reader_1stage():
 #   but since the reads here are contiguous, it can be 15x faster for certain filesystems
 ########################################################################################
 class reader_2stage():
-    def __init__(self, data_list, xdim, dtype, comm, nv, variable):
+    def __init__(self, data_list, xdim, dtype, comm, nv, variable, nreaders = None):
         assert comm is not None, "2-stage reader requires MPI"
 
         st = time.time()
@@ -154,7 +178,7 @@ class reader_2stage():
         self._shape = None
         self._max_axes = None
         self._variable = variable
-        self._data = None
+        self._nreaders = min(nreaders,comm.size) if nreaders else comm.size
 
         # variable has to be provided
         assert variable is not None, 'Variable has to be provided for the 2-stage reader'
@@ -209,7 +233,7 @@ class reader_2stage():
         if comm.rank == 0:
             print(f'--- init finished in {time.time()-st:.2f} s')
 
-    def read_data_for_time(self, ts, te):
+    def get_data_for_time(self, ts, te):
         stime = time.time()
         comm = self._comm
 
@@ -218,10 +242,8 @@ class reader_2stage():
 
         mpi_dtype = MPI.FLOAT if self._dtype==np.float32 else MPI.DOUBLE
 
-        n_readers = min(7,mpi_size) # use max N readers for the first stage
-
         # fist distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
-        n, s = utils_par._blockdist(te-ts, n_readers, mpi_rank)
+        n, s = utils_par._blockdist(te-ts, self._nreaders, mpi_rank)
         js = ts + s
         je = ts + s+n
 
@@ -309,7 +331,7 @@ class reader_2stage():
 
         recvcounts = np.zeros(mpi_size)
         for irank in range(mpi_size):
-            nt,            _ = utils_par._blockdist(te-ts, n_readers, irank)                    # time (distributed on the reader)
+            nt,            _ = utils_par._blockdist(te-ts, self._nreaders, irank)               # time (distributed on the reader)
             n_distributed, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)  # max_axis (distributed in the output)
             n_entire         = np.product(np.array(self._shape)[axes])                          # not distributed over remaining axes
             recvcounts[irank] = nt*n_distributed*n_entire
@@ -406,13 +428,16 @@ class reader_2stage():
         return data
         # return data, self.get_max_axes()[-1], self._shape[1:]
 
-    def get_data(self):
-        return self.read_data_for_time(0, self.nt)
+    def get_data(self, ts = None):
+        if ts is None:
+            return self.get_data_for_time(0, self.nt)
+        else:
+            return self.get_data_for_time(ts, ts+1)
 
     def read_block(self, iblk):
         time_first = iblk*self._n_dft
         time_last = min((iblk+1)*self._n_dft, self._shape[0])
-        return self.read_data_for_time(time_first, time_last)
+        return self.get_data_for_time(time_first, time_last)
 
     @property
     def nt(self):
