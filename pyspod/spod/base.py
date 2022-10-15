@@ -104,7 +104,7 @@ class Base():
         else:
             raise TypeError('n_dft must be an integer.')
 
-        # define block overlapå
+        # define block overlap
         self._n_overlap = int(np.ceil(self._n_dft * self._overlap / 100))
         if self._n_overlap > self._n_dft - 1:
             raise ValueError('Overlap is too large.')
@@ -423,8 +423,7 @@ class Base():
                 print(f'--- proc averages: {mean}')
             else:
                 means = self._comm.gather(mean, root=0)
-                if self._comm.rank == 0:
-                    print(f'--- proc averages: {means}')
+                self._pr0(f'--- proc averages: {means}')
 
         # TODO: how do we calculate mean, weights and normalize if streaming data?
         if streaming:

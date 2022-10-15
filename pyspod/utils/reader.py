@@ -68,8 +68,7 @@ class reader_1stage():
 
     def get_data_for_time(self, ts, te):
         st = time.time()
-        if self._comm is None or self._comm.rank == 0:
-            print(f'- distributing data (if parallel)')
+        utils_par.pr0(f'- distributing data (if parallel)', self._comm)
         tmp_nt = 0
         cum_read = 0
         data = None
@@ -102,8 +101,7 @@ class reader_1stage():
 
                 cum_read += read_je-read_js
             tmp_nt += d.shape[0]
-        if self._comm is None or self._comm.rank == 0:
-            print(f'--- reading data (1 stage reader) finished in {time.time()-st:.2f} s')
+        utils_par.pr0(f'--- reading data (1 stage reader) finished in {time.time()-st:.2f} s', self._comm)
         return data
 
     @property
@@ -230,8 +228,7 @@ class reader_2stage():
         self._is_real = np.isreal(x_tmp).all()
         del x_tmp
         del data
-        if comm.rank == 0:
-            print(f'--- init finished in {time.time()-st:.2f} s')
+        utils_par.pr0(f'--- init finished in {time.time()-st:.2f} s', comm)
 
     def get_data_for_time(self, ts, te):
         stime = time.time()
@@ -346,8 +343,7 @@ class reader_2stage():
         # print(f'shape output is {shape_output}')
 
         comm.Barrier()
-        if mpi_rank == 0:
-            print(f'experimental reading with distribution: I/O took {time.time()-stime} seconds')
+        utils_par.pr0(f'experimental reading with distribution: I/O took {time.time()-stime} seconds', comm)
         # comm.Barrier()
 
         stime = time.time()
@@ -367,8 +363,7 @@ class reader_2stage():
             idx[max_axis] = np.s_[rank_js:rank_je]
             s_msgs[irank] = input_data[tuple(idx)].copy()
         del input_data
-        if mpi_rank == 0:
-            print(f'-- finished copying data {time.time()-ztime} seconds')
+        utils_par.pr0(f'-- finished copying data {time.time()-ztime} seconds', comm)
 
         data = np.zeros(tuple(shape_output),dtype=self._dtype)
 
@@ -376,8 +371,7 @@ class reader_2stage():
 
         reqs = []
         for irank in range(mpi_size):
-            if mpi_rank == 0:
-                print(f'posting gather for {irank}')
+            utils_par.pr0(f'posting gather for {irank}', comm)
 
             if False:
                 n, s = utils_par._blockdist(self._shape[max_axis], mpi_size, irank)
@@ -402,27 +396,21 @@ class reader_2stage():
 
             if len(reqs) > 128:
                 xxtime = time.time()
-                if mpi_rank == 0:
-                    print(f'waiting for {len(reqs)} requests')
+                utils_par.pr0(f'waiting for {len(reqs)} requests', comm)
                 MPI.Request.Waitall(reqs)
                 reqs = []
-                if mpi_rank == 0:
-                    print(f'  partial waitall {time.time()-xxtime} seconds')
+                utils_par.pr0(f'  partial waitall {time.time()-xxtime} seconds', comm)
 
 
         # comm.Barrier()
-        if mpi_rank == 0:
-            print(f'posted igathervs, now waitall')
+        utils_par.pr0(f'posted igathervs, now waitall', comm)
 
         xtime = time.time()
         MPI.Request.Waitall(reqs)
         ftype.Free()
 
-        if mpi_rank == 0:
-            print(f'experimental reading with distribution: MPI took {time.time()-stime} seconds')
-
-        if mpi_rank == 0:
-            print(f'  experimental reading with distribution: Waitall took {time.time()-xtime} seconds')
+        utils_par.pr0(f'experimental reading with distribution: MPI took {time.time()-stime} seconds', comm)
+        utils_par.pr0(f'  experimental reading with distribution: Waitall took {time.time()-xtime} seconds', comm)
 
         comm.Barrier()
         return data
