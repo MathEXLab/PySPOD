@@ -13,7 +13,7 @@ math_engine: mathjax
 
 ## What is SPOD?
 
-**Spectral Proper Orthgonal Decomposition (SPOD)** is a modal analysis
+**Spectral Proper Orthogonal Decomposition (SPOD)** is a modal analysis
 tool [Taira et al 2017](https://doi.org/10.2514/1.J056060), that allows
 **extracting spatio-temporal coherent patterns** in **ergodic data**.
 Its name, SPOD, was first conied by
