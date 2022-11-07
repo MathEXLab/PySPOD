@@ -89,7 +89,7 @@ jobs:
           - ubuntu-22.04
           - macos-12
         py:
-          - "3"
+          - "3.10"
 
     steps:
 
