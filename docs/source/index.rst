@@ -133,7 +133,7 @@ Weights
 =======
 
 SPOD typically requires a set of spatial weights to compute
-the needed inner product. In the module `weigths`, we implement
+the needed inner product. In the module `weights`, we implement
 a set of weights used for longitude-latitude grids, for both
 2D and 3D problems. You can implement your own weights in this
 module, or pass a set of weights you have precomputed as a parameter

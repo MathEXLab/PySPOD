@@ -274,7 +274,7 @@ class Base():
                   f'{time.time()-st} s.')
         st = time.time()
 
-        ## normalize weigths if required
+        ## normalize weights if required
         if self._normalize_weights:
             self._pr0('- normalizing weights')
             self._weights = utils_weights.apply_normalization(
