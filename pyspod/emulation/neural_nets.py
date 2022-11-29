@@ -74,7 +74,7 @@ class Neural_Nets(Base):
             self._n_seq_out * self._n_features, activation='linear'))
         opt = optimizers.Adam(
             learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=None,
-            decay=0.0, amsgrad=False)
+            amsgrad=False)
         self.model.compile(
             optimizer=opt, loss='mse', metrics=[coeff_determination])
         self.model.summary()
