@@ -110,3 +110,4 @@ spod.generate_2d_data_video(
     # coastlines='centred',
     sampling=20,
     vars_idx=[5])
+

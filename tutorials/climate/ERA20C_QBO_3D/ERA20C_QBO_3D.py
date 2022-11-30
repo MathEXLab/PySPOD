@@ -103,3 +103,4 @@ spod.plot_mode_tracers(
     modes_idx=[0,1,2])
 data = spod.get_data(X)
 spod.plot_data_tracers(data, coords_list=[(100,0,2),(200,10,10)])
+
