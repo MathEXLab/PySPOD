@@ -85,30 +85,30 @@ def test_standard_class_compute():
         # print(np.min(np.abs(modes)))
         # print(np.max(np.abs(modes)))
         assert(modes.shape==(20, 88, 1, 8))
-        assert((np.real(pod.eigs[0])    <5.507017010287017+tol1) & \
-               (np.real(pod.eigs[0])    >5.507017010287017-tol1))
-        assert((pod.weights[0,0]        <1.    +tol1) & \
-               (pod.weights[0,0]           >1.    -tol1))
-        assert((np.abs(modes[0,1,0,0])  <0.00083357978228883+tol2) & \
+        assert((np.real(pod.eigs[0])    <5.507017010287017  +tol1) and \
+               (np.real(pod.eigs[0])    >5.507017010287017  -tol1))
+        assert((pod.weights[0,0]        <1.                 +tol1) and \
+               (pod.weights[0,0]        >1.                 -tol1))
+        assert((np.abs(modes[0,1,0,0])  <0.00083357978228883+tol2) and \
                (np.abs(modes[0,1,0,0])  >0.00083357978228883-tol2))
-        assert((np.abs(modes[10,3,0,2]) <3.9895843115101e-05+tol2) & \
+        assert((np.abs(modes[10,3,0,2]) <3.9895843115101e-05+tol2) and \
                (np.abs(modes[10,3,0,2]) >3.9895843115101e-05-tol2))
-        assert((np.abs(modes[14,15,0,1])<5.6967220942460e-05+tol2) & \
+        assert((np.abs(modes[14,15,0,1])<5.6967220942460e-05+tol2) and \
                (np.abs(modes[14,15,0,1])>5.6967220942460e-05-tol2))
-        assert((np.min(np.abs(modes))   <3.7644953502612e-08+tol2) & \
+        assert((np.min(np.abs(modes))   <3.7644953502612e-08+tol2) and \
                (np.min(np.abs(modes))   >3.7644953502612e-08-tol2))
-        assert((np.max(np.abs(modes))   <0.13122305680422694+tol2) & \
+        assert((np.max(np.abs(modes))   <0.13122305680422694+tol2) and \
                (np.max(np.abs(modes))   >0.13122305680422694-tol2))
         ## transform
         # print(np.real(np.max(coeffs)))
         # print(np.real(np.max(recons)))
         assert(coeffs.shape==(8, 1000))
         assert(recons.shape==(1000, 20, 88, 1))
-        assert((np.real(np.max(coeffs))<0.244272570390476+tol2) & \
+        assert((np.real(np.max(coeffs))<0.244272570390476+tol2) and \
                (np.real(np.max(coeffs))>0.244272570390476-tol2))
-        assert((np.real(np.max(recons))<4.495997223290585+tol2) & \
+        assert((np.real(np.max(recons))<4.495997223290585+tol2) and \
                (np.real(np.max(recons))>4.495997223290585-tol2))
-        assert((np.real(np.max(recons_cl))<4.495997223290585+tol2) & \
+        assert((np.real(np.max(recons_cl))<4.495997223290585+tol2) and \
                (np.real(np.max(recons_cl))>4.495997223290585-tol2))
         x = data[...,None]
         l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -124,12 +124,12 @@ def test_standard_class_compute():
         # print(f'{l1_r = :}')
         # print(f'{l2_r = :}')
         # print(f'{li_r = :}')
-        assert((l1  <0.002285731618209+tol2) & (l1  >0.002285731618209-tol2))
-        assert((l2  <2.85867239211e-06+tol2) & (l2  >2.85867239211e-06-tol2))
-        assert((li  <0.095300914161469+tol2) & (li  >0.095300914161469-tol2))
-        assert((l1_r<0.000512977176726+tol2) & (l1_r>0.000512977176726-tol2))
-        assert((l2_r<6.41990505721e-07+tol2) & (l2_r>6.41990505721e-07-tol2))
-        assert((li_r<0.021960611302988+tol2) & (li_r>0.021960611302988-tol2))
+        assert((l1  <0.002285731618209+tol2) and (l1  >0.002285731618209-tol2))
+        assert((l2  <2.85867239211e-06+tol2) and (l2  >2.85867239211e-06-tol2))
+        assert((li  <0.095300914161469+tol2) and (li  >0.095300914161469-tol2))
+        assert((l1_r<0.000512977176726+tol2) and (l1_r>0.000512977176726-tol2))
+        assert((l2_r<6.41990505721e-07+tol2) and (l2_r>6.41990505721e-07-tol2))
+        assert((li_r<0.021960611302988+tol2) and (li_r>0.021960611302988-tol2))
         ## clean up results
         try:
             shutil.rmtree(os.path.join(CFD,'results'))
@@ -199,28 +199,28 @@ def test_standard_utils_compute():
         # print(np.min(np.abs(modes)))
         # print(np.max(np.abs(modes)))
         assert(modes.shape==(20, 88, 1, 8))
-        assert((np.real(pod.eigs[0])    <5.507017010287017+tol1) & \
-               (np.real(pod.eigs[0])    >5.507017010287017-tol1))
-        assert((pod.weights[0,0]        <1.    +tol1) & \
-               (pod.weights[0,0]           >1.    -tol1))
-        assert((np.abs(modes[0,1,0,0])  <0.00083357978228883+tol2) & \
+        assert((np.real(pod.eigs[0])    <5.507017010287017  +tol1) and \
+               (np.real(pod.eigs[0])    >5.507017010287017  -tol1))
+        assert((pod.weights[0,0]        <1.                 +tol1) and \
+               (pod.weights[0,0]        >1.                 -tol1))
+        assert((np.abs(modes[0,1,0,0])  <0.00083357978228883+tol2) and \
                (np.abs(modes[0,1,0,0])  >0.00083357978228883-tol2))
-        assert((np.abs(modes[10,3,0,2]) <3.9895843115101e-05+tol2) & \
+        assert((np.abs(modes[10,3,0,2]) <3.9895843115101e-05+tol2) and \
                (np.abs(modes[10,3,0,2]) >3.9895843115101e-05-tol2))
-        assert((np.abs(modes[14,15,0,1])<5.6967220942460e-05+tol2) & \
+        assert((np.abs(modes[14,15,0,1])<5.6967220942460e-05+tol2) and \
                (np.abs(modes[14,15,0,1])>5.6967220942460e-05-tol2))
-        assert((np.min(np.abs(modes))   <3.7644953502612e-08+tol2) & \
+        assert((np.min(np.abs(modes))   <3.7644953502612e-08+tol2) and \
                (np.min(np.abs(modes))   >3.7644953502612e-08-tol2))
-        assert((np.max(np.abs(modes))   <0.13122305680422694+tol2) & \
+        assert((np.max(np.abs(modes))   <0.13122305680422694+tol2) and \
                (np.max(np.abs(modes))   >0.13122305680422694-tol2))
         ## transform
         # print(np.real(np.max(coeffs)))
         # print(np.real(np.max(recons)))
         assert(coeffs.shape==(8, 1000))
         assert(recons.shape==(1000, 20, 88, 1))
-        assert((np.real(np.max(coeffs))<0.244272570390476+tol2) & \
+        assert((np.real(np.max(coeffs))<0.244272570390476+tol2) and \
                (np.real(np.max(coeffs))>0.244272570390476-tol2))
-        assert((np.real(np.max(recons))<4.495997223290585+tol2) & \
+        assert((np.real(np.max(recons))<4.495997223290585+tol2) and \
                (np.real(np.max(recons))>4.495997223290585-tol2))
         x = data[...,None]
         l1 = utils_errors.compute_l_errors(recons, x, norm_type='l1')
@@ -236,12 +236,12 @@ def test_standard_utils_compute():
         # print(f'{l1_r = :}')
         # print(f'{l2_r = :}')
         # print(f'{li_r = :}')
-        assert((l1  <0.002285731618209+tol2) & (l1  >0.002285731618209-tol2))
-        assert((l2  <2.85867239211e-06+tol2) & (l2  >2.85867239211e-06-tol2))
-        assert((li  <0.095300914161469+tol2) & (li  >0.095300914161469-tol2))
-        assert((l1_r<0.000512977176726+tol2) & (l1_r>0.000512977176726-tol2))
-        assert((l2_r<6.41990505721e-07+tol2) & (l2_r>6.41990505721e-07-tol2))
-        assert((li_r<0.021960611302988+tol2) & (li_r>0.021960611302988-tol2))
+        assert((l1  <0.002285731618209+tol2) and (l1  >0.002285731618209-tol2))
+        assert((l2  <2.85867239211e-06+tol2) and (l2  >2.85867239211e-06-tol2))
+        assert((li  <0.095300914161469+tol2) and (li  >0.095300914161469-tol2))
+        assert((l1_r<0.000512977176726+tol2) and (l1_r>0.000512977176726-tol2))
+        assert((l2_r<6.41990505721e-07+tol2) and (l2_r>6.41990505721e-07-tol2))
+        assert((li_r<0.021960611302988+tol2) and (li_r>0.021960611302988-tol2))
         ## clean up results
         try:
             shutil.rmtree(os.path.join(CFD,'results'))

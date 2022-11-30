@@ -45,7 +45,7 @@ jobs:
         mpi: ${{ matrix.mpi }}
 
     - name: Use Python ${{ matrix.py }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.py }}
         architecture: x64
@@ -89,7 +89,7 @@ jobs:
           - ubuntu-22.04
           - macos-12
         py:
-          - "3"
+          - "3.10"
 
     steps:
 
@@ -97,7 +97,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Use Python ${{ matrix.py }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.py }}
         architecture: x64
