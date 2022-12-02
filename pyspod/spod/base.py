@@ -390,7 +390,7 @@ class Base():
 
         self._nt = 0
         for d in data_list:
-            assert d[0,...].shape == self._xshape
+            assert d.shape[1:1+self._xdim] == self._xshape, print (d.shape[1:1+self._xdim], self._xshape)
             self._nt += d.shape[0]
 
         ## Determine whether data is real-valued or complex-valued
