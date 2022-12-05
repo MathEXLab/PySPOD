@@ -315,7 +315,7 @@ class reader_2stage():
 
                     # tmp = d[tuple(d_idx)].to_numpy()
                     for idx, var in enumerate(self._variables):
-                        print(f'{idx = :} {input_idx = :} {dvars[var].values.shape = :}')
+                        print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
                         input_idx[-1] = idx
                         input_data[tuple(input_idx)] = dvars[var].values
                     # del tmp
