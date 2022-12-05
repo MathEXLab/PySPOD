@@ -164,7 +164,7 @@ class reader_1stage():
 #   but since the reads here are contiguous, it can be 15x faster for certain filesystems
 ########################################################################################
 class reader_2stage():
-    def __init__(self, data_list, xdim, dtype, comm, nv, variable, nreaders = None):
+    def __init__(self, data_list, xdim, dtype, comm, nv, variables, nreaders = None):
         assert comm is not None, "2-stage reader requires MPI"
 
         st = time.time()
@@ -175,11 +175,11 @@ class reader_2stage():
         self._file_time = {}
         self._shape = None
         self._max_axes = None
-        self._variable = variable
+        self._variables = variables
         self._nreaders = min(nreaders,comm.size) if nreaders else comm.size
 
-        # variable has to be provided
-        assert variable is not None, 'Variable has to be provided for the 2-stage reader'
+        # variables have to be provided
+        assert variables is not None, 'Variable(s) has to be provided for the 2-stage reader'
 
         # data_list should be a list of filenames
         if comm.rank == 0:
@@ -191,7 +191,7 @@ class reader_2stage():
         shape = None
         if comm.rank == 0:
             for f in data_list:
-                d = xr.open_dataset(f,cache=False)[variable]
+                d = xr.open_dataset(f,cache=False)[variables[0]]
                 # make sure that all files have the same spatial shape
                 if shape is not None:
                     assert d.shape[1:] == shape[1:], f'File {f} has different shape than the previous ones'
@@ -204,20 +204,25 @@ class reader_2stage():
             print(f'--- max axes: {self._max_axes} shape {shape}')
 
             if self._nv == 1 and (d.ndim != xdim + 2):
+                print(f'1 var exception, adding an extra axis')
                 self._shape = (nt,) + shape[1:] + (1,)
             else:
                 self._shape = (nt,) + shape[1:]
+            if self._nv > 1:
+                self._shape = (self._shape) + (self._nv,)
 
         self._shape = comm.bcast(self._shape, root=0)
         self._file_time = comm.bcast(self._file_time, root=0)
         self._max_axes = comm.bcast(self._max_axes, root=0)
 
-        data = xr.open_dataset(data_list[0],cache=False)[variable]
+        data = xr.open_dataset(data_list[0],cache=False)[variables[0]]
         x_tmp = data[[0],...].values
         print(f'--- x_tmp.shape {x_tmp.shape}')
 
         ## correct last dimension for single variable data
         if self._nv == 1 and (x_tmp.ndim != xdim + 2):
+            x_tmp = x_tmp[...,np.newaxis]
+        if self._nv > 1:
             x_tmp = x_tmp[...,np.newaxis]
 
         self._nx = x_tmp[0,...,0].size
@@ -263,8 +268,12 @@ class reader_2stage():
                 subread_js = read_js
                 subread_je = read_je
 
-                d = xr.open_dataset(k, cache=False, decode_times=False)[self._variable]
+                d = xr.open_dataset(k, cache=False, decode_times=False)
                 print(f'rank {mpi_rank} opening file {k}')
+
+                first_var = list(d[self._variables[0]].dims)[0]
+                print(f'first variable is {first_var}')
+
                 while True:
                     # using chunks to reduce the memory usage when calling input_data[]=d[].to_numpy()
                     subread_je = subread_js + 10000
@@ -279,18 +288,37 @@ class reader_2stage():
                     #     print(f'dataset {k} rank {mpi_rank}/{mpi_size-1} input shape {shape} distribute data new {d.shape = :}')
                     input_idx = [np.s_[:]]*len(self._shape)
                     input_idx[0] = np.s_[cum_read:cum_read+subread_je-subread_js]
-                    d_idx = [np.s_[:]]*len(d.shape)
-                    d_idx[0] = np.s_[subread_js-cum_t:subread_je-cum_t]
-                    if len(input_idx) == len(d_idx)+1:
-                        input_idx[-1] = 0
+
+                    # if self._nv == 1:
+                    #     d_idx = [np.s_[:]]*len(d.shape)
+                    #     d_idx[0] = np.s_[subread_js-cum_t:subread_je-cum_t]
+                    #     if len(input_idx) == len(d_idx)+1:
+                    #         input_idx[-1] = 0
 
                     print(f'input_idx {input_idx}')
-                    print(f'd_idx {d_idx}')
+                    # if self._nv == 1:
+                    #     print(f'd_idx {d_idx}')
 
-                    print(f'proc {mpi_rank} reading {input_idx} from {d_idx} so far got {cum_read}/{je-js}')
-                    tmp = d[tuple(d_idx)].to_numpy()
-                    input_data[tuple(input_idx)] = tmp
-                    del tmp
+                    #     print(f'proc {mpi_rank} reading {input_idx} from {d_idx} so far got {cum_read}/{je-js}')
+
+                    # this is meant to be "time"
+                    # first_var = list(d.variables)[0]
+
+
+                    time_from = d[first_var].values[subread_js-cum_t]
+                    time_to = d[first_var].values[subread_je-cum_t-1] # TODO: -1?
+
+                    print(f'########### proc {mpi_rank} reading {subread_js-cum_t} ({time_from}) to {subread_je-cum_t-1} ({time_to})')
+
+                    dvars = d.where((d[first_var] >= time_from) & (d[first_var] <= time_to), drop=True).as_numpy()
+                    # print(f'{dvars = :}')
+
+                    # tmp = d[tuple(d_idx)].to_numpy()
+                    for idx, var in enumerate(self._variables):
+                        print(f'{idx = :} {input_idx = :} {dvars[var].values.shape = :}')
+                        input_idx[-1] = idx
+                        input_data[tuple(input_idx)] = dvars[var].values
+                    # del tmp
                     cum_read = cum_read + subread_je-subread_js
 
 
@@ -361,7 +389,7 @@ class reader_2stage():
             rank_je = s+n
             idx = [np.s_[:]]*len(self._shape)
             idx[max_axis] = np.s_[rank_js:rank_je]
-            s_msgs[irank] = input_data[tuple(idx)].copy()
+            s_msgs[irank] = np.nan_to_num(input_data[tuple(idx)].copy())
         del input_data
         utils_par.pr0(f'-- finished copying data {time.time()-ztime} seconds', comm)
 

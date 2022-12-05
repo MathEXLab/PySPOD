@@ -23,7 +23,7 @@ class Standard(Base):
     to the `fit` method of the `Standard` class, derived
     from the `Base` class.
     '''
-    def fit(self, data_list, variable = None):
+    def fit(self, data_list, variables = None):
         '''
         Class-specific method to fit the data matrix using the SPOD
         batch algorithm.
@@ -36,7 +36,7 @@ class Standard(Base):
         ## initialize data and variables
         self._pr0(f' ')
         self._pr0(f'Initialize data ...')
-        self._initialize(data_list, variable)
+        self._initialize(data_list, variables)
 
         self._pr0(f' ')
         self._pr0(f'Calculating temporal DFT (parallel)')

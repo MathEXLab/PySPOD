@@ -369,16 +369,16 @@ class Base():
 
     # common methods
     # --------------------------------------------------------------------------
-    def _initialize(self, data_list, variable = None, streaming = False):
+    def _initialize(self, data_list, variables = None, streaming = False):
 
         self._pr0(f' ')
         self._pr0(f'Initialize data')
         self._pr0(f'------------------------------------')
 
         if isinstance(data_list[0], str):
-            self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variable, nreaders = 13)
+            self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, nreaders = 13)
         else:
-            self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variable)
+            self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
 
         if streaming:
             self._pr0(f'- using the streaming reader')
