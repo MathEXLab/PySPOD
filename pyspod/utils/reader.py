@@ -310,7 +310,8 @@ class reader_2stage():
 
                     print(f'########### proc {mpi_rank} reading {subread_js-cum_t} ({time_from}) to {subread_je-cum_t-1} ({time_to})')
 
-                    dvars = d.where((d[first_var] >= time_from) & (d[first_var] <= time_to), drop=True).as_numpy()
+                    # dvars = d.where((d[first_var] >= time_from) & (d[first_var] <= time_to), drop=True).as_numpy()
+                    dvars = d.sel({first_var: slice(time_from,time_to)}).as_numpy()
                     # print(f'{dvars = :}')
 
                     # tmp = d[tuple(d_idx)].to_numpy()
