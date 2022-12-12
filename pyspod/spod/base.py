@@ -60,6 +60,9 @@ class Base():
         self._reuse_blocks = params.get('reuse_blocks', False)
         # save fft block if required
         self._savefft = params.get('savefft', False)
+        # save frequencies to disk/memory
+        self._savefreq_disk = params.get('savefreq_disk', True)
+        self._savefreq_mem  = params.get('savefreq_mem',  False)
         # consider all frequencies; if false single-sided spectrum considered
         self._fullspectrum = params.get('fullspectrum', False)
         # normalize weights if required
@@ -751,10 +754,18 @@ class Base():
         '''
         See method implementation in the postproc module.
         '''
-        if self._modes_dir is None:
-            raise ValueError('Modes not found. Consider running fit()')
-        m = post.get_modes_at_freq(self._savedir_sim, freq_idx)
-        return m
+
+        if self._savefreq_mem:
+            comm = self._comm
+            proc_with_freq = freq_idx%comm.size
+            m = self._saved_freqs[freq_idx] if comm.rank==proc_with_freq else None
+            m = comm.bcast(m, root=proc_with_freq)
+        elif self._savefreq_disk:
+            if self._modes_dir is None:
+                raise ValueError('Modes not found. Consider running fit()')
+
+            m = post.get_modes_at_freq(self._savedir_sim, freq_idx)
+            return m
 
 
     def get_data(self, data, t_0=None, t_end=None):
@@ -849,13 +860,33 @@ class Base():
         '''
         See method implementation in the postproc module.
         '''
-        post.plot_2d_modes_at_frequency(
-            self.savedir_sim, freq_req=freq_req, freq=freq,
-            vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
-            fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
-            coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
-            figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
-            filename=filename)
+
+        comm = self._comm
+        modes = None
+
+        if self._savefreq_mem:
+
+            # find index of freq_req in freq
+            freq_idx = np.where(freq == freq_req)[0][0]
+            proc_with_freq = freq_idx % comm.size
+
+            if comm.rank == proc_with_freq:
+                modes = self._saved_freqs[freq_idx]
+
+            if proc_with_freq != 0:
+                if comm.rank == proc_with_freq:
+                    comm.send(modes, dest=0)
+                if comm.rank == 0:
+                    modes = comm.recv(source=proc_with_freq)
+
+        if comm.rank == 0:
+            post.plot_2d_modes_at_frequency(
+                self.savedir_sim, freq_req=freq_req, freq=freq,
+                vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
+                fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
+                coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
+                figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
+                filename=filename, modes=modes)
 
 
     def plot_2d_mode_slice_vs_time(self, freq_req, freq, vars_idx=[0],

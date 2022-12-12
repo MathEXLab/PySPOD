@@ -313,7 +313,7 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
     limits_x1=(None,), limits_x2=(None,), fftshift=False,
     imaginary=False, plot_max=False, coastlines='', title='',
     xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
-    equal_axes=False, path='CWD', filename=None, origin=None):
+    equal_axes=False, path='CWD', filename=None, origin=None, modes=None):
     '''
     Plot SPOD modes for 2D problems at a given frequency `freq_req`.
 
@@ -358,7 +358,10 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
 
     # get modes at required frequency
     freq_val, freq_idx = find_nearest_freq(freq_req=freq_req, freq=freq)
-    modes = get_modes_at_freq(results_path=results_path, freq_idx=freq_idx)
+
+    # read modes from file, unless they have been passed
+    if modes is None:
+        modes = get_modes_at_freq(results_path=results_path, freq_idx=freq_idx)
 
     # if domain dimensions have not been passed, use data dimensions
     if x1 is None and x2 is None:

@@ -276,7 +276,7 @@ class reader_2stage():
 
                 while True:
                     # using chunks to reduce the memory usage when calling input_data[]=d[].to_numpy()
-                    subread_je = subread_js + 10000
+                    subread_je = subread_js + 1000
 
                     # print(f'rank {mpi_rank} now {subread_js} : {subread_je} before check on {read_je}')
 
@@ -311,7 +311,7 @@ class reader_2stage():
                     print(f'########### proc {mpi_rank} reading {subread_js-cum_t} ({time_from}) to {subread_je-cum_t-1} ({time_to})')
 
                     # dvars = d.where((d[first_var] >= time_from) & (d[first_var] <= time_to), drop=True).as_numpy()
-                    dvars = d.sel({first_var: slice(time_from,time_to)}).as_numpy()
+                    dvars = d.sel({first_var: slice(time_from,time_to)},drop=True).as_numpy()
                     # print(f'{dvars = :}')
 
                     # tmp = d[tuple(d_idx)].to_numpy()

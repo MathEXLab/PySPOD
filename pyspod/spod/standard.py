@@ -11,7 +11,7 @@ import scipy.io.matlab as siom
 # Import custom Python packages
 from pyspod.spod.base import Base
 import pyspod.utils.parallel as utils_par
-
+from mpi4py import MPI
 
 
 class Standard(Base):
@@ -192,20 +192,58 @@ class Standard(Base):
         # compute spatial modes for given frequency
         L_diag = np.sqrt(self._n_blocks) * np.sqrt(L)
         L_diag_inv = 1. / L_diag
+
+        self._saved_freqs = {}
+
         for f in range(0,self._n_freq):
             s0 = time.time()
-            st = time.time()
             ## compute
             phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag_inv[f,None,:])
             phi = phi[...,0:self._n_modes_save]
             ## save modes
-            filename = f'freq_idx_{f:08d}.npy'
-            p_modes = os.path.join(self._modes_dir, filename)
-            shape = [*self._xshape,self._nv,self._n_modes_save]
-            if self._comm:
-                shape[self._max_axis] = -1
-            phi.shape = shape
-            utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
+            if self._savefreq_disk:
+                filename = f'freq_idx_{f:08d}.npy'
+                p_modes = os.path.join(self._modes_dir, filename)
+                shape = [*self._xshape,self._nv,self._n_modes_save]
+                if self._comm:
+                    shape[self._max_axis] = -1
+                phi.shape = shape
+                utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
+
+            # store freqs/modes on proc (f mod rank == 0)
+            if self._savefreq_mem:
+                rank = self._comm.rank
+                target_proc = f % self._comm.size
+                ftype = MPI.C_FLOAT_COMPLEX
+                local_elements = np.prod(phi.shape)
+                recvcounts = np.zeros(self._comm.size, dtype=np.int64)
+                self._comm.Gather(local_elements, recvcounts, root=target_proc)
+
+                if rank == target_proc:
+                    data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
+
+                s_msg = [phi, ftype]
+                r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
+
+                self._comm.Gatherv(sendbuf=s_msg, recvbuf=r_msg, root=target_proc)
+
+                if rank == target_proc:
+                    full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
+                    for proc in range(self._comm.size):
+                        start = np.sum(recvcounts[:proc])
+                        end = np.sum(recvcounts[:proc+1])
+
+                        x_prod_not_max = np.prod(self._xshape)
+                        x_prod_not_max /= self._xshape[self._max_axis]
+                        max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
+                        max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
+
+                        idx_full_freq = [np.s_[:]] * (self._xdim + 2)
+                        idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
+
+                        full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
+                        self._saved_freqs[f] = full_freq
+
             self._pr0(
                 f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                 f'Elapsed time: {(time.time() - s0):.5f} s.')
