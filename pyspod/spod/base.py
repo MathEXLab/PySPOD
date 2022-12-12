@@ -870,16 +870,16 @@ class Base():
             freq_idx = np.where(freq == freq_req)[0][0]
             proc_with_freq = freq_idx % comm.size
 
-            if comm.rank == proc_with_freq:
+            if comm is None or comm.rank == proc_with_freq:
                 modes = self._saved_freqs[freq_idx]
 
-            if proc_with_freq != 0:
+            if comm is not None and proc_with_freq != 0:
                 if comm.rank == proc_with_freq:
                     comm.send(modes, dest=0)
                 if comm.rank == 0:
                     modes = comm.recv(source=proc_with_freq)
 
-        if comm.rank == 0:
+        if comm is None or comm.rank == 0:
             post.plot_2d_modes_at_frequency(
                 self.savedir_sim, freq_req=freq_req, freq=freq,
                 vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,

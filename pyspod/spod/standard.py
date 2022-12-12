@@ -11,8 +11,11 @@ import scipy.io.matlab as siom
 # Import custom Python packages
 from pyspod.spod.base import Base
 import pyspod.utils.parallel as utils_par
-from mpi4py import MPI
 
+try:
+    from mpi4py import MPI
+except:
+    pass
 
 class Standard(Base):
     '''
