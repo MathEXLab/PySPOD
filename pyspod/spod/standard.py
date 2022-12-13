@@ -294,32 +294,32 @@ class Standard(Base):
                 f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                 f'Elapsed time: {(time.time() - s0):.5f} s.')
 
-        xst = time.time()
-        MPI.Request.Waitall(reqs)
-        reqs=[]
-        self._pr0(f'waitall time: {time.time() - xst} s.')
-        xst = time.time()
-
         if self._savefreq_disk2:
+            xst = time.time()
+            MPI.Request.Waitall(reqs)
+            reqs=[]
+            self._pr0(f'waitall time: {time.time() - xst} s.')
+
+            xst = time.time()
             for f in range(0,self._n_freq):
                 if rank == f % self._comm.size:
                     full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
                     for proc in range(self._comm.size):
                         start = np.sum(recvcounts[:proc])
                         end = np.sum(recvcounts[:proc+1])
-
+    
                         x_prod_not_max = np.prod(self._xshape)
                         x_prod_not_max /= self._xshape[self._max_axis]
                         max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
                         max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
-
+    
                         idx_full_freq = [np.s_[:]] * (self._xdim + 2)
                         idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
-
+    
                         full_freq[tuple(idx_full_freq)] = np.reshape(datas[f][start:end],full_freq[tuple(idx_full_freq)].shape)
                         self._saved_freqs[f] = full_freq
 
-        self._pr0(f'transposes: {time.time() - xst} s.')
+            self._pr0(f'transposes: {time.time() - xst} s.')
 
         self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
 
