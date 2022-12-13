@@ -40,6 +40,9 @@ class Standard(Base):
         self._pr0(f' ')
         self._pr0(f'Initialize data ...')
         self._initialize(data_list, variables)
+        self._pr0(f'Time to initialize: {time.time() - start} s.')
+
+        start = time.time()
 
         self._pr0(f' ')
         self._pr0(f'Calculating temporal DFT (parallel)')
@@ -225,6 +228,7 @@ class Standard(Base):
                 if rank == target_proc:
                     data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
 
+                # TODO: phi is not contiguous if self._n_modes_save < number_of_blocks/modes
                 s_msg = [phi, ftype]
                 r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
 
