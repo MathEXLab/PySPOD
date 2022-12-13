@@ -16,6 +16,7 @@ try:
     from mpi4py import MPI
 except:
     pass
+import copy
 
 class Standard(Base):
     '''
@@ -163,7 +164,6 @@ class Standard(Base):
         Q_blk_hat = Q_blk_hat[0:self._n_freq,:]
         return Q_blk_hat, offset
 
-
     def _compute_standard_spod(self, Q_hat):
         '''Compute standard SPOD.'''
         # compute inner product in frequency space, for given frequency
@@ -201,11 +201,21 @@ class Standard(Base):
 
         self._saved_freqs = {}
 
+        if self._savefreq_disk2:
+            local_elements = None
+            recvcounts = None
+            datas = {}
+            reqs = []
+
+
         for f in range(0,self._n_freq):
             s0 = time.time()
             ## compute
             phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag_inv[f,None,:])
             phi = phi[...,0:self._n_modes_save]
+
+            # print(f'{Q_hat[f,...].shape} x {V[f,...].shape} * {L_diag_inv[f,None,:].shape} = {phi.shape}')
+
             ## save modes
             if self._savefreq_disk:
                 filename = f'freq_idx_{f:08d}.npy'
@@ -251,9 +261,65 @@ class Standard(Base):
                         full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
                         self._saved_freqs[f] = full_freq
 
+            if self._savefreq_disk2:
+                rank = self._comm.rank
+                target_proc = f % self._comm.size
+                ftype = MPI.C_FLOAT_COMPLEX
+                if f == 0:
+                    local_elements = np.prod(phi.shape)
+                    recvcounts = np.zeros(self._comm.size, dtype=np.int64)
+                    self._comm.Allgather(local_elements, recvcounts)
+
+                    for ff in range(0,self._n_freq):
+                        if ff%self._comm.size == rank:
+                            datas[ff] = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
+
+                s_msg = [copy.deepcopy(phi), ftype]
+                r_msg = [datas[f], (recvcounts, None), ftype] if rank == target_proc else None
+
+                req = self._comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=target_proc)
+
+                reqs.append(req)
+
+                if len(reqs) > 64:
+                    xxtime = time.time()
+                    if rank == 0:
+                        print(f'waiting for {len(reqs)} requests')
+                    MPI.Request.Waitall(reqs)
+                    reqs = []
+                    if rank == 0:
+                        print(f'  partial waitall {time.time()-xxtime} seconds')
+
             self._pr0(
                 f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                 f'Elapsed time: {(time.time() - s0):.5f} s.')
+
+        xst = time.time()
+        MPI.Request.Waitall(reqs)
+        reqs=[]
+        self._pr0(f'waitall time: {time.time() - xst} s.')
+        xst = time.time()
+
+        if self._savefreq_disk2:
+            for f in range(0,self._n_freq):
+                if rank == f % self._comm.size:
+                    full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
+                    for proc in range(self._comm.size):
+                        start = np.sum(recvcounts[:proc])
+                        end = np.sum(recvcounts[:proc+1])
+
+                        x_prod_not_max = np.prod(self._xshape)
+                        x_prod_not_max /= self._xshape[self._max_axis]
+                        max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
+                        max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
+
+                        idx_full_freq = [np.s_[:]] * (self._xdim + 2)
+                        idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
+
+                        full_freq[tuple(idx_full_freq)] = np.reshape(datas[f][start:end],full_freq[tuple(idx_full_freq)].shape)
+                        self._saved_freqs[f] = full_freq
+
+        self._pr0(f'transposes: {time.time() - xst} s.')
 
         self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
 

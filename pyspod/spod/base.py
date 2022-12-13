@@ -62,6 +62,7 @@ class Base():
         self._savefft = params.get('savefft', False)
         # save frequencies to disk/memory
         self._savefreq_disk = params.get('savefreq_disk', True)
+        self._savefreq_disk2 = params.get('savefreq_disk2', True)
         self._savefreq_mem  = params.get('savefreq_mem',  False)
         # consider all frequencies; if false single-sided spectrum considered
         self._fullspectrum = params.get('fullspectrum', False)
