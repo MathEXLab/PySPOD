@@ -59,11 +59,7 @@ If you want to download and install the latest version from `main`:
 python3 setup.py install
 ```
 
-If you want to install from pip3 released version:
 
-```bash
-pip3 install pyspod
-```
 
 > To allow for parallel capabilities, you need to have installed an MPI distribution in your machine. Currently MPI distributions tested are [Open MPI](https://www.open-mpi.org), and [Mpich](https://www.mpich.org). Note that the library will still work in **serial** (no parallel capabilities), if you **do not have MPI**.
 
