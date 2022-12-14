@@ -307,19 +307,29 @@ class Standard(Base):
                     for proc in range(self._comm.size):
                         start = np.sum(recvcounts[:proc])
                         end = np.sum(recvcounts[:proc+1])
-    
+
                         x_prod_not_max = np.prod(self._xshape)
                         x_prod_not_max /= self._xshape[self._max_axis]
                         max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
                         max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
-    
+
                         idx_full_freq = [np.s_[:]] * (self._xdim + 2)
                         idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
-    
+
                         full_freq[tuple(idx_full_freq)] = np.reshape(datas[f][start:end],full_freq[tuple(idx_full_freq)].shape)
                         self._saved_freqs[f] = full_freq
 
             self._pr0(f'transposes: {time.time() - xst} s.')
+
+            xst = time.time()
+            for f in self._saved_freqs.keys():
+                filename = f'freq_idx_{f:08d}.npy'
+                print(f'rank {rank} saving {filename}')
+                p_modes = os.path.join(self._modes_dir, filename)
+                np.save(p_modes, self._saved_freqs[f])
+            self._comm.Barrier()
+            self._pr0(f'saving: {time.time() - xst} s.')
+
 
         self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
 
