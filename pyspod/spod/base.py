@@ -25,6 +25,7 @@ import pyspod.utils.weights  as utils_weights
 import pyspod.utils.postproc as post
 from pyspod.utils.reader import reader_1stage as utils_reader_1stage
 from pyspod.utils.reader import reader_2stage as utils_reader_2stage
+from pyspod.utils.reader import reader_mat as utils_reader_mat
 
 try:
     from mpi4py import MPI
@@ -380,7 +381,10 @@ class Base():
         self._pr0(f'------------------------------------')
 
         if isinstance(data_list[0], str):
-            self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, nreaders = 13)
+            if data_list[0].endswith('.nc'):
+                self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, nreaders = 13)
+            if data_list[0].endswith('.mat'):
+                self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv, nreaders = 13)
         else:
             self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
 

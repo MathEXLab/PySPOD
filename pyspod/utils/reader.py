@@ -9,6 +9,9 @@ try:
 except:
     pass
 
+# for MATLAB files
+import h5py
+
 # TODO: implement a streaming reader
 
 ########################################################################################
@@ -391,6 +394,265 @@ class reader_2stage():
             idx = [np.s_[:]]*len(self._shape)
             idx[max_axis] = np.s_[rank_js:rank_je]
             s_msgs[irank] = np.nan_to_num(input_data[tuple(idx)].copy())
+        del input_data
+        utils_par.pr0(f'-- finished copying data {time.time()-ztime} seconds', comm)
+
+        data = np.zeros(tuple(shape_output),dtype=self._dtype)
+
+        # comm.Barrier()
+
+        reqs = []
+        for irank in range(mpi_size):
+            utils_par.pr0(f'posting gather for {irank}', comm)
+
+            if False:
+                n, s = utils_par._blockdist(self._shape[max_axis], mpi_size, irank)
+                rank_js = s
+                rank_je = s+n
+
+                idx = [np.s_[:]]*len(self._shape)
+                idx[max_axis] = np.s_[rank_js:rank_je]
+
+                # if mpi_rank == 0:
+                # print(f'{mpi_rank} has {idx = :} of {input_data.shape = :} for {irank}')
+                # if mpi_rank == 0:
+                #     print(f'my rank {mpi_rank} rank {irank} needs {rank_js}:{rank_je}')
+
+                # tmp = input_data[tuple(idx)].copy()
+                # s_msg = [tmp, ftype]
+            else:
+                s_msg = [s_msgs[irank], ftype]
+            r_msg = [data, (recvcounts/self._shape[second_largest_axis], None), ftype] if mpi_rank==irank else None
+            req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
+            reqs.append(req)
+
+            if len(reqs) > 128:
+                xxtime = time.time()
+                utils_par.pr0(f'waiting for {len(reqs)} requests', comm)
+                MPI.Request.Waitall(reqs)
+                reqs = []
+                utils_par.pr0(f'  partial waitall {time.time()-xxtime} seconds', comm)
+
+
+        # comm.Barrier()
+        utils_par.pr0(f'posted igathervs, now waitall', comm)
+
+        xtime = time.time()
+        MPI.Request.Waitall(reqs)
+        ftype.Free()
+
+        utils_par.pr0(f'experimental reading with distribution: MPI took {time.time()-stime} seconds', comm)
+        utils_par.pr0(f'  experimental reading with distribution: Waitall took {time.time()-xtime} seconds', comm)
+
+        comm.Barrier()
+        return data
+        # return data, self.get_max_axes()[-1], self._shape[1:]
+
+    def get_data(self, ts = None):
+        if ts is None:
+            return self.get_data_for_time(0, self.nt)
+        else:
+            return self.get_data_for_time(ts, ts+1)
+
+    def read_block(self, iblk):
+        time_first = iblk*self._n_dft
+        time_last = min((iblk+1)*self._n_dft, self._shape[0])
+        return self.get_data_for_time(time_first, time_last)
+
+    @property
+    def nt(self):
+        return self._shape[0]
+
+    @property
+    def max_axis(self):
+        return self._max_axes[-1]
+
+    @property
+    def data(self):
+        assert self._data is not None, 'Data not read yet or already deleted'
+        return self._data
+
+    @data.deleter
+    def data(self):
+        del self._data
+        self._data = None
+
+    @property
+    def nx(self):
+        return self._nx
+
+    @property
+    def dim(self):
+        return self._dim
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def xdim(self):
+        return self._xdim
+
+    @property
+    def xshape(self):
+        return self._xshape
+
+    @property
+    def is_real(self):
+        return self._is_real
+
+    def get_sizes(self):
+        min_size = self._comm.allreduce(self._data.size, op=MPI.MIN)
+        max_size = self._comm.allreduce(self._data.size, op=MPI.MAX)
+        tot_size = self._comm.allreduce(self._data.size, op=MPI.SUM)
+        return min_size, max_size, tot_size
+
+
+
+
+
+########################################################################################
+# MATLAB reader
+########################################################################################
+class reader_mat():
+    def __init__(self, data_list, xdim, dtype, comm, nv, nreaders = None):
+        assert comm is not None, "MATLAB reader requires MPI (for now)"
+
+        st = time.time()
+        self._dtype = dtype
+        self._comm = comm
+        self._data_list = data_list
+        self._nv = nv
+        self._files = sorted(data_list)
+        self._shape = None
+        self._max_axes = None
+        self._nreaders = min(nreaders,comm.size) if nreaders else comm.size
+
+        nt = len(data_list)
+
+        # data_list should be a list of filenames
+        if comm.rank == 0:
+            for f in sorted(data_list):
+                # check if file exists
+                assert os.path.isfile(f), f'File {f} does not exist'
+                print(f'file {f} exists')
+
+            # check the first file to find dimensions
+            f = h5py.File(data_list[0], "r")
+            data = f.get("q_symmetric")
+            self._shape = (nt, data.shape[1], data.shape[2], data.shape[3], data.shape[0])
+
+            self._max_axes = np.argsort(self._shape[1:])
+            print(f'--- max axes: {self._max_axes}')
+
+        self._shape     = comm.bcast(self._shape,    root=0)
+        self._max_axes  = comm.bcast(self._max_axes, root=0)
+
+        self._nx = np.product(self._shape[1:-1])
+        self._dim = len(self._shape)
+        self._xdim = 3 #TODO
+        self._xshape = self._shape[1:-1]
+        self._is_real = True
+        utils_par.pr0(f'--- init finished in {time.time()-st:.2f} s', comm)
+
+    # in this case, "time" is "step" (one file per step)
+    def get_data_for_time(self, ts, te):
+        stime = time.time()
+        comm = self._comm
+
+        mpi_rank = comm.rank
+        mpi_size = comm.size
+
+        mpi_dtype = MPI.FLOAT if self._dtype==np.float32 else MPI.DOUBLE
+
+        # fist distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
+        n, s = utils_par._blockdist(te-ts, self._nreaders, mpi_rank)
+        js = ts + s
+        je = ts + s+n
+
+        cum_t = 0
+        cum_read = 0
+
+        input_data = np.zeros((n,)+self._shape[1:],dtype=self._dtype)
+
+        # for i, d in enumerate(data_list):
+        # for k, v in self._file_time.items():
+        for f in self._files:
+            d_js = cum_t
+            d_je = d_js + 1 # one step per file
+
+            read_js = max(d_js, js)
+            read_je = min(d_je, je)
+
+            if read_je > read_js:
+                print(f'rank {mpi_rank} opening file {f}')
+                f = h5py.File(f, "r")
+                data = f.get("q_symmetric")
+                data = np.array(data)
+                # print(f'rank {mpi_rank} read data {data.shape} before transpose')
+                data = np.transpose(data, axes=[1, 2, 3, 0])
+                # print(f'rank {mpi_rank} read data {data.shape} after transpose')
+                input_data[cum_read,...] = np.nan_to_num(data) #np.reshape(data,(-1,1,self._nv))
+                cum_read += 1
+                print(f'rank {mpi_rank} closed file {f}')
+
+            cum_t = cum_t + 1 # one step per file
+
+        print(f'rank {mpi_rank} finished reading')
+        # comm.Barrier()
+
+        # redistribute the data using MPI (nprocs * gatherv) - gather all times for a spatial slice
+
+        # size of data to receive (only used by the root rank)
+        # each process receives   n0: every other process's len(time)
+        #                       x n1: len(shape[1])
+        #                       x n2: len(own slice of shape[2])
+
+        max_axis            = self._max_axes[-1]+1#np.argsort(shape[1:])[-1] + 1
+        second_largest_axis = self._max_axes[-2]+1#np.argsort(shape[1:])[-2] + 1
+
+        # print(f'{max_axis = :} {second_largest_axis = :} {shape = :}')
+        axes = np.arange(1,len(self._shape)) # skip time dimension
+        # print(f'{axes = :}')
+        axes = np.delete(axes,np.where(axes == max_axis))
+        # print(f'max axis {max_axis} shape {shape} remaining axes {axes}')
+
+        recvcounts = np.zeros(mpi_size)
+        for irank in range(mpi_size):
+            nt,            _ = utils_par._blockdist(te-ts, self._nreaders, irank)               # time (distributed on the reader)
+            n_distributed, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)  # max_axis (distributed in the output)
+            n_entire         = np.product(np.array(self._shape)[axes])                          # not distributed over remaining axes
+            recvcounts[irank] = nt*n_distributed*n_entire
+
+        # allocate local data
+        n, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)
+        shape_output = np.array(self._shape) # start with the original shape
+        shape_output[0] = te - ts            # overwrite the time dimension
+        shape_output[max_axis] = n           # distributed dimension
+        for axis in axes:
+            shape_output[axis] = self._shape[axis]
+        # print(f'shape output is {shape_output}')
+
+        comm.Barrier()
+        utils_par.pr0(f'experimental reading with distribution: I/O took {time.time()-stime} seconds', comm)
+        # comm.Barrier()
+
+        stime = time.time()
+
+        # working around the limitation of MPI with >INT32_MAX elements
+        ftype = mpi_dtype.Create_contiguous(self._shape[second_largest_axis]).Commit()
+
+        # print(f'shapes {data.shape = :} {input_data.shape = :}')
+
+        ztime = time.time()
+        s_msgs = {}
+        for irank in range(mpi_size):
+            n, s = utils_par._blockdist(self._shape[max_axis], mpi_size, irank)
+            rank_js = s
+            rank_je = s+n
+            idx = [np.s_[:]]*len(self._shape)
+            idx[max_axis] = np.s_[rank_js:rank_je]
+            s_msgs[irank] = input_data[tuple(idx)].copy()
         del input_data
         utils_par.pr0(f'-- finished copying data {time.time()-ztime} seconds', comm)
 
