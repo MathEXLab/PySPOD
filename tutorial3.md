@@ -13,38 +13,41 @@ For this tutorial:
 
 - To download the required data from the ECMWF,
  create an account and follow the instructions [here](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets).
- A d etailed tutorial for downloading data can also be find in part 1
+ A detailed tutorial for downloading data can also be find in **Part 1**
 
 - The complete Python script here [ERA20C_MEI_2D.py ](https://github.com/MathEXLab/PySPOD/blob/main/tutorials/climate/ERA20C_MEI_2D/ERA20C_MEI_2D.py)
 
 ## Description
-In this tutorial we will explore the ERA-20C dataset provided by ECMWF. 
+In this tutorial, we will explore the ERA-20C dataset provided by ECMWF. 
 In particular, we will reproduce the multivariate ENSO index (MEI) 
 that was originally published by [Wolter and Timlin](https://psl.noaa.gov/enso/mei.old/WT1.pdf)
 with a seasonally adjusted principal component index, and reproduced by [Schmidt et al](https://flowphysics.ucsd.edu/wp-content/papercite-data/pdf/schmidtetal_2019_mwr.pdf) . 
 Multivariate indices, like the MEI index are typically used to reveal interplay 
-among different variables. The MEI index is composed of 6 variables:
+among different variables. The MEI index is composed of **6 variables**:
 
+- Sea surface temperature (SST)
 - Mean sea level pressure (MSL)
+- Total cloud cover (TCC)
 - Zonal component of the surface wind (U10)
 - Meridional component of the surface wind (V10)
-- Sea surface temperature (SST)
-- 2-meter temperature (T2M), and
-- Total cloud cover (TCC).
+- 2-meter temperature (T2M)
 
 We will use the monthly averages of the above variables from 1900 to 2010.
 
 As originally done in the work by Wolter and Timlin, we will:
 
-1. Normalize the data associated to each variable by its total variance,
-2. Identify spatio-temporal coherent structures by SPOD,
-3. Associated the modes to the 6 variables considered,
-4. Make some considerations on the possible interplay among the variables.
+1. Normalize the data associated to each variable by its total variance
+2. Identify spatio-temporal coherent structures by SPOD
+3. Associated the modes to the 6 variables considered
+4. Make some considerations on the possible interplay among the variables
 
 ## 1. Downloading and configuring data
 
  The first step is downloading data. The data that needs to be downloaded is approximately 443MB. We use an 
- programmatic way to retrieve the data. Once you have an account to access ECMWF data, 
+ programmatic way to retrieve the data. 
+ Please follow the instructions [here](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets) 
+ to create an account.
+ Once you have an account to access ECMWF data, 
  you can simply run 
  
 ```python
@@ -95,13 +98,13 @@ As originally done in the work by Wolter and Timlin, we will:
      retrieve_era20c_mnth()
 
 ```
-This should download a netCDF file called E20C_MONTHLYMEAN00_1900_2010_MEI.nc 
-in the current directory tutorials/climate/ERA20C_MEI_2D/. If not, please modify it manually.
+This should download a netCDF file called `E20C_MONTHLYMEAN00_1900_2010_MEI.nc` 
+in the current directory `tutorials/climate/ERA20C_MEI_2D/`. If not, please modify it manually.
 
 The next step is to import the required libraries, including the custom libraries
 
-- ```from pyspod.spod.standard import Standard as spod_standard```
-- ```from pyspod.spod.streaming import Streaming as spod_streaming```
+- `from pyspod.spod.standard import Standard as spod_standard`
+- `from pyspod.spod.streaming import Streaming as spod_streaming`
 
 that include two different implementations of the SPOD algorithm, 
 the first being a standard algorithm, and the second being a streaming algorithm, 
@@ -110,12 +113,12 @@ slower than the standard algorithm.
 
 Note that we also import the custom library
 
-- ```import library.weights as weights```
+- `import library.weights as weights`
 
 that implements the weight matrix for data defined on a sphere 
 (e.g. the atmospheric data we are using).
 
-Therefore, the code for importing libraries is
+Therefore, the whole code for importing libraries is
 
 ```python
 import os
@@ -152,12 +155,12 @@ Note that the netCDF file contains **3 coordinates**:
 
 along with **6 variables**:
 
-sst (sea surface temperature),
-msl (mean seal level pressure),
-tcc (total cloud cover),
-u10 (horizontal velocity; u-component),
-v10 (horizontal velocity; v-component),
-t2m (2-meters temperature).
+- `sst` (sea surface temperature),
+- `msl` (mean seal level pressure),
+- `tcc` (total cloud cover),
+- `u10` (horizontal velocity; u-component),
+- `v10` (horizontal velocity; v-component),
+- `t2m` (2-meters temperature).
 
 We first load time, and the two spatial coordinates `longitude` and `latitude`, 
 and we store them into three different arrays, `t`, `x1` and `x2`, respectively. 
@@ -197,7 +200,8 @@ print('shape of data matrix X: ', X.shape)
 ```
 
 The outcome should be:
-shape of data matrix X:  (1332, 240, 121, 6)
+
+`shape of data matrix X:  (1332, 240, 121, 6)`
 
 <b>NOTE I : we used `np.nan_to_num` to set possible NaN (not-a-number) to zero. 
 The amount of NaN in this case is relatively small, and setting them to zero is 
@@ -329,11 +333,9 @@ using the built-in function `plot_eigs`, that is part of the `postproc` module.
 spod.plot_eigs()
 ```
 
-![](./figures/tutorial2/coeff1.jpg) <!-- add picture here -->
-
 We note that the eigenvalues are all real.
 
-We can then plot the eigenvalues as a function of frequency and period 
+We can then plot the eigenvalues as a function of frequency or period 
 (note that we multiply the frequency by 24, that is the number of hours in a day, 
 to obtain a period for the x-axis in days). Again, we can see how thorough the 
 PySPOD object returned after the computation we can access the frequency array (spod.freq) 
@@ -342,14 +344,12 @@ along with the plotting methods `spod.plot_eigs_vs_frequency` and `spod.plot_eig
 ```python
 freq = spod.freq*24
 spod.plot_eigs_vs_frequency(freq=freq)
-```
-![](./figures/tutorial2/coeff1.jpg)  <!-- add picture here -->
-
-```python
 spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
 ```
 
-![](./figures/tutorial2/coeff1.jpg)<!-- add picture here -->
+![](./figures/tutorial3/eig_value.png) | ![](./figures/tutorial3/eig_freq.png) | ![](./figures/tutorial3/eig_period.png)
+:-------------------------:|:-------------------------:|:-------------------------:
+<span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs frequency**</span> | | <span style="color:#858986;"> **Eigenvalues vs period**</span>
 
 We can then plot the modes that were computed by the SPOD algorithm via the 
 built-in `plot_2d_modes_at_frequency` method, that can again be accessed via the 
@@ -377,7 +377,13 @@ spod.plot_2d_modes_at_frequency(
     vars_idx=[1,4])
 ```
 
-![](./figures/tutorial2/coeff1.jpg)<!-- add picture here -->
+![](./figures/tutorial3/mode0v1.png) | ![](./figures/tutorial3/mode0v4.png)
+:-------------------------:|:-------------------------:
+<span style="color:#858986;"> **Mode 0, variable 1 (msl)**</span> | <span style="color:#858986;"> **Mode 0, variable 4 (v10)**</span>
+
+![](./figures/tutorial3/mode1v1.png) | ![](./figures/tutorial3/mode1v4.png)
+:-------------------------:|:-------------------------:
+<span style="color:#858986;"> **Mode 1, variable 1 (msl)**</span> | <span style="color:#858986;"> **Mode 1, variable 4 (v10)**</span>
 
 Note that we can also plot the **original data** by
 
@@ -390,24 +396,14 @@ spod.plot_2d_data(
     x2=x2, 
     coastlines='centred', 
     vars_idx=[5], 
-    time_idx=[0,100,200])
+    time_idx=[0,200])
 
 ```
-![](./figures/tutorial2/coeff1.jpg)<!-- add picture here -->
 
-Along with a video of the original data
+![](./figures/tutorial3/t0v5.png) | ![](./figures/tutorial3/t200v5.png)
+:-------------------------:|:-------------------------:
+<span style="color:#858986;"> **Time 0, variable 5 (t2m)**</span> | <span style="color:#858986;"> **Time 0, variable 5 (t2m)**</span>
 
-```python
-spod.generate_2d_data_video(
-    data,
-    x1=x1-180, 
-    x2=x2, 
-    coastlines='centred', 
-    sampling=20,
-    vars_idx=[5])
-
-```
-<!-- add video here -->
 
 ## 5. Final notes
 
