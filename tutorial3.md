@@ -12,7 +12,8 @@ order: 2
 For this tutorial:
 
 - To download the required data from the ECMWF,
- create an account and follow the instructions [here](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets) .
+ create an account and follow the instructions [here](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets).
+ A d etailed tutorial for downloading data can also be find in part 1
 
 - The complete Python script here [ERA20C_MEI_2D.py ](https://github.com/MathEXLab/PySPOD/blob/main/tutorials/climate/ERA20C_MEI_2D/ERA20C_MEI_2D.py)
 
@@ -42,7 +43,7 @@ As originally done in the work by Wolter and Timlin, we will:
 
 ## 1. Downloading and configuring data
 
- The data that needs to be downloaded is approximately 443MB. We use an 
+ The first step is downloading data. The data that needs to be downloaded is approximately 443MB. We use an 
  programmatic way to retrieve the data. Once you have an account to access ECMWF data, 
  you can simply run 
  
@@ -94,4 +95,253 @@ As originally done in the work by Wolter and Timlin, we will:
      retrieve_era20c_mnth()
 
 ```
-After that
+This should download a netCDF file called E20C_MONTHLYMEAN00_1900_2010_MEI.nc 
+in the current directory tutorials/climate/ERA20C_MEI_2D/. If not, please modify it manually.
+
+The next step is to import the required libraries, including the custom libraries
+
+- ```from pyspod.spod.standard import Standard as spod_standard```
+- ```from pyspod.spod.streaming import Streaming as spod_streaming```
+
+that include two different implementations of the SPOD algorithm, 
+the first being a standard algorithm, and the second being a streaming algorithm, 
+that requires little amount of memory (both storage and RAM) but runs typically 
+slower than the standard algorithm.
+
+Note that we also import the custom library
+
+- ```import library.weights as weights```
+
+that implements the weight matrix for data defined on a sphere 
+(e.g. the atmospheric data we are using).
+
+Therefore, the code for importing libraries is
+
+```python
+import os
+import sys
+import time
+import warnings
+import xarray as xr
+import numpy  as np
+from pathlib import Path
+
+# Current path
+CWD = os.getcwd()
+
+# Import library specific modules
+sys.path.insert(0, "../../../")
+from pyspod.spod.standard  import Standard  as spod_standard
+from pyspod.spod.streaming import Streaming as spod_streaming
+import pyspod.utils.weights  as utils_weights
+```
+
+We then need to load the data from the netCDF file and inspect:
+
+```python
+# Inspect and load data 
+file = os.path.join(CWD,'E20C_MONTHLYMEAN00_1900_2010_MEI.nc')
+ds = xr.open_dataset(file)
+print(ds)
+```
+
+Note that the netCDF file contains **3 coordinates**:
+- longitude,
+- latitude,
+- time
+
+along with **6 variables**:
+
+sst (sea surface temperature),
+msl (mean seal level pressure),
+tcc (total cloud cover),
+u10 (horizontal velocity; u-component),
+v10 (horizontal velocity; v-component),
+t2m (2-meters temperature).
+
+We first load time, and the two spatial coordinates `longitude` and `latitude`, 
+and we store them into three different arrays, `t`, `x1` and `x2`, respectively. 
+Let's look at their dimensions to see the number of time snapshots, 
+and the length of longitude and latitude.
+
+```python
+# we extract time, longitude and latitude
+t = np.array(ds['time'])
+x1 = np.array(ds['longitude'])
+x2 = np.array(ds['latitude'])
+nt = t.shape[0]
+print('shape of t (time): ', t.shape)
+print('shape of x1 (longitude): ', x1.shape)
+print('shape of x2 (latitude) : ', x2.shape)
+```
+
+We then need to organize the data in a format that is suitable to the PySPOD library, 
+that is
+
+- first dimension must correspond to the number of time snapshots (1332 in our case)
+- last dimension should corresponds to the number of variables (6 in our case)
+- the remaining dimensions corresponds to the spatial dimensions (240, and 121 in our case, 
+that correspond to longitude and latitude).
+
+Let's load and reshuffle it, in order to meet this requirement, and check its dimensions.
+
+```python
+# we set the variables we want to use for the analysis
+# (we select all the variables present) and load them in RAM
+variables = ['sst', 'msl', 'tcc', 'u10', 'v10', 't2m']
+X = np.empty([t.shape[0], x1.shape[0], x2.shape[0], len(variables)])
+for i,var in enumerate(variables):
+    X[...,i] = np.einsum('ijk->ikj', np.array(ds[var]))
+    X[...,i] = np.nan_to_num(X[...,i])
+print('shape of data matrix X: ', X.shape)
+```
+
+The outcome should be:
+shape of data matrix X:  (1332, 240, 121, 6)
+
+<b>NOTE I : we used `np.nan_to_num` to set possible NaN (not-a-number) to zero. 
+The amount of NaN in this case is relatively small, and setting them to zero is 
+a feasible approximation. For your specific application you might want to apply 
+a different replacement for NaN (if present).</b>
+
+<b>NOTE II: we also used `np.einsum` in order to match the axes dimensions 
+to the dimensions of the data, i.e. to obtain a matrix shape 1332 &times; 240 &times; 121
+</b>
+
+## 2. Setting required and optional parameters
+
+Once our data is in a shape suitable to the PySPOD library, 
+we define the required and optional parameters. 
+In particular, we define a dictionary of parameters, 
+that will be passed to the constructor of PySPOD
+
+The required parameters are as follows:
+
+- `time_step`: time-sampling of the data (for now this must be constant)
+- `n_snapshots`: number of time snapshots
+- `n_space_dims`: number of spatial dimensions
+- `n_variables`: number of variables
+- `n_dft`: length of FFT blocks
+
+The optional parameters are as follows:
+
+- `overlap`: dimension of the overlap region between adjacent blocks in percentage (0 to 100)
+- `mean_type`: type of mean to be subtracted from the data (longtime, blockwise or zero)
+- `normalize_weights`: weights normalization by data variance
+- `normalize_data`: normalize data by variance
+- `n_modes_save`: number of modes to be saved
+- `conf_level`: calculate confidence level of modes
+- `reuse_blocks`: whether to attempt reusing FFT blocks previously computed (if found)
+- `savefft`: save FFT blocks to reuse them in the future (to save time)
+- `savedir`: where to save the data
+
+<b>Note: we used the built-in module `utils_weights`, and in particular the function 
+`utils_weights.geo_trapz_2d` to construct the weights for our problem on the sphere. 
+This function builds weights according to lon-lat grids on the sphere and 
+can be generally used for two-dimensional atmospheric data. 
+You can implement your own weights into the custom function inside `utils_weights.py` 
+or by readily providing the weights as a `numpy.ndarray`. 
+
+The weights must have a shape equal to the data spatial dimensions number of variables, 
+that is:
+
+**weights dim = numbers of spatial dims &times; number of variables**
+
+```python
+# define required and optional parameters
+params = dict()
+
+# -- required parameters
+params['time_step'   ] = 720              # data time-sampling
+params['n_snapshots' ] = len(t)           # number of time snapshots (we consider all data)
+params['n_space_dims'] = 2                # number of spatial dimensions (longitude and latitude)
+params['n_variables' ] = len(variables)   # number of variables
+params['n_dft'       ] = np.ceil(12 * 5)  # length of FFT blocks (100 time-snapshots)
+
+# -- optional parameters
+params['overlap'          ] = 0             # dimension block overlap region
+params['mean_type'        ] = 'blockwise'   # type of mean to subtract to the data
+params['normalize_weights'] = True          # normalization of weights by data variance
+params['normalize_data'   ] = False         # normalize data by data variance
+params['n_modes_save'     ] = 3             # modes to be saved
+params['conf_level'       ] = 0.95          # calculate confidence level
+params['reuse_blocks'     ] = False         # whether to reuse blocks if present
+params['savefft'          ] = False         # save FFT blocks to reuse them in the future (saves time)
+params['savedir'          ] = os.path.join(CWD, 'results', Path(file).stem) # folder where to save results
+
+# Set weights
+weights = utils_weights.geo_trapz_2D(
+	x1_dim=x2.shape[0], x2_dim=x1.shape[0],
+	n_vars=len(variables), R=1)
+```
+
+Note that for this tutorial we normalize the weights by data variance by setting 
+`params['normalize_weights'] = True`. 
+This step is performed as in (Wolter and Timlin, 1993) and (Schmidt et al., 2019).
+
+## 3. Running the SPOD analysis
+
+This step is accomplished by calling the PySPOD constructor, `spod_standard(params=params, weights=weights)` 
+and the fit method, `SPOD_analysis.fit(data_list=X)`.
+
+- The PySPOD constructor takes the parameters `params`, and `weights`.
+
+- The method `fit` takes as inputs `data_list`, that can either be a `numpy.ndarray` 
+containing the data or a list of `xarray.DataArrays`.
+
+- The `fit` method returns a PySPOD object containg the results.
+
+```python
+# Perform SPOD analysis using the standard module
+SPOD_analysis = spod_standard(
+	params=params,
+	weights=weights)
+
+# Fit SPOD
+spod = SPOD_analysis.fit(data_list=X)
+```
+## 4. Postprocessing and visualizing results
+
+The results are stored in a PySPOD object that is composed by:
+
+- A set of eigenvalues per each frequency computed,
+
+- A set of modes, per each frequency computed.
+
+In order to visualize them, we can use the built-in plotting functionalities of PySPOD. 
+We first select the frequency (equivalently period `T_approx`), that we want to investigate, 
+and identify the nearest frequency in the results by using the built-in functions `find_nearest_freq`, 
+and `get_modes_at_freq`, that are part of the `postproc` module, 
+and can be directly called from the PySPOD object returned once the `fit` method has completed.
+
+```python
+# Show results
+T_approx = 876 # approximate period (in days)
+freq_found, freq_idx = spod.find_nearest_freq(freq_req=1/T_approx, freq=spod.freq)
+modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
+```
+
+We can then plot the eigenvalues in the complex plane, 
+using the built-in function `plot_eigs`, that is part of the `postproc` module. 
+
+
+```python
+spod.plot_eigs()
+```
+
+![](./figures/tutorial2/coeff1.jpg) <!-- add picture here -->
+
+We note that the eigenvalues are all real.
+
+We can then plot the eigenvalues as a function of frequency and period 
+(note that we multiply the frequency by 24, that is the number of hours in a day, 
+to obtain a period for the x-axis in days). Again, we can see how thorough the 
+PySPOD object returned after the computation we can access the frequency array (spod.freq) 
+along with the plotting methods `spod.plot_eigs_vs_frequency` and `spod.plot_eigs_vs_period`.
+
+```python
+freq = spod.freq*24
+spod.plot_eigs_vs_frequency(freq=freq)
+```
+
+
