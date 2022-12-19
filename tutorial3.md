@@ -343,5 +343,84 @@ along with the plotting methods `spod.plot_eigs_vs_frequency` and `spod.plot_eig
 freq = spod.freq*24
 spod.plot_eigs_vs_frequency(freq=freq)
 ```
+![](./figures/tutorial2/coeff1.jpg)  <!-- add picture here -->
 
+```python
+spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
+```
 
+![](./figures/tutorial2/coeff1.jpg)<!-- add picture here -->
+
+We can then plot the modes that were computed by the SPOD algorithm via the 
+built-in `plot_2d_modes_at_frequency` method, that can again be accessed via the 
+PySPOD object returned after the computation. 
+
+To this method, we pass 
+the frequency of the modes we are interested in. This corresponds to the frequency 
+associated to the `T_approx` of 876 days that we requested, and stored in the variable 
+`freq_found` that we calculated above. Note that we also pass the `vars_idx` corresponding 
+to the variable we are interested in, `modes_idx` corresponding to the modes we are interested in, 
+as well as `x1`, and `x2`, that correspond to `longitude` and `latitude`. 
+
+We finally pass a parameter `coastlines='centred'`, that overlays a world map 
+on top of our data. Note that we shift longitude of 180, as we use coastlines that 
+goes from -180, to 180, while our data was provided from 0 to 360.
+
+```python
+spod.plot_2d_modes_at_frequency(
+    freq_req=freq_found, 
+    freq=freq, 
+    x1=x1-180, 
+    x2=x2, 
+    coastlines='centred', 
+    modes_idx=[0,1], 
+    vars_idx=[1,4])
+```
+
+![](./figures/tutorial2/coeff1.jpg)<!-- add picture here -->
+
+Note that we can also plot the **original data** by
+
+```python
+data = spod.get_data(X)
+
+spod.plot_2d_data(
+    data,
+    x1=x1-180, 
+    x2=x2, 
+    coastlines='centred', 
+    vars_idx=[5], 
+    time_idx=[0,100,200])
+
+```
+![](./figures/tutorial2/coeff1.jpg)<!-- add picture here -->
+
+Along with a video of the original data
+
+```python
+spod.generate_2d_data_video(
+    data,
+    x1=x1-180, 
+    x2=x2, 
+    coastlines='centred', 
+    sampling=20,
+    vars_idx=[5])
+
+```
+<!-- add video here -->
+
+## 5. Final notes
+
+The results are stored in the results folder defined in the parameter you specified 
+under `params['savedir']`. You can load the results for both modes and eigenvalues, 
+and use any other postprocessing tool that is more suitable to your application. 
+
+The files are stored in numpy binary format `.npy`. 
+
+There exist several tools to convert them in netCDF, MATLAB and several other formats 
+that can be better suited to your specific post-processing pipeline.
+
+This tutorial was intended to help you setup your own multivariate case. 
+
+You can play with the parameters we explored above to gain more insights into the 
+capabilities of the library.
