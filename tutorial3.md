@@ -341,15 +341,17 @@ to obtain a period for the x-axis in days). Again, we can see how thorough the
 PySPOD object returned after the computation we can access the frequency array (spod.freq) 
 along with the plotting methods `spod.plot_eigs_vs_frequency` and `spod.plot_eigs_vs_period`.
 
+Here, the `xticks` we use in Eigenvalues vs period polt represents day, week, month, year and 5 years respectively.
+
 ```python
 freq = spod.freq*24
 spod.plot_eigs_vs_frequency(freq=freq)
 spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
 ```
 
-![](./figures/tutorial3/eig_value.png) | ![](./figures/tutorial3/eig_freq.png) | ![](./figures/tutorial3/eig_period.png)
+![](./figures/tutorial3/eig_value.png) | ![](./figures/tutorial3/eig_period.png)
 :-------------------------:|:-------------------------:|:-------------------------:
-<span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs frequency**</span> | | <span style="color:#858986;"> **Eigenvalues vs period**</span>
+<span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
 
 We can then plot the modes that were computed by the SPOD algorithm via the 
 built-in `plot_2d_modes_at_frequency` method, that can again be accessed via the 
