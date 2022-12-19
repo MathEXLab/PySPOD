@@ -350,7 +350,7 @@ spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
 ```
 
 ![](./figures/tutorial3/eig_value.png) | ![](./figures/tutorial3/eig_period.png)
-:-------------------------:|:-------------------------:|:-------------------------:
+:-------------------------:|:-------------------------:
 <span style="color:#858986;"> **Eigenvalues**</span> | <span style="color:#858986;"> **Eigenvalues vs period**</span>
 
 We can then plot the modes that were computed by the SPOD algorithm via the 
