@@ -11,9 +11,9 @@ order: 2
 
 For this tutorial:
 
-- To download the required data from the ECMWF,
+- To download the required data from ECMWF,
  create an account and follow the instructions [here](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets).
- A detailed tutorial for downloading data can also be find in **Part 1**
+ A detailed tutorial for downloading data can also be found in **Part 1**
 
 - The complete Python script here [ERA20C_MEI_2D.py ](https://github.com/MathEXLab/PySPOD/blob/main/tutorials/climate/ERA20C_MEI_2D/ERA20C_MEI_2D.py)
 
