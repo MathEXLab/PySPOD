@@ -140,7 +140,8 @@ class Standard(Base):
         Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
 
         # Subtract longtime or provided mean
-        Q_blk -= self._t_mean
+        # TODO: why not Q_blk -= self._t_mean
+        Q_blk = Q_blk[:] - self._t_mean
 
         # if block mean is to be subtracted,
         # do it now that all data is collected
