@@ -382,9 +382,9 @@ class Base():
 
         if isinstance(data_list[0], str):
             if data_list[0].endswith('.nc'):
-                self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, nreaders = 13)
+                self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, nreaders = 10000)
             if data_list[0].endswith('.mat'):
-                self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv, nreaders = 13)
+                self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv, nreaders = 10000)
         else:
             self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
 

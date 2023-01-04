@@ -82,10 +82,11 @@ class Standard(Base):
                 st = time.time()
 
                 # compute block
-                Q_blk_hat, offset = self._compute_blocks(i_blk)
+                Q_hat[:,:,i_blk], offset = self._compute_blocks(i_blk)
 
                 # save FFT blocks in storage memory
                 if self._savefft == True:
+                    Q_blk_hat = Q_hat[:,:,i_blk]
                     for i_freq in range(0, self._n_freq):
                         Q_blk_hat_fr = Q_blk_hat[i_freq,:]
                         file = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
@@ -96,16 +97,12 @@ class Standard(Base):
                         utils_par.npy_save(
                             self._comm, path, Q_blk_hat_fr,
                             axis=self._max_axis)
-                    del Q_blk_hat_fr
 
                 # print info file
                 self._pr0(f'block {(i_blk+1)}/{(self._n_blocks)}'
                           f' ({(offset)}:{(self._n_dft+offset)});  '
                           f'Elapsed time: {time.time() - st} s.')
 
-                ## store FFT blocks in RAM
-                Q_hat[:,:,i_blk] = Q_blk_hat
-            del Q_blk_hat
         del self.data
         self._pr0(f'------------------------------------')
         self._pr0(f'Time to compute DFT: {time.time() - start} s.')
@@ -143,12 +140,12 @@ class Standard(Base):
         Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
 
         # Subtract longtime or provided mean
-        Q_blk = Q_blk[:] - self._t_mean
+        Q_blk -= self._t_mean
 
         # if block mean is to be subtracted,
         # do it now that all data is collected
         if self._mean_type.lower() == 'blockwise':
-            Q_blk = Q_blk - np.mean(Q_blk, axis=0)
+            Q_blk -= np.mean(Q_blk, axis=0)
 
         # normalize by pointwise variance
         if self._normalize_data:
@@ -156,9 +153,9 @@ class Standard(Base):
             Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / den
             # address division-by-0 problem with NaNs
             Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
-            Q_blk = Q_blk / Q_var
+            Q_blk /= Q_var
 
-        Q_blk = Q_blk * self._window
+        Q_blk *= self._window
         Q_blk = self._set_dtype(Q_blk)
         Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
         Q_blk_hat = Q_blk_hat[0:self._n_freq,:]
