@@ -539,7 +539,8 @@ class reader_mat():
 
             # check the first file to find dimensions
             f = h5py.File(data_list[0], "r")
-            data = f.get("q_symmetric")
+            group_key = list(f.keys())[0]
+            data = f.get(group_key)
             self._shape = (nt, data.shape[1], data.shape[2], data.shape[3], data.shape[0])
 
             self._max_axes = np.argsort(self._shape[1:])
@@ -587,7 +588,8 @@ class reader_mat():
             if read_je > read_js:
                 print(f'rank {mpi_rank} opening file {f}')
                 f = h5py.File(f, "r")
-                data = f.get("q_symmetric")
+                group_key = list(f.keys())[0]
+                data = f.get(group_key)
                 data = np.array(data)
                 # print(f'rank {mpi_rank} read data {data.shape} before transpose')
                 data = np.transpose(data, axes=[1, 2, 3, 0])
