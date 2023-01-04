@@ -135,13 +135,12 @@ class Standard(Base):
         offset = min(i_blk * (self._n_dft - self._n_overlap) \
             + self._n_dft, self._nt) - self._n_dft
 
-        # Get data
-        Q_blk = self.data[offset:self._n_dft+offset,...]
+        # Get data, copy data to avoid subtracting when overlap used
+        Q_blk = self.data[offset:self._n_dft+offset,...].copy()
         Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
 
         # Subtract longtime or provided mean
-        # TODO: why not Q_blk -= self._t_mean
-        Q_blk = Q_blk[:] - self._t_mean
+        Q_blk -= self._t_mean
 
         # if block mean is to be subtracted,
         # do it now that all data is collected
