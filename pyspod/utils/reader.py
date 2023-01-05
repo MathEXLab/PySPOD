@@ -559,8 +559,6 @@ class reader_mat():
 
         input_data = np.zeros((n,)+self._shape[1:],dtype=self._dtype)
 
-        # for i, d in enumerate(data_list):
-        # for k, v in self._file_time.items():
         for f in self._files:
             d_js = cum_t
             d_je = d_js + 1 # one step per file
@@ -570,16 +568,17 @@ class reader_mat():
 
             if read_je > read_js:
                 print(f'rank {mpi_rank} opening file {f}')
-                f = h5py.File(f, "r")
-                group_key = list(f.keys())[0]
-                data = f.get(group_key)
-                data = np.array(data)
-                # print(f'rank {mpi_rank} read data {data.shape} before transpose')
-                data = np.transpose(data, axes=[1, 2, 3, 0])
-                # print(f'rank {mpi_rank} read data {data.shape} after transpose')
-                input_data[cum_read,...] = np.nan_to_num(data) #np.reshape(data,(-1,1,self._nv))
-                cum_read += 1
-                print(f'rank {mpi_rank} closed file {f}')
+                with h5py.File(f, "r") as ff:
+                    group_key = list(ff.keys())[0]
+                    data = ff.get(group_key)
+                    data = np.array(data)
+                    # print(f'rank {mpi_rank} read data {data.shape} before transpose')
+                    data = np.transpose(data, axes=[1, 2, 3, 0])
+                    # print(f'rank {mpi_rank} read data {data.shape} after transpose')
+                    input_data[cum_read,...] = np.nan_to_num(data) #np.reshape(data,(-1,1,self._nv))
+                    del data
+                    cum_read += 1
+                    print(f'rank {mpi_rank} closed file {f}')
 
             cum_t = cum_t + 1 # one step per file
 
@@ -648,24 +647,7 @@ class reader_mat():
         reqs = []
         for irank in range(mpi_size):
             utils_par.pr0(f'posting gather for {irank}', comm)
-
-            if False:
-                n, s = utils_par._blockdist(self._shape[max_axis], mpi_size, irank)
-                rank_js = s
-                rank_je = s+n
-
-                idx = [np.s_[:]]*len(self._shape)
-                idx[max_axis] = np.s_[rank_js:rank_je]
-
-                # if mpi_rank == 0:
-                # print(f'{mpi_rank} has {idx = :} of {input_data.shape = :} for {irank}')
-                # if mpi_rank == 0:
-                #     print(f'my rank {mpi_rank} rank {irank} needs {rank_js}:{rank_je}')
-
-                # tmp = input_data[tuple(idx)].copy()
-                # s_msg = [tmp, ftype]
-            else:
-                s_msg = [s_msgs[irank], ftype]
+            s_msg = [s_msgs[irank], ftype]
             r_msg = [data, (recvcounts/self._shape[second_largest_axis], None), ftype] if mpi_rank==irank else None
             req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
             reqs.append(req)
