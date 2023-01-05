@@ -322,7 +322,7 @@ class reader_2stage():
                         print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
                         input_idx[-1] = idx
                         input_data[tuple(input_idx)] = dvars[var].values
-                    # del tmp
+                    del dvars
                     cum_read = cum_read + subread_je-subread_js
 
 
@@ -404,24 +404,7 @@ class reader_2stage():
         reqs = []
         for irank in range(mpi_size):
             utils_par.pr0(f'posting gather for {irank}', comm)
-
-            if False:
-                n, s = utils_par._blockdist(self._shape[max_axis], mpi_size, irank)
-                rank_js = s
-                rank_je = s+n
-
-                idx = [np.s_[:]]*len(self._shape)
-                idx[max_axis] = np.s_[rank_js:rank_je]
-
-                # if mpi_rank == 0:
-                # print(f'{mpi_rank} has {idx = :} of {input_data.shape = :} for {irank}')
-                # if mpi_rank == 0:
-                #     print(f'my rank {mpi_rank} rank {irank} needs {rank_js}:{rank_je}')
-
-                # tmp = input_data[tuple(idx)].copy()
-                # s_msg = [tmp, ftype]
-            else:
-                s_msg = [s_msgs[irank], ftype]
+            s_msg = [s_msgs[irank], ftype]
             r_msg = [data, (recvcounts/self._shape[second_largest_axis], None), ftype] if mpi_rank==irank else None
             req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
             reqs.append(req)
