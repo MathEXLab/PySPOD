@@ -562,8 +562,8 @@ class Base():
         self._mean_type = self._mean_type.lower()
         self._lt_mean = self.long_t_mean(data)
         if self._mean_type   == 'longtime' : self._t_mean = self._lt_mean
-        elif self._mean_type == 'blockwise': self._t_mean = 0
-        elif self._mean_type == 'zero'     : self._t_mean = 0
+        elif self._mean_type == 'blockwise': self._t_mean = 0.0
+        elif self._mean_type == 'zero'     : self._t_mean = 0.0
         else:
             ## mean_type not recognized
             raise ValueError(self._mean_type, 'not recognized.')

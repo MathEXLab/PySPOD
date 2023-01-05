@@ -339,7 +339,7 @@ class Base():
         '''Select mean.'''
         self._mean_type = self._mean_type.lower()
         if self._mean_type == 'longtime': self._t_mean = self.long_t_mean(data)
-        elif self._mean_type == 'zero'  : self._t_mean = 0
+        elif self._mean_type == 'zero'  : self._t_mean = 0.0
         else:
             ## mean_type not recognized
             raise ValueError(self._mean_type, 'not recognized.')
