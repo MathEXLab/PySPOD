@@ -189,7 +189,6 @@ def test_parallel_distribute_2phase():
 
     # reference 1 phase distribution
     dataRef,    maxAxisRef,    globShapeRef    = utils_par.distribute_data(da, comm=comm)
-    # dts2stage, maxidx2stage, gs2stage = utils_par.distribute_data_2stage(da.shape, [da], comm, np.float64)
 
     # 2 phase distribution
     xdim = 2
@@ -210,6 +209,64 @@ def test_parallel_distribute_2phase():
     assert maxAxisRef == maxAxis
     assert globShapeRef == globShape
 
+@pytest.mark.mpi(minsize=2, maxsize=2)
+def test_parallel_distribute_2phase_chunks():
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
+    ## ------------------------------------------------------------------------
+    data_file = os.path.join(CFD,'./data', 'earthquakes_data.nc')
+    ds        = xr.open_dataset(data_file)
+    da        = ds['slip_potency']
+    ## ------------------------------------------------------------------------
+
+    # reference 1 phase distribution
+    dataRef,    maxAxisRef,    globShapeRef    = utils_par.distribute_data(da, comm=comm)
+
+    # 2 phase distribution
+    xdim = 2
+    nv = 1
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 2, nblocks = 3)
+    data_dict = reader.get_data()
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+
+    data_np = np.zeros((dataRef.shape))
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np[s:e,...] = v[:,...,0]
+
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 6, nblocks = 3)
+    data_dict = reader.get_data()
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+
+    data_np2 = np.zeros((dataRef.shape))
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np2[s:e,...] = v[:,...,0]
+
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 3, nblocks = 6)
+    data_dict = reader.get_data()
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+
+    data_np3 = np.zeros((dataRef.shape))
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np3[s:e,...] = v[:,...,0]
+
+    assert np.allclose(dataRef.to_numpy().flatten(),data_np.flatten(),atol=0.0001,rtol=0)
+    assert np.allclose(data_np.flatten(),data_np2.flatten(),atol=0.0001,rtol=0)
+    assert np.allclose(data_np2.flatten(),data_np3.flatten(),atol=0.0001,rtol=0)
 
 if __name__ == "__main__":
     test_parallel_pvar()
@@ -217,6 +274,7 @@ if __name__ == "__main__":
     test_parallel_allreduce()
     test_parallel_pr0()
     test_parallel_distribute_2phase()
+    test_parallel_distribute_2phase_chunks()
 
     for axis in range(3):
         for dtype in "iIqQfdFD":
