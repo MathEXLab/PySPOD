@@ -57,7 +57,6 @@ class Standard(Base):
 
         # loop over number of blocks and generate Fourier realizations,
         # if blocks are not saved in storage
-        size_Q_hat = [self._n_freq, self.data[0,...].size, self._n_blocks]
         Q_hat = None
         ## check if blocks already computed or not
         if blocks_present:
@@ -74,19 +73,26 @@ class Standard(Base):
                 data=Q_hat, max_axis=self._max_axis+1, comm=self._comm)
             shape = [Q_hat.shape[0], Q_hat[0,...,0].size, Q_hat.shape[-1]]
             Q_hat = np.reshape(Q_hat, shape)
+            del self.data
         else:
             # loop over number of blocks and generate Fourier realizations
-            size_Q_hat = [self._n_freq, self.data[0,...].size, self._n_blocks]
+            if isinstance(self.data, dict):
+                last_key = list(self.data)[-1]
+                last_val = self.data[last_key]["v"]
+                xvsize = last_val[0,...].size
+            else:
+                xvsize = self.data[0,...].size
+
+            size_Q_hat = [self._n_blocks, self._n_freq, xvsize]
             Q_hat = np.empty(size_Q_hat, dtype=self._complex)
             for i_blk in range(0,self._n_blocks):
                 st = time.time()
 
                 # compute block
-                Q_hat[:,:,i_blk], offset = self._compute_blocks(i_blk)
-
+                Q_hat[i_blk,:,:], offset = self._compute_blocks(i_blk)
                 # save FFT blocks in storage memory
                 if self._savefft == True:
-                    Q_blk_hat = Q_hat[:,:,i_blk]
+                    Q_blk_hat = Q_hat[i_blk,:,:]
                     for i_freq in range(0, self._n_freq):
                         Q_blk_hat_fr = Q_blk_hat[i_freq,:]
                         file = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
@@ -103,7 +109,13 @@ class Standard(Base):
                           f' ({(offset)}:{(self._n_dft+offset)});  '
                           f'Elapsed time: {time.time() - st} s.')
 
-        del self.data
+            del self.data
+
+            # We read into Q_hat[:,:,nblocks] and then swap the axis rather than read into Q_hat[nblocks,:,:] directly
+            # to avoid allocating the entire array at once. Allocating it block by block allows to keep the memory
+            # requirements constant as _compute_blocks deallocates blocks from self.data.
+            Q_hat = np.moveaxis(Q_hat, 0, -1)
+
         self._pr0(f'------------------------------------')
         self._pr0(f'Time to compute DFT: {time.time() - start} s.')
         if self._comm: self._comm.Barrier()
@@ -135,9 +147,7 @@ class Standard(Base):
         offset = min(i_blk * (self._n_dft - self._n_overlap) \
             + self._n_dft, self._nt) - self._n_dft
 
-        # Get data, copy data to avoid subtracting when overlap used
-        Q_blk = self.data[offset:self._n_dft+offset,...].copy()
-        Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
+        Q_blk = self._get_block(offset, offset+self._n_dft)
 
         # Subtract longtime or provided mean
         Q_blk -= self._t_mean
@@ -157,8 +167,9 @@ class Standard(Base):
 
         Q_blk *= self._window
         Q_blk = self._set_dtype(Q_blk)
-        Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)
-        Q_blk_hat = Q_blk_hat[0:self._n_freq,:]
+
+        # TODO: can we use rfft and when?
+        Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)[0:self._n_freq,:]
         return Q_blk_hat, offset
 
     def _compute_standard_spod(self, Q_hat):
@@ -341,3 +352,46 @@ class Standard(Base):
         fac_upper = 2 * self._n_blocks / self._xi2_upper
         self._eigs_c[...,0] = self._eigs * fac_lower
         self._eigs_c[...,1] = self._eigs * fac_upper
+
+    def _get_block(self, start, end):
+        if isinstance(self.data, dict):
+            last_key = list(self.data)[-1]
+            last_val = self.data[last_key]["v"]
+            Q_blk = np.empty((self._n_dft,)+last_val.shape[1:],dtype=last_val.dtype)
+
+            # print(f'xar data needed {start}:{end}')
+
+            cnt = 0
+            for k,v in self.data.items():
+                v_s = v["s"]
+                v_e = v["e"]
+
+                read_here_s = max(v_s, start)
+                read_here_e = min(v_e, end)
+                read_here_cnt = read_here_e - read_here_s
+
+                # print(f'LBL key {k} contains {v_s}:{v_e} while i need {start}:{end}')
+                if read_here_cnt > 0:
+                    # print(f'LBL key {k} contains {v_s}:{v_e} while i need {start}:{end} - will read {read_here_s}:{read_here_e} to {cnt}:{cnt+read_here_cnt}')
+                    vals = v["v"]
+                    Q_blk[cnt:cnt+read_here_cnt,...] = vals[read_here_s-v_s:read_here_e-v_s,...]
+                    cnt += read_here_cnt
+                    start += read_here_cnt
+
+            # delete blocks that are no longer needed
+            keys_to_del = []
+            for k,v in self.data.items():
+                v_s = v["s"]
+                v_e = v["e"]
+                if start > v_e:
+                    keys_to_del.append(k)
+
+            for k in keys_to_del:
+                del self.data[k]
+
+            Q_blk = Q_blk.reshape(self._n_dft, last_val[0,...].size)
+            return Q_blk
+        else:
+            Q_blk = self.data[start:end,...].copy()
+            Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
+            return Q_blk

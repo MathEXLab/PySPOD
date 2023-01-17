@@ -167,7 +167,7 @@ class reader_1stage():
 #   but since the reads here are contiguous, it can be 15x faster for certain filesystems
 ########################################################################################
 class reader_2stage():
-    def __init__(self, data_list, xdim, dtype, comm, nv, variables, nreaders = None):
+    def __init__(self, data_list, xdim, dtype, comm, nv, variables, ndft = -1, nreaders = None, nchunks = 10, nblocks = 3):
         assert comm is not None, "2-stage reader requires MPI"
 
         st = time.time()
@@ -179,10 +179,15 @@ class reader_2stage():
         self._shape = None
         self._max_axes = None
         self._variables = variables
+        self._n_dft = ndft
         self._nreaders = min(nreaders,comm.size) if nreaders else comm.size
+        self._nchunks = nchunks
+        self._nblocks = nblocks
 
-        # variables have to be provided
+        # check required (optional) arguments
         assert variables is not None, 'Variable(s) has to be provided for the 2-stage reader'
+        assert isinstance(variables,list), 'Variable(s) has to be provided as a list'
+        assert ndft != -1, 'ndft has to be provided for the 2-stage reader'
 
         # data_list should be a list of filenames
         if comm.rank == 0:
@@ -217,6 +222,9 @@ class reader_2stage():
         self._shape = comm.bcast(self._shape, root=0)
         self._file_time = comm.bcast(self._file_time, root=0)
         self._max_axes = comm.bcast(self._max_axes, root=0)
+
+        if comm.rank == 0:
+            assert nt >= self._nchunks*self._nblocks, f'Number of chunks {self._nchunks} and blocks {self._nblocks} is too large for the nt ({nt}) (nt must be equal at least self._nchunks*self._nblocks)'
 
         data = xr.open_dataset(data_list[0],cache=False)[variables[0]]
         x_tmp = data[[0],...].values
@@ -267,80 +275,56 @@ class reader_2stage():
             read_js = max(d_js, js)
             read_je = min(d_je, je)
 
+            dvars = None
             if read_je > read_js:
-                subread_js = read_js
-                subread_je = read_je
 
-                d = xr.open_dataset(k, cache=False, decode_times=False)
-                print(f'rank {mpi_rank} opening file {k}')
+                with xr.open_dataset(k, cache=False, decode_times=False) as d:
+                    print(f'rank {mpi_rank} opening file {k}')
 
-                first_var = list(d[self._variables[0]].dims)[0]
-                print(f'first variable is {first_var}')
+                    first_var = list(d[self._variables[0]].dims)[0]
+                    # print(f'first variable is {first_var}')
 
-                while True:
-                    # using chunks to reduce the memory usage when calling input_data[]=d[].to_numpy()
-                    subread_je = subread_js + 1000
-
-                    # print(f'rank {mpi_rank} now {subread_js} : {subread_je} before check on {read_je}')
-
-                    if subread_je > read_je:
-                        subread_je = read_je
-
-
-                    # if mpi_rank == 0 or True:
-                    #     print(f'dataset {k} rank {mpi_rank}/{mpi_size-1} input shape {shape} distribute data new {d.shape = :}')
                     input_idx = [np.s_[:]]*len(self._shape)
-                    input_idx[0] = np.s_[cum_read:cum_read+subread_je-subread_js]
+                    input_idx[0] = np.s_[cum_read:cum_read+read_je-read_js]
 
                     # if self._nv == 1:
                     #     d_idx = [np.s_[:]]*len(d.shape)
-                    #     d_idx[0] = np.s_[subread_js-cum_t:subread_je-cum_t]
+                    #     d_idx[0] = np.s_[read_js-cum_t:read_je-cum_t]
                     #     if len(input_idx) == len(d_idx)+1:
                     #         input_idx[-1] = 0
 
-                    print(f'input_idx {input_idx}')
-                    # if self._nv == 1:
-                    #     print(f'd_idx {d_idx}')
+                    # print(f'input_idx {input_idx}')
 
-                    #     print(f'proc {mpi_rank} reading {input_idx} from {d_idx} so far got {cum_read}/{je-js}')
+                    time_from = d[first_var].values[read_js-cum_t]
+                    time_to = d[first_var].values[read_je-cum_t-1] # .sel uses inclusive indexing on both ends!
 
-                    # this is meant to be "time"
-                    # first_var = list(d.variables)[0]
+                    # print(f''########### proc {mpi_rank} reading {read_js-cum_t} ({time_from}) to {read_je-cum_t-1} ({time_to})')
 
+                    with d.sel({first_var: slice(time_from,time_to)},drop=True) as dvars:
+            #             # dvars_np = dvars_raw['msl'].to_numpy()
+            #             # print(f'LKLB wanted to read total {te-ts} and rank {mpi_rank} {read_je-read_js} and shape0 of dvars_np is {dvars_np.shape} {dvars_np}')
+                        # assert read_je-read_js == dvars_np.shape[0]
 
-                    time_from = d[first_var].values[subread_js-cum_t]
-                    time_to = d[first_var].values[subread_je-cum_t-1] # TODO: -1?
+            #         # tmp = d[tuple(d_idx)].to_numpy()
+                        for idx, var in enumerate(self._variables):
+                            print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
+                            input_idx[-1] = idx
+                            vals = dvars[var].values
+                            input_data[tuple(input_idx)] = vals.copy()
+                            # del dvars_np
+                            cum_read = cum_read + read_je-read_js
 
-                    print(f'########### proc {mpi_rank} reading {subread_js-cum_t} ({time_from}) to {subread_je-cum_t-1} ({time_to})')
+                        # print(f'\tproc {mpi_rank} wants {js} to {je} reading ({read_js}:{read_je}) from the dataset {i} ({d_js}:{d_je})\n \
+                        #     local dataset idx {read_js-cum_t}:{read_je-cum_t} input_data idx {cum_read}:{cum_read + read_je-read_js}')
+                        # print(f'\t\tproc {mpi_rank} read x({type(x)}) {x.shape = :}')
 
-                    # dvars = d.where((d[first_var] >= time_from) & (d[first_var] <= time_to), drop=True).as_numpy()
-                    dvars = d.sel({first_var: slice(time_from,time_to)},drop=True).as_numpy()
-                    # print(f'{dvars = :}')
-
-                    # tmp = d[tuple(d_idx)].to_numpy()
-                    for idx, var in enumerate(self._variables):
-                        print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
-                        input_idx[-1] = idx
-                        input_data[tuple(input_idx)] = dvars[var].values
-                    del dvars
-                    cum_read = cum_read + subread_je-subread_js
-
-
-                    subread_js = subread_je
-                    if subread_je == read_je:
-                        break
-
-                    # print(f'\tproc {mpi_rank} wants {js} to {je} reading ({read_js}:{read_je}) from the dataset {i} ({d_js}:{d_je})\n \
-                    #     local dataset idx {read_js-cum_t}:{read_je-cum_t} input_data idx {cum_read}:{cum_read + read_je-read_js}')
-                    # print(f'\t\tproc {mpi_rank} read x({type(x)}) {x.shape = :}')
-
-                d.close()
-                print(f'rank {mpi_rank} closed file {k}')
+            #         print(f'rank {mpi_rank} closed file {k}')
 
             cum_t = cum_t + (v[1]-v[0])
 
         print(f'rank {mpi_rank} finished reading')
         # comm.Barrier()
+        utils_par.pr0(f'experimental reading with distribution: I/O took {time.time()-stime} seconds', comm)
 
         # redistribute the data using MPI (nprocs * gatherv) - gather all times for a spatial slice
 
@@ -352,11 +336,8 @@ class reader_2stage():
         max_axis            = self._max_axes[-1]+1#np.argsort(shape[1:])[-1] + 1
         second_largest_axis = self._max_axes[-2]+1#np.argsort(shape[1:])[-2] + 1
 
-        # print(f'{max_axis = :} {second_largest_axis = :} {shape = :}')
         axes = np.arange(1,len(self._shape)) # skip time dimension
-        # print(f'{axes = :}')
         axes = np.delete(axes,np.where(axes == max_axis))
-        # print(f'max axis {max_axis} shape {shape} remaining axes {axes}')
 
         recvcounts = np.zeros(mpi_size)
         for irank in range(mpi_size):
@@ -372,18 +353,11 @@ class reader_2stage():
         shape_output[max_axis] = n           # distributed dimension
         for axis in axes:
             shape_output[axis] = self._shape[axis]
-        # print(f'shape output is {shape_output}')
 
-        comm.Barrier()
-        utils_par.pr0(f'experimental reading with distribution: I/O took {time.time()-stime} seconds', comm)
-        # comm.Barrier()
-
-        stime = time.time()
+        # stime = time.time()
 
         # working around the limitation of MPI with >INT32_MAX elements
         ftype = mpi_dtype.Create_contiguous(self._shape[second_largest_axis]).Commit()
-
-        # print(f'shapes {data.shape = :} {input_data.shape = :}')
 
         ztime = time.time()
         s_msgs = {}
@@ -433,7 +407,44 @@ class reader_2stage():
 
     def get_data(self, ts = None):
         if ts is None:
-            return self.get_data_for_time(0, self.nt)
+            mpi_size = self._comm.Get_size()
+            mpi_rank = self._comm.Get_rank()
+
+            nchunks = self._nchunks
+            nblks = self._nblocks
+
+            data_dict = {}
+
+            for chunk in range(0,nchunks):
+
+                t_n, t_s = utils_par._blockdist(self.nt, nchunks, chunk)
+                t_e = t_s + t_n
+
+                # print(f'LKL1 READING CHUNK {chunk} (total chunks {nchunks}) from {t_s} to {t_e} blocks {0} to {nblks} (blocks per chunk {nblks})')
+
+                x = self.get_data_for_time(t_s,t_e)
+
+                for blk in range(0,nblks):
+                    blk_idx = chunk*nblks + blk
+
+                    blk_t_n, blk_t_s = utils_par._blockdist(t_e-t_s, nblks, blk)
+                    blk_t_e = blk_t_s + blk_t_n
+
+                    print(f'LKL3 READING CHUNK {chunk} BLOCK {blk} (total blocks {nblks}) from {blk_t_s} to {blk_t_e} (global time {t_s}:{t_e})')
+
+                    data_dict[blk_idx] = {}
+                    data_dict[blk_idx]['s'] = t_s+blk_t_s
+                    data_dict[blk_idx]['e'] = t_s+blk_t_e
+                    data_dict[blk_idx]['v'] = x[blk_t_s:blk_t_e].copy()
+
+                    assert data_dict[blk_idx]['v'].shape[0] == data_dict[blk_idx]['e'] - data_dict[blk_idx]['s'], 'ERROR: array shape[0] does not match stored start/end indices'
+
+            # print(f'LAK returning datas keys {data_dict.keys()}')
+            # if self._comm.rank == 0:
+            #     print(f'LAK returning datas keys {data_dict.keys()}')
+            #     for k,v in data_dict.items():
+            #         print(f'LAK returning datas[{k}] {v["s"]}:{v["e"]}')
+            return data_dict
         else:
             return self.get_data_for_time(ts, ts+1)
 

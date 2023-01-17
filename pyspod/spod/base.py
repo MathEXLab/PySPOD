@@ -382,9 +382,9 @@ class Base():
 
         if isinstance(data_list[0], str):
             if data_list[0].endswith('.nc'):
-                self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, nreaders = 10000)
+                self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, self._n_dft, nreaders = 10000)
             if data_list[0].endswith('.mat'):
-                self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv, nreaders = 10000)
+                self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv)
         else:
             self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
 
@@ -426,12 +426,12 @@ class Base():
             self.data = self._reader.get_data()
 
             # debugging
-            mean = self.data.mean()
-            if self._comm is None:
-                print(f'--- proc averages: {mean}')
-            else:
-                means = self._comm.gather(mean, root=0)
-                self._pr0(f'--- proc averages: {means}')
+            # mean = self.data.mean()
+            # if self._comm is None:
+            #     print(f'--- proc averages: {mean}')
+            # else:
+            #     means = self._comm.gather(mean, root=0)
+            #     self._pr0(f'--- proc averages: {means}')
 
         # TODO: how do we calculate mean, weights and normalize if streaming data?
         if streaming:
@@ -444,7 +444,7 @@ class Base():
         ## get data and add axis for single variable
         if not streaming:
             st = time.time()
-            if not isinstance(self.data,np.ndarray): self.data = self.data.values
+            if not isinstance(self.data,np.ndarray) and not isinstance(self.data,dict): self.data = self.data.values
             # if (self._nv == 1) and (self.data.ndim != self._xdim + 2):
             #     self.data = self.data[...,np.newaxis]
             self._pr0(f'- loaded data into memory: {time.time() - st} s.')
@@ -468,8 +468,14 @@ class Base():
 
         ## flatten weights to number of space x variables points
         try:
-            self._weights = np.reshape(
-                self._weights, [self.data[0,...].size,1])
+            if isinstance(self.data,dict):
+                last_key = list(self.data)[-1]
+                last_val = self.data[last_key]["v"]
+                xvsize = last_val[0,...].size
+            else:
+                xvsize = self.data[0,...].size
+
+            self._weights = np.reshape(self._weights, [xvsize,1])
         except:
             raise ValueError(
                 'parameter ``weights`` must be cast into '
@@ -560,7 +566,7 @@ class Base():
     def select_mean(self, data):
         '''Select mean.'''
         self._mean_type = self._mean_type.lower()
-        self._lt_mean = self.long_t_mean(data)
+        self._lt_mean = self.long_t_mean(data) # TODO: is there a reason for this to be computed outside of the if statement?
         if self._mean_type   == 'longtime' : self._t_mean = self._lt_mean
         elif self._mean_type == 'blockwise': self._t_mean = 0.0
         elif self._mean_type == 'zero'     : self._t_mean = 0.0
@@ -574,19 +580,29 @@ class Base():
 
     def long_t_mean(self, data):
         '''Get longtime mean.'''
-        split_block = self.nt // self._n_blocks
-        split_res = self.nt % self._n_blocks
-        shape_s_v = data[0,...].shape
-        shape_sxv = data[0,...].size
-        t_sum = np.zeros(data[0,...].shape)
-        for i_blk in range(0, self._n_blocks):
-            lb = i_blk * split_block
-            ub = lb + split_block
-            d = data[lb:ub,...,:]
-            t_sum += np.sum(d, axis=0)
-        if split_res > 0:
-            d = data[self.nt-split_res:self.nt,...,:]
-            t_sum += np.sum(d, axis=0)
+        if isinstance(data, dict):
+            last_key = list(self.data)[-1]
+            last_val = data[last_key]["v"]
+
+            shape_sxv = last_val[0,...].size
+            t_sum = np.zeros(last_val[0,...].shape)
+
+            for k,v in data.items():
+                val = v["v"]
+                t_sum += np.sum(val, axis=0)
+        else:
+            split_block = self.nt // self._n_blocks
+            split_res = self.nt % self._n_blocks
+            shape_sxv = data[0,...].size
+            t_sum = np.zeros(data[0,...].shape)
+            for i_blk in range(0, self._n_blocks):
+                lb = i_blk * split_block
+                ub = lb + split_block
+                d = data[lb:ub,...,:]
+                t_sum += np.sum(d, axis=0)
+            if split_res > 0:
+                d = data[self.nt-split_res:self.nt,...,:]
+                t_sum += np.sum(d, axis=0)
         t_mean = t_sum / self.nt
         t_mean = np.reshape(t_mean, shape_sxv)
         t_mean = self._set_dtype(t_mean)
@@ -990,7 +1006,14 @@ class Base():
         if self._comm is None:
             return self.data.size, self.data.size, self.data.size
         else:
-            min_size = self._comm.allreduce(self.data.size, op=MPI.MIN)
-            max_size = self._comm.allreduce(self.data.size, op=MPI.MAX)
-            tot_size = self._comm.allreduce(self.data.size, op=MPI.SUM)
+            total_data_size = 0
+            if isinstance(self.data, dict):
+                for _,v in self.data.items():
+                    total_data_size += v['v'].size
+            else:
+                total_data_size = self.data.size
+
+            min_size = self._comm.allreduce(total_data_size, op=MPI.MIN)
+            max_size = self._comm.allreduce(total_data_size, op=MPI.MAX)
+            tot_size = self._comm.allreduce(total_data_size, op=MPI.SUM)
             return min_size, max_size, tot_size

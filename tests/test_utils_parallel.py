@@ -194,12 +194,19 @@ def test_parallel_distribute_2phase():
     # 2 phase distribution
     xdim = 2
     nv = 1
-    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'])
-    data = reader.get_data()
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 2, nblocks = 3)
+    data_dict = reader.get_data()
     maxAxis = reader.max_axis
     globShape = reader.xshape
 
-    assert np.allclose(dataRef.to_numpy().flatten(),data.flatten(),atol=0.0001,rtol=0)
+    data_np = np.zeros((dataRef.shape))
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np[s:e,...] = v[:,...,0]
+
+    assert np.allclose(dataRef.to_numpy().flatten(),data_np.flatten(),atol=0.0001,rtol=0)
     assert maxAxisRef == maxAxis
     assert globShapeRef == globShape
 
