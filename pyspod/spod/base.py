@@ -64,7 +64,6 @@ class Base():
         # save frequencies to disk/memory
         self._savefreq_disk = params.get('savefreq_disk', True)
         self._savefreq_disk2 = params.get('savefreq_disk2', False)
-        self._savefreq_mem  = params.get('savefreq_mem',  False)
         # consider all frequencies; if false single-sided spectrum considered
         self._fullspectrum = params.get('fullspectrum', False)
         # normalize weights if required
@@ -776,12 +775,7 @@ class Base():
         See method implementation in the postproc module.
         '''
 
-        if self._savefreq_mem:
-            comm = self._comm
-            proc_with_freq = freq_idx%comm.size
-            m = self._saved_freqs[freq_idx] if comm.rank==proc_with_freq else None
-            m = comm.bcast(m, root=proc_with_freq)
-        elif self._savefreq_disk:
+        if self._savefreq_disk:
             if self._modes_dir is None:
                 raise ValueError('Modes not found. Consider running fit()')
 
@@ -884,21 +878,6 @@ class Base():
 
         comm = self._comm
         modes = None
-
-        if self._savefreq_mem:
-
-            # find index of freq_req in freq
-            freq_idx = np.where(freq == freq_req)[0][0]
-            proc_with_freq = freq_idx % comm.size
-
-            if comm is None or comm.rank == proc_with_freq:
-                modes = self._saved_freqs[freq_idx]
-
-            if comm is not None and proc_with_freq != 0:
-                if comm.rank == proc_with_freq:
-                    comm.send(modes, dest=0)
-                if comm.rank == 0:
-                    modes = comm.recv(source=proc_with_freq)
 
         if comm is None or comm.rank == 0:
             post.plot_2d_modes_at_frequency(

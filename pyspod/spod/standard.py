@@ -61,18 +61,23 @@ class Standard(Base):
         ## check if blocks already computed or not
         if blocks_present:
             # load blocks if present
-            size_Q_hat = [self._n_freq, *self._xshape, self._n_blocks]
-            Q_hat = np.empty(size_Q_hat, dtype=self._complex)
+            Q_hats = {}
+            size_qhat = [*self._xshape, self._n_blocks]
+            for f in range(self._n_freq):
+                Q_hats[f] = np.empty(size_qhat, dtype=self._complex)
+
             for i_blk in range(0, self._n_blocks):
                 print(f'Loading block {i_blk}/{self._n_blocks}')
                 for i_freq in range(0, self._n_freq):
                     file = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
                     path = os.path.join(self._blocks_folder, file)
-                    Q_hat[i_freq,...,i_blk] = np.load(path)
-            Q_hat = utils_par.distribute_dimension(
-                data=Q_hat, max_axis=self._max_axis+1, comm=self._comm)
-            shape = [Q_hat.shape[0], Q_hat[0,...,0].size, Q_hat.shape[-1]]
-            Q_hat = np.reshape(Q_hat, shape)
+                    Q_hats[i_freq][...,i_blk] = np.load(path)
+            for f in range(self._n_freq):
+                Q_hats[f] = utils_par.distribute_dimension(
+                    data=Q_hats[f], max_axis=self._max_axis, comm=self._comm)
+                qhat = Q_hats[f]
+                shape = [qhat[...,0].size, qhat.shape[-1]]
+                Q_hats[f] = np.reshape(Q_hats[f], shape)
             del self.data
         else:
             # loop over number of blocks and generate Fourier realizations
@@ -83,16 +88,22 @@ class Standard(Base):
             else:
                 xvsize = self.data[0,...].size
 
-            size_Q_hat = [self._n_blocks, self._n_freq, xvsize]
-            Q_hat = np.empty(size_Q_hat, dtype=self._complex)
+            # size_Q_hat = [self._n_blocks, self._n_freq, xvsize]
+            # Q_hat = np.empty(size_Q_hat, dtype=self._complex)
+            Q_hats = {}
             for i_blk in range(0,self._n_blocks):
                 st = time.time()
 
                 # compute block
-                Q_hat[i_blk,:,:], offset = self._compute_blocks(i_blk)
+                qhat = np.empty([self._n_freq, xvsize], dtype=self._complex)
+                qhat[:], offset = self._compute_blocks(i_blk)
+                # Q_hat[i_blk,:,:], offset = self._compute_blocks(i_blk)
+                Q_hats[i_blk] = {}
+                for f in range(self._n_freq):
+                    Q_hats[i_blk][f] = qhat[f,:].copy()
                 # save FFT blocks in storage memory
                 if self._savefft == True:
-                    Q_blk_hat = Q_hat[i_blk,:,:]
+                    Q_blk_hat = qhat
                     for i_freq in range(0, self._n_freq):
                         Q_blk_hat_fr = Q_blk_hat[i_freq,:]
                         file = f'fft_block{i_blk:08d}_freq{i_freq:08d}.npy'
@@ -111,10 +122,14 @@ class Standard(Base):
 
             del self.data
 
-            # We read into Q_hat[:,:,nblocks] and then swap the axis rather than read into Q_hat[nblocks,:,:] directly
+            # We read into Q_hat[nblocks,:,:] and then swap the axis rather than read into Q_hat[:,:,nblocks] directly
             # to avoid allocating the entire array at once. Allocating it block by block allows to keep the memory
             # requirements constant as _compute_blocks deallocates blocks from self.data.
-            Q_hat = np.moveaxis(Q_hat, 0, -1)
+            # Q_hat = np.moveaxis(Q_hat, 0, -1)
+
+            st = time.time()
+            Q_hats = self._flip_qhat(Q_hats)
+            self._pr0(f'- Time spent transposing Q_hats dictionaries: {time.time() - st} s.')
 
         self._pr0(f'------------------------------------')
         self._pr0(f'Time to compute DFT: {time.time() - start} s.')
@@ -129,7 +144,7 @@ class Standard(Base):
             dtype=self._complex)
 
         ## compute standard spod
-        self._compute_standard_spod(Q_hat)
+        self._compute_standard_spod(Q_hats)
 
         # store and save results
         self._store_and_save()
@@ -172,13 +187,13 @@ class Standard(Base):
         Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)[0:self._n_freq,:]
         return Q_blk_hat, offset
 
-    def _compute_standard_spod(self, Q_hat):
+    def _compute_standard_spod(self, Q_hats):
         '''Compute standard SPOD.'''
         # compute inner product in frequency space, for given frequency
         st = time.time()
         M = [None]*self._n_freq
         for f in range(0,self._n_freq):
-            Q_hat_f = np.squeeze(Q_hat[f,:,:])#.astype(complex)
+            Q_hat_f = np.squeeze(Q_hats[f])#np.squeeze(Q_hat[f,:,:])#.astype(complex)
             M[f] = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
         del Q_hat_f
         M = np.stack(M)
@@ -207,20 +222,21 @@ class Standard(Base):
         L_diag = np.sqrt(self._n_blocks) * np.sqrt(L)
         L_diag_inv = 1. / L_diag
 
-        self._saved_freqs = {}
-
         if self._savefreq_disk2:
             local_elements = None
             recvcounts = None
-            datas = {}
+            s_msgs = {}
             reqs = []
+            saved_freq = -1
 
 
         for f in range(0,self._n_freq):
             s0 = time.time()
             ## compute
-            phi = np.matmul(Q_hat[f,...], V[f,...] * L_diag_inv[f,None,:])
+            phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
             phi = phi[...,0:self._n_modes_save]
+            del Q_hats[f]
+            # print(f'phi shape: {phi.shape} dtype {phi.dtype}')
 
             # print(f'{Q_hat[f,...].shape} x {V[f,...].shape} * {L_diag_inv[f,None,:].shape} = {phi.shape}')
 
@@ -234,110 +250,67 @@ class Standard(Base):
                 phi.shape = shape
                 utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
 
-            # store freqs/modes on proc (f mod rank == 0)
-            if self._savefreq_mem:
-                rank = self._comm.rank
-                target_proc = f % self._comm.size
-                ftype = MPI.C_FLOAT_COMPLEX
-                local_elements = np.prod(phi.shape)
-                recvcounts = np.zeros(self._comm.size, dtype=np.int64)
-                self._comm.Gather(local_elements, recvcounts, root=target_proc)
-
-                if rank == target_proc:
-                    data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
-
-                # TODO: phi is not contiguous if self._n_modes_save < number_of_blocks/modes
-                s_msg = [phi, ftype]
-                r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
-
-                self._comm.Gatherv(sendbuf=s_msg, recvbuf=r_msg, root=target_proc)
-
-                if rank == target_proc:
-                    full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
-                    for proc in range(self._comm.size):
-                        start = np.sum(recvcounts[:proc])
-                        end = np.sum(recvcounts[:proc+1])
-
-                        x_prod_not_max = np.prod(self._xshape)
-                        x_prod_not_max /= self._xshape[self._max_axis]
-                        max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
-                        max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
-
-                        idx_full_freq = [np.s_[:]] * (self._xdim + 2)
-                        idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
-
-                        full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
-                        self._saved_freqs[f] = full_freq
-
             if self._savefreq_disk2:
                 rank = self._comm.rank
                 target_proc = f % self._comm.size
                 ftype = MPI.C_FLOAT_COMPLEX
+                # ftype = MPI.C_DOUBLE_COMPLEX # FIXME:
+
+                # get counts once
                 if f == 0:
                     local_elements = np.prod(phi.shape)
                     recvcounts = np.zeros(self._comm.size, dtype=np.int64)
                     self._comm.Allgather(local_elements, recvcounts)
 
-                    for ff in range(0,self._n_freq):
-                        if ff%self._comm.size == rank:
-                            datas[ff] = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
+                data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
+                s_msgs[f] = [copy.deepcopy(phi), ftype]
+                r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
+                if rank == target_proc:
+                    saved_freq = f
 
-                s_msg = [copy.deepcopy(phi), ftype]
-                r_msg = [datas[f], (recvcounts, None), ftype] if rank == target_proc else None
-
-                req = self._comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=target_proc)
-
+                req = self._comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
                 reqs.append(req)
 
-                if len(reqs) > 64:
+                if len(reqs) == self._comm.size or f == self._n_freq-1:
                     xxtime = time.time()
-                    if rank == 0:
-                        print(f'waiting for {len(reqs)} requests')
+                    self._pr0(f'waiting for {len(reqs)} requests')
                     MPI.Request.Waitall(reqs)
                     reqs = []
-                    if rank == 0:
-                        print(f'  partial waitall {time.time()-xxtime} seconds')
+                    s_msgs = {}
+
+                    self._pr0(f'  partial waitall {time.time()-xxtime} seconds')
+
+                    if saved_freq != -1:
+                        xst = time.time()
+                        full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
+                        for proc in range(self._comm.size):
+                            start = np.sum(recvcounts[:proc])
+                            end = np.sum(recvcounts[:proc+1])
+
+                            x_prod_not_max = np.prod(self._xshape)
+                            x_prod_not_max /= self._xshape[self._max_axis]
+                            max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
+                            max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
+
+                            idx_full_freq = [np.s_[:]] * (self._xdim + 2)
+                            idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
+
+                            full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
+
+                        # write to disk
+                        filename = f'freq_idx_{saved_freq:08d}.npy'
+                        print(f'rank {rank} saving {filename}')
+                        p_modes = os.path.join(self._modes_dir, filename)
+                        np.save(p_modes, full_freq)
+                        saved_freq = -1
+                        data = None
+
+                    # self._comm.Barrier()
+                    self._pr0(f'saving: {time.time() - xst} s.')
 
             self._pr0(
                 f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                 f'Elapsed time: {(time.time() - s0):.5f} s.')
-
-        if self._savefreq_disk2:
-            xst = time.time()
-            MPI.Request.Waitall(reqs)
-            reqs=[]
-            self._pr0(f'waitall time: {time.time() - xst} s.')
-
-            xst = time.time()
-            for f in range(0,self._n_freq):
-                if rank == f % self._comm.size:
-                    full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
-                    for proc in range(self._comm.size):
-                        start = np.sum(recvcounts[:proc])
-                        end = np.sum(recvcounts[:proc+1])
-
-                        x_prod_not_max = np.prod(self._xshape)
-                        x_prod_not_max /= self._xshape[self._max_axis]
-                        max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
-                        max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
-
-                        idx_full_freq = [np.s_[:]] * (self._xdim + 2)
-                        idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
-
-                        full_freq[tuple(idx_full_freq)] = np.reshape(datas[f][start:end],full_freq[tuple(idx_full_freq)].shape)
-                        self._saved_freqs[f] = full_freq
-
-            self._pr0(f'transposes: {time.time() - xst} s.')
-
-            xst = time.time()
-            for f in self._saved_freqs.keys():
-                filename = f'freq_idx_{f:08d}.npy'
-                print(f'rank {rank} saving {filename}')
-                p_modes = os.path.join(self._modes_dir, filename)
-                np.save(p_modes, self._saved_freqs[f])
-            self._comm.Barrier()
-            self._pr0(f'saving: {time.time() - xst} s.')
-
 
         self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
 
@@ -395,3 +368,19 @@ class Standard(Base):
             Q_blk = self.data[start:end,...].copy()
             Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
             return Q_blk
+    def _flip_qhat(self, Q_hats):
+        last_blk = list(Q_hats)[-1]
+        last_frq = Q_hats[last_blk]
+        last_val = last_frq[list(last_frq)[-1]]
+        xvsize = last_val.size
+
+        Q_hat_f = {}
+
+        for f in range(0,self._n_freq):
+            Q_hat_f[f] = np.zeros((xvsize, self._n_blocks),dtype=last_val.dtype)
+            for b,v in Q_hats.items():
+                Q_hat_f[f][:,b] = v[f][:]
+            for b,_ in Q_hats.items():
+                del Q_hats[b][f]
+            # gc.collect()
+        return Q_hat_f
