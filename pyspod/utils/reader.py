@@ -167,7 +167,7 @@ class reader_1stage():
 #   but since the reads here are contiguous, it can be 15x faster for certain filesystems
 ########################################################################################
 class reader_2stage():
-    def __init__(self, data_list, xdim, dtype, comm, nv, variables, ndft = -1, nreaders = None, nchunks = 10, nblocks = 3):
+    def __init__(self, data_list, xdim, dtype, comm, nv, variables, ndft = -1, nreaders = None, nchunks = 3, nblocks = 3):
         assert comm is not None, "2-stage reader requires MPI"
 
         st = time.time()
@@ -225,10 +225,18 @@ class reader_2stage():
 
         if comm.rank == 0:
             assert nt >= self._nchunks*self._nblocks, f'Number of chunks {self._nchunks} and blocks {self._nblocks} is too large for the nt ({nt}) (nt must be equal at least self._nchunks*self._nblocks)'
+            mb_per_chunk_per_reader = 256
+            item_size = np.dtype(self._dtype).itemsize
+            size_per_ts = np.prod(self._shape[1:])*item_size/1024/1024
+            nchunks = int((nt*size_per_ts)/comm.size/mb_per_chunk_per_reader)
+            nchunks = max(nchunks,1)
+            print(f'TEST overwriting nchunks to {nchunks}')
+
+        self._nchunks = comm.bcast(nchunks, root=0)
 
         data = xr.open_dataset(data_list[0],cache=False)[variables[0]]
         x_tmp = data[[0],...].values
-        print(f'--- x_tmp.shape {x_tmp.shape}')
+        # print(f'--- x_tmp.shape {x_tmp.shape}')
 
         ## correct last dimension for single variable data
         if self._nv == 1 and (x_tmp.ndim != xdim + 2):
@@ -279,7 +287,7 @@ class reader_2stage():
             if read_je > read_js:
 
                 with xr.open_dataset(k, cache=False, decode_times=False) as d:
-                    print(f'rank {mpi_rank} opening file {k}')
+                    # print(f'rank {mpi_rank} opening file {k}')
 
                     first_var = list(d[self._variables[0]].dims)[0]
                     # print(f'first variable is {first_var}')
@@ -307,10 +315,10 @@ class reader_2stage():
 
             #         # tmp = d[tuple(d_idx)].to_numpy()
                         for idx, var in enumerate(self._variables):
-                            print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
+                            # print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
                             input_idx[-1] = idx
-                            vals = dvars[var].values
-                            input_data[tuple(input_idx)] = vals.copy()
+                            # vals = dvars[var].values
+                            input_data[tuple(input_idx)] = dvars[var].values.copy()
                             # del dvars_np
                             cum_read = cum_read + read_je-read_js
 
@@ -322,7 +330,7 @@ class reader_2stage():
 
             cum_t = cum_t + (v[1]-v[0])
 
-        print(f'rank {mpi_rank} finished reading')
+        # print(f'rank {mpi_rank} finished reading')
         # comm.Barrier()
         utils_par.pr0(f'experimental reading with distribution: I/O took {time.time()-stime} seconds', comm)
 
@@ -377,7 +385,7 @@ class reader_2stage():
 
         reqs = []
         for irank in range(mpi_size):
-            utils_par.pr0(f'posting gather for {irank}', comm)
+            # utils_par.pr0(f'posting gather for {irank}', comm)
             s_msg = [s_msgs[irank], ftype]
             r_msg = [data, (recvcounts/self._shape[second_largest_axis], None), ftype] if mpi_rank==irank else None
             req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
@@ -430,7 +438,7 @@ class reader_2stage():
                     blk_t_n, blk_t_s = utils_par._blockdist(t_e-t_s, nblks, blk)
                     blk_t_e = blk_t_s + blk_t_n
 
-                    print(f'LKL3 READING CHUNK {chunk} BLOCK {blk} (total blocks {nblks}) from {blk_t_s} to {blk_t_e} (global time {t_s}:{t_e})')
+                    # print(f'LKL3 READING CHUNK {chunk} BLOCK {blk} (total blocks {nblks}) from {blk_t_s} to {blk_t_e} (global time {t_s}:{t_e})')
 
                     data_dict[blk_idx] = {}
                     data_dict[blk_idx]['s'] = t_s+blk_t_s
@@ -593,7 +601,7 @@ class reader_mat():
 
             cum_t = cum_t + 1 # one step per file
 
-        print(f'rank {mpi_rank} finished reading')
+        # print(f'rank {mpi_rank} finished reading')
         # comm.Barrier()
 
         # redistribute the data using MPI (nprocs * gatherv) - gather all times for a spatial slice
@@ -657,7 +665,7 @@ class reader_mat():
 
         reqs = []
         for irank in range(mpi_size):
-            utils_par.pr0(f'posting gather for {irank}', comm)
+            # utils_par.pr0(f'posting gather for {irank}', comm)
             s_msg = [s_msgs[irank], ftype]
             r_msg = [data, (recvcounts/self._shape[second_largest_axis], None), ftype] if mpi_rank==irank else None
             req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
