@@ -183,6 +183,7 @@ class reader_2stage():
         self._nreaders = min(nreaders,comm.size) if nreaders else comm.size
         self._nchunks = nchunks
         self._nblocks = nblocks
+        self._files_size = 0
 
         # check required (optional) arguments
         assert variables is not None, 'Variable(s) has to be provided for the 2-stage reader'
@@ -207,6 +208,7 @@ class reader_2stage():
                 self._file_time[f] = (nt, nt+shape[0])
                 nt += shape[0]
                 d.close()
+                self._files_size += os.path.getsize(f)/1024/1024/1024
 
             self._max_axes = np.argsort(shape[1:])
             print(f'--- max axes: {self._max_axes} shape {shape}')
@@ -246,7 +248,6 @@ class reader_2stage():
 
         self._nx = x_tmp[0,...,0].size
         self._dim = x_tmp.ndim
-        # self._shape = x_tmp.shape
         self._xdim = x_tmp[0,...,0].ndim
         self._xshape = x_tmp[0,...,0].shape
         self._is_real = np.isreal(x_tmp).all()
@@ -332,7 +333,7 @@ class reader_2stage():
 
         # print(f'rank {mpi_rank} finished reading')
         # comm.Barrier()
-        utils_par.pr0(f'experimental reading with distribution: I/O took {time.time()-stime} seconds', comm)
+        utils_par.pr0(f'\t\t I/O took {time.time()-stime} seconds', comm)
 
         # redistribute the data using MPI (nprocs * gatherv) - gather all times for a spatial slice
 
@@ -363,6 +364,8 @@ class reader_2stage():
             shape_output[axis] = self._shape[axis]
 
         # stime = time.time()
+        nreqs = 128
+        t_waitall = 0
 
         # working around the limitation of MPI with >INT32_MAX elements
         ftype = mpi_dtype.Create_contiguous(self._shape[second_largest_axis]).Commit()
@@ -377,47 +380,40 @@ class reader_2stage():
             idx[max_axis] = np.s_[rank_js:rank_je]
             s_msgs[irank] = np.nan_to_num(input_data[tuple(idx)].copy())
         del input_data
-        utils_par.pr0(f'-- finished copying data {time.time()-ztime} seconds', comm)
+        utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
         data = np.zeros(tuple(shape_output),dtype=self._dtype)
 
-        # comm.Barrier()
-
         reqs = []
         for irank in range(mpi_size):
-            # utils_par.pr0(f'posting gather for {irank}', comm)
             s_msg = [s_msgs[irank], ftype]
             r_msg = [data, (recvcounts/self._shape[second_largest_axis], None), ftype] if mpi_rank==irank else None
             req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
             reqs.append(req)
 
-            if len(reqs) > 128:
+            if len(reqs) > nreqs:
                 xxtime = time.time()
-                utils_par.pr0(f'waiting for {len(reqs)} requests', comm)
                 MPI.Request.Waitall(reqs)
                 reqs = []
-                utils_par.pr0(f'  partial waitall {time.time()-xxtime} seconds', comm)
+                t_waitall += time.time()-xxtime
+                utils_par.pr0(f'\t\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
 
-
-        # comm.Barrier()
-        utils_par.pr0(f'posted igathervs, now waitall', comm)
 
         xtime = time.time()
         MPI.Request.Waitall(reqs)
+        t_waitall += time.time()-xtime
+
         ftype.Free()
 
-        utils_par.pr0(f'experimental reading with distribution: MPI took {time.time()-stime} seconds', comm)
-        utils_par.pr0(f'  experimental reading with distribution: Waitall took {time.time()-xtime} seconds', comm)
+        utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
+        utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
 
         comm.Barrier()
         return data
-        # return data, self.get_max_axes()[-1], self._shape[1:]
 
     def get_data(self, ts = None):
         if ts is None:
-            mpi_size = self._comm.Get_size()
-            mpi_rank = self._comm.Get_rank()
-
+            start = time.time()
             nchunks = self._nchunks
             nblks = self._nblocks
 
@@ -428,8 +424,6 @@ class reader_2stage():
                 t_n, t_s = utils_par._blockdist(self.nt, nchunks, chunk)
                 t_e = t_s + t_n
 
-                # print(f'LKL1 READING CHUNK {chunk} (total chunks {nchunks}) from {t_s} to {t_e} blocks {0} to {nblks} (blocks per chunk {nblks})')
-
                 x = self.get_data_for_time(t_s,t_e)
 
                 for blk in range(0,nblks):
@@ -438,8 +432,6 @@ class reader_2stage():
                     blk_t_n, blk_t_s = utils_par._blockdist(t_e-t_s, nblks, blk)
                     blk_t_e = blk_t_s + blk_t_n
 
-                    # print(f'LKL3 READING CHUNK {chunk} BLOCK {blk} (total blocks {nblks}) from {blk_t_s} to {blk_t_e} (global time {t_s}:{t_e})')
-
                     data_dict[blk_idx] = {}
                     data_dict[blk_idx]['s'] = t_s+blk_t_s
                     data_dict[blk_idx]['e'] = t_s+blk_t_e
@@ -447,11 +439,14 @@ class reader_2stage():
 
                     assert data_dict[blk_idx]['v'].shape[0] == data_dict[blk_idx]['e'] - data_dict[blk_idx]['s'], 'ERROR: array shape[0] does not match stored start/end indices'
 
-            # print(f'LAK returning datas keys {data_dict.keys()}')
-            # if self._comm.rank == 0:
-            #     print(f'LAK returning datas keys {data_dict.keys()}')
-            #     for k,v in data_dict.items():
-            #         print(f'LAK returning datas[{k}] {v["s"]}:{v["e"]}')
+            total_size = 0
+            for blk_idx in data_dict:
+                total_size += data_dict[blk_idx]['v'].nbytes
+            total_size /= 1024*1024*1024
+            total_size = self._comm.reduce(total_size, op=MPI.SUM, root=0)
+            if self._comm.rank == 0:
+                t = time.time()-start
+                utils_par.pr0(f'I/O time of reading in {nchunks} chunks: {t} seconds, files size {self._files_size:.2f} GB unpacked size {total_size:.2f} GB ({self._files_size/t:.2f} - {total_size/t:.2f} GB/s)', self._comm)
             return data_dict
         else:
             return self.get_data_for_time(ts, ts+1)

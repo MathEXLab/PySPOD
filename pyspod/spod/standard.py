@@ -35,6 +35,7 @@ class Standard(Base):
         :param list data_list: list containing data matrices for which
             to compute the SPOD.
         '''
+        start0 = time.time()
         start = time.time()
 
         ## initialize data and variables
@@ -57,7 +58,7 @@ class Standard(Base):
 
         # loop over number of blocks and generate Fourier realizations,
         # if blocks are not saved in storage
-        Q_hat = None
+
         ## check if blocks already computed or not
         if blocks_present:
             # load blocks if present
@@ -88,8 +89,6 @@ class Standard(Base):
             else:
                 xvsize = self.data[0,...].size
 
-            # size_Q_hat = [self._n_blocks, self._n_freq, xvsize]
-            # Q_hat = np.empty(size_Q_hat, dtype=self._complex)
             Q_hats = {}
             for i_blk in range(0,self._n_blocks):
                 st = time.time()
@@ -97,10 +96,10 @@ class Standard(Base):
                 # compute block
                 qhat = np.empty([self._n_freq, xvsize], dtype=self._complex)
                 qhat[:], offset = self._compute_blocks(i_blk)
-                # Q_hat[i_blk,:,:], offset = self._compute_blocks(i_blk)
                 Q_hats[i_blk] = {}
                 for f in range(self._n_freq):
                     Q_hats[i_blk][f] = qhat[f,:].copy()
+
                 # save FFT blocks in storage memory
                 if self._savefft == True:
                     Q_blk_hat = qhat
@@ -122,12 +121,8 @@ class Standard(Base):
 
             del self.data
 
-            # We read into Q_hat[nblocks,:,:] and then swap the axis rather than read into Q_hat[:,:,nblocks] directly
-            # to avoid allocating the entire array at once. Allocating it block by block allows to keep the memory
-            # requirements constant as _compute_blocks deallocates blocks from self.data.
-            # Q_hat = np.moveaxis(Q_hat, 0, -1)
-
             st = time.time()
+            # move from Q_hats[i_blk][f] to Q_hats[f]
             Q_hats = self._flip_qhat(Q_hats)
             self._pr0(f'- Time spent transposing Q_hats dictionaries: {time.time() - st} s.')
 
@@ -152,6 +147,9 @@ class Standard(Base):
         self._pr0(f' ')
         self._pr0(f'Results saved in folder {self._savedir_sim}')
         self._pr0(f'Time to compute SPOD: {time.time() - start} s.')
+        self._pr0(f'------------------------------------')
+        self._pr0(f' ')
+        self._pr0(f'Total time: {time.time() - start0} s.')
         if self._comm: self._comm.Barrier()
         return self
 

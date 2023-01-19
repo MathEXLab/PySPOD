@@ -421,16 +421,9 @@ class Base():
         self.define_weights()
 
         ## distribute data and weights
+        # FIXME: does the reader respect requested dtype?
         if not streaming:
             self.data = self._reader.get_data()
-
-            # debugging
-            # mean = self.data.mean()
-            # if self._comm is None:
-            #     print(f'--- proc averages: {mean}')
-            # else:
-            #     means = self._comm.gather(mean, root=0)
-            #     self._pr0(f'--- proc averages: {means}')
 
         # TODO: how do we calculate mean, weights and normalize if streaming data?
         if streaming:
@@ -532,10 +525,7 @@ class Base():
         self._pb_size_c = (pb_size_min_max_total[0] * self._complex(1).nbytes * B2GB,
                            pb_size_min_max_total[1] * self._complex(1).nbytes * B2GB,
                            pb_size_min_max_total[2] * self._complex(1).nbytes * B2GB)
-        # data = self._set_dtype(data)
-        # self._data = data
         utils_par.barrier(self._comm)
-        # del data
 
         # print parameters to the screen
         self._print_parameters()
