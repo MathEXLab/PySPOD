@@ -364,7 +364,7 @@ class reader_2stage():
             shape_output[axis] = self._shape[axis]
 
         # stime = time.time()
-        nreqs = 128
+        nreqs = 10000
         t_waitall = 0
 
         # working around the limitation of MPI with >INT32_MAX elements
