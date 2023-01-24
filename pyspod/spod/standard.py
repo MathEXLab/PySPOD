@@ -251,8 +251,7 @@ class Standard(Base):
             if self._savefreq_disk2:
                 rank = self._comm.rank
                 target_proc = f % self._comm.size
-                ftype = MPI.C_FLOAT_COMPLEX
-                # ftype = MPI.C_DOUBLE_COMPLEX # FIXME:
+                ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
 
                 # get counts once
                 if f == 0:
