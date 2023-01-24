@@ -396,7 +396,7 @@ class reader_2stage():
                 MPI.Request.Waitall(reqs)
                 reqs = []
                 t_waitall += time.time()-xxtime
-                utils_par.pr0(f'\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
+                utils_par.pr0(f'\t\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
 
 
         xtime = time.time()
