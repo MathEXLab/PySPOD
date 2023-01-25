@@ -264,7 +264,7 @@ class reader_2stage():
 
         mpi_dtype = MPI.FLOAT if self._dtype==np.float32 else MPI.DOUBLE
 
-        # fist distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
+        # first distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
         n, s = utils_par._blockdist(te-ts, self._nreaders, mpi_rank)
         js = ts + s
         je = ts + s+n
@@ -364,7 +364,7 @@ class reader_2stage():
             shape_output[axis] = self._shape[axis]
 
         # stime = time.time()
-        nreqs = 10000
+        nreqs = 4096
         t_waitall = 0
 
         # working around the limitation of MPI with >INT32_MAX elements

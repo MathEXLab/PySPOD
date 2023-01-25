@@ -421,7 +421,6 @@ class Base():
         self.define_weights()
 
         ## distribute data and weights
-        # FIXME: does the reader respect requested dtype?
         if not streaming:
             self.data = self._reader.get_data()
 
