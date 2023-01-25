@@ -277,8 +277,8 @@ class Standard(Base):
 
                     self._pr0(f'  partial waitall {time.time()-xxtime} seconds')
 
+                    xst = time.time()
                     if saved_freq != -1:
-                        xst = time.time()
                         full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
                         for proc in range(self._comm.size):
                             start = np.sum(recvcounts[:proc])
