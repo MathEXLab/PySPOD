@@ -259,6 +259,9 @@ class Standard(Base):
                     recvcounts = np.zeros(self._comm.size, dtype=np.int64)
                     self._comm.Allgather(local_elements, recvcounts)
 
+                    offset = np.zeros(self._comm.size+1, dtype=np.int64)
+                    offset[1:] = np.cumsum(recvcounts)
+
                 data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
                 s_msgs[f] = [copy.deepcopy(phi), ftype]
                 r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
@@ -279,22 +282,34 @@ class Standard(Base):
 
                     xst = time.time()
                     if saved_freq != -1:
-                        full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
+                        if self._reader._flattened:
+                            full_freq = np.zeros((np.prod(self._xshape),)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
+                        else:
+                            full_freq = np.zeros((self._xshape)+(self._nv,)+(self._n_modes_save,),dtype=phi.dtype)
+
                         for proc in range(self._comm.size):
                             start = np.sum(recvcounts[:proc])
                             end = np.sum(recvcounts[:proc+1])
 
-                            x_prod_not_max = np.prod(self._xshape)
-                            x_prod_not_max /= self._xshape[self._max_axis]
-                            max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
-                            max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
+                            if self._reader._flattened:
+                                idx_full_freq = [np.s_[:]] * 3
+                                xfrom = int(offset[proc]/self._nv/self._n_modes_save)
+                                xto = int(offset[proc+1]/self._nv/self._n_modes_save)
+                                idx_full_freq[0] = slice(xfrom, xto)
+                            else:
+                                x_prod_not_max = np.prod(self._xshape)
+                                x_prod_not_max /= self._xshape[self._max_axis]
+                                max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
+                                max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
 
-                            idx_full_freq = [np.s_[:]] * (self._xdim + 2)
-                            idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
+                                idx_full_freq = [np.s_[:]] * (self._xdim + 2)
+                                idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
 
                             full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
 
                         # write to disk
+                        if self._reader._flattened:
+                            full_freq = full_freq.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
                         filename = f'freq_idx_{saved_freq:08d}.npy'
                         print(f'rank {rank} saving {filename}')
                         p_modes = os.path.join(self._modes_dir, filename)

@@ -420,6 +420,10 @@ class Base():
         ## define and check weights
         self.define_weights()
 
+        ## flatten weights
+        if self._reader._flattened:
+            self._weights = self._weights.reshape(-1, self._nv)
+
         ## distribute data and weights
         if not streaming:
             self.data = self._reader.get_data()
@@ -428,6 +432,8 @@ class Base():
         if streaming:
             self.data = self._reader.get_data(0)
 
+        if self._reader._flattened:
+            self._local_shape = self._reader._local_shape
         self._max_axis = self._reader.max_axis
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, max_axis=self._max_axis, comm=self._comm)
@@ -567,6 +573,7 @@ class Base():
 
 
     def long_t_mean(self, data):
+        # FIXME: do I need to reshape, then sum?
         '''Get longtime mean.'''
         if isinstance(data, dict):
             last_key = list(self.data)[-1]
@@ -656,8 +663,11 @@ class Base():
         path_params = os.path.join(self._savedir_sim, 'params_modes.yaml')
         path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq')
         ## save weights
-        shape = [*self._xshape,self._nv]
-        if self._comm: shape[self._max_axis] = -1
+        if self._reader._flattened:
+            shape = [self._local_shape,self._nv]
+        else:
+            shape = [*self._xshape,self._nv]
+            if self._comm: shape[self._max_axis] = -1
         self._weights.shape = shape
         self._lt_mean.shape = shape
         md = self._max_axis

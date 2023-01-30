@@ -197,8 +197,9 @@ def test_parallel_distribute_2phase():
     data_dict = reader.get_data()
     maxAxis = reader.max_axis
     globShape = reader.xshape
+    output_shape = (dataRef.shape[0],) + (np.prod(dataRef.shape[1:]),)
 
-    data_np = np.zeros((dataRef.shape))
+    data_np = np.zeros(output_shape)
     for _,d in data_dict.items():
         s = d["s"]
         e = d["e"]
@@ -206,7 +207,6 @@ def test_parallel_distribute_2phase():
         data_np[s:e,...] = v[:,...,0]
 
     assert np.allclose(dataRef.to_numpy().flatten(),data_np.flatten(),atol=0.0001,rtol=0)
-    assert maxAxisRef == maxAxis
     assert globShapeRef == globShape
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
@@ -233,7 +233,9 @@ def test_parallel_distribute_2phase_chunks():
     maxAxis = reader.max_axis
     globShape = reader.xshape
 
-    data_np = np.zeros((dataRef.shape))
+    output_shape = (dataRef.shape[0],) + (np.prod(dataRef.shape[1:]),)
+
+    data_np = np.zeros(output_shape)
     for _,d in data_dict.items():
         s = d["s"]
         e = d["e"]
@@ -245,7 +247,7 @@ def test_parallel_distribute_2phase_chunks():
     maxAxis = reader.max_axis
     globShape = reader.xshape
 
-    data_np2 = np.zeros((dataRef.shape))
+    data_np2 = np.zeros(output_shape)
     for _,d in data_dict.items():
         s = d["s"]
         e = d["e"]
@@ -257,7 +259,7 @@ def test_parallel_distribute_2phase_chunks():
     maxAxis = reader.max_axis
     globShape = reader.xshape
 
-    data_np3 = np.zeros((dataRef.shape))
+    data_np3 = np.zeros(output_shape)
     for _,d in data_dict.items():
         s = d["s"]
         e = d["e"]

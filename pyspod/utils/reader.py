@@ -11,6 +11,8 @@ except:
 
 # for MATLAB files
 import h5py
+from math import gcd
+from functools import reduce
 
 # TODO: implement a streaming reader
 
@@ -26,7 +28,7 @@ class reader_1stage():
         self._nt = 0
         self._nv = nv
         self._data = None
-
+        self._flattened = False
         ## if user passes a single dataset, make it a list
         if not isinstance(data_list, list): data_list = [data_list]
         self._data_list = data_list
@@ -184,6 +186,7 @@ class reader_2stage():
         self._nchunks = nchunks
         self._nblocks = nblocks
         self._files_size = 0
+        self._flattened = True
 
         # check required (optional) arguments
         assert variables is not None, 'Variable(s) has to be provided for the 2-stage reader'
@@ -196,6 +199,7 @@ class reader_2stage():
                 # check if file exists
                 assert os.path.isfile(f), f'File {f} does not exist'
 
+        self._max_axes = np.array([1,0]) # time is the first dimension (not listed), then nvar, then the largest spatial dimension
         nt = 0
         shape = None
         if comm.rank == 0:
@@ -210,7 +214,6 @@ class reader_2stage():
                 d.close()
                 self._files_size += os.path.getsize(f)/1024/1024/1024
 
-            self._max_axes = np.argsort(shape[1:])
             print(f'--- max axes: {self._max_axes} shape {shape}')
 
             if self._nv == 1 and (d.ndim != xdim + 2):
@@ -223,7 +226,6 @@ class reader_2stage():
 
         self._shape = comm.bcast(self._shape, root=0)
         self._file_time = comm.bcast(self._file_time, root=0)
-        self._max_axes = comm.bcast(self._max_axes, root=0)
 
         if comm.rank == 0:
             assert nt >= self._nchunks*self._nblocks, f'Number of chunks {self._nchunks} and blocks {self._nblocks} is too large for the nt ({nt}) (nt must be equal at least self._nchunks*self._nblocks)'
@@ -251,6 +253,7 @@ class reader_2stage():
         self._xdim = x_tmp[0,...,0].ndim
         self._xshape = x_tmp[0,...,0].shape
         self._is_real = np.isreal(x_tmp).all()
+        self._local_shape = None
         del x_tmp
         del data
         utils_par.pr0(f'--- init finished in {time.time()-st:.2f} s', comm)
@@ -272,7 +275,7 @@ class reader_2stage():
         cum_t = 0
         cum_read = 0
 
-        input_data = np.zeros((n,)+self._shape[1:],dtype=self._dtype)
+        input_data = np.zeros(((n,)+(np.prod(self._shape[1:-1]),)+(self._nv,)),dtype=self._dtype)
 
         # for i, d in enumerate(data_list):
         for k, v in self._file_time.items():
@@ -293,7 +296,7 @@ class reader_2stage():
                     first_var = list(d[self._variables[0]].dims)[0]
                     # print(f'first variable is {first_var}')
 
-                    input_idx = [np.s_[:]]*len(self._shape)
+                    input_idx = [np.s_[:]]*3
                     input_idx[0] = np.s_[cum_read:cum_read+read_je-read_js]
 
                     # if self._nv == 1:
@@ -319,8 +322,9 @@ class reader_2stage():
                             # print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
                             input_idx[-1] = idx
                             # vals = dvars[var].values
-                            input_data[tuple(input_idx)] = dvars[var].values.copy()
-                            # del dvars_np
+                            vals = dvars[var].values
+                            input_data[tuple(input_idx)] = vals.reshape(vals.shape[0],-1)#.copy()
+                            del vals
                             cum_read = cum_read + read_je-read_js
 
                         # print(f'\tproc {mpi_rank} wants {js} to {je} reading ({read_js}:{read_je}) from the dataset {i} ({d_js}:{d_je})\n \
@@ -342,42 +346,40 @@ class reader_2stage():
         #                       x n1: len(shape[1])
         #                       x n2: len(own slice of shape[2])
 
-        max_axis            = self._max_axes[-1]+1#np.argsort(shape[1:])[-1] + 1
-        second_largest_axis = self._max_axes[-2]+1#np.argsort(shape[1:])[-2] + 1
-
-        axes = np.arange(1,len(self._shape)) # skip time dimension
-        axes = np.delete(axes,np.where(axes == max_axis))
+        n_xyz = np.prod(self._shape[1:-1])
 
         recvcounts = np.zeros(mpi_size)
         for irank in range(mpi_size):
-            nt,            _ = utils_par._blockdist(te-ts, self._nreaders, irank)               # time (distributed on the reader)
-            n_distributed, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)  # max_axis (distributed in the output)
-            n_entire         = np.product(np.array(self._shape)[axes])                          # not distributed over remaining axes
-            recvcounts[irank] = nt*n_distributed*n_entire
+            nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
+            n_distributed_xyz, _ = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)    # flattened spatial dimensions (distributed on the MPI ranks)
+            recvcounts[irank]    = nt*n_distributed_xyz
 
         # allocate local data
-        n, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)
-        shape_output = np.array(self._shape) # start with the original shape
-        shape_output[0] = te - ts            # overwrite the time dimension
-        shape_output[max_axis] = n           # distributed dimension
-        for axis in axes:
-            shape_output[axis] = self._shape[axis]
+        n, _ = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)
+        shape_output = np.array([te-ts, n, self._nv])
+
+        self._local_shape = n
 
         # stime = time.time()
         nreqs = 4096
         t_waitall = 0
 
+        # cnts = np.zeros(mpi_size, dtype=np.int32)
+        # cnts = comm.allgather(n)
+        # gcd_val = reduce(gcd, cnts)
+        # print(f'rank {mpi_rank} cnts {cnts}, greatest common divisor {gcd_val}')
+
         # working around the limitation of MPI with >INT32_MAX elements
-        ftype = mpi_dtype.Create_contiguous(self._shape[second_largest_axis]).Commit()
+        # ftype = mpi_dtype.Create_contiguous(self._shape[second_largest_axis]).Commit()
 
         ztime = time.time()
         s_msgs = {}
         for irank in range(mpi_size):
-            n, s = utils_par._blockdist(self._shape[max_axis], mpi_size, irank)
+            n, s = utils_par._blockdist(n_xyz, mpi_size, irank)
             rank_js = s
             rank_je = s+n
-            idx = [np.s_[:]]*len(self._shape)
-            idx[max_axis] = np.s_[rank_js:rank_je]
+            idx = [np.s_[:]]*3
+            idx[1] = np.s_[rank_js:rank_je]
             s_msgs[irank] = np.nan_to_num(input_data[tuple(idx)].copy())
         del input_data
         utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
@@ -386,8 +388,8 @@ class reader_2stage():
 
         reqs = []
         for irank in range(mpi_size):
-            s_msg = [s_msgs[irank], ftype]
-            r_msg = [data, (recvcounts/self._shape[second_largest_axis], None), ftype] if mpi_rank==irank else None
+            s_msg = [s_msgs[irank], mpi_dtype]
+            r_msg = [data, (recvcounts, None), mpi_dtype] if mpi_rank==irank else None
             req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
             reqs.append(req)
 
@@ -403,7 +405,7 @@ class reader_2stage():
         MPI.Request.Waitall(reqs)
         t_waitall += time.time()-xtime
 
-        ftype.Free()
+        # ftype.Free()
 
         utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
         utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
