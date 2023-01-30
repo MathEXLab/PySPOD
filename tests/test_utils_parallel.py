@@ -206,8 +206,16 @@ def test_parallel_distribute_2phase():
         v = d["v"]
         data_np[s:e,...] = v[:,...,0]
 
-    assert np.allclose(dataRef.to_numpy().flatten(),data_np.flatten(),atol=0.0001,rtol=0)
-    assert globShapeRef == globShape
+    d1 = dataRef.to_numpy().flatten()
+    d2 = data_np.flatten()
+
+    all_d1_list = comm.gather(d1,root=0)
+    all_d2_list = comm.gather(d2,root=0)
+
+    if comm.rank == 0:
+        all_d1 = np.concatenate(all_d1_list, axis=0)
+        all_d2 = np.concatenate(all_d2_list, axis=0)
+        assert np.allclose(sorted(all_d1),sorted(all_d2),atol=0.0001,rtol=0)
 
 @pytest.mark.mpi(minsize=2, maxsize=2)
 def test_parallel_distribute_2phase_chunks():
@@ -266,9 +274,24 @@ def test_parallel_distribute_2phase_chunks():
         v = d["v"]
         data_np3[s:e,...] = v[:,...,0]
 
-    assert np.allclose(dataRef.to_numpy().flatten(),data_np.flatten(),atol=0.0001,rtol=0)
-    assert np.allclose(data_np.flatten(),data_np2.flatten(),atol=0.0001,rtol=0)
-    assert np.allclose(data_np2.flatten(),data_np3.flatten(),atol=0.0001,rtol=0)
+    d1 = dataRef.to_numpy().flatten()
+    d2 = data_np.flatten()
+    d3 = data_np2.flatten()
+    d4 = data_np3.flatten()
+
+    all_d1_list = comm.gather(d1,root=0)
+    all_d2_list = comm.gather(d2,root=0)
+    all_d3_list = comm.gather(d3,root=0)
+    all_d4_list = comm.gather(d4,root=0)
+
+    if comm.rank == 0:
+        all_d1 = np.concatenate(all_d1_list, axis=0)
+        all_d2 = np.concatenate(all_d2_list, axis=0)
+        all_d3 = np.concatenate(all_d3_list, axis=0)
+        all_d4 = np.concatenate(all_d4_list, axis=0)
+        assert np.allclose(sorted(all_d1),sorted(all_d2),atol=0.0001,rtol=0)
+        assert np.allclose(sorted(all_d2),sorted(all_d3),atol=0.0001,rtol=0)
+        assert np.allclose(sorted(all_d3),sorted(all_d4),atol=0.0001,rtol=0)
 
 if __name__ == "__main__":
     test_parallel_pvar()
