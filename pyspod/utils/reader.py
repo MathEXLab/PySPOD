@@ -266,6 +266,7 @@ class reader_2stage():
         mpi_size = comm.size
 
         mpi_dtype = MPI.FLOAT if self._dtype==np.float32 else MPI.DOUBLE
+        n_xyz = np.prod(self._shape[1:-1]) # product of not-time, not-variable, that is spatial dimensions
 
         # first distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
         n, s = utils_par._blockdist(te-ts, self._nreaders, mpi_rank)
@@ -275,9 +276,8 @@ class reader_2stage():
         cum_t = 0
         cum_read = 0
 
-        input_data = np.zeros(((n,)+(np.prod(self._shape[1:-1]),)+(self._nv,)),dtype=self._dtype)
+        input_data = np.zeros((n,n_xyz,self._nv,),dtype=self._dtype)
 
-        # for i, d in enumerate(data_list):
         for k, v in self._file_time.items():
             d_js = cum_t
             d_je = d_js + (v[1]-v[0])
@@ -286,57 +286,27 @@ class reader_2stage():
 
             read_js = max(d_js, js)
             read_je = min(d_je, je)
+            read_cnt = read_je - read_js
 
             dvars = None
-            if read_je > read_js:
-
+            if read_cnt > 0:
                 with xr.open_dataset(k, cache=False, decode_times=False) as d:
-                    # print(f'rank {mpi_rank} opening file {k}')
 
                     first_var = list(d[self._variables[0]].dims)[0]
-                    # print(f'first variable is {first_var}')
-
-                    input_idx = [np.s_[:]]*3
-                    input_idx[0] = np.s_[cum_read:cum_read+read_je-read_js]
-
-                    # if self._nv == 1:
-                    #     d_idx = [np.s_[:]]*len(d.shape)
-                    #     d_idx[0] = np.s_[read_js-cum_t:read_je-cum_t]
-                    #     if len(input_idx) == len(d_idx)+1:
-                    #         input_idx[-1] = 0
-
-                    # print(f'input_idx {input_idx}')
 
                     time_from = d[first_var].values[read_js-cum_t]
                     time_to = d[first_var].values[read_je-cum_t-1] # .sel uses inclusive indexing on both ends!
 
-                    # print(f''########### proc {mpi_rank} reading {read_js-cum_t} ({time_from}) to {read_je-cum_t-1} ({time_to})')
-
                     with d.sel({first_var: slice(time_from,time_to)},drop=True) as dvars:
-            #             # dvars_np = dvars_raw['msl'].to_numpy()
-            #             # print(f'LKLB wanted to read total {te-ts} and rank {mpi_rank} {read_je-read_js} and shape0 of dvars_np is {dvars_np.shape} {dvars_np}')
-                        # assert read_je-read_js == dvars_np.shape[0]
 
-            #         # tmp = d[tuple(d_idx)].to_numpy()
                         for idx, var in enumerate(self._variables):
-                            # print(f'idx {idx} input_idx {input_idx} dvars[var].values.shape {dvars[var].values.shape}')
-                            input_idx[-1] = idx
-                            # vals = dvars[var].values
                             vals = dvars[var].values
-                            input_data[tuple(input_idx)] = vals.reshape(vals.shape[0],-1)#.copy()
+                            input_data[cum_read:cum_read+read_cnt,:,idx] = vals.reshape(vals.shape[0],-1)#.copy()
                             del vals
                             cum_read = cum_read + read_je-read_js
 
-                        # print(f'\tproc {mpi_rank} wants {js} to {je} reading ({read_js}:{read_je}) from the dataset {i} ({d_js}:{d_je})\n \
-                        #     local dataset idx {read_js-cum_t}:{read_je-cum_t} input_data idx {cum_read}:{cum_read + read_je-read_js}')
-                        # print(f'\t\tproc {mpi_rank} read x({type(x)}) {x.shape = :}')
-
-            #         print(f'rank {mpi_rank} closed file {k}')
-
             cum_t = cum_t + (v[1]-v[0])
 
-        # print(f'rank {mpi_rank} finished reading')
-        # comm.Barrier()
         utils_par.pr0(f'\t\t I/O took {time.time()-stime} seconds', comm)
 
         # redistribute the data using MPI (nprocs * gatherv) - gather all times for a spatial slice
@@ -346,66 +316,101 @@ class reader_2stage():
         #                       x n1: len(shape[1])
         #                       x n2: len(own slice of shape[2])
 
-        n_xyz = np.prod(self._shape[1:-1])
+        n_max, _ = utils_par._blockdist(n_xyz, mpi_size, 0) # proc 0 has the largest number of elements
 
         recvcounts = np.zeros(mpi_size)
         for irank in range(mpi_size):
             nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
-            n_distributed_xyz, _ = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)    # flattened spatial dimensions (distributed on the MPI ranks)
+
+            if MPI.VERSION >= 4 or mpi_size*n_max < np.iinfo(np.int32).max:
+                n_distributed_xyz, _ = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)    # flattened spatial dimensions (distributed on the MPI ranks)
+            else:
+                n_distributed_xyz, _ = utils_par._blockdist(n_xyz, mpi_size, 0)    # padding - using spatial dimensions of proc 0 (largest)
             recvcounts[irank]    = nt*n_distributed_xyz
 
         # allocate local data
         n, _ = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)
-        shape_output = np.array([te-ts, n, self._nv])
-
         self._local_shape = n
 
-        # stime = time.time()
         nreqs = 4096
         t_waitall = 0
 
-        # cnts = np.zeros(mpi_size, dtype=np.int32)
-        # cnts = comm.allgather(n)
-        # gcd_val = reduce(gcd, cnts)
-        # print(f'rank {mpi_rank} cnts {cnts}, greatest common divisor {gcd_val}')
+        # mpi4py with MPI >= 4 does not have the limitation of INT32_MAX elements
+        if MPI.VERSION >= 4 or mpi_size*n_max < np.iinfo(np.int32).max:
+            utils_par.pr0(f'Using Igatherv with {mpi_dtype} (MPI-4 available or number of elements < INT32_MAX)', comm)
 
-        # working around the limitation of MPI with >INT32_MAX elements
-        # ftype = mpi_dtype.Create_contiguous(self._shape[second_largest_axis]).Commit()
+            # Copy to make the array contiguous
+            ztime = time.time()
+            s_msgs = {}
+            for irank in range(mpi_size):
+                n, s = utils_par._blockdist(n_xyz, mpi_size, irank)
+                s_msgs[irank] = (input_data[:,s:s+n,:].copy())
+            del input_data
+            utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
-        ztime = time.time()
-        s_msgs = {}
-        for irank in range(mpi_size):
-            n, s = utils_par._blockdist(n_xyz, mpi_size, irank)
-            rank_js = s
-            rank_je = s+n
-            idx = [np.s_[:]]*3
-            idx[1] = np.s_[rank_js:rank_je]
-            s_msgs[irank] = np.nan_to_num(input_data[tuple(idx)].copy())
-        del input_data
-        utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
+            data = np.zeros(tuple([te-ts, n, self._nv]),dtype=self._dtype)
 
-        data = np.zeros(tuple(shape_output),dtype=self._dtype)
+            reqs = []
+            for irank in range(mpi_size):
+                s_msg = [s_msgs[irank], mpi_dtype]
+                r_msg = [data, (recvcounts, None), mpi_dtype] if mpi_rank==irank else None
+                req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
+                reqs.append(req)
 
-        reqs = []
-        for irank in range(mpi_size):
-            s_msg = [s_msgs[irank], mpi_dtype]
-            r_msg = [data, (recvcounts, None), mpi_dtype] if mpi_rank==irank else None
-            req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
-            reqs.append(req)
+                if len(reqs) > nreqs:
+                    xxtime = time.time()
+                    MPI.Request.Waitall(reqs)
+                    reqs = []
+                    t_waitall += time.time()-xxtime
+                    utils_par.pr0(f'\t\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
 
-            if len(reqs) > nreqs:
-                xxtime = time.time()
-                MPI.Request.Waitall(reqs)
-                reqs = []
-                t_waitall += time.time()-xxtime
-                utils_par.pr0(f'\t\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
+            xtime = time.time()
+            MPI.Request.Waitall(reqs)
+            t_waitall += time.time()-xtime
 
+        # pad and create a datatype to work around the INT32_MAX limitation
+        else:
+            utils_par.pr0(f'Using Igatherv with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
 
-        xtime = time.time()
-        MPI.Request.Waitall(reqs)
-        t_waitall += time.time()-xtime
+            ztime = time.time()
+            s_msgs = {}
+            for irank in range(mpi_size):
+                n, s = utils_par._blockdist(n_xyz, mpi_size, irank)
+                s_msgs[irank] = np.zeros((input_data.shape[0],n_max,input_data.shape[2]),dtype=self._dtype)
+                s_msgs[irank][:] = (input_data[:,s:s+n,:]) # nmax-sized and 0-padded (if needed) array
+            del input_data
+            utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
-        # ftype.Free()
+            data_padded = np.zeros(tuple([te-ts,n_max,self._nv]),dtype=self._dtype)
+            ftype = mpi_dtype.Create_contiguous(n_max).Commit()
+
+            reqs = []
+            for irank in range(mpi_size):
+                s_msg = [s_msgs[irank], ftype]
+                r_msg = [data_padded, (recvcounts/n_max, None), ftype] if mpi_rank==irank else None
+                req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
+                reqs.append(req)
+
+                if len(reqs) > nreqs:
+                    xxtime = time.time()
+                    MPI.Request.Waitall(reqs)
+                    reqs = []
+                    t_waitall += time.time()-xxtime
+                    utils_par.pr0(f'\t\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
+
+            xtime = time.time()
+            MPI.Request.Waitall(reqs)
+            t_waitall += time.time()-xtime
+            ftype.Free()
+
+            # data_padded -> data
+            # FIXME: in place?
+            xtime = time.time()
+            data = np.zeros(tuple([te-ts,n,self._nv]),dtype=self._dtype)
+            for irank in range(mpi_size):
+                n_irank, s = utils_par._blockdist(n_xyz, mpi_size, irank)
+                data[:,s:s+n_irank,:] = data_padded[:,irank*n_max:irank*n_max+n_irank,:]
+            utils_par.pr0(f'\t\t Removing padding took {time.time()-xtime} seconds', comm)
 
         utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
         utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
