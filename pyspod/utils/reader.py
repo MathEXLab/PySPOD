@@ -368,7 +368,13 @@ class reader_2stage():
             MPI.Request.Waitall(reqs)
             t_waitall += time.time()-xtime
 
-        # pad and create a datatype to work around the INT32_MAX limitation
+            utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
+            utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
+
+            comm.Barrier()
+            return data
+
+        # pad to max dimensions and create a datatype to work around the INT32_MAX limitation
         else:
             utils_par.pr0(f'Using Igatherv with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
 
@@ -404,19 +410,20 @@ class reader_2stage():
             ftype.Free()
 
             # data_padded -> data
-            # FIXME: in place?
             xtime = time.time()
-            data = np.zeros(tuple([te-ts,n,self._nv]),dtype=self._dtype)
+            cnt = 0
             for irank in range(mpi_size):
                 n_irank, s = utils_par._blockdist(n_xyz, mpi_size, irank)
-                data[:,s:s+n_irank,:] = data_padded[:,irank*n_max:irank*n_max+n_irank,:]
+                vals = data_padded[:,irank*n_max:irank*n_max+n_irank,:]
+                data_padded.flat[cnt:cnt+len(vals.flat)] = vals
+                cnt += len(vals.flat)
             utils_par.pr0(f'\t\t Removing padding took {time.time()-xtime} seconds', comm)
 
-        utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
-        utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
+            utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
+            utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
 
-        comm.Barrier()
-        return data
+            comm.Barrier()
+            return data_padded[:cnt].reshape((te-ts,n,self._nv))
 
     def get_data(self, ts = None):
         if ts is None:
