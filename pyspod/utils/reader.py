@@ -299,7 +299,7 @@ class reader_2stage():
                             vals = dvars[var].values
                             input_data[cum_read:cum_read+read_cnt,:,idx] = vals.reshape(vals.shape[0],-1)#.copy()
                             del vals
-                            cum_read = cum_read + read_je-read_js
+                            cum_read = cum_read + read_cnt
 
             cum_t = cum_t + (v[1]-v[0])
 
@@ -313,12 +313,13 @@ class reader_2stage():
         #                       x n2: len(own slice of shape[2])
 
         n_max, _ = utils_par._blockdist(n_xyz, mpi_size, 0) # proc 0 has the largest number of elements
+        max_ts = comm.allreduce(te-ts, op=MPI.MAX)
 
         recvcounts = np.zeros(mpi_size)
         for irank in range(mpi_size):
             nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
 
-            if MPI.VERSION >= 4 or mpi_size*n_max < np.iinfo(np.int32).max:
+            if MPI.VERSION >= 4 or max_ts*mpi_size*n_max*self._nv < np.iinfo(np.int32).max:
                 n_distributed_xyz, _ = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)    # flattened spatial dimensions (distributed on the MPI ranks)
             else:
                 n_distributed_xyz, _ = utils_par._blockdist(n_xyz, mpi_size, 0)    # padding - using spatial dimensions of proc 0 (largest)
@@ -331,20 +332,21 @@ class reader_2stage():
         nreqs = 4096
         t_waitall = 0
 
+
         # mpi4py with MPI >= 4 does not have the limitation of INT32_MAX elements
-        if MPI.VERSION >= 4 or mpi_size*n_max < np.iinfo(np.int32).max:
+        if MPI.VERSION >= 4 or max_ts*mpi_size*n_max*self._nv < np.iinfo(np.int32).max:
             utils_par.pr0(f'Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
 
             # Copy to make the array contiguous
             ztime = time.time()
             s_msgs = {}
             for irank in range(mpi_size):
-                n, s = utils_par._blockdist(n_xyz, mpi_size, irank)
-                s_msgs[irank] = input_data[:,s:s+n,:].copy()
+                n_irank, s_irank = utils_par._blockdist(n_xyz, mpi_size, irank)
+                s_msgs[irank] = input_data[:,s_irank:s_irank+n_irank,:].copy()
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
-            data = np.zeros(tuple([te-ts, n, self._nv]),dtype=self._dtype)
+            data = np.zeros((te-ts, n, self._nv),dtype=self._dtype)
 
             reqs = []
             for irank in range(mpi_size):
@@ -366,7 +368,6 @@ class reader_2stage():
 
             utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
             utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
-
             return data
 
         # pad to max dimensions and create a datatype to work around the INT32_MAX limitation
@@ -378,7 +379,7 @@ class reader_2stage():
             for irank in range(mpi_size):
                 n, s = utils_par._blockdist(n_xyz, mpi_size, irank)
                 s_msgs[irank] = np.zeros((input_data.shape[0],n_max,input_data.shape[2]),dtype=self._dtype)
-                s_msgs[irank][:] = (input_data[:,s:s+n,:]) # nmax-sized and 0-padded (if needed) array
+                s_msgs[irank][:,:n,:] = (input_data[:,s:s+n,:]) # nmax-sized and 0-padded (if needed) array
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
@@ -407,17 +408,14 @@ class reader_2stage():
             # data_padded -> data
             xtime = time.time()
             cnt = 0
-            for irank in range(mpi_size):
-                n_irank, s = utils_par._blockdist(n_xyz, mpi_size, irank)
-                vals = data_padded[:,irank*n_max:irank*n_max+n_irank,:]
-                data_padded.flat[cnt:cnt+len(vals.flat)] = vals
-                cnt += len(vals.flat)
+            n_local, s = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)
+            data_padded = data_padded[:,:n_local,:]
             utils_par.pr0(f'\t\t Removing padding took {time.time()-xtime} seconds', comm)
 
             utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
             utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
 
-            return data_padded[:cnt].reshape((te-ts,n,self._nv))
+            return data_padded.reshape((te-ts,n_local,self._nv))
 
     def get_data(self, ts = None):
         if ts is None:
