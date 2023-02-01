@@ -368,9 +368,6 @@ class Base():
         return self._weights
 
     # --------------------------------------------------------------------------
-
-
-
     # common methods
     # --------------------------------------------------------------------------
     def _initialize(self, data_list, variables = None, streaming = False):
@@ -379,11 +376,10 @@ class Base():
         self._pr0(f'Initialize data')
         self._pr0(f'------------------------------------')
 
-        if isinstance(data_list[0], str):
-            if data_list[0].endswith('.nc'):
-                self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, self._n_dft, nreaders = 10000)
-            if data_list[0].endswith('.mat'):
-                self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv)
+        if isinstance(data_list[0], str) and data_list[0].endswith('.nc'):
+            self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables, self._n_dft, nreaders = 10000)
+        elif isinstance(data_list[0], str) and data_list[0].endswith('.mat'):
+            self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv)
         else:
             self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
 

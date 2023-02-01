@@ -193,7 +193,7 @@ def test_tutorial1():
 
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
-def test_tutorial2():
+def test_tutorial2(test_two_stage_reader=False):
     ## -------------------------------------------------------------------
     ## initialize MPI
     ## -------------------------------------------------------------------
@@ -240,7 +240,12 @@ def test_tutorial2():
     ## -------------------------------------------------------------------
     standard  = spod_standard (params=params, weights=weights, comm=comm)
     streaming = spod_streaming(params=params, weights=weights, comm=comm)
-    spod = standard.fit(data_list=data)
+
+    if test_two_stage_reader:
+        spod = standard.fit(data_list=[data_file],variables=['tp'])
+    else:
+        spod = standard.fit(data_list=data)
+
     results_dir = spod.savedir_sim
     flag, ortho = utils_spod.check_orthogonality(
         results_dir=results_dir, mode_idx1=[1],
@@ -371,8 +376,11 @@ def test_tutorial2():
         #     pass
         ## -------------------------------------------------------------
 
-
+@pytest.mark.mpi(minsize=2, maxsize=2)
+def test_tutorial3():
+    return test_tutorial2(test_two_stage_reader=True)
 
 if __name__ == "__main__":
     test_tutorial1()
     test_tutorial2()
+    test_tutorial3()

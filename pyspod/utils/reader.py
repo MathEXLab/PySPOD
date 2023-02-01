@@ -266,7 +266,7 @@ class reader_2stage():
         mpi_size = comm.size
 
         mpi_dtype = MPI.FLOAT if self._dtype==np.float32 else MPI.DOUBLE
-        n_xyz = np.prod(self._shape[1:-1]) # product of not-time, not-variable, that is spatial dimensions
+        n_xyz = np.prod(self._shape[1:-1]) # product of spatial dimensions
 
         # first distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
         n, s = utils_par._blockdist(te-ts, self._nreaders, mpi_rank)
@@ -288,17 +288,13 @@ class reader_2stage():
             read_je = min(d_je, je)
             read_cnt = read_je - read_js
 
-            dvars = None
             if read_cnt > 0:
                 with xr.open_dataset(k, cache=False, decode_times=False) as d:
-
                     first_var = list(d[self._variables[0]].dims)[0]
-
                     time_from = d[first_var].values[read_js-cum_t]
                     time_to = d[first_var].values[read_je-cum_t-1] # .sel uses inclusive indexing on both ends!
 
                     with d.sel({first_var: slice(time_from,time_to)},drop=True) as dvars:
-
                         for idx, var in enumerate(self._variables):
                             vals = dvars[var].values
                             input_data[cum_read:cum_read+read_cnt,:,idx] = vals.reshape(vals.shape[0],-1)#.copy()
@@ -337,14 +333,14 @@ class reader_2stage():
 
         # mpi4py with MPI >= 4 does not have the limitation of INT32_MAX elements
         if MPI.VERSION >= 4 or mpi_size*n_max < np.iinfo(np.int32).max:
-            utils_par.pr0(f'Using Igatherv with {mpi_dtype} (MPI-4 available or number of elements < INT32_MAX)', comm)
+            utils_par.pr0(f'Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
 
             # Copy to make the array contiguous
             ztime = time.time()
             s_msgs = {}
             for irank in range(mpi_size):
                 n, s = utils_par._blockdist(n_xyz, mpi_size, irank)
-                s_msgs[irank] = (input_data[:,s:s+n,:].copy())
+                s_msgs[irank] = input_data[:,s:s+n,:].copy()
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
@@ -371,7 +367,6 @@ class reader_2stage():
             utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
             utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
 
-            comm.Barrier()
             return data
 
         # pad to max dimensions and create a datatype to work around the INT32_MAX limitation
@@ -387,7 +382,7 @@ class reader_2stage():
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
-            data_padded = np.zeros(tuple([te-ts,n_max,self._nv]),dtype=self._dtype)
+            data_padded = np.zeros((te-ts,n_max,self._nv),dtype=self._dtype)
             ftype = mpi_dtype.Create_contiguous(n_max).Commit()
 
             reqs = []
@@ -422,7 +417,6 @@ class reader_2stage():
             utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
             utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
 
-            comm.Barrier()
             return data_padded[:cnt].reshape((te-ts,n,self._nv))
 
     def get_data(self, ts = None):
@@ -465,6 +459,7 @@ class reader_2stage():
         else:
             return self.get_data_for_time(ts, ts+1)
 
+    # TODO: how is overlap handled?
     def read_block(self, iblk):
         time_first = iblk*self._n_dft
         time_last = min((iblk+1)*self._n_dft, self._shape[0])
