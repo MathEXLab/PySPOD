@@ -187,6 +187,7 @@ class reader_2stage():
         self._nblocks = nblocks
         self._files_size = 0
         self._flattened = True
+        self._is_real = True
 
         # check required (optional) arguments
         assert variables is not None, 'Variable(s) has to be provided for the 2-stage reader'
@@ -211,6 +212,8 @@ class reader_2stage():
                 shape = d.shape
                 self._file_time[f] = (nt, nt+shape[0])
                 nt += shape[0]
+                if d.dtype != 'float32' and d.dtype != 'float64':
+                    self._is_real = False
                 d.close()
                 self._files_size += os.path.getsize(f)/1024/1024/1024
 
@@ -225,6 +228,7 @@ class reader_2stage():
                 self._shape = (self._shape) + (self._nv,)
 
         self._shape = comm.bcast(self._shape, root=0)
+        self._is_real = comm.bcast(self._is_real, root=0)
         self._file_time = comm.bcast(self._file_time, root=0)
 
         if comm.rank == 0:
@@ -238,24 +242,11 @@ class reader_2stage():
 
         self._nchunks = comm.bcast(nchunks, root=0)
 
-        data = xr.open_dataset(data_list[0],cache=False)[variables[0]]
-        x_tmp = data[[0],...].values
-        # print(f'--- x_tmp.shape {x_tmp.shape}')
-
-        ## correct last dimension for single variable data
-        if self._nv == 1 and (x_tmp.ndim != xdim + 2):
-            x_tmp = x_tmp[...,np.newaxis]
-        if self._nv > 1:
-            x_tmp = x_tmp[...,np.newaxis]
-
-        self._nx = x_tmp[0,...,0].size
-        self._dim = x_tmp.ndim
-        self._xdim = x_tmp[0,...,0].ndim
-        self._xshape = x_tmp[0,...,0].shape
-        self._is_real = np.isreal(x_tmp).all()
+        self._nx = np.prod(self._shape[1:-1])
+        self._dim = len(self._shape)
+        self._xdim = self._dim-2
+        self._xshape = self._shape[1:-1]
         self._local_shape = None
-        del x_tmp
-        del data
         utils_par.pr0(f'--- init finished in {time.time()-st:.2f} s', comm)
 
     def get_data_for_time(self, ts, te):
@@ -294,6 +285,7 @@ class reader_2stage():
                     time_from = d[first_var].values[read_js-cum_t]
                     time_to = d[first_var].values[read_je-cum_t-1] # .sel uses inclusive indexing on both ends!
 
+                    # FIXME: are we selecting time again?
                     with d.sel({first_var: slice(time_from,time_to)},drop=True) as dvars:
                         for idx, var in enumerate(self._variables):
                             vals = dvars[var].values
@@ -335,7 +327,7 @@ class reader_2stage():
 
         # mpi4py with MPI >= 4 does not have the limitation of INT32_MAX elements
         if MPI.VERSION >= 4 or max_ts*mpi_size*n_max*self._nv < np.iinfo(np.int32).max:
-            utils_par.pr0(f'Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
+            utils_par.pr0(f'\t\t Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
 
             # Copy to make the array contiguous
             ztime = time.time()
@@ -372,7 +364,7 @@ class reader_2stage():
 
         # pad to max dimensions and create a datatype to work around the INT32_MAX limitation
         else:
-            utils_par.pr0(f'Using Igatherv with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
+            utils_par.pr0(f'\t\t Using Igatherv with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
 
             ztime = time.time()
             s_msgs = {}
