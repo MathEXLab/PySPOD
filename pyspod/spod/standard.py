@@ -230,6 +230,7 @@ class Standard(Base):
             phi0_max = None
             nreqs = 1024
             mpi_dtype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
+            data = None
 
 
         for f in range(0,self._n_freq):
@@ -281,8 +282,9 @@ class Standard(Base):
                     reqs.append(req)
 
                 else:
-                    # utils_par.pr0(f'\t\t Using Igatherv with custom datatype (MPI-4 not available and number of elements >= INT32_MAX)', comm)
-                    data = np.zeros(phi0_max*phi.shape[1]*comm.size, dtype=phi.dtype)
+                    # utils_par.pr0(f'\t\t Using Igather with a custom datatype (MPI-4 not available and number of elements >= INT32_MAX)', comm)
+                    if rank == target_proc:
+                        data = np.zeros(phi0_max*phi.shape[1]*comm.size, dtype=phi.dtype)
                     s_msgs[f] = [np.zeros((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
                     s_msgs[f][0][0:phi.shape[0],:] = phi[:,:]
                     r_msg = [data, mpi_dtype] if rank == target_proc else None
