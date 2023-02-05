@@ -321,7 +321,7 @@ class reader_2stage():
         n, _ = utils_par._blockdist(n_xyz, mpi_size, mpi_rank)
         self._local_shape = n
 
-        nreqs = 4096
+        nreqs = 1024
         t_waitall = 0
 
 
@@ -347,7 +347,7 @@ class reader_2stage():
                 req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
                 reqs.append(req)
 
-                if len(reqs) > nreqs:
+                if len(reqs) >= nreqs:
                     xxtime = time.time()
                     MPI.Request.Waitall(reqs)
                     reqs = []
