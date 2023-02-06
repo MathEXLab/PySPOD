@@ -338,7 +338,7 @@ class reader_2stage():
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
-            data = np.zeros((te-ts, n, self._nv),dtype=self._dtype)
+            data = np.zeros((te-ts, self._local_shape, self._nv),dtype=self._dtype)
 
             reqs = []
             for irank in range(mpi_size):
