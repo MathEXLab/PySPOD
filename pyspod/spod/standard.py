@@ -229,8 +229,10 @@ class Standard(Base):
             saved_freq = -1
             phi0_max = None
             nreqs = 1024
-            mpi_dtype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
+            ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
             data = None
+            use_padding = True
+            mpi_dtype = None
 
 
         for f in range(0,self._n_freq):
@@ -254,11 +256,9 @@ class Standard(Base):
             if self._savefreq_disk2:
                 rank = comm.rank
                 target_proc = f % comm.size
-                ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
 
                 # get counts once
                 if f == 0:
-                    use_padding = True
                     if False and (MPI.VERSION >= 4 or comm.size*phi0_max*phi.shape[1] < np.iinfo(np.int32).max):
                         use_padding = False
 
@@ -287,11 +287,11 @@ class Standard(Base):
                         data = np.ones(phi0_max*phi.shape[1]*comm.size, dtype=phi.dtype)
                     s_msgs[f] = [np.ones((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
                     s_msgs[f][0][0:phi.shape[0],:] = phi[:,:]
-                    r_msg = [data, mpi_dtype] if rank == target_proc else None
+                    r_msg = [data, (np.array([1]*comm.size), None), mpi_dtype] if rank == target_proc else None
                     if rank == target_proc:
                         saved_freq = f
 
-                    req = comm.Igather(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
+                    req = comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
                     reqs.append(req)
 
                 if len(reqs) == comm.size or f == self._n_freq-1 or len(reqs) == nreqs:
@@ -323,7 +323,7 @@ class Standard(Base):
                                 xfrom = int(np.sum(recvcounts[:proc])/self._nv/self._n_modes_save)
                                 xto = int(np.sum(recvcounts[:proc+1])/self._nv/self._n_modes_save)
                                 idx_full_freq[0] = slice(xfrom, xto)
-                                print(f'proc {proc} xfrom {xfrom} xto {xto} start {start} end {end} {full_freq.shape = :}')
+                                # print(f'proc {proc} xfrom {xfrom} xto {xto} start {start} end {end} {full_freq.shape = :}')
                             else:
                                 x_prod_not_max = np.prod(self._xshape)
                                 x_prod_not_max /= self._xshape[self._max_axis]
