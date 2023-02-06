@@ -272,7 +272,7 @@ class Standard(Base):
 
                 if not use_padding:
                     # utils_par.pr0(f'\t\t Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
-                    data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
+                    data = np.ones(np.sum(recvcounts), dtype=phi.dtype)
                     s_msgs[f] = [phi.copy(), ftype]
                     r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
                     if rank == target_proc:
@@ -284,13 +284,13 @@ class Standard(Base):
                 else:
                     # utils_par.pr0(f'\t\t Using Igather with a custom datatype (MPI-4 not available and number of elements >= INT32_MAX)', comm)
                     if rank == target_proc:
-                        data = np.zeros(phi0_max*phi.shape[1]*comm.size, dtype=phi.dtype)
-                    s_msgs[f] = [np.zeros((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
+                        data = np.ones(phi0_max*phi.shape[1]*comm.size, dtype=phi.dtype)
+                    s_msgs[f] = [np.ones((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
                     s_msgs[f][0][0:phi.shape[0],:] = phi[:,:]
                     r_msg = [data, mpi_dtype] if rank == target_proc else None
                     if rank == target_proc:
                         saved_freq = f
-                    
+
                     req = comm.Igather(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
                     reqs.append(req)
 
@@ -354,7 +354,7 @@ class Standard(Base):
 
         if self._savefreq_disk2:
             mpi_dtype.Free()
-            
+
         self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
 
         ## correct Fourier for one-sided spectrum
