@@ -339,7 +339,7 @@ class reader_2stage():
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
-            data = np.ones((te-ts, self._local_shape, self._nv),dtype=self._dtype)
+            data = np.zeros((te-ts, self._local_shape, self._nv),dtype=self._dtype)
 
             reqs = []
             for irank in range(mpi_size):
@@ -371,12 +371,12 @@ class reader_2stage():
             s_msgs = {}
             for irank in range(mpi_size):
                 irank_n_xyz, irank_s_xyz = utils_par._blockdist(n_all_xyz, mpi_size, irank)
-                s_msgs[irank] = np.ones((input_data.shape[0],max_dist_xyz,input_data.shape[2]),dtype=self._dtype)
+                s_msgs[irank] = np.zeros((input_data.shape[0],max_dist_xyz,input_data.shape[2]),dtype=self._dtype)
                 s_msgs[irank][:,:irank_n_xyz,:] = (input_data[:,irank_s_xyz:irank_s_xyz+irank_n_xyz,:]) # nmax-sized and 0-padded (if needed) array
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
-            data_padded = np.ones((te-ts,max_dist_xyz,self._nv),dtype=self._dtype)
+            data_padded = np.zeros((te-ts,max_dist_xyz,self._nv),dtype=self._dtype)
             ftype = mpi_dtype.Create_contiguous(max_dist_xyz).Commit()
 
             reqs = [MPI.REQUEST_NULL] * mpi_size
