@@ -174,7 +174,7 @@ class Standard(Base):
             den = self._n_dft - 1
             Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / den
             # address division-by-0 problem with NaNs
-            Q_var[Q_var < 4 * np.finfo(float).eps] = 1;
+            Q_var[Q_var < 4 * np.finfo(float).eps] = 1
             Q_blk /= Q_var
 
         Q_blk *= self._window

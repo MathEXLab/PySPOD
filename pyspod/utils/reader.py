@@ -215,9 +215,8 @@ class reader_2stage():
                 if d.dtype != 'float32' and d.dtype != 'float64':
                     self._is_real = False
                 d.close()
-                self._files_size += os.path.getsize(f)/1024/1024/1024
+                self._files_size += os.path.getsize(f)/1024/1024/1024 # GB
 
-            print(f'--- max axes: {self._max_axes} shape {shape}')
             self._shape = (nt,) + shape[1:] + (self._nv,)
 
         self._shape = comm.bcast(self._shape, root=0)
@@ -244,8 +243,8 @@ class reader_2stage():
 
     def get_data_for_time(self, ts, te):
         stime = time.time()
-        comm = self._comm
 
+        comm = self._comm
         mpi_rank = comm.rank
         mpi_size = comm.size
 
@@ -298,34 +297,30 @@ class reader_2stage():
 
         # size of data to receive (only used by the root rank)
         # each process receives   n0: every other process's len(time)
-        #                       x n1: len(shape[1])
-        #                       x n2: len(own slice of shape[2])
+        #                       x n1: own slice of n_all_xyz OR process 0-sized slice of n_all_xyz (when padding is used)
 
         max_dist_xyz, _ = utils_par._blockdist(n_all_xyz, mpi_size, 0) # proc 0 has the largest number of elements
         max_dist_time = comm.allreduce(n_dist_time, op=MPI.MAX)
 
         use_padding = False if MPI.VERSION >= 4 or max_dist_time*mpi_size*max_dist_xyz*self._nv < np.iinfo(np.int32).max else True
 
-        recvcounts = np.zeros(mpi_size)
-        for irank in range(mpi_size):
-            nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
-
-            if not use_padding:
-                recvcounts[irank]    = nt*n_dist_xyz*self._nv
-            else:
-                recvcounts[irank]    = nt*max_dist_xyz*self._nv
-
         nreqs = 1024
         t_waitall = 0
+        recvcounts = np.zeros(mpi_size)
+        reqs = []
 
         # mpi4py with MPI >= 4 does not have the limitation of INT32_MAX elements
         if not use_padding:
             utils_par.pr0(f'\t\t Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
 
-            # Copy to make the array contiguous
+            # Copy is needed to make the array contiguous
             ztime = time.time()
             s_msgs = {}
+
             for irank in range(mpi_size):
+                nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
+                recvcounts[irank]    = nt*n_dist_xyz*self._nv
+
                 n_irank, s_irank = utils_par._blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = input_data[:,s_irank:s_irank+n_irank,:].copy()
             del input_data
@@ -333,23 +328,17 @@ class reader_2stage():
 
             data = np.zeros((te-ts, self._local_shape, self._nv),dtype=self._dtype)
 
-            reqs = []
             for irank in range(mpi_size):
                 s_msg = [s_msgs[irank], mpi_dtype]
                 r_msg = [data, (recvcounts, None), mpi_dtype] if mpi_rank==irank else None
-                req = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
-                reqs.append(req)
+                reqs.append(comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank))
 
-                if len(reqs) >= nreqs:
-                    xxtime = time.time()
+                if len(reqs) >= nreqs or irank==mpi_size-1:
+                    xtime = time.time()
                     MPI.Request.Waitall(reqs)
+                    t_waitall += time.time()-xtime
+                    utils_par.pr0(f'\t\t\t Waitall({len(reqs)}) {time.time()-xtime} seconds', comm)
                     reqs = []
-                    t_waitall += time.time()-xxtime
-                    utils_par.pr0(f'\t\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
-
-            xtime = time.time()
-            MPI.Request.Waitall(reqs)
-            t_waitall += time.time()-xtime
 
             utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
             utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
@@ -361,7 +350,11 @@ class reader_2stage():
 
             ztime = time.time()
             s_msgs = {}
+
             for irank in range(mpi_size):
+                nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
+                recvcounts[irank]    = nt*self._nv#*max_dist_xyz
+
                 irank_n_xyz, irank_s_xyz = utils_par._blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = np.zeros((input_data.shape[0],max_dist_xyz,input_data.shape[2]),dtype=self._dtype)
                 s_msgs[irank][:,:irank_n_xyz,:] = (input_data[:,irank_s_xyz:irank_s_xyz+irank_n_xyz,:]) # nmax-sized and 0-padded (if needed) array
@@ -371,25 +364,20 @@ class reader_2stage():
             data_padded = np.zeros((te-ts,max_dist_xyz,self._nv),dtype=self._dtype)
             ftype = mpi_dtype.Create_contiguous(max_dist_xyz).Commit()
 
-            reqs = [MPI.REQUEST_NULL] * mpi_size
             for irank in range(mpi_size):
                 s_msg = [s_msgs[irank], ftype]
-                r_msg = [data_padded, (recvcounts//max_dist_xyz, None), ftype] if mpi_rank==irank else None
-                reqs[irank] = comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank)
+                r_msg = [data_padded, (recvcounts, None), ftype] if mpi_rank==irank else None
+                reqs.append(comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank))
 
-                if len(reqs) >= nreqs:
-                    xxtime = time.time()
+                if len(reqs) >= nreqs or irank==mpi_size-1:
+                    xtime = time.time()
                     MPI.Request.Waitall(reqs)
-                    reqs = [MPI.REQUEST_NULL] * mpi_size
-                    t_waitall += time.time()-xxtime
-                    utils_par.pr0(f'\t\t\t Partial waitall({nreqs}) {time.time()-xxtime} seconds', comm)
+                    t_waitall += time.time()-xtime
+                    utils_par.pr0(f'\t\t\t Waitall({len(reqs)}) {time.time()-xtime} seconds', comm)
+                    reqs = []
 
-            xtime = time.time()
-            MPI.Request.Waitall(reqs)
-            t_waitall += time.time()-xtime
             ftype.Free()
 
-            # data_padded -> data
             data_padded = data_padded[:,:n_dist_xyz,:]
 
             utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
@@ -399,7 +387,7 @@ class reader_2stage():
 
     def get_data(self, ts = None):
         if ts is None:
-            start = time.time()
+            st = time.time()
             nchunks = self._nchunks
             nblks = self._nblocks
 
@@ -428,10 +416,10 @@ class reader_2stage():
             total_size = 0
             for blk_idx in data_dict:
                 total_size += data_dict[blk_idx]['v'].nbytes
-            total_size /= 1024*1024*1024
+            total_size /= 1024*1024*1024 # GB
             total_size = self._comm.reduce(total_size, op=MPI.SUM, root=0)
             if self._comm.rank == 0:
-                t = time.time()-start
+                t = time.time()-st
                 utils_par.pr0(f'I/O time of reading in {nchunks} chunks: {t} seconds, files size {self._files_size:.2f} GB unpacked size {total_size:.2f} GB ({self._files_size/t:.2f} - {total_size/t:.2f} GB/s)', self._comm)
             return data_dict
         else:
