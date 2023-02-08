@@ -6,11 +6,13 @@ import shutil
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.font_manager
 from matplotlib import animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rc('figure', max_open_warning = 0)
 from os.path import splitext
 from scipy.io import loadmat
+
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -18,6 +20,15 @@ CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 plot_support = os.path.join(CFD, '../', 'plotting_support')
 
+# ---------------------------------------------------------------------------
+# default fonts
+def get_font():
+    available_fonts = [f.name for f in matplotlib.font_manager.fontManager.ttflist]
+    if 'Times New Roman' in available_fonts:
+        return 'Times New Roman'
+    if 'DejaVu Sans' in available_fonts:
+        return 'DejaVu Sans'
+    return available_fonts[0]
 
 # getters
 # ---------------------------------------------------------------------------
@@ -200,7 +211,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 
 def plot_eigs_vs_frequency(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
-    equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+    equal_axes=False, figsize=(12,8), fontname=get_font(),
     fontsize=16, path='CWD', filename=None):
     '''
     Plot eigenvalues vs. frequency.
@@ -253,7 +264,7 @@ def plot_eigs_vs_frequency(
 
 def plot_eigs_vs_period(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
-    equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+    equal_axes=False, figsize=(12,8), fontname=get_font(),
     fontsize=16, path='CWD', filename=None):
     '''
     Plot eigenvalues vs. period = 1 / freq.
@@ -1203,7 +1214,7 @@ def generate_2d_subplot(
     :param str filename: if specified, the plot is saved at `filename`.
         Default is None.
     '''
-    csfont = {'fontname':'Times New Roman'}
+    csfont = {'fontname':get_font()}
     multiplier = 10 ** N_round
     max_val = np.ceil (np.max(var1.real) * multiplier) / multiplier
     min_val = np.floor(np.min(var1.real) * multiplier) / multiplier
