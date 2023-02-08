@@ -162,6 +162,7 @@ class Standard(Base):
         Q_blk = self._get_block(offset, offset+self._n_dft)
 
         # Subtract longtime or provided mean
+        # FIXME: flat, shapes?
         Q_blk -= self._t_mean
 
         # if block mean is to be subtracted,
@@ -172,6 +173,7 @@ class Standard(Base):
         # normalize by pointwise variance
         if self._normalize_data:
             den = self._n_dft - 1
+            # FIXME: flat, shapes?
             Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / den
             # address division-by-0 problem with NaNs
             Q_var[Q_var < 4 * np.finfo(float).eps] = 1
@@ -272,11 +274,12 @@ class Standard(Base):
 
                 if not use_padding:
                     # utils_par.pr0(f'\t\t Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
-                    data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
+                    if rank == target_proc:
+                        data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
+                        saved_freq = f
+
                     s_msgs[f] = [phi.copy(), ftype]
                     r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
-                    if rank == target_proc:
-                        saved_freq = f
 
                     req = comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
                     reqs.append(req)
@@ -285,25 +288,24 @@ class Standard(Base):
                     # utils_par.pr0(f'\t\t Using Igather with a custom datatype (MPI-4 not available and number of elements >= INT32_MAX)', comm)
                     if rank == target_proc:
                         data = np.zeros(phi0_max*phi.shape[1]*comm.size, dtype=phi.dtype)
-                    s_msgs[f] = [np.zeros((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
-                    s_msgs[f][0][0:phi.shape[0],:] = phi[:,:]
-                    r_msg = [data, (np.array([1]*comm.size), None), mpi_dtype] if rank == target_proc else None
-                    if rank == target_proc:
                         saved_freq = f
+
+                    s_msgs[f] = [np.zeros((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
+                    s_msgs[f][0][0:phi.shape[0],:] = phi[:,:] # phi0_max-shaped and 0-padded
+                    r_msg = [data, (np.array([1]*comm.size), None), mpi_dtype] if rank == target_proc else None
 
                     req = comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
                     reqs.append(req)
 
                 if len(reqs) == comm.size or f == self._n_freq-1 or len(reqs) == nreqs:
-                    xxtime = time.time()
+                    xtime = time.time()
                     self._pr0(f'waiting for {len(reqs)} requests')
                     MPI.Request.Waitall(reqs)
+                    self._pr0(f'  Waitall({len(reqs)}) {time.time()-xtime} seconds')
                     reqs = []
                     s_msgs = {}
 
-                    self._pr0(f'  partial waitall {time.time()-xxtime} seconds')
-
-                    xst = time.time()
+                    xtime = time.time()
                     if saved_freq != -1:
                         if self._reader._flattened:
                             full_freq = np.zeros((np.prod(self._xshape),self._nv,self._n_modes_save),dtype=phi.dtype)
@@ -338,6 +340,7 @@ class Standard(Base):
                         # write to disk
                         if self._reader._flattened:
                             full_freq = full_freq.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
+
                         filename = f'freq_idx_{saved_freq:08d}.npy'
                         print(f'rank {rank} saving {filename}')
                         p_modes = os.path.join(self._modes_dir, filename)
@@ -346,7 +349,7 @@ class Standard(Base):
                         data = None
 
                     # comm.Barrier()
-                    self._pr0(f'saving: {time.time() - xst} s.')
+                    self._pr0(f'saving: {time.time() - xtime} s.')
 
             self._pr0(
                 f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
