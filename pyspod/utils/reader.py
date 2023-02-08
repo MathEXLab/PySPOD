@@ -218,15 +218,7 @@ class reader_2stage():
                 self._files_size += os.path.getsize(f)/1024/1024/1024
 
             print(f'--- max axes: {self._max_axes} shape {shape}')
-
-            # FIXME: is all of it needed apart from the last line?
-            if self._nv == 1 and (d.ndim != xdim + 2):
-                print(f'1 var exception, adding an extra axis')
-                self._shape = (nt,) + shape[1:] + (1,)
-            else:
-                self._shape = (nt,) + shape[1:]
-            if self._nv > 1:
-                self._shape = (self._shape) + (self._nv,)
+            self._shape = (nt,) + shape[1:] + (self._nv,)
 
         self._shape = comm.bcast(self._shape, root=0)
         self._is_real = comm.bcast(self._is_real, root=0)
