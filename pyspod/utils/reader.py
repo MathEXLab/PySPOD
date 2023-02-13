@@ -317,28 +317,30 @@ class reader_2stage():
             ztime = time.time()
             s_msgs = {}
 
+            offset = np.zeros(mpi_size+1, dtype=np.int32)
             for irank in range(mpi_size):
                 nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
-                recvcounts[irank]    = nt*n_dist_xyz*self._nv
+                offset[irank+1] = offset[irank] + nt
 
                 n_irank, s_irank = utils_par._blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = input_data[:,s_irank:s_irank+n_irank,:].copy()
+
             del input_data
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
             data = np.zeros((te-ts, self._local_shape, self._nv),dtype=self._dtype)
 
             for irank in range(mpi_size):
-                s_msg = [s_msgs[irank], mpi_dtype]
-                r_msg = [data, (recvcounts, None), mpi_dtype] if mpi_rank==irank else None
-                reqs.append(comm.Igatherv(sendbuf=s_msg, recvbuf=r_msg, root=irank))
+                reqs.append(comm.Irecv([data[offset[irank]:,:,:],mpi_dtype], source=irank, tag=32))
 
-                if len(reqs) >= nreqs or irank==mpi_size-1:
-                    xtime = time.time()
-                    MPI.Request.Waitall(reqs)
-                    t_waitall += time.time()-xtime
-                    utils_par.pr0(f'\t\t\t Waitall({len(reqs)}) {time.time()-xtime} seconds', comm)
-                    reqs = []
+            for irank in range(mpi_size):
+                s_msg = [s_msgs[irank], mpi_dtype]
+                reqs.append(comm.Isend(s_msg, dest=irank, tag=32))
+
+            xtime = time.time()
+            status = [MPI.Status()]*len(reqs)
+            MPI.Request.Waitall(reqs,status)
+            t_waitall += time.time()-xtime
 
             utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
             utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
