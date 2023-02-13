@@ -228,6 +228,8 @@ class Standard(Base):
             recvcounts = None
             s_msgs = {}
             reqs = []
+            reqs_r = []
+            reqs_s = []
             saved_freq = -1
             phi0_max = None
             nreqs = 1024
@@ -292,18 +294,22 @@ class Standard(Base):
 
                     s_msgs[f] = [np.zeros((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
                     s_msgs[f][0][0:phi.shape[0],:] = phi[:,:] # phi0_max-shaped and 0-padded
-                    r_msg = [data, (np.array([1]*comm.size), None), mpi_dtype] if rank == target_proc else None
+                    # r_msg = [data, (np.array([1]*comm.size), None), mpi_dtype] if rank == target_proc else None
 
-                    req = comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
-                    reqs.append(req)
+                    # req = comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
+                    # reqs.append(req)
 
-                if len(reqs) == comm.size or f == self._n_freq-1 or len(reqs) == nreqs:
+                    if rank == target_proc:
+                        for irank in range(comm.size):
+                            reqs_r.append(comm.Irecv([data[phi0_max*phi.shape[1]*irank:],mpi_dtype],source=irank))
+                    reqs_s.append(comm.Isend(s_msgs[f],dest=target_proc))
+
+                if len(reqs_s) == comm.size or f == self._n_freq-1:
                     xtime = time.time()
-                    self._pr0(f'waiting for {len(reqs)} requests')
-                    MPI.Request.Waitall(reqs)
-                    self._pr0(f'  Waitall({len(reqs)}) {time.time()-xtime} seconds')
-                    reqs = []
-                    s_msgs = {}
+                    self._pr0(f'waiting for {len(reqs_r)} requests')
+                    MPI.Request.Waitall(reqs_r)
+                    self._pr0(f'  Waitall({len(reqs_r)}) {time.time()-xtime} seconds')
+                    reqs_r = []
 
                     xtime = time.time()
                     if saved_freq != -1:
@@ -347,6 +353,10 @@ class Standard(Base):
                         np.save(p_modes, full_freq)
                         saved_freq = -1
                         data = None
+
+                    MPI.Request.Waitall(reqs_s)
+                    reqs_s = []
+                    s_msgs = {}
 
                     # comm.Barrier()
                     self._pr0(f'saving: {time.time() - xtime} s.')

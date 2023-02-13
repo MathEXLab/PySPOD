@@ -305,7 +305,6 @@ class reader_2stage():
         use_padding = False if MPI.VERSION >= 4 or max_dist_time*mpi_size*max_dist_xyz*self._nv < np.iinfo(np.int32).max else True
 
         nreqs = 1024
-        t_waitall = 0
         recvcounts = np.zeros(mpi_size)
         reqs = []
 
@@ -319,7 +318,7 @@ class reader_2stage():
 
             offset = np.zeros(mpi_size+1, dtype=np.int32)
             for irank in range(mpi_size):
-                nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
+                nt,           _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
                 offset[irank+1] = offset[irank] + nt
 
                 n_irank, s_irank = utils_par._blockdist(n_all_xyz, mpi_size, irank)
@@ -329,20 +328,16 @@ class reader_2stage():
             utils_par.pr0(f'\t\t Copying data {time.time()-ztime} seconds', comm)
 
             data = np.zeros((te-ts, self._local_shape, self._nv),dtype=self._dtype)
-
             for irank in range(mpi_size):
-                reqs.append(comm.Irecv([data[offset[irank]:,:,:],mpi_dtype], source=irank, tag=32))
+                reqs.append(comm.Irecv([data[offset[irank]:,:,:],mpi_dtype], source=irank))
 
             for irank in range(mpi_size):
                 s_msg = [s_msgs[irank], mpi_dtype]
-                reqs.append(comm.Isend(s_msg, dest=irank, tag=32))
+                reqs.append(comm.Isend(s_msg, dest=irank))
 
             xtime = time.time()
-            status = [MPI.Status()]*len(reqs)
-            MPI.Request.Waitall(reqs,status)
-            t_waitall += time.time()-xtime
-
-            utils_par.pr0(f'\t\t Waitall took {t_waitall} seconds', comm)
+            MPI.Request.Waitall(reqs)
+            utils_par.pr0(f'\t\t Waitall took {time.time()-xtime} seconds', comm)
             utils_par.pr0(f'\t Reading chunk took {time.time()-stime} seconds', comm)
             return data
 
