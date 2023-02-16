@@ -976,7 +976,7 @@ class Base():
     def plot_report(self, x1, x2, topN=5, unit='hours', path='CWD', filename=None):
         if path == 'CWD': path = os.getcwd()
 
-        def find_peaks(vals,nbr=10):
+        def find_peaks(vals,freq,nbr=5):
             indices = []
 
             for i in range(len(vals)):
@@ -987,24 +987,29 @@ class Base():
 
                 nbr_mean = np.mean(vals[xfrom:xto])
 
+                freq_val = freq[i]
+                freq_low = freq[i]*0.90
+                freq_high = freq[i]*1.1
+
+                freq_from = max(freq.searchsorted(freq_low, 'left') ,0)
+                freq_to = min(freq.searchsorted(freq_high, 'right') ,len(vals))
+
                 going_up = val > vals[i-1] if i>0 else True
                 going_down = val > vals[i+1] if i<len(vals)-1 else True
 
-                if val > 1.5*nbr_mean and going_up and going_down:
+                if val > 1.5*nbr_mean and going_up and going_down and val == np.max(vals[freq_from:freq_to]):
                     indices.append(i)
 
             return indices
-
 
         with PdfPages(os.path.join(path,filename)) as pdf:
             freq = self._freq[1:]
             eigs = self._eigs[1:]
 
             for mode in range(eigs.shape[1]):
-                if mode > 0: continue
                 vy = eigs[:,mode]
 
-                indices = find_peaks(vy)
+                indices = find_peaks(vy,freq)
 
                 for x in indices:
                     plt.figure(figsize=(12,8), frameon=True, constrained_layout=False)
