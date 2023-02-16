@@ -27,6 +27,9 @@ from pyspod.utils.reader import reader_1stage as utils_reader_1stage
 from pyspod.utils.reader import reader_2stage as utils_reader_2stage
 from pyspod.utils.reader import reader_mat as utils_reader_mat
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+
 try:
     from mpi4py import MPI
 except:
@@ -735,6 +738,22 @@ class Base():
         self._pr0(f'------------------------------------')
         self._pr0(f'')
 
+    def get_sizes(self):
+        if self._comm is None:
+            return self.data.size, self.data.size, self.data.size
+        else:
+            total_data_size = 0
+            if isinstance(self.data, dict):
+                for _,v in self.data.items():
+                    total_data_size += v['v'].size
+            else:
+                total_data_size = self.data.size
+
+            min_size = self._comm.allreduce(total_data_size, op=MPI.MIN)
+            max_size = self._comm.allreduce(total_data_size, op=MPI.MAX)
+            tot_size = self._comm.allreduce(total_data_size, op=MPI.SUM)
+            return min_size, max_size, tot_size
+
     # --------------------------------------------------------------------------
 
 
@@ -866,7 +885,7 @@ class Base():
     def plot_2d_modes_at_frequency(self, freq_req, freq, vars_idx=[0],
         modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
         plot_max=False, coastlines='', title='', xticks=None, yticks=None,
-        figsize=(12,8), equal_axes=False, filename=None, origin=None):
+        figsize=(12,8), equal_axes=False, filename=None, origin=None, pdf=None):
         '''
         See method implementation in the postproc module.
         '''
@@ -881,7 +900,7 @@ class Base():
                 fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
                 coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
                 figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
-                filename=filename, modes=modes)
+                filename=filename, modes=modes, pdf=pdf)
 
 
     def plot_2d_mode_slice_vs_time(self, freq_req, freq, vars_idx=[0],
@@ -954,6 +973,75 @@ class Base():
             vars_idx=vars_idx, title=title, figsize=figsize,
             path=self.savedir_sim, filename=filename)
 
+    def plot_report(self, x1, x2, topN=5, unit='hours', path='CWD', filename=None):
+        if path == 'CWD': path = os.getcwd()
+
+        with PdfPages(os.path.join(path,filename)) as pdf:
+            freq = self._freq[1:]
+            eigs = self._eigs[1:]
+
+            eigs_flat = eigs.flatten()
+
+            idxs = np.argpartition(eigs_flat,-topN)[-topN:]
+            idxs = np.flip(idxs[np.argsort(eigs_flat[idxs])])
+            xs, ys = np.unravel_index(idxs,eigs.shape)
+
+            for x,y in zip(xs,ys):
+                print(f'{x = :} {y = :} == {eigs[x][y]}')
+
+            for x,y in zip(xs,ys):
+                plt.figure(figsize=(12,8), frameon=True, constrained_layout=False)
+                ax = plt.gca()
+
+                with np.errstate(divide='ignore'):
+                    xx = freq # or 1/freq for period
+
+                ratio = 1. / eigs.shape[1]
+                for k in range(0,eigs.shape[1]):
+                    color = (ratio*k,ratio*k,ratio*k)
+                    if ratio*k >=0.95:
+                        color = (0.96,0.96, 0.96)
+                    ax.plot(xx, np.real(eigs[:,k]), '-', color=color, label='Eigenvalues')
+                ax.set_xscale('log')
+                ax.set_yscale('log')
+
+
+                # TODO: there must be a better way to do this
+                frequency = freq[x]
+                period = 1/frequency
+                newunit = unit
+
+                if unit == 'hours':
+                    if period < 1:
+                        period *= 60
+                        newunit = 'minutes'
+                    elif period >= 24 and period < 24*30.437:
+                        period /= 24
+                        newunit = 'days'
+                    elif period >= 24*30.437 and period < 24*365.25:
+                        period /= 24*30.437
+                        newunit = 'months'
+                    elif period >= 24*365.25:
+                        period /= 24*365.25
+                        newunit = 'years'
+
+                ax.set_title(f'Period {period:.2f} {newunit}, mode {y}')
+                ax.grid(True)
+
+                print(f'{freq[x] = } {eigs[x][y] = }')
+                ax.plot(freq[x],eigs[x][y],marker='o',color='r')
+                pdf.savefig()
+
+                self.plot_2d_modes_at_frequency(
+                    freq_req=freq[x],
+                    freq=self._freq,
+                    x1=x1,
+                    x2=x2,
+                    coastlines='regular',
+                    modes_idx=[y],
+                    vars_idx=[0],
+                    pdf=pdf)
+
     # --------------------------------------------------------------------------
 
 
@@ -976,18 +1064,3 @@ class Base():
 
     # --------------------------------------------------------------------------
 
-    def get_sizes(self):
-        if self._comm is None:
-            return self.data.size, self.data.size, self.data.size
-        else:
-            total_data_size = 0
-            if isinstance(self.data, dict):
-                for _,v in self.data.items():
-                    total_data_size += v['v'].size
-            else:
-                total_data_size = self.data.size
-
-            min_size = self._comm.allreduce(total_data_size, op=MPI.MIN)
-            max_size = self._comm.allreduce(total_data_size, op=MPI.MAX)
-            tot_size = self._comm.allreduce(total_data_size, op=MPI.SUM)
-            return min_size, max_size, tot_size
