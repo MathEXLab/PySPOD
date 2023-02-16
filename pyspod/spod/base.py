@@ -976,71 +976,86 @@ class Base():
     def plot_report(self, x1, x2, topN=5, unit='hours', path='CWD', filename=None):
         if path == 'CWD': path = os.getcwd()
 
+        def find_peaks(vals,nbr=10):
+            indices = []
+
+            for i in range(len(vals)):
+                val = vals[i]
+
+                xfrom = max(i-nbr,0)
+                xto = min(i+nbr,len(vals))
+
+                nbr_mean = np.mean(vals[xfrom:xto])
+
+                going_up = val > vals[i-1] if i>0 else True
+                going_down = val > vals[i+1] if i<len(vals)-1 else True
+
+                if val > 1.5*nbr_mean and going_up and going_down:
+                    indices.append(i)
+
+            return indices
+
+
         with PdfPages(os.path.join(path,filename)) as pdf:
             freq = self._freq[1:]
             eigs = self._eigs[1:]
 
-            eigs_flat = eigs.flatten()
+            for mode in range(eigs.shape[1]):
+                if mode > 0: continue
+                vy = eigs[:,mode]
 
-            idxs = np.argpartition(eigs_flat,-topN)[-topN:]
-            idxs = np.flip(idxs[np.argsort(eigs_flat[idxs])])
-            xs, ys = np.unravel_index(idxs,eigs.shape)
+                indices = find_peaks(vy)
 
-            for x,y in zip(xs,ys):
-                print(f'{x = :} {y = :} == {eigs[x][y]}')
+                for x in indices:
+                    plt.figure(figsize=(12,8), frameon=True, constrained_layout=False)
+                    ax = plt.gca()
 
-            for x,y in zip(xs,ys):
-                plt.figure(figsize=(12,8), frameon=True, constrained_layout=False)
-                ax = plt.gca()
+                    with np.errstate(divide='ignore'):
+                        xx = freq # or 1/freq for period
 
-                with np.errstate(divide='ignore'):
-                    xx = freq # or 1/freq for period
+                    ratio = 1. / eigs.shape[1]
+                    for k in range(0,eigs.shape[1]):
+                        color = (ratio*k,ratio*k,ratio*k)
+                        if ratio*k >=0.95:
+                            color = (0.96,0.96, 0.96)
+                        ax.plot(xx, np.real(eigs[:,k]), '-', color=color, label='Eigenvalues')
+                    ax.set_xscale('log')
+                    ax.set_yscale('log')
 
-                ratio = 1. / eigs.shape[1]
-                for k in range(0,eigs.shape[1]):
-                    color = (ratio*k,ratio*k,ratio*k)
-                    if ratio*k >=0.95:
-                        color = (0.96,0.96, 0.96)
-                    ax.plot(xx, np.real(eigs[:,k]), '-', color=color, label='Eigenvalues')
-                ax.set_xscale('log')
-                ax.set_yscale('log')
+                    # TODO: there must be a better way to do this
+                    frequency = freq[x]
+                    period = 1/frequency
+                    newunit = unit
 
+                    if unit == 'hours':
+                        if period < 1:
+                            period *= 60
+                            newunit = 'minutes'
+                        elif period >= 24 and period < 24*30.437:
+                            period /= 24
+                            newunit = 'days'
+                        elif period >= 24*30.437 and period < 24*365.25:
+                            period /= 24*30.437
+                            newunit = 'months'
+                        elif period >= 24*365.25:
+                            period /= 24*365.25
+                            newunit = 'years'
 
-                # TODO: there must be a better way to do this
-                frequency = freq[x]
-                period = 1/frequency
-                newunit = unit
+                    ax.set_title(f'Period {period:.2f} {newunit}, mode {mode}')
+                    ax.grid(True)
 
-                if unit == 'hours':
-                    if period < 1:
-                        period *= 60
-                        newunit = 'minutes'
-                    elif period >= 24 and period < 24*30.437:
-                        period /= 24
-                        newunit = 'days'
-                    elif period >= 24*30.437 and period < 24*365.25:
-                        period /= 24*30.437
-                        newunit = 'months'
-                    elif period >= 24*365.25:
-                        period /= 24*365.25
-                        newunit = 'years'
+                    ax.plot(freq[x],eigs[x][mode],marker='o',color='r')
+                    pdf.savefig()
 
-                ax.set_title(f'Period {period:.2f} {newunit}, mode {y}')
-                ax.grid(True)
-
-                print(f'{freq[x] = } {eigs[x][y] = }')
-                ax.plot(freq[x],eigs[x][y],marker='o',color='r')
-                pdf.savefig()
-
-                self.plot_2d_modes_at_frequency(
-                    freq_req=freq[x],
-                    freq=self._freq,
-                    x1=x1,
-                    x2=x2,
-                    coastlines='regular',
-                    modes_idx=[y],
-                    vars_idx=[0],
-                    pdf=pdf)
+                    self.plot_2d_modes_at_frequency(
+                        freq_req=freq[x],
+                        freq=self._freq,
+                        x1=x1,
+                        x2=x2,
+                        coastlines='regular',
+                        modes_idx=[mode],
+                        vars_idx=[0],
+                        pdf=pdf)
 
     # --------------------------------------------------------------------------
 
