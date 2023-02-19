@@ -281,7 +281,6 @@ class reader_2stage():
                     time_from = d[first_var].values[read_js-cum_t]
                     time_to = d[first_var].values[read_je-cum_t-1] # .sel uses inclusive indexing on both ends!
 
-                    # FIXME: are we selecting time again?
                     with d.sel({first_var: slice(time_from,time_to)},drop=True) as dvars:
                         for idx, var in enumerate(self._variables):
                             vals = dvars[var].values
@@ -484,7 +483,7 @@ class reader_2stage():
 # MATLAB reader
 ########################################################################################
 class reader_mat():
-    def __init__(self, data_list, xdim, dtype, comm, nv, nreaders = None):
+    def __init__(self, data_list, xdim, dtype, comm, nv):
         assert comm is not None, "MATLAB reader requires MPI (for now)"
 
         st = time.time()
@@ -495,7 +494,6 @@ class reader_mat():
         self._files = sorted(data_list)
         self._shape = None
         self._max_axes = None
-        self._nreaders = min(nreaders,comm.size) if nreaders else comm.size
 
         nt = len(data_list)
 
@@ -536,7 +534,7 @@ class reader_mat():
         mpi_dtype = MPI.FLOAT if self._dtype==np.float32 else MPI.DOUBLE
 
         # fist distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
-        n, s = utils_par._blockdist(te-ts, self._nreaders, mpi_rank)
+        n, s = utils_par._blockdist(te-ts, mpi_size, mpi_rank)
         js = ts + s
         je = ts + s+n
 
@@ -589,7 +587,7 @@ class reader_mat():
 
         recvcounts = np.zeros(mpi_size)
         for irank in range(mpi_size):
-            nt,            _ = utils_par._blockdist(te-ts, self._nreaders, irank)               # time (distributed on the reader)
+            nt,            _ = utils_par._blockdist(te-ts, mpi_size, irank)               # time (distributed on the reader)
             n_distributed, _ = utils_par._blockdist(self._shape[max_axis], mpi_size, mpi_rank)  # max_axis (distributed in the output)
             n_entire         = np.product(np.array(self._shape)[axes])                          # not distributed over remaining axes
             recvcounts[irank] = nt*n_distributed*n_entire

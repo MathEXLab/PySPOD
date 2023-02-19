@@ -162,7 +162,6 @@ class Standard(Base):
         Q_blk = self._get_block(offset, offset+self._n_dft)
 
         # Subtract longtime or provided mean
-        # FIXME: flat, shapes?
         Q_blk -= self._t_mean
 
         # if block mean is to be subtracted,
@@ -173,7 +172,6 @@ class Standard(Base):
         # normalize by pointwise variance
         if self._normalize_data:
             den = self._n_dft - 1
-            # FIXME: flat, shapes?
             Q_var = np.sum((Q_blk - np.mean(Q_blk, axis=0))**2, axis=0) / den
             # address division-by-0 problem with NaNs
             Q_var[Q_var < 4 * np.finfo(float).eps] = 1
@@ -256,7 +254,6 @@ class Standard(Base):
                 phi.shape = shape
                 utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
 
-            # FIXME: nvar>1 ?? is phi still 2 dimensionsal?
             if self._savefreq_disk2:
                 rank = comm.rank
                 target_proc = f % comm.size
@@ -316,7 +313,7 @@ class Standard(Base):
                         if self._reader._flattened:
                             full_freq = np.zeros((np.prod(self._xshape),self._nv,self._n_modes_save),dtype=phi.dtype)
                         else:
-                            full_freq = np.zeros((self._xshape,self._nv,self._n_modes_save),dtype=phi.dtype)
+                            full_freq = np.zeros(self._xshape+(self._nv,self._n_modes_save),dtype=phi.dtype)
 
                         for proc in range(comm.size):
                             if use_padding:
@@ -388,8 +385,6 @@ class Standard(Base):
             last_val = self.data[last_key]["v"]
             Q_blk = np.empty((self._n_dft,)+last_val.shape[1:],dtype=last_val.dtype)
 
-            # print(f'xar data needed {start}:{end}')
-
             cnt = 0
             for k,v in self.data.items():
                 v_s = v["s"]
@@ -424,6 +419,7 @@ class Standard(Base):
             Q_blk = self.data[start:end,...].copy()
             Q_blk = Q_blk.reshape(self._n_dft, self.data[0,...].size)
             return Q_blk
+
     def _flip_qhat(self, Q_hats):
         last_blk = list(Q_hats)[-1]
         last_frq = Q_hats[last_blk]
@@ -438,5 +434,4 @@ class Standard(Base):
                 Q_hat_f[f][:,b] = v[f][:]
             for b,_ in Q_hats.items():
                 del Q_hats[b][f]
-            # gc.collect()
         return Q_hat_f

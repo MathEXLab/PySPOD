@@ -116,6 +116,8 @@ class Base():
         if self._n_overlap > self._n_dft - 1:
             raise ValueError('Overlap is too large.')
 
+        if self._savefreq_disk2:
+            assert self._comm is not None, 'savefreq_disk2 only makes sense for parallel runs'
 
 
     # basic getters
@@ -559,7 +561,7 @@ class Base():
     def select_mean(self, data):
         '''Select mean.'''
         self._mean_type = self._mean_type.lower()
-        self._lt_mean = self.long_t_mean(data) # TODO: is there a reason for this to be computed outside of the if statement?
+        self._lt_mean = self.long_t_mean(data)
         if self._mean_type   == 'longtime' : self._t_mean = self._lt_mean
         elif self._mean_type == 'blockwise': self._t_mean = 0.0
         elif self._mean_type == 'zero'     : self._t_mean = 0.0
@@ -567,12 +569,11 @@ class Base():
             ## mean_type not recognized
             raise ValueError(self._mean_type, 'not recognized.')
         ## trigger warning if mean_type is zero
-        if (self._mean_type == 'zero') and (self._rank == 0):
+        if self._mean_type == 'zero' and self._rank == 0:
             warnings.warn('No mean subtracted. Consider using longtime mean.')
 
 
     def long_t_mean(self, data):
-        # FIXME: do I need to reshape, then sum?
         '''Get longtime mean.'''
         if isinstance(data, dict):
             last_key = list(self.data)[-1]
@@ -789,7 +790,7 @@ class Base():
         See method implementation in the postproc module.
         '''
 
-        if self._savefreq_disk:
+        if self._savefreq_disk or self._savefreq_disk2:
             if self._modes_dir is None:
                 raise ValueError('Modes not found. Consider running fit()')
 

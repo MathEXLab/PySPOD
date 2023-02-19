@@ -250,6 +250,60 @@ def test_standard_inv():
             pass
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
+def test_standard_freq2_class_compute():
+    ## -------------------------------------------------------------------
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
+    data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
+    data_dict = utils_io.read_data(data_file=data_file)
+    data = data_dict['p'].T
+    dt = data_dict['dt'][0,0]
+    nt = data.shape[0]
+    config_file = os.path.join(CFD, 'data', 'input_spod.yaml')
+    params = utils_io.read_config(config_file)
+    params['time_step'   ] = dt
+    params['mean_type'   ] = 'longtime'
+    params['n_modes_save'] = 40
+    params['overlap'     ] = 50
+    params['fullspectrum'] = True
+
+    # reference - savefreq_disk
+    params['savefreq_disk'] = True
+    params['savefreq_disk2'] = False
+    ## -------------------------------------------------------------------
+    SPOD_analysis = spod_standard(params=params, comm=comm)
+    spod = SPOD_analysis.fit(data_list=data)
+    T_ = 12.5
+    f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
+    if comm.rank == 0:
+        modes_at_freq1 = spod.get_modes_at_freq(freq_idx=f_idx)
+        try:
+            shutil.rmtree(os.path.join(CWD, params['savedir']))
+        except OSError as e:
+            pass
+    ## -------------------------------------------------------------------
+    # test 2-stage frequency saving
+    params['savefreq_disk'] = False
+    params['savefreq_disk2'] = True
+    ## -------------------------------------------------------------------
+    SPOD_analysis = spod_standard(params=params, comm=comm)
+    spod = SPOD_analysis.fit(data_list=data)
+    T_ = 12.5
+    f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
+    if comm.rank == 0:
+        modes_at_freq2 = spod.get_modes_at_freq(freq_idx=f_idx)
+        try:
+            shutil.rmtree(os.path.join(CWD, params['savedir']))
+        except OSError as e:
+            pass
+    ## -------------------------------------------------------------------
+    if comm.rank == 0:
+        assert np.array_equal(modes_at_freq1, modes_at_freq2)
+
+@pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_freq_class_compute():
     ## -------------------------------------------------------------------
     try:
@@ -717,6 +771,7 @@ if __name__ == "__main__":
     test_standard_svd()
     test_standard_inv()
     test_standard_freq_class_compute()
+    test_standard_freq2_class_compute()
     test_standard_freq_utils_compute()
     test_standard_normalize()
     test_streaming_fullspectrum()
