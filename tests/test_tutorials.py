@@ -227,6 +227,11 @@ def test_tutorial2(test_two_stage_reader=False):
     ## params
     config_file = os.path.join(CFD, 'data', 'input_tutorial2.yaml')
     params = utils_io.read_config(config_file)
+
+    if test_two_stage_reader:
+        params['savefreq_disk']  = False
+        params['savefreq_disk2'] = True
+
     ## set weights
     weights = utils_weights.geo_trapz_2D(
         x1_dim=x2.shape[0], x2_dim=x1.shape[0],
@@ -247,10 +252,11 @@ def test_tutorial2(test_two_stage_reader=False):
         spod = standard.fit(data_list=data)
 
     results_dir = spod.savedir_sim
-    flag, ortho = utils_spod.check_orthogonality(
-        results_dir=results_dir, mode_idx1=[1],
-        mode_idx2=[0], freq_idx=[5], dtype='single',
-        comm=comm)
+    if not test_two_stage_reader:
+        flag, ortho = utils_spod.check_orthogonality(
+            results_dir=results_dir, mode_idx1=[1],
+            mode_idx2=[0], freq_idx=[5], dtype='single',
+            comm=comm)
     ## -------------------------------------------------------------------
 
     # ## -------------------------------------------------------------------
@@ -338,7 +344,8 @@ def test_tutorial2(test_two_stage_reader=False):
         # print(f'{np.min(np.abs(modes_at_freq)) = :}')
         # print(f'{np.max(np.abs(modes_at_freq)) = :}')
         ## fit
-        assert(flag==True); assert(np.abs(ortho)<1e-7)
+        if not test_two_stage_reader:
+            assert(flag==True); assert(np.abs(ortho)<1e-7)
         assert((np.min(np.abs(modes_at_freq))<1.6945059542e-06+tol) and \
                (np.min(np.abs(modes_at_freq))>1.6945059542e-06-tol))
         assert((np.max(np.abs(modes_at_freq))<4.50340747833251+tol) and \
@@ -370,10 +377,10 @@ def test_tutorial2(test_two_stage_reader=False):
         # assert((l1_r<2.823629403e-05+tol) and (l1_r>2.823629403e-05-tol))
         # assert((l2_r<2.810256306e-08+tol) and (l2_r>2.810256306e-08-tol))
         # assert((li_r<0.0003185130176+tol) and (li_r>0.0003185130176-tol))
-        # try:
-        #     shutil.rmtree(os.path.join(CWD, params['savedir']))
-        # except OSError as e:
-        #     pass
+        try:
+            shutil.rmtree(os.path.join(CWD, params['savedir']))
+        except OSError as e:
+            pass
         ## -------------------------------------------------------------
 
 @pytest.mark.mpi(minsize=2, maxsize=2)

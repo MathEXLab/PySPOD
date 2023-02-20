@@ -249,13 +249,11 @@ class Standard(Base):
                 filename = f'freq_idx_{f:08d}.npy'
                 p_modes = os.path.join(self._modes_dir, filename)
 
-                if self._reader._flattened:
-                    shape = [np.prod(self._xshape),self._nv,self._n_modes_save]
-                else:
-                    shape = [*self._xshape,self._nv,self._n_modes_save]
+                shape = [*self._xshape,self._nv,self._n_modes_save]
 
                 if comm:
                     shape[self._max_axis] = -1
+
                 phi.shape = shape
                 utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
 
@@ -265,6 +263,7 @@ class Standard(Base):
 
                 # get counts once
                 if f == 0:
+                    # FIXME: no padding branch is broken. also check the reader
                     if False and (MPI.VERSION >= 4 or comm.size*phi0_max*phi.shape[1] < np.iinfo(np.int32).max):
                         use_padding = False
 

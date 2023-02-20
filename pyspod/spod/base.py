@@ -391,6 +391,9 @@ class Base():
         else:
             self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
 
+        if self._reader._flattened:
+            assert self._savefreq_disk == False, 'savefreq_disk cannot be used with flattened data. Use savefreq_disk2 instead.'
+
         if streaming:
             self._pr0(f'- using the streaming reader')
 
