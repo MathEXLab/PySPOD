@@ -119,6 +119,9 @@ class Base():
         if self._savefreq_disk2:
             assert self._comm is not None, 'savefreq_disk2 only makes sense for parallel runs'
 
+        if self._savefreq_disk:
+            assert self._savefreq_disk2 == False, 'savefreq_disk2 and savefreq_disk cannot be both True'
+
 
     # basic getters
     # --------------------------------------------------------------------------

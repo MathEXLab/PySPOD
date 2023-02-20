@@ -248,7 +248,12 @@ class Standard(Base):
             if self._savefreq_disk:
                 filename = f'freq_idx_{f:08d}.npy'
                 p_modes = os.path.join(self._modes_dir, filename)
-                shape = [*self._xshape,self._nv,self._n_modes_save]
+
+                if self._reader._flattened:
+                    shape = [np.prod(self._xshape),self._nv,self._n_modes_save]
+                else:
+                    shape = [*self._xshape,self._nv,self._n_modes_save]
+
                 if comm:
                     shape[self._max_axis] = -1
                 phi.shape = shape
