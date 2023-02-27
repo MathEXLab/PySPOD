@@ -578,7 +578,8 @@ class reader_mat():
                     data = ff.get(group_key)
                     data = np.array(data)
                     data = np.transpose(data, axes=[1, 2, 3, 0])
-                    data[np.isnan(data)] = 0
+
+                    assert np.isfinite(data).all(), f'non-finite data in {f}'
 
                     input_data[cum_read,...] = data.reshape(-1,self._nv)
 
