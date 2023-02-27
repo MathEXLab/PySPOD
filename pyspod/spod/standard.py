@@ -236,6 +236,8 @@ class Standard(Base):
             use_padding = True
             mpi_dtype = None
 
+        cum_cctime = 0
+        cum_sstime = 0
 
         for f in range(0,self._n_freq):
             s0 = time.time()
@@ -243,7 +245,9 @@ class Standard(Base):
             phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
             phi = phi[...,0:self._n_modes_save]
             del Q_hats[f]
+            cum_cctime += time.time() - s0
 
+            sstime = time.time()
             ## save modes
             if self._savefreq_disk:
                 filename = f'freq_idx_{f:08d}.npy'
@@ -365,11 +369,12 @@ class Standard(Base):
             self._pr0(
                 f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                 f'Elapsed time: {(time.time() - s0):.5f} s.')
+            cum_sstime += time.time()-sstime
 
         if self._savefreq_disk2:
             mpi_dtype.Free()
 
-        self._pr0(f'- Modes computation and saving: {time.time() - st} s.')
+        self._pr0(f'- Modes computation {cum_cctime} s. Saving: {cum_sstime} s.')
 
         ## correct Fourier for one-sided spectrum
         if self._isrealx:
