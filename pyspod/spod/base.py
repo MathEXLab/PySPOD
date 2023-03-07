@@ -616,7 +616,7 @@ class Base():
         if not self._fullspectrum:
             if self._isrealx:
                 self._freq = np.arange(
-                    0, np.ceil(self._n_dft/2)+1, 1) / self._n_dft / self._dt
+                    0, int(self._n_dft/2)+1, 1) / self._n_dft / self._dt
             else:
                 if (self._n_dft % 2 == 0):
                     self._freq[int(self._n_dft/2)+1:] = \

@@ -180,8 +180,10 @@ class Standard(Base):
         Q_blk *= self._window
         Q_blk = self._set_dtype(Q_blk)
 
-        # TODO: can we use rfft and when?
-        Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)[0:self._n_freq,:]
+        if self._isrealx and not self._fullspectrum:
+            Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.rfft(Q_blk, axis=0)
+        else:
+            Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)[0:self._n_freq,:]
         return Q_blk_hat, offset
 
     def _compute_standard_spod(self, Q_hats):
