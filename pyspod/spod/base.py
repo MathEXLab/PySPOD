@@ -422,7 +422,7 @@ class Base():
         # define number of blocks
         num = self._nt    - self._n_overlap
         den = self._n_dft - self._n_overlap
-        self._n_blocks = int(np.floor(num / den))
+        self._n_blocks = num // den
 
         ## define and check weights
         self.define_weights()
@@ -615,15 +615,12 @@ class Base():
         self._freq = (np.arange(0, self._n_dft, 1) / self._dt) / self._n_dft
         if not self._fullspectrum:
             if self._isrealx:
-                self._freq = np.arange(
-                    0, int(self._n_dft/2)+1, 1) / self._n_dft / self._dt
+                self._freq = np.arange(0, self._n_dft//2+1, 1) / self._n_dft / self._dt
             else:
                 if (self._n_dft % 2 == 0):
-                    self._freq[int(self._n_dft/2)+1:] = \
-                    self._freq[int(self._n_dft/2)+1:] - 1 / self._dt
+                    self._freq[self._n_dft//2+1:] = self._freq[self._n_dft//2+1:] - 1 / self._dt
                 else:
-                    self._freq[(n_dft+1)/2+1:] = \
-                    self._freq[(self._n_dft+1)/2+1:] - 1 / self._dt
+                    self._freq[(self._n_dft+1)//2+1:] = self._freq[(self._n_dft+1)//2+1:] - 1 / self._dt
         self._n_freq = len(self._freq)
 
 
@@ -738,10 +735,14 @@ class Base():
         self._pr0(f'Results to be saved in   : {self._savedir}')
         self._pr0(f'Save FFT blocks          : {self._savefft}')
         self._pr0(f'Reuse FFT blocks         : {self._reuse_blocks}')
-        if self._isrealx and (not self._fullspectrum):
+
+        if self._isrealx and not self._fullspectrum:
             self._pr0(f'Spectrum type: one-sided (real-valued signal)')
+        elif not self._isrealx and self._fullspectrum:
+            self._pr0(f'Spectrum type: full (complex-valued signal)')
         else:
-            self._pr0(f'Spectrum type: two-sided (complex-valued signal)')
+            self._pr0(f'*WARNING* Using full spectrum with real-valued signal or one-sided spectrum with complex-valued signal')
+
         self._pr0(f'------------------------------------')
         self._pr0(f'')
 
