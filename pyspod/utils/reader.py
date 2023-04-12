@@ -1,5 +1,6 @@
 import os
 import time
+import math
 import numpy as np
 import xarray as xr
 import pyspod.utils.parallel as utils_par
@@ -528,6 +529,7 @@ class reader_mat():
             size_per_ts = np.prod(self._shape[1:])*item_size/1024/1024
             nchunks = int((nt*size_per_ts)/comm.size/mb_per_chunk_per_reader)
             nchunks = max(nchunks,1)
+            nchunks = min(nchunks, math.ceil(nt/comm.size))
             print(f'TEST overwriting nchunks to {nchunks}')
 
         self._nchunks = comm.bcast(nchunks, root=0)
