@@ -318,6 +318,10 @@ class Standard(Base):
                     self._pr0(f'  Waitall({len(reqs_r)}) {time.time()-xtime} seconds')
                     reqs_r = []
 
+                    MPI.Request.Waitall(reqs_s)
+                    reqs_s = []
+                    s_msgs = {}
+
                     xtime = time.time()
                     if saved_freq != -1:
                         if self._reader._flattened:
@@ -339,6 +343,11 @@ class Standard(Base):
                                 xto = int(np.sum(recvcounts[:proc+1])/self._nv/self._n_modes_save)
                                 idx_full_freq[0] = slice(xfrom, xto)
                                 # print(f'proc {proc} xfrom {xfrom} xto {xto} start {start} end {end} {full_freq.shape = :}')
+
+                                start_nopad = np.sum(recvcounts[:proc])
+                                end_nopad = np.sum(recvcounts[:proc+1])
+                                data[start_nopad:end_nopad,...] = data[start:end,...]
+
                             else:
                                 x_prod_not_max = np.prod(self._xshape)
                                 x_prod_not_max /= self._xshape[self._max_axis]
@@ -348,11 +357,13 @@ class Standard(Base):
                                 idx_full_freq = [np.s_[:]] * (self._xdim + 2)
                                 idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
 
-                            full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
+                                full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
 
                         # write to disk
                         if self._reader._flattened:
-                            full_freq = full_freq.reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
+                            full_freq = data[:np.sum(recvcounts)].reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
+                        else:
+                            del data
 
                         filename = f'freq_idx_{saved_freq:08d}.npy'
                         print(f'rank {rank} saving {filename}')
@@ -361,9 +372,6 @@ class Standard(Base):
                         saved_freq = -1
                         data = None
 
-                    MPI.Request.Waitall(reqs_s)
-                    reqs_s = []
-                    s_msgs = {}
 
                     # comm.Barrier()
                     self._pr0(f'saving: {time.time() - xtime} s.')
