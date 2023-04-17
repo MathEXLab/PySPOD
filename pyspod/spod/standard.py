@@ -316,6 +316,8 @@ class Standard(Base):
                     self._pr0(f'waiting for {len(reqs_r)} requests')
                     MPI.Request.Waitall(reqs_r)
                     self._pr0(f'  Waitall({len(reqs_r)}) {time.time()-xtime} seconds')
+                    comm.Barrier()
+                    self._pr0(f'--past the barrier')
                     reqs_r = []
 
                     MPI.Request.Waitall(reqs_s)
@@ -325,7 +327,8 @@ class Standard(Base):
                     xtime = time.time()
                     if saved_freq != -1:
                         if self._reader._flattened:
-                            full_freq = np.zeros((np.prod(self._xshape),self._nv,self._n_modes_save),dtype=phi.dtype)
+                            pass
+                            # full_freq = np.zeros((np.prod(self._xshape),self._nv,self._n_modes_save),dtype=phi.dtype)
                         else:
                             full_freq = np.zeros(self._xshape+(self._nv,self._n_modes_save),dtype=phi.dtype)
 
