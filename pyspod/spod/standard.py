@@ -321,6 +321,9 @@ class Standard(Base):
                         for irank in range(comm.size):
                             reqs_r.append(comm.Irecv([data[phi0_max*irank:],mpi_dtype],source=irank))
 
+                MPI.Request.Waitall(reqs_s)
+                s_msgs = {}
+
                 if write:
                     f, m = write
                     xtime = time.time()
@@ -341,7 +344,6 @@ class Standard(Base):
                     print(f'rank {rank} saving {filename}')
                     p_modes = os.path.join(self._modes_dir, filename)
                     np.save(p_modes, data)
-                MPI.Request.Waitall(reqs_s)
 
             mpi_dtype.Free()
 
