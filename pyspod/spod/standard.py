@@ -271,6 +271,11 @@ class Standard(Base):
             for f in range(0,self._n_freq):
                 s0 = time.time()
                 phi[f] = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])[:,0:self._n_modes_save]
+
+                if f == 0 and rank == 0:
+                    print(f"xax1 allocating phi: {self._n_freq} x {phi[f].shape} {phi[f].dtype}")
+                    print(f"xax1 deleting qhats: {self._n_freq} x {Q_hats[f].shape} {Q_hats[f].dtype}")
+
                 del Q_hats[f]
 
                 self._pr0(
@@ -297,12 +302,17 @@ class Standard(Base):
                 write_e = min((ipass+1) * comm.size, total_files)
                 write = None
                 data = np.zeros(phi0_max*comm.size, dtype=phi_dtype)
+                if rank == 0:
+                    print(f"xax1 allocating data for recv {data.shape} {phi_dtype}")
                 s_msgs = {}
                 reqs_r = []
                 reqs_s = []
 
                 if rank == 0:
                     print(f"pass {ipass} write_s: {write_s}, write_e: {write_e}")
+
+                if rank == 0:
+                    print(f"xax2 will alloc {write_e-write_s} x {phi0_max} x {phi_dtype}")
 
                 for i in range(write_s, write_e):
                     f = i // self._n_modes_save
