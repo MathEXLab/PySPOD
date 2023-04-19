@@ -231,7 +231,6 @@ class Standard(Base):
                 phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
                 phi = phi[...,0:self._n_modes_save]
                 del Q_hats[f]
-                cum_cctime += time.time() - s0
 
                 sstime = time.time()
                 ## save modes
