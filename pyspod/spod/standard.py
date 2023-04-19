@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import math
-import psutil
+
 import numpy as np
 from numpy import linalg as la
 import scipy.io.matlab as siom
@@ -260,7 +260,6 @@ class Standard(Base):
         ####################################
         ####################################
             rank = comm.rank
-            process = psutil.Process()
             ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
 
             cum_cctime = 0
@@ -299,20 +298,12 @@ class Standard(Base):
 
             total_files = self._n_freq * self._n_modes_save
 
-            if rank == 0:
-                print(f"memory usage before pass loop {process.memory_info().rss/1024/1024/1024}")
-
-
             for ipass in range(0,math.ceil(total_files/comm.size)):
                 write_s = ipass * comm.size
                 write_e = min((ipass+1) * comm.size, total_files)
                 write = None
-                if rank == 0:
-                    print(f"memory be ones {process.memory_info().rss/1024/1024/1024}")
 
-                data = np.ones(phi0_max*comm.size, dtype=phi_dtype)
-                if rank == 0:
-                    print(f"memory af ones {process.memory_info().rss/1024/1024/1024}")
+                data = np.zeros(phi0_max*comm.size, dtype=phi_dtype)
 
                 s_msgs = {}
                 reqs_r = []
@@ -333,29 +324,13 @@ class Standard(Base):
                         for irank in range(comm.size):
                             reqs_r.append(comm.Irecv([data[phi0_max*irank:],mpi_dtype],source=irank))
 
-                if rank == 0:
-                    print(f"memory usage waitall s {process.memory_info().rss/1024/1024/1024}")
-
                 MPI.Request.Waitall(reqs_s)
-                if rank == 0:
-                    print(f"memory usage after waitall s {process.memory_info().rss/1024/1024/1024}")
-
                 s_msgs = {}
-
-                if rank == 0:
-                    print(f"memory usage after del s {process.memory_info().rss/1024/1024/1024}")
-
 
                 if write:
                     f, m = write
                     xtime = time.time()
-                    if rank == 0:
-                        print(f"memory usage be waitall r {process.memory_info().rss/1024/1024/1024}")
-
                     MPI.Request.Waitall(reqs_r)
-                    if rank == 0:
-                        print(f"memory usage af waitall r {process.memory_info().rss/1024/1024/1024}")
-
                     self._pr0(f'  Waitall({len(reqs_r)}) {time.time()-xtime} seconds')
 
                     for proc in range(comm.size):
