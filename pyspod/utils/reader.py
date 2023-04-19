@@ -505,7 +505,7 @@ class reader_mat():
             for f in sorted(data_list):
                 # check if file exists
                 assert os.path.isfile(f), f'File {f} does not exist'
-                print(f'file {f} exists')
+                #print(f'file {f} exists')
                 self._files_size += os.path.getsize(f)/1024/1024/1024 # GB
 
 
@@ -574,7 +574,7 @@ class reader_mat():
             read_je = min(d_je, je)
 
             if read_je > read_js:
-                print(f'rank {mpi_rank} opening file {f}')
+                #print(f'rank {mpi_rank} opening file {f}')
                 with h5py.File(f, "r") as ff:
                     group_key = list(ff.keys())[0]
                     data = ff.get(group_key)
@@ -587,7 +587,7 @@ class reader_mat():
 
                     del data
                     cum_read += 1
-                    print(f'rank {mpi_rank} closed file {f}')
+                    #print(f'rank {mpi_rank} closed file {f}')
 
             cum_t = cum_t + 1 # one step per file
 

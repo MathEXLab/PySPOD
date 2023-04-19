@@ -4,14 +4,15 @@
 import os
 import sys
 import time
+import math
+
 import numpy as np
 from numpy import linalg as la
 import scipy.io.matlab as siom
-from sys import getsizeof
+
 # Import custom Python packages
 from pyspod.spod.base import Base
 import pyspod.utils.parallel as utils_par
-import math
 try:
     from mpi4py import MPI
 except:
@@ -278,9 +279,6 @@ class Standard(Base):
 
             cum_cctime = time.time() - ctime0
 
-            if comm.rank == 0:
-                print(f"Size of the phi dictionary in GB: {getsizeof(phi)/1024/1024/1024}")
-
             sstime = time.time()
 
             # get max phi shape
@@ -310,9 +308,6 @@ class Standard(Base):
                     f = i // self._n_modes_save
                     m = i % self._n_modes_save
                     writer = i % comm.size
-
-                    if rank == 0:
-                        print(f"\ti: {i}, f: {f}, m: {m} {writer = :}")
 
                     s_msgs[i] = [np.zeros(phi0_max, dtype=phi_dtype), mpi_dtype]
                     s_msgs[i][0][0:phi[f].shape[0]] = phi[f][:,m] # phi0_max-shaped and 0-padded
