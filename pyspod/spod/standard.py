@@ -286,12 +286,21 @@ class Standard(Base):
 
             sstime = time.time()
 
+            # make phi dict so that we can deallocate freqs and modes
+            phi_dict = {}
+            for f in range(0,self._n_freq):
+                phi_dict[f] = {}
+                for m in range(0,self._n_modes_save):
+                    phi_dict[f][m] = phi[f][:,m]
+                del phi[f]
+            del phi
+
             # get max phi shape
-            phi0_max = comm.allreduce(phi[0].shape[0], op=MPI.MAX)
-            phi_dtype = phi[0].dtype
+            phi0_max = comm.allreduce(phi_dict[0][0].shape[0], op=MPI.MAX)
+            phi_dtype = phi_dict[0][0].dtype
             mpi_dtype = ftype.Create_contiguous(phi0_max).Commit()
 
-            local_elements = np.array(phi[0].shape[0])
+            local_elements = np.array(phi_dict[0][0].shape[0])
             recvcounts = np.zeros(comm.size, dtype=np.int64)
             comm.Allgather(local_elements, recvcounts)
 
@@ -320,11 +329,12 @@ class Standard(Base):
                     writer = i % comm.size
 
                     s_msgs[i] = [np.zeros(phi0_max, dtype=phi_dtype), mpi_dtype]
-                    s_msgs[i][0][0:phi[f].shape[0]] = phi[f][:,m] # phi0_max-shaped and 0-padded
+                    s_msgs[i][0][0:phi_dict[f][m].shape[0]] = phi_dict[f][m][:] # phi0_max-shaped and 0-padded
                     reqs_s.append(comm.Isend(s_msgs[i], dest=writer))
-                    for fidx in range(0,f):
-                        if fidx in phi:
-                            del phi[fidx]
+                    del phi_dict[f][m]
+                    # for fidx in range(0,f):
+                    #     if fidx in phi:
+                    #         del phi[fidx]
 
                     if rank == writer:
                         write = (f,m)
@@ -356,6 +366,8 @@ class Standard(Base):
                     np.save(p_modes, data)
 
             mpi_dtype.Free()
+
+            print(f'xax3 phi dict {phi_dict}')
 
             self._pr0(f'- Modes computation {cum_cctime} s. Saving: {time.time()-sstime} s.')
 
