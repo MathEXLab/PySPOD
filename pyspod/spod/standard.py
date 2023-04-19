@@ -6,7 +6,6 @@ import sys
 import time
 import math
 import psutil
-
 import numpy as np
 from numpy import linalg as la
 import scipy.io.matlab as siom
@@ -225,9 +224,6 @@ class Standard(Base):
         L_diag = np.sqrt(self._n_blocks) * np.sqrt(L)
         L_diag_inv = 1. / L_diag
 
-        cum_cctime = 0
-        cum_sstime = 0
-
         if not self._savefreq_disk2:
             for f in range(0,self._n_freq):
                 s0 = time.time()
@@ -259,30 +255,30 @@ class Standard(Base):
         ####################################
         ####################################
         ####################################
-        else: # savefreq_disk2
+        else:               # savefreq_disk2
         ####################################
         ####################################
         ####################################
             rank = comm.rank
             process = psutil.Process()
-
             ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
 
-            if rank == 0:
-                print(f"memory usage before calculating phi {process.memory_info().rss/1024/1024/1024}")
-            phi = {}
-            ctime0 = time.time()
+            cum_cctime = 0
+            cum_sstime = 0
+
+            phi_dict = {}
             for f in range(0,self._n_freq):
                 s0 = time.time()
-                val = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
-                phi[f] = val[:,0:self._n_modes_save].copy()
-                del val
-
-                if f == 0 and rank == 0:
-                    print(f"xax1 allocating phi: {self._n_freq} x {phi[f].shape} {phi[f].dtype}")
-                    print(f"xax1 deleting qhats: {self._n_freq} x {Q_hats[f].shape} {Q_hats[f].dtype}")
-
+                phi_dict[f] = {}
+                phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])[:,:self._n_modes_save]
                 Q_hats[f] = None
+                cum_cctime += time.time() - s0
+
+                s1 = time.time()
+                for m in range(0,self._n_modes_save):
+                    phi_dict[f][m] = phi[:,m].copy() # make sure modes beyond n_modes_save can be deallocated
+                del phi
+                cum_sstime += time.time() - s1
 
                 self._pr0(
                     f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
@@ -290,28 +286,13 @@ class Standard(Base):
 
             del V
             del Q_hats
-            time.sleep(1)
-            if rank == 0:
-                print(f"memory usage after calculating phi {process.memory_info().rss/1024/1024/1024}")
-            cum_cctime = time.time() - ctime0
 
             sstime = time.time()
-
-            # make phi dict so that we can deallocate freqs and modes
-            phi_dict = {}
-            for f in range(0,self._n_freq):
-                phi_dict[f] = {}
-                for m in range(0,self._n_modes_save):
-                    phi_dict[f][m] = np.zeros(phi[f][:,m].shape[0], dtype=phi[f][m].dtype)
-                    phi_dict[f][m][:] = phi[f][:,m][:]
-                del phi[f]
-            del phi
 
             # get max phi shape
             phi0_max = comm.allreduce(phi_dict[0][0].shape[0], op=MPI.MAX)
             phi_dtype = phi_dict[0][0].dtype
             mpi_dtype = ftype.Create_contiguous(phi0_max).Commit()
-
             local_elements = np.array(phi_dict[0][0].shape[0])
             recvcounts = np.zeros(comm.size, dtype=np.int64)
             comm.Allgather(local_elements, recvcounts)
@@ -320,27 +301,22 @@ class Standard(Base):
 
             if rank == 0:
                 print(f"memory usage before pass loop {process.memory_info().rss/1024/1024/1024}")
+
+
             for ipass in range(0,math.ceil(total_files/comm.size)):
                 write_s = ipass * comm.size
                 write_e = min((ipass+1) * comm.size, total_files)
                 write = None
                 if rank == 0:
-                    print(f"memory usage before ones loop {process.memory_info().rss/1024/1024/1024}")
-                    print(f"xax1 will allocate {phi0_max*comm.size} x {phi_dtype}")
+                    print(f"memory be ones {process.memory_info().rss/1024/1024/1024}")
+
                 data = np.ones(phi0_max*comm.size, dtype=phi_dtype)
                 if rank == 0:
-                    print(f"memory usage after ones loop {process.memory_info().rss/1024/1024/1024}")
-                if rank == 0:
-                    print(f"xax1 allocating data for recv {data.shape} {phi_dtype}")
+                    print(f"memory af ones {process.memory_info().rss/1024/1024/1024}")
+
                 s_msgs = {}
                 reqs_r = []
                 reqs_s = []
-
-                if rank == 0:
-                    print(f"pass {ipass} write_s: {write_s}, write_e: {write_e}")
-
-                if rank == 0:
-                    print(f"xax2 will alloc {write_e-write_s} x {phi0_max} x {phi_dtype}")
 
                 for i in range(write_s, write_e):
                     f = i // self._n_modes_save
@@ -357,14 +333,29 @@ class Standard(Base):
                         for irank in range(comm.size):
                             reqs_r.append(comm.Irecv([data[phi0_max*irank:],mpi_dtype],source=irank))
 
+                if rank == 0:
+                    print(f"memory usage waitall s {process.memory_info().rss/1024/1024/1024}")
+
                 MPI.Request.Waitall(reqs_s)
+                if rank == 0:
+                    print(f"memory usage after waitall s {process.memory_info().rss/1024/1024/1024}")
+
                 s_msgs = {}
+
+                if rank == 0:
+                    print(f"memory usage after del s {process.memory_info().rss/1024/1024/1024}")
+
 
                 if write:
                     f, m = write
                     xtime = time.time()
-                    self._pr0(f'waiting for {len(reqs_r)} requests')
+                    if rank == 0:
+                        print(f"memory usage be waitall r {process.memory_info().rss/1024/1024/1024}")
+
                     MPI.Request.Waitall(reqs_r)
+                    if rank == 0:
+                        print(f"memory usage af waitall r {process.memory_info().rss/1024/1024/1024}")
+
                     self._pr0(f'  Waitall({len(reqs_r)}) {time.time()-xtime} seconds')
 
                     for proc in range(comm.size):
@@ -383,7 +374,8 @@ class Standard(Base):
 
             mpi_dtype.Free()
 
-            self._pr0(f'- Modes computation {cum_cctime} s. Saving: {time.time()-sstime} s.')
+            cum_sstime += time.time() - sstime
+            self._pr0(f'- Modes computation {cum_cctime} s. Saving: {cum_sstime} s.')
 
         ## correct Fourier for one-sided spectrum
         if self._isrealx:
