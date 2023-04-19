@@ -7,11 +7,11 @@ import time
 import numpy as np
 from numpy import linalg as la
 import scipy.io.matlab as siom
-
+from sys import getsizeof
 # Import custom Python packages
 from pyspod.spod.base import Base
 import pyspod.utils.parallel as utils_par
-
+import math
 try:
     from mpi4py import MPI
 except:
@@ -223,171 +223,134 @@ class Standard(Base):
         L_diag = np.sqrt(self._n_blocks) * np.sqrt(L)
         L_diag_inv = 1. / L_diag
 
-        if self._savefreq_disk2:
-            local_elements = None
-            recvcounts = None
-            s_msgs = {}
-            reqs = []
-            reqs_r = []
-            reqs_s = []
-            saved_freq = -1
-            phi0_max = None
-            nreqs = 1024
-            ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
-            data = None
-            use_padding = True
-            mpi_dtype = None
-
         cum_cctime = 0
         cum_sstime = 0
 
-        for f in range(0,self._n_freq):
-            s0 = time.time()
-            ## compute
-            phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
-            phi = phi[...,0:self._n_modes_save]
-            del Q_hats[f]
-            cum_cctime += time.time() - s0
+        if not self._savefreq_disk2:
+            for f in range(0,self._n_freq):
+                s0 = time.time()
+                ## compute
+                phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
+                phi = phi[...,0:self._n_modes_save]
+                del Q_hats[f]
+                cum_cctime += time.time() - s0
+
+                sstime = time.time()
+                ## save modes
+                if self._savefreq_disk:
+                    filename = f'freq_idx_{f:08d}.npy'
+                    p_modes = os.path.join(self._modes_dir, filename)
+
+                    shape = [*self._xshape,self._nv,self._n_modes_save]
+
+                    if comm:
+                        shape[self._max_axis] = -1
+
+                    phi.shape = shape
+                    utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
+
+                self._pr0(
+                    f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
+                    f'Elapsed time: {(time.time() - s0):.5f} s.')
+
+
+        ####################################
+        ####################################
+        ####################################
+        else: # savefreq_disk2
+        ####################################
+        ####################################
+        ####################################
+            rank = comm.rank
+
+            ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
+
+            phi = {}
+            ctime0 = time.time()
+            for f in range(0,self._n_freq):
+                s0 = time.time()
+                phi[f] = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])[:,0:self._n_modes_save]
+                del Q_hats[f]
+
+                self._pr0(
+                    f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
+                    f'Elapsed time: {(time.time() - s0):.5f} s.')
+
+            cum_cctime = time.time() - ctime0
+
+            if comm.rank == 0:
+                print(f"Size of the phi dictionary in GB: {getsizeof(phi)/1024/1024/1024}")
 
             sstime = time.time()
-            ## save modes
-            if self._savefreq_disk:
-                filename = f'freq_idx_{f:08d}.npy'
-                p_modes = os.path.join(self._modes_dir, filename)
 
-                shape = [*self._xshape,self._nv,self._n_modes_save]
+            # get max phi shape
+            phi0_max = comm.allreduce(phi[0].shape[0], op=MPI.MAX)
+            phi_dtype = phi[0].dtype
+            mpi_dtype = ftype.Create_contiguous(phi0_max).Commit()
 
-                if comm:
-                    shape[self._max_axis] = -1
+            local_elements = np.array(phi[0].shape[0])
+            recvcounts = np.zeros(comm.size, dtype=np.int64)
+            comm.Allgather(local_elements, recvcounts)
 
-                phi.shape = shape
-                utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
+            total_files = self._n_freq * self._n_modes_save
 
-            if self._savefreq_disk2:
-                rank = comm.rank
-                target_proc = f % comm.size
+            for ipass in range(0,math.ceil(total_files/comm.size)):
+                write_s = ipass * comm.size
+                write_e = min((ipass+1) * comm.size, total_files)
+                write = None
+                data = np.zeros(phi0_max*comm.size, dtype=phi_dtype)
+                s_msgs = {}
+                reqs_r = []
+                reqs_s = []
 
-                # get counts once
-                if f == 0:
-                    # FIXME: no padding branch is broken. also check the reader
-                    if False and (MPI.VERSION >= 4 or comm.size*phi0_max*phi.shape[1] < np.iinfo(np.int32).max):
-                        use_padding = False
+                if rank == 0:
+                    print(f"pass {ipass} write_s: {write_s}, write_e: {write_e}")
 
-                    # get max phi shape
-                    phi0_max = comm.allreduce(phi.shape[0], op=MPI.MAX)
-                    mpi_dtype = ftype.Create_contiguous(phi0_max*phi.shape[1]).Commit()
+                for i in range(write_s, write_e):
+                    f = i // self._n_modes_save
+                    m = i % self._n_modes_save
+                    writer = i % comm.size
 
-                    local_elements = np.prod(phi.shape)
-                    recvcounts = np.zeros(comm.size, dtype=np.int64)
-                    comm.Allgather(local_elements, recvcounts)
+                    if rank == 0:
+                        print(f"\ti: {i}, f: {f}, m: {m} {writer = :}")
 
-                if not use_padding:
-                    # utils_par.pr0(f'\t\t Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
-                    if rank == target_proc:
-                        data = np.zeros(np.sum(recvcounts), dtype=phi.dtype)
-                        saved_freq = f
+                    s_msgs[i] = [np.zeros(phi0_max, dtype=phi_dtype), mpi_dtype]
+                    s_msgs[i][0][0:phi[f].shape[0]] = phi[f][:,m] # phi0_max-shaped and 0-padded
+                    reqs_s.append(comm.Isend(s_msgs[i], dest=writer))
+                    for fidx in range(0,f):
+                        if fidx in phi:
+                            del phi[fidx]
 
-                    s_msgs[f] = [phi.copy(), ftype]
-                    r_msg = [data, (recvcounts, None), ftype] if rank == target_proc else None
-
-                    req = comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
-                    reqs.append(req)
-
-                else:
-                    # utils_par.pr0(f'\t\t Using Igather with a custom datatype (MPI-4 not available and number of elements >= INT32_MAX)', comm)
-                    if rank == target_proc:
-                        data = np.zeros(phi0_max*phi.shape[1]*comm.size, dtype=phi.dtype)
-                        saved_freq = f
-
-                    s_msgs[f] = [np.zeros((phi0_max,phi.shape[1]), dtype=phi.dtype), mpi_dtype]
-                    s_msgs[f][0][0:phi.shape[0],:] = phi[:,:] # phi0_max-shaped and 0-padded
-                    # r_msg = [data, (np.array([1]*comm.size), None), mpi_dtype] if rank == target_proc else None
-
-                    # req = comm.Igatherv(sendbuf=s_msgs[f], recvbuf=r_msg, root=target_proc)
-                    # reqs.append(req)
-
-                    if rank == target_proc:
+                    if rank == writer:
+                        write = (f,m)
                         for irank in range(comm.size):
-                            reqs_r.append(comm.Irecv([data[phi0_max*phi.shape[1]*irank:],mpi_dtype],source=irank))
-                    reqs_s.append(comm.Isend(s_msgs[f],dest=target_proc))
+                            reqs_r.append(comm.Irecv([data[phi0_max*irank:],mpi_dtype],source=irank))
 
-                if len(reqs_s) == comm.size or f == self._n_freq-1:
+                if write:
+                    f, m = write
                     xtime = time.time()
                     self._pr0(f'waiting for {len(reqs_r)} requests')
                     MPI.Request.Waitall(reqs_r)
                     self._pr0(f'  Waitall({len(reqs_r)}) {time.time()-xtime} seconds')
-                    comm.Barrier()
-                    self._pr0(f'--past the barrier')
-                    reqs_r = []
 
-                    MPI.Request.Waitall(reqs_s)
-                    reqs_s = []
-                    s_msgs = {}
+                    for proc in range(comm.size):
+                        start = proc*phi0_max
+                        end = start+recvcounts[proc]
+                        start_nopad = np.sum(recvcounts[:proc])
+                        end_nopad = np.sum(recvcounts[:proc+1])
+                        data[start_nopad:end_nopad,...] = data[start:end,...]
 
-                    xtime = time.time()
-                    if saved_freq != -1:
-                        if self._reader._flattened:
-                            pass
-                            # full_freq = np.zeros((np.prod(self._xshape),self._nv,self._n_modes_save),dtype=phi.dtype)
-                        else:
-                            full_freq = np.zeros(self._xshape+(self._nv,self._n_modes_save),dtype=phi.dtype)
+                    # write to disk
+                    data = data[:np.sum(recvcounts)].reshape(self._xshape+(self._nv,))
+                    filename = f'freq_idx_f{f:08d}_m{m:08d}.npy'
+                    print(f'rank {rank} saving {filename}')
+                    p_modes = os.path.join(self._modes_dir, filename)
+                    np.save(p_modes, data)
+                MPI.Request.Waitall(reqs_s)
 
-                        for proc in range(comm.size):
-                            if use_padding:
-                                start = proc*phi0_max*phi.shape[1]
-                                end = start+recvcounts[proc]
-                            else:
-                                start = np.sum(recvcounts[:proc])
-                                end = np.sum(recvcounts[:proc+1])
-
-                            if self._reader._flattened:
-                                idx_full_freq = [np.s_[:]] * 3
-                                xfrom = int(np.sum(recvcounts[:proc])/self._nv/self._n_modes_save)
-                                xto = int(np.sum(recvcounts[:proc+1])/self._nv/self._n_modes_save)
-                                idx_full_freq[0] = slice(xfrom, xto)
-                                # print(f'proc {proc} xfrom {xfrom} xto {xto} start {start} end {end} {full_freq.shape = :}')
-
-                                start_nopad = np.sum(recvcounts[:proc])
-                                end_nopad = np.sum(recvcounts[:proc+1])
-                                data[start_nopad:end_nopad,...] = data[start:end,...]
-
-                            else:
-                                x_prod_not_max = np.prod(self._xshape)
-                                x_prod_not_max /= self._xshape[self._max_axis]
-                                max_axis_from = int(start//(self._nv*self._n_modes_save*x_prod_not_max))
-                                max_axis_to   = int(end//(self._nv*self._n_modes_save*x_prod_not_max))
-
-                                idx_full_freq = [np.s_[:]] * (self._xdim + 2)
-                                idx_full_freq[self._max_axis] = slice(max_axis_from, max_axis_to)
-
-                                full_freq[tuple(idx_full_freq)] = np.reshape(data[start:end],full_freq[tuple(idx_full_freq)].shape)
-
-                        # write to disk
-                        if self._reader._flattened:
-                            full_freq = data[:np.sum(recvcounts)].reshape(self._xshape+(self._nv,)+(self._n_modes_save,))
-                        else:
-                            del data
-
-                        filename = f'freq_idx_{saved_freq:08d}.npy'
-                        print(f'rank {rank} saving {filename}')
-                        p_modes = os.path.join(self._modes_dir, filename)
-                        np.save(p_modes, full_freq)
-                        saved_freq = -1
-                        data = None
-
-
-                    # comm.Barrier()
-                    self._pr0(f'saving: {time.time() - xtime} s.')
-
-            self._pr0(
-                f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
-                f'Elapsed time: {(time.time() - s0):.5f} s.')
-            cum_sstime += time.time()-sstime
-
-        if self._savefreq_disk2:
             mpi_dtype.Free()
 
-        self._pr0(f'- Modes computation {cum_cctime} s. Saving: {cum_sstime} s.')
+            self._pr0(f'- Modes computation {cum_cctime} s. Saving: {time.time()-sstime} s.')
 
         ## correct Fourier for one-sided spectrum
         if self._isrealx:
