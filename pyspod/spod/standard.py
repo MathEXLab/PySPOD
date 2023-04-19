@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import math
+import psutil
 
 import numpy as np
 from numpy import linalg as la
@@ -263,14 +264,19 @@ class Standard(Base):
         ####################################
         ####################################
             rank = comm.rank
+            process = psutil.Process()
 
             ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
 
+            if rank == 0:
+                print(f"memory usage before calculating phi {process.memory_info().rss/1024/1024/1024}")
             phi = {}
             ctime0 = time.time()
             for f in range(0,self._n_freq):
                 s0 = time.time()
-                phi[f] = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])[:,0:self._n_modes_save]
+                val = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
+                phi[f] = val[:,0:self._n_modes_save].copy()
+                del val
 
                 if f == 0 and rank == 0:
                     print(f"xax1 allocating phi: {self._n_freq} x {phi[f].shape} {phi[f].dtype}")
@@ -282,7 +288,11 @@ class Standard(Base):
                     f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                     f'Elapsed time: {(time.time() - s0):.5f} s.')
 
+            del V
             del Q_hats
+            time.sleep(1)
+            if rank == 0:
+                print(f"memory usage after calculating phi {process.memory_info().rss/1024/1024/1024}")
             cum_cctime = time.time() - ctime0
 
             sstime = time.time()
@@ -308,12 +318,18 @@ class Standard(Base):
 
             total_files = self._n_freq * self._n_modes_save
 
-
+            if rank == 0:
+                print(f"memory usage before pass loop {process.memory_info().rss/1024/1024/1024}")
             for ipass in range(0,math.ceil(total_files/comm.size)):
                 write_s = ipass * comm.size
                 write_e = min((ipass+1) * comm.size, total_files)
                 write = None
+                if rank == 0:
+                    print(f"memory usage before ones loop {process.memory_info().rss/1024/1024/1024}")
+                    print(f"xax1 will allocate {phi0_max*comm.size} x {phi_dtype}")
                 data = np.ones(phi0_max*comm.size, dtype=phi_dtype)
+                if rank == 0:
+                    print(f"memory usage after ones loop {process.memory_info().rss/1024/1024/1024}")
                 if rank == 0:
                     print(f"xax1 allocating data for recv {data.shape} {phi_dtype}")
                 s_msgs = {}
@@ -366,8 +382,6 @@ class Standard(Base):
                     np.save(p_modes, data)
 
             mpi_dtype.Free()
-
-            print(f'xax3 phi dict {phi_dict}')
 
             self._pr0(f'- Modes computation {cum_cctime} s. Saving: {time.time()-sstime} s.')
 
