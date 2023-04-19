@@ -276,12 +276,13 @@ class Standard(Base):
                     print(f"xax1 allocating phi: {self._n_freq} x {phi[f].shape} {phi[f].dtype}")
                     print(f"xax1 deleting qhats: {self._n_freq} x {Q_hats[f].shape} {Q_hats[f].dtype}")
 
-                del Q_hats[f]
+                Q_hats[f] = None
 
                 self._pr0(
                     f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                     f'Elapsed time: {(time.time() - s0):.5f} s.')
 
+            del Q_hats
             cum_cctime = time.time() - ctime0
 
             sstime = time.time()
@@ -291,7 +292,8 @@ class Standard(Base):
             for f in range(0,self._n_freq):
                 phi_dict[f] = {}
                 for m in range(0,self._n_modes_save):
-                    phi_dict[f][m] = phi[f][:,m]
+                    phi_dict[f][m] = np.zeros(phi[f][:,m].shape[0], dtype=phi[f][m].dtype)
+                    phi_dict[f][m][:] = phi[f][:,m][:]
                 del phi[f]
             del phi
 
@@ -306,11 +308,12 @@ class Standard(Base):
 
             total_files = self._n_freq * self._n_modes_save
 
+
             for ipass in range(0,math.ceil(total_files/comm.size)):
                 write_s = ipass * comm.size
                 write_e = min((ipass+1) * comm.size, total_files)
                 write = None
-                data = np.zeros(phi0_max*comm.size, dtype=phi_dtype)
+                data = np.ones(phi0_max*comm.size, dtype=phi_dtype)
                 if rank == 0:
                     print(f"xax1 allocating data for recv {data.shape} {phi_dtype}")
                 s_msgs = {}
@@ -330,11 +333,8 @@ class Standard(Base):
 
                     s_msgs[i] = [np.zeros(phi0_max, dtype=phi_dtype), mpi_dtype]
                     s_msgs[i][0][0:phi_dict[f][m].shape[0]] = phi_dict[f][m][:] # phi0_max-shaped and 0-padded
-                    reqs_s.append(comm.Isend(s_msgs[i], dest=writer))
                     del phi_dict[f][m]
-                    # for fidx in range(0,f):
-                    #     if fidx in phi:
-                    #         del phi[fidx]
+                    reqs_s.append(comm.Isend(s_msgs[i], dest=writer))
 
                     if rank == writer:
                         write = (f,m)
