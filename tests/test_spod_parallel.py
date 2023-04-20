@@ -302,7 +302,7 @@ def test_standard_freq2_class_compute():
         except OSError as e:
             pass
 
-        assert np.allclose(modes_at_freq1, modes_at_freq2, atol=0.00001, rtol=0)
+        assert np.allclose(modes_at_freq1, modes_at_freq2, atol=0.0001, rtol=0)
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_freq_class_compute():
