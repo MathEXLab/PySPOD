@@ -251,32 +251,35 @@ def test_standard_inv():
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_freq2_class_compute():
-    ## -------------------------------------------------------------------
     try:
         from mpi4py import MPI
         comm = MPI.COMM_WORLD
     except:
         comm = None
-    data_file = os.path.join(CFD,'./data', 'fluidmechanics_data.mat')
-    data_dict = utils_io.read_data(data_file=data_file)
-    data = data_dict['p'].T
-    dt = data_dict['dt'][0,0]
-    nt = data.shape[0]
-    config_file = os.path.join(CFD, 'data', 'input_spod.yaml')
-    params = utils_io.read_config(config_file)
-    params['time_step'   ] = dt
-    params['mean_type'   ] = 'longtime'
-    params['n_modes_save'] = 40
-    params['overlap'     ] = 50
-    params['fullspectrum'] = True
 
-    # reference - savefreq_disk
-    params['savefreq_disk'] = True
-    params['savefreq_disk2'] = False
+    data_file = os.path.join(CFD, './data/', 'era_interim_data.nc')
+    ds = utils_io.read_data(data_file=data_file)
+
+    nt = len(np.array(ds['time']))
+    x1 = np.array(ds['longitude']) - 180
+    x2 = np.array(ds['latitude'])
+    data = ds['tp']
+
+    ## params
+    config_file = os.path.join(CFD, 'data', 'input_tutorial2.yaml')
+    params = utils_io.read_config(config_file)
+
+    weights = utils_weights.geo_trapz_2D(
+        x1_dim=x2.shape[0], x2_dim=x1.shape[0],
+        n_vars=params['n_variables'])
     ## -------------------------------------------------------------------
-    SPOD_analysis = spod_standard(params=params, comm=comm)
-    spod = SPOD_analysis.fit(data_list=data)
-    T_ = 12.5
+
+    ## one-stage reader with the old freq writer
+    params['savefreq_disk']  = True
+    params['savefreq_disk2'] = False
+    standard = spod_standard(params=params, weights=weights, comm=comm)
+    spod = standard.fit(data_list=data)
+    T_ = 960
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
         modes_at_freq1 = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -284,14 +287,13 @@ def test_standard_freq2_class_compute():
             shutil.rmtree(os.path.join(CWD, params['savedir']))
         except OSError as e:
             pass
-    ## -------------------------------------------------------------------
-    # test 2-stage frequency saving
+
+    ## two-stage reader with flattened data reader and the new freq/mode writer
     params['savefreq_disk'] = False
     params['savefreq_disk2'] = True
-    ## -------------------------------------------------------------------
-    SPOD_analysis = spod_standard(params=params, comm=comm)
-    spod = SPOD_analysis.fit(data_list=data)
-    T_ = 12.5
+    standard = spod_standard(params=params, weights=weights, comm=comm)
+    spod = standard.fit(data_list=[data_file],variables=['tp'])
+    T_ = 960
     f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
     if comm.rank == 0:
         modes_at_freq2 = spod.get_modes_at_freq(freq_idx=f_idx)
@@ -299,9 +301,8 @@ def test_standard_freq2_class_compute():
             shutil.rmtree(os.path.join(CWD, params['savedir']))
         except OSError as e:
             pass
-    ## -------------------------------------------------------------------
-    if comm.rank == 0:
-        assert np.array_equal(modes_at_freq1, modes_at_freq2)
+
+        assert np.allclose(modes_at_freq1, modes_at_freq2, atol=0.00001, rtol=0)
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_freq_class_compute():

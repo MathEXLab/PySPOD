@@ -258,6 +258,7 @@ class Standard(Base):
         ####################################
         ####################################
         ####################################
+            assert self._reader._flattened, "savefreq_disk2 currently only works with flattened data"
             rank = comm.rank
             ftype = MPI.C_FLOAT_COMPLEX if self._complex==np.complex64 else MPI.C_DOUBLE_COMPLEX
 
@@ -332,11 +333,11 @@ class Standard(Base):
                     MPI.Request.Waitall(reqs_r)
                     self._pr0(f'  Waitall({len(reqs_r)}) {time.time()-xtime} seconds')
 
-                    for proc in range(comm.size):
-                        start = proc*phi0_max
-                        end = start+recvcounts[proc]
-                        start_nopad = np.sum(recvcounts[:proc])
-                        end_nopad = np.sum(recvcounts[:proc+1])
+                    for irank in range(comm.size):
+                        start = irank*phi0_max
+                        end = start+recvcounts[irank]
+                        start_nopad = np.sum(recvcounts[:irank])
+                        end_nopad = np.sum(recvcounts[:irank+1])
                         data[start_nopad:end_nopad,...] = data[start:end,...]
 
                     # write to disk

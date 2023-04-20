@@ -3,6 +3,7 @@
 # import standard python packages
 import os
 import shutil
+import glob
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -93,12 +94,26 @@ def get_modes_at_freq(results_path, freq_idx):
     :rtype: numpy.ndarray
     '''
     # load modes from files if saved in storage
-    if isinstance(results_path, str):
-        tmp_str = f'freq_idx_{freq_idx:08d}.npy'
-        filename = os.path.join(results_path, 'modes', tmp_str)
+    if not isinstance(results_path, str):
+        raise TypeError('Modes must be a string to modes.npy')
+
+    tmp_str = f'freq_idx_{freq_idx:08d}.npy'
+    filename = os.path.join(results_path, 'modes', tmp_str)
+    if os.path.exists(filename):
         m = get_data_from_file(filename)
     else:
-        raise TypeError('Modes must be a string to modes.npy')
+        tmp_str = f'freq_idx_f{freq_idx:08d}_m*.npy'
+        filename = os.path.join(results_path, 'modes', tmp_str)
+        modes = sorted(glob.glob(os.path.join(filename)))
+        nmodes = len(modes)
+
+        if nmodes > 0:
+            m = None
+            for idx, imode in enumerate(modes):
+                mode = np.load(imode)
+                if idx == 0:
+                    m = np.zeros((mode.shape)+(nmodes,), dtype=mode.dtype)
+                m[...,idx] = mode
     return m
 
 

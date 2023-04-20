@@ -480,6 +480,7 @@ class reader_2stage():
 
 ########################################################################################
 # MATLAB reader
+# Currently only one file per time step, 3d data only
 ########################################################################################
 class reader_mat():
     def __init__(self, data_list, xdim, dtype, comm, nv):
