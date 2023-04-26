@@ -371,11 +371,12 @@ class Standard(Base):
             Q_blk = np.empty((self._n_dft,)+last_val.shape[1:],dtype=last_val.dtype)
 
             cnt = 0
+            bstart = start
             for k,v in self.data.items():
                 v_s = v["s"]
                 v_e = v["e"]
 
-                read_here_s = max(v_s, start)
+                read_here_s = max(v_s, bstart)
                 read_here_e = min(v_e, end)
                 read_here_cnt = read_here_e - read_here_s
 
@@ -385,7 +386,9 @@ class Standard(Base):
                     vals = v["v"]
                     Q_blk[cnt:cnt+read_here_cnt,...] = vals[read_here_s-v_s:read_here_e-v_s,...]
                     cnt += read_here_cnt
-                    start += read_here_cnt
+                    bstart += read_here_cnt
+
+            assert cnt == end-start, f'Not enough data read: cnt {cnt} != end-start {end-start}'
 
             # delete blocks that are no longer needed
             keys_to_del = []
