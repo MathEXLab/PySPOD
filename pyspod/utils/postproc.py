@@ -406,6 +406,9 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
 
         for mode_id in modes_idx:
 
+            if mode_id >= modes.shape[-1]:
+                continue
+
             ## initialize figure
             fig = plt.figure(
                 figsize=figsize, frameon=True, constrained_layout=False)
