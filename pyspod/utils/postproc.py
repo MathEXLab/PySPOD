@@ -339,7 +339,8 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
     limits_x1=(None,), limits_x2=(None,), fftshift=False,
     imaginary=False, plot_max=False, coastlines='', title='',
     xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
-    equal_axes=False, path='CWD', filename=None, origin=None, modes=None, pdf=None):
+    equal_axes=False, path='CWD', filename=None, origin=None, modes=None,
+    pdf=None, shift180=False):
     '''
     Plot SPOD modes for 2D problems at a given frequency `freq_req`.
 
@@ -401,6 +402,9 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
     x1 = x1[limits_x1]
     x2 = x2[limits_x2]
 
+    if shift180:
+        x1 -= 180
+
     ## loop over variables and modes
     for var_id in vars_idx:
 
@@ -416,6 +420,9 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
 
             ## extract mode
             mode = np.squeeze(modes[:,:,var_id,mode_id])
+
+            if shift180:
+                mode = np.hstack((mode[:,mode.shape[1]//2:], mode[:,:mode.shape[1]//2]))
 
             ## check dimensions
             if mode.ndim != 2:
@@ -520,6 +527,8 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
                 basename, ext = splitext(filename)
                 tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
             _save_show_plots(tmp_name, path, plt, pdf=pdf)
+    if shift180:
+        x1 += 180
 
 # def plot_2d_mode_slice_vs_time(results_path, freq_req, freq,
 #     vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,

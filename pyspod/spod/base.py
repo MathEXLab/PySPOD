@@ -893,7 +893,8 @@ class Base():
     def plot_2d_modes_at_frequency(self, freq_req, freq, vars_idx=[0],
         modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
         plot_max=False, coastlines='', title='', xticks=None, yticks=None,
-        figsize=(12,8), equal_axes=False, filename=None, origin=None, pdf=None):
+        figsize=(12,8), equal_axes=False, filename=None, origin=None, pdf=None,
+        shift180=False):
         '''
         See method implementation in the postproc module.
         '''
@@ -908,7 +909,7 @@ class Base():
                 fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
                 coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
                 figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
-                filename=filename, modes=modes, pdf=pdf)
+                filename=filename, modes=modes, pdf=pdf, shift180=shift180)
 
 
     def plot_2d_mode_slice_vs_time(self, freq_req, freq, vars_idx=[0],
@@ -981,7 +982,7 @@ class Base():
             vars_idx=vars_idx, title=title, figsize=figsize,
             path=self.savedir_sim, filename=filename)
 
-    def plot_report(self, x1, x2, topN=5, unit='hours', path='CWD', filename=None):
+    def plot_report(self, x1, x2, topN=5, unit='hours', path='CWD', filename=None, shift180=False):
         if path == 'CWD': path = os.getcwd()
 
         def find_peaks(vals,freq,nbr=5):
@@ -1068,7 +1069,8 @@ class Base():
                         coastlines='regular',
                         modes_idx=[mode],
                         vars_idx=[0],
-                        pdf=pdf)
+                        pdf=pdf,
+                        shift180=True)
 
     # --------------------------------------------------------------------------
 
