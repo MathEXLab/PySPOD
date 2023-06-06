@@ -250,6 +250,61 @@ def test_standard_inv():
             pass
 
 @pytest.mark.mpi(minsize=2, maxsize=3)
+def test_standard_freq2_class_compute():
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
+
+    data_file = os.path.join(CFD, './data/', 'era_interim_data.nc')
+    ds = utils_io.read_data(data_file=data_file)
+
+    nt = len(np.array(ds['time']))
+    x1 = np.array(ds['longitude']) - 180
+    x2 = np.array(ds['latitude'])
+    data = ds['tp']
+
+    ## params
+    config_file = os.path.join(CFD, 'data', 'input_tutorial2.yaml')
+    params = utils_io.read_config(config_file)
+
+    weights = utils_weights.geo_trapz_2D(
+        x1_dim=x2.shape[0], x2_dim=x1.shape[0],
+        n_vars=params['n_variables'])
+    ## -------------------------------------------------------------------
+
+    ## one-stage reader with the old freq writer
+    params['savefreq_disk']  = True
+    params['savefreq_disk2'] = False
+    standard = spod_standard(params=params, weights=weights, comm=comm)
+    spod = standard.fit(data_list=data)
+    T_ = 960
+    f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
+    if comm.rank == 0:
+        modes_at_freq1 = spod.get_modes_at_freq(freq_idx=f_idx)
+        try:
+            shutil.rmtree(os.path.join(CWD, params['savedir']))
+        except OSError as e:
+            pass
+
+    ## two-stage reader with flattened data reader and the new freq/mode writer
+    params['savefreq_disk'] = False
+    params['savefreq_disk2'] = True
+    standard = spod_standard(params=params, weights=weights, comm=comm)
+    spod = standard.fit(data_list=[data_file],variables=['tp'])
+    T_ = 960
+    f_, f_idx = spod.find_nearest_freq(freq_req=1/T_, freq=spod.freq)
+    if comm.rank == 0:
+        modes_at_freq2 = spod.get_modes_at_freq(freq_idx=f_idx)
+        try:
+            shutil.rmtree(os.path.join(CWD, params['savedir']))
+        except OSError as e:
+            pass
+
+        assert np.allclose(modes_at_freq1, modes_at_freq2, atol=0.0001, rtol=0)
+
+@pytest.mark.mpi(minsize=2, maxsize=3)
 def test_standard_freq_class_compute():
     ## -------------------------------------------------------------------
     try:
@@ -717,6 +772,7 @@ if __name__ == "__main__":
     test_standard_svd()
     test_standard_inv()
     test_standard_freq_class_compute()
+    test_standard_freq2_class_compute()
     test_standard_freq_utils_compute()
     test_standard_normalize()
     test_streaming_fullspectrum()

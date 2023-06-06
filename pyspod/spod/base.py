@@ -23,6 +23,17 @@ import pyspod.utils.parallel as utils_par
 import pyspod.utils.io       as utils_io
 import pyspod.utils.weights  as utils_weights
 import pyspod.utils.postproc as post
+from pyspod.utils.reader import reader_1stage as utils_reader_1stage
+from pyspod.utils.reader import reader_2stage as utils_reader_2stage
+from pyspod.utils.reader import reader_mat as utils_reader_mat
+
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+
+try:
+    from mpi4py import MPI
+except:
+    pass
 
 # Current file path
 CWD = os.getcwd()
@@ -53,6 +64,9 @@ class Base():
         self._reuse_blocks = params.get('reuse_blocks', False)
         # save fft block if required
         self._savefft = params.get('savefft', False)
+        # save frequencies to disk if required
+        self._savefreq_disk = params.get('savefreq_disk', True)
+        self._savefreq_disk2 = params.get('savefreq_disk2', False)
         # consider all frequencies; if false single-sided spectrum considered
         self._fullspectrum = params.get('fullspectrum', False)
         # normalize weights if required
@@ -97,11 +111,16 @@ class Base():
         else:
             raise TypeError('n_dft must be an integer.')
 
-        # define block overlapå
+        # define block overlap
         self._n_overlap = int(np.ceil(self._n_dft * self._overlap / 100))
         if self._n_overlap > self._n_dft - 1:
             raise ValueError('Overlap is too large.')
 
+        if self._savefreq_disk2:
+            assert self._comm is not None, 'savefreq_disk2 only makes sense for parallel runs'
+
+        if self._savefreq_disk:
+            assert self._savefreq_disk2 == False, 'savefreq_disk2 and savefreq_disk cannot be both True'
 
 
     # basic getters
@@ -357,74 +376,79 @@ class Base():
         return self._weights
 
     # --------------------------------------------------------------------------
-
-
-
     # common methods
     # --------------------------------------------------------------------------
-    def _initialize(self, data_list):
+    def _initialize(self, data_list, variables = None, streaming = False):
 
         self._pr0(f' ')
         self._pr0(f'Initialize data')
         self._pr0(f'------------------------------------')
 
-        ## extract first element of data list
-        data = data_list[0]
+        if isinstance(data_list[0], str) and data_list[0].endswith('.nc'):
+            self._reader = utils_reader_2stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
+        elif isinstance(data_list[0], str) and data_list[0].endswith('.mat'):
+            self._reader = utils_reader_mat(data_list, self._xdim, self._float, self._comm, self._nv)
+        else:
+            self._reader = utils_reader_1stage(data_list, self._xdim, self._float, self._comm, self._nv, variables)
+
+        if self._reader._flattened:
+            assert self._savefreq_disk == False, 'savefreq_disk cannot be used with flattened data. Use savefreq_disk2 instead.'
+
+        if streaming:
+            self._pr0(f'- using the streaming reader')
 
         self._pr0(f'- reading first time snapshot for data dimensions')
-        if not isinstance(data[[0],...], np.ndarray):
-            x_tmp = data[[0],...].values
-        else:
-            x_tmp = data[[0],...]
-        ## correct last dimension for single variable data
-        if self._nv == 1 and (x_tmp.ndim != self._xdim + 2):
-            x_tmp = x_tmp[...,np.newaxis]
 
         ## get data dimensions and store in class
         self._pr0('- getting data dimensions')
-        self._nx     = x_tmp[0,...,0].size
-        self._dim    = x_tmp.ndim
-        self._shape  = x_tmp.shape
-        self._xdim   = x_tmp[0,...,0].ndim
-        self._xshape = x_tmp[0,...,0].shape
+        self._nx     = self._reader.nx
+        self._dim    = self._reader.dim
+        self._shape  = self._reader.shape
+        self._xdim   = self._reader.xdim
+        self._xshape = self._reader.xshape
+        self._nt     = self._reader.nt
 
-        self._nt = 0
-        for d in data_list:
-            assert d.shape[1:1+self._xdim] == self._xshape, print (d.shape[1:1+self._xdim], self._xshape)
-            self._nt += d.shape[0]
+        self._pr0(f'nx: {self._nx}')
+        self._pr0(f'dim: {self._dim}')
+        self._pr0(f'shape: {self._shape}')
+        self._pr0(f'xdim: {self._xdim}')
+        self._pr0(f'xshape: {self._xshape}')
+        self._pr0(f'nt: {self._nt}')
 
         ## Determine whether data is real-valued or complex-valued
         ## to decide on one- or two-sided spectrum from data
-        self._isrealx = np.isreal(data[0]).all()
+        self._isrealx = self._reader.is_real
 
         # define number of blocks
         num = self._nt    - self._n_overlap
         den = self._n_dft - self._n_overlap
-        self._n_blocks = int(np.floor(num / den))
+        self._n_blocks = num // den
 
         ## define and check weights
         self.define_weights()
 
+        ## flatten weights
+        if self._reader._flattened:
+            self._weights = self._weights.reshape(-1, self._nv)
+
         ## distribute data and weights
-        self._pr0(f'- distributing data (if parallel)')
-        tmp_nt = 0
-        data = np.empty(0)
-        for i, d in enumerate(data_list):
-            d, self._max_axis, self._global_shape = \
-                utils_par.distribute_data(data=d, comm=self._comm)
-            if i == 0:
-                data = np.zeros((self._nt,) + d.shape[1:], dtype=self._float)
-            data[tmp_nt:tmp_nt+d.shape[0],...] = d
-            tmp_nt += d.shape[0]
+        if not streaming:
+            self.data = self._reader.get_data()
+
+        if streaming:
+            self.data = self._reader.get_data(0)
+
+        if self._reader._flattened:
+            self._local_shape = self._reader._local_shape
+        self._max_axis = self._reader.max_axis
         self._weights = utils_par.distribute_dimension(\
             data=self._weights, max_axis=self._max_axis, comm=self._comm)
 
         ## get data and add axis for single variable
-        st = time.time()
-        if not isinstance(data,np.ndarray): data = data.values
-        if (self._nv == 1) and (data.ndim != self._xdim + 2):
-            data = data[...,np.newaxis]
-        self._pr0(f'- loaded data into memory: {time.time() - st} s.')
+        if not streaming:
+            st = time.time()
+            if not isinstance(self.data,np.ndarray) and not isinstance(self.data,dict): self.data = self.data.values
+            self._pr0(f'- loaded data into memory: {time.time() - st} s.')
         st = time.time()
 
         # test feasibility
@@ -432,21 +456,27 @@ class Base():
             raise ValueError('Spectral estimation parameters not meaningful.')
 
         # apply mean
-        self.select_mean(data)
+        self.select_mean(self.data)
         self._pr0(f'- computed mean: {time.time() - st} s.')
         st = time.time()
 
-        ## normalize weigths if required
+        ## normalize weights if required
         if self._normalize_weights:
             self._pr0('- normalizing weights')
             self._weights = utils_weights.apply_normalization(
-                data=data, weights=self._weights,
+                data=self.data, weights=self._weights,
                 n_vars=self._nv, comm=self._comm, method='variance')
 
         ## flatten weights to number of space x variables points
         try:
-            self._weights = np.reshape(
-                self._weights, [data[0,...].size,1])
+            if isinstance(self.data,dict):
+                last_key = list(self.data)[-1]
+                last_val = self.data[last_key]["v"]
+                xvsize = last_val[0,...].size
+            else:
+                xvsize = self.data[0,...].size
+
+            self._weights = np.reshape(self._weights, [xvsize,1])
         except:
             raise ValueError(
                 'parameter ``weights`` must be cast into '
@@ -495,13 +525,16 @@ class Base():
                 if not os.path.exists(self._blocks_folder):
                     os.makedirs(self._blocks_folder)
 
-        # compute approx problem size
-        self._pb_size_f = self._size*data.size * self._float(1).nbytes * B2GB
-        self._pb_size_c = self._size*data.size * self._complex(1).nbytes * B2GB
-        data = self._set_dtype(data)
-        self._data = data
+        # compute min/max/total problem size
+        pb_size_min_max_total = self.get_sizes()
+        self._pb_size_f = (pb_size_min_max_total[0] * self._float(1).nbytes * B2GB,
+                           pb_size_min_max_total[1] * self._float(1).nbytes * B2GB,
+                           pb_size_min_max_total[2] * self._float(1).nbytes * B2GB)
+
+        self._pb_size_c = (pb_size_min_max_total[0] * self._complex(1).nbytes * B2GB,
+                           pb_size_min_max_total[1] * self._complex(1).nbytes * B2GB,
+                           pb_size_min_max_total[2] * self._complex(1).nbytes * B2GB)
         utils_par.barrier(self._comm)
-        del data
 
         # print parameters to the screen
         self._print_parameters()
@@ -516,8 +549,8 @@ class Base():
             self._weights_name = self._weights_tmp['weights_name']
             if np.size(self._weights) != int(self.nx * self.nv):
                 raise ValueError(
-                    'parameter ``weights`` must have the '
-                    'same size as flattened data spatial '
+                    'parameter ``weights``', np.size(self._weights),
+                    'must have the same size as flattened data spatial '
                     'dimensions, that is: ', int(self.nx * self.nv))
         else:
             self._weights = np.ones(self._xshape+(self._nv,))
@@ -533,31 +566,41 @@ class Base():
         self._mean_type = self._mean_type.lower()
         self._lt_mean = self.long_t_mean(data)
         if self._mean_type   == 'longtime' : self._t_mean = self._lt_mean
-        elif self._mean_type == 'blockwise': self._t_mean = 0
-        elif self._mean_type == 'zero'     : self._t_mean = 0
+        elif self._mean_type == 'blockwise': self._t_mean = 0.0
+        elif self._mean_type == 'zero'     : self._t_mean = 0.0
         else:
             ## mean_type not recognized
             raise ValueError(self._mean_type, 'not recognized.')
         ## trigger warning if mean_type is zero
-        if (self._mean_type == 'zero') and (self._rank == 0):
+        if self._mean_type == 'zero' and self._rank == 0:
             warnings.warn('No mean subtracted. Consider using longtime mean.')
 
 
     def long_t_mean(self, data):
         '''Get longtime mean.'''
-        split_block = self.nt // self._n_blocks
-        split_res = self.nt % self._n_blocks
-        shape_s_v = data[0,...].shape
-        shape_sxv = data[0,...].size
-        t_sum = np.zeros(data[0,...].shape)
-        for i_blk in range(0, self._n_blocks):
-            lb = i_blk * split_block
-            ub = lb + split_block
-            d = data[lb:ub,...,:]
-            t_sum += np.sum(d, axis=0)
-        if split_res > 0:
-            d = data[self.nt-split_res:self.nt,...,:]
-            t_sum += np.sum(d, axis=0)
+        if isinstance(data, dict):
+            last_key = list(self.data)[-1]
+            last_val = data[last_key]["v"]
+
+            shape_sxv = last_val[0,...].size
+            t_sum = np.zeros(last_val[0,...].shape)
+
+            for k,v in data.items():
+                val = v["v"]
+                t_sum += np.sum(val, axis=0)
+        else:
+            split_block = self.nt // self._n_blocks
+            split_res = self.nt % self._n_blocks
+            shape_sxv = data[0,...].size
+            t_sum = np.zeros(data[0,...].shape)
+            for i_blk in range(0, self._n_blocks):
+                lb = i_blk * split_block
+                ub = lb + split_block
+                d = data[lb:ub,...,:]
+                t_sum += np.sum(d, axis=0)
+            if split_res > 0:
+                d = data[self.nt-split_res:self.nt,...,:]
+                t_sum += np.sum(d, axis=0)
         t_mean = t_sum / self.nt
         t_mean = np.reshape(t_mean, shape_sxv)
         t_mean = self._set_dtype(t_mean)
@@ -569,15 +612,12 @@ class Base():
         self._freq = (np.arange(0, self._n_dft, 1) / self._dt) / self._n_dft
         if not self._fullspectrum:
             if self._isrealx:
-                self._freq = np.arange(
-                    0, np.ceil(self._n_dft/2)+1, 1) / self._n_dft / self._dt
+                self._freq = np.arange(0, self._n_dft//2+1, 1) / self._n_dft / self._dt
             else:
                 if (self._n_dft % 2 == 0):
-                    self._freq[int(self._n_dft/2)+1:] = \
-                    self._freq[int(self._n_dft/2)+1:] - 1 / self._dt
+                    self._freq[self._n_dft//2+1:] = self._freq[self._n_dft//2+1:] - 1 / self._dt
                 else:
-                    self._freq[(n_dft+1)/2+1:] = \
-                    self._freq[(self._n_dft+1)/2+1:] - 1 / self._dt
+                    self._freq[(self._n_dft+1)//2+1:] = self._freq[(self._n_dft+1)//2+1:] - 1 / self._dt
         self._n_freq = len(self._freq)
 
 
@@ -623,8 +663,11 @@ class Base():
         path_params = os.path.join(self._savedir_sim, 'params_modes.yaml')
         path_eigs  = os.path.join(self._savedir_sim, 'eigs_freq')
         ## save weights
-        shape = [*self._xshape,self._nv]
-        if self._comm: shape[self._max_axis] = -1
+        if self._reader._flattened:
+            shape = [self._local_shape,self._nv]
+        else:
+            shape = [*self._xshape,self._nv]
+            if self._comm: shape[self._max_axis] = -1
         self._weights.shape = shape
         self._lt_mean.shape = shape
         md = self._max_axis
@@ -667,8 +710,8 @@ class Base():
         '''Display parameter summary.'''
         self._pr0(f'SPOD parameters')
         self._pr0(f'------------------------------------')
-        self._pr0(f'Problem size (real)      : {self._pb_size_f} GB.')
-        self._pr0(f'Problem size (complex)   : {self._pb_size_c} GB.')
+        self._pr0(f'Problem size (real)      : {self._pb_size_f[2]:.2f} GB (min {self._pb_size_f[0]:.2f} GB/proc, max {self._pb_size_f[1]:.2f} GB/proc)')
+        self._pr0(f'Problem size (complex)   : {self._pb_size_c[2]:.2f} GB (min {self._pb_size_c[0]:.2f} GB/proc, max {self._pb_size_c[1]:.2f} GB/proc)')
         self._pr0(f'Data type for real       : {self._float}')
         self._pr0(f'Data type for complex    : {self._complex}')
         self._pr0(f'No. snapshots per block  : {self._n_dft}')
@@ -689,12 +732,32 @@ class Base():
         self._pr0(f'Results to be saved in   : {self._savedir}')
         self._pr0(f'Save FFT blocks          : {self._savefft}')
         self._pr0(f'Reuse FFT blocks         : {self._reuse_blocks}')
-        if self._isrealx and (not self._fullspectrum):
+
+        if self._isrealx and not self._fullspectrum:
             self._pr0(f'Spectrum type: one-sided (real-valued signal)')
+        elif not self._isrealx and self._fullspectrum:
+            self._pr0(f'Spectrum type: full (complex-valued signal)')
         else:
-            self._pr0(f'Spectrum type: two-sided (complex-valued signal)')
+            self._pr0(f'*WARNING* Using full spectrum with real-valued signal or one-sided spectrum with complex-valued signal')
+
         self._pr0(f'------------------------------------')
         self._pr0(f'')
+
+    def get_sizes(self):
+        if self._comm is None:
+            return self.data.size, self.data.size, self.data.size
+        else:
+            total_data_size = 0
+            if isinstance(self.data, dict):
+                for _,v in self.data.items():
+                    total_data_size += v['v'].size
+            else:
+                total_data_size = self.data.size
+
+            min_size = self._comm.allreduce(total_data_size, op=MPI.MIN)
+            max_size = self._comm.allreduce(total_data_size, op=MPI.MAX)
+            tot_size = self._comm.allreduce(total_data_size, op=MPI.SUM)
+            return min_size, max_size, tot_size
 
     # --------------------------------------------------------------------------
 
@@ -730,10 +793,13 @@ class Base():
         '''
         See method implementation in the postproc module.
         '''
-        if self._modes_dir is None:
-            raise ValueError('Modes not found. Consider running fit()')
-        m = post.get_modes_at_freq(self._savedir_sim, freq_idx)
-        return m
+
+        if self._savefreq_disk or self._savefreq_disk2:
+            if self._modes_dir is None:
+                raise ValueError('Modes not found. Consider running fit()')
+
+            m = post.get_modes_at_freq(self._savedir_sim, freq_idx)
+            return m
 
 
     def get_data(self, data, t_0=None, t_end=None):
@@ -824,17 +890,20 @@ class Base():
     def plot_2d_modes_at_frequency(self, freq_req, freq, vars_idx=[0],
         modes_idx=[0], x1=None, x2=None, fftshift=False, imaginary=False,
         plot_max=False, coastlines='', title='', xticks=None, yticks=None,
-        figsize=(12,8), equal_axes=False, filename=None, origin=None):
+        figsize=(12,8), equal_axes=False, filename=None, origin=None, pdf=None,
+        shift180=False):
         '''
         See method implementation in the postproc module.
         '''
-        post.plot_2d_modes_at_frequency(
-            self.savedir_sim, freq_req=freq_req, freq=freq,
-            vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
-            fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
-            coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
-            figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
-            filename=filename)
+
+        if self._comm is None or self._comm.rank == 0:
+            post.plot_2d_modes_at_frequency(
+                self.savedir_sim, freq_req=freq_req, freq=freq,
+                vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
+                fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
+                coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
+                figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
+                filename=filename, modes=None, pdf=pdf, shift180=shift180)
 
 
     def plot_2d_mode_slice_vs_time(self, freq_req, freq, vars_idx=[0],
@@ -907,6 +976,96 @@ class Base():
             vars_idx=vars_idx, title=title, figsize=figsize,
             path=self.savedir_sim, filename=filename)
 
+    def plot_report(self, x1, x2, topN=5, unit='hours', path='CWD', filename=None, shift180=False):
+        if path == 'CWD': path = os.getcwd()
+
+        def find_peaks(vals,freq,nbr=5):
+            indices = []
+
+            for i in range(len(vals)):
+                val = vals[i]
+
+                xfrom = max(i-nbr,0)
+                xto = min(i+nbr,len(vals))
+
+                nbr_mean = np.mean(vals[xfrom:xto])
+
+                freq_val = freq[i]
+                freq_low = freq[i]*0.90
+                freq_high = freq[i]*1.1
+
+                freq_from = max(freq.searchsorted(freq_low, 'left') ,0)
+                freq_to = min(freq.searchsorted(freq_high, 'right') ,len(vals))
+
+                going_up = val > vals[i-1] if i>0 else True
+                going_down = val > vals[i+1] if i<len(vals)-1 else True
+
+                if val > 1.5*nbr_mean and going_up and going_down and val == np.max(vals[freq_from:freq_to]):
+                    indices.append(i)
+
+            return indices
+
+        with PdfPages(os.path.join(path,filename)) as pdf:
+            freq = self._freq[1:]
+            eigs = self._eigs[1:]
+
+            for mode in range(eigs.shape[1]):
+                vy = eigs[:,mode]
+
+                indices = find_peaks(vy,freq)
+
+                for x in indices:
+                    plt.figure(figsize=(12,8), frameon=True, constrained_layout=False)
+                    ax = plt.gca()
+
+                    with np.errstate(divide='ignore'):
+                        xx = freq # or 1/freq for period
+
+                    ratio = 1. / eigs.shape[1]
+                    for k in range(0,eigs.shape[1]):
+                        color = (ratio*k,ratio*k,ratio*k)
+                        if ratio*k >=0.95:
+                            color = (0.96,0.96, 0.96)
+                        ax.plot(xx, np.real(eigs[:,k]), '-', color=color, label='Eigenvalues')
+                    ax.set_xscale('log')
+                    ax.set_yscale('log')
+
+                    # TODO: there must be a better way to do this
+                    frequency = freq[x]
+                    period = 1/frequency
+                    newunit = unit
+
+                    if unit == 'hours':
+                        if period < 1:
+                            period *= 60
+                            newunit = 'minutes'
+                        elif period >= 24 and period < 24*30.437:
+                            period /= 24
+                            newunit = 'days'
+                        elif period >= 24*30.437 and period < 24*365.25:
+                            period /= 24*30.437
+                            newunit = 'months'
+                        elif period >= 24*365.25:
+                            period /= 24*365.25
+                            newunit = 'years'
+
+                    ax.set_title(f'Period {period:.2f} {newunit}, mode {mode}')
+                    ax.grid(True)
+
+                    ax.plot(freq[x],eigs[x][mode],marker='o',color='r')
+                    pdf.savefig()
+
+                    self.plot_2d_modes_at_frequency(
+                        freq_req=freq[x],
+                        freq=self._freq,
+                        x1=x1,
+                        x2=x2,
+                        coastlines='regular',
+                        modes_idx=[mode],
+                        vars_idx=[0],
+                        pdf=pdf,
+                        shift180=shift180)
+
     # --------------------------------------------------------------------------
 
 
@@ -928,3 +1087,4 @@ class Base():
             figsize=figsize, path=self.savedir_sim, filename=filename)
 
     # --------------------------------------------------------------------------
+

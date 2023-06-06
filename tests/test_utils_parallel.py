@@ -6,6 +6,7 @@ import shutil
 import pytest
 import numpy as np
 import xarray as xr
+from pyspod.utils.reader import reader_2stage as utils_reader_2stage
 
 # Current, parent and file paths
 CWD = os.getcwd()
@@ -173,13 +174,133 @@ def test_parallel_npy(axis=0, dtype="d", order='C'):
         except OSError as e:
             pass
 
+@pytest.mark.mpi(minsize=2, maxsize=2)
+def test_parallel_distribute_2phase():
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
+    ## ------------------------------------------------------------------------
+    data_file = os.path.join(CFD,'./data', 'earthquakes_data.nc')
+    ds        = xr.open_dataset(data_file)
+    da        = ds['slip_potency']
+    ## ------------------------------------------------------------------------
 
+    # reference 1 phase distribution
+    dataRef,    maxAxisRef,    globShapeRef    = utils_par.distribute_data(da, comm=comm)
+
+    # 2 phase distribution
+    xdim = 2
+    nv = 1
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 2, nblocks = 3)
+    data_dict = reader.get_data()
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+    output_shape = (dataRef.shape[0],) + (np.prod(dataRef.shape[1:]),)
+
+    data_np = np.zeros(output_shape)
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np[s:e,...] = v[:,...,0]
+
+    d1 = dataRef.to_numpy().flatten()
+    d2 = data_np.flatten()
+
+    all_d1_list = comm.gather(d1,root=0)
+    all_d2_list = comm.gather(d2,root=0)
+
+    if comm.rank == 0:
+        all_d1 = np.concatenate(all_d1_list, axis=0)
+        all_d2 = np.concatenate(all_d2_list, axis=0)
+        assert np.allclose(sorted(all_d1),sorted(all_d2),atol=0.0001,rtol=0)
+
+@pytest.mark.mpi(minsize=2, maxsize=2)
+def test_parallel_distribute_2phase_chunks():
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+    except:
+        comm = None
+    ## ------------------------------------------------------------------------
+    data_file = os.path.join(CFD,'./data', 'earthquakes_data.nc')
+    ds        = xr.open_dataset(data_file)
+    da        = ds['slip_potency']
+    ## ------------------------------------------------------------------------
+
+    # reference 1 phase distribution
+    dataRef,    maxAxisRef,    globShapeRef    = utils_par.distribute_data(da, comm=comm)
+
+    # 2 phase distribution
+    xdim = 2
+    nv = 1
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 2, nblocks = 3)
+    data_dict = reader.get_data()
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+
+    output_shape = (dataRef.shape[0],) + (np.prod(dataRef.shape[1:]),)
+
+    data_np = np.zeros(output_shape)
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np[s:e,...] = v[:,...,0]
+
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 6, nblocks = 3)
+    data_dict = reader.get_data()
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+
+    data_np2 = np.zeros(output_shape)
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np2[s:e,...] = v[:,...,0]
+
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 3, nblocks = 6)
+    data_dict = reader.get_data()
+    maxAxis = reader.max_axis
+    globShape = reader.xshape
+
+    data_np3 = np.zeros(output_shape)
+    for _,d in data_dict.items():
+        s = d["s"]
+        e = d["e"]
+        v = d["v"]
+        data_np3[s:e,...] = v[:,...,0]
+
+    d1 = dataRef.to_numpy().flatten()
+    d2 = data_np.flatten()
+    d3 = data_np2.flatten()
+    d4 = data_np3.flatten()
+
+    all_d1_list = comm.gather(d1,root=0)
+    all_d2_list = comm.gather(d2,root=0)
+    all_d3_list = comm.gather(d3,root=0)
+    all_d4_list = comm.gather(d4,root=0)
+
+    if comm.rank == 0:
+        all_d1 = np.concatenate(all_d1_list, axis=0)
+        all_d2 = np.concatenate(all_d2_list, axis=0)
+        all_d3 = np.concatenate(all_d3_list, axis=0)
+        all_d4 = np.concatenate(all_d4_list, axis=0)
+        assert np.allclose(sorted(all_d1),sorted(all_d2),atol=0.0001,rtol=0)
+        assert np.allclose(sorted(all_d2),sorted(all_d3),atol=0.0001,rtol=0)
+        assert np.allclose(sorted(all_d3),sorted(all_d4),atol=0.0001,rtol=0)
 
 if __name__ == "__main__":
     test_parallel_pvar()
     test_parallel_distribute()
     test_parallel_allreduce()
     test_parallel_pr0()
+    test_parallel_distribute_2phase()
+    test_parallel_distribute_2phase_chunks()
+
     for axis in range(3):
         for dtype in "iIqQfdFD":
             for order in "CF":

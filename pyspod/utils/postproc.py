@@ -3,9 +3,11 @@
 # import standard python packages
 import os
 import shutil
+import glob
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.font_manager
 from matplotlib import animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 mpl.rc('figure', max_open_warning = 0)
@@ -18,6 +20,18 @@ CF = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
 plot_support = os.path.join(CFD, '../', 'plotting_support')
 
+# ---------------------------------------------------------------------------
+
+# default fonts
+# ---------------------------------------------------------------------------
+
+def get_font():
+    available_fonts = [f.name for f in matplotlib.font_manager.fontManager.ttflist]
+    if 'Times New Roman' in available_fonts:
+        return 'Times New Roman'
+    if 'DejaVu Sans' in available_fonts:
+        return 'DejaVu Sans'
+    return available_fonts[0]
 
 # getters
 # ---------------------------------------------------------------------------
@@ -82,12 +96,26 @@ def get_modes_at_freq(results_path, freq_idx):
     :rtype: numpy.ndarray
     '''
     # load modes from files if saved in storage
-    if isinstance(results_path, str):
-        tmp_str = f'freq_idx_{freq_idx:08d}.npy'
-        filename = os.path.join(results_path, 'modes', tmp_str)
+    if not isinstance(results_path, str):
+        raise TypeError('Modes must be a string to modes.npy')
+
+    tmp_str = f'freq_idx_{freq_idx:08d}.npy'
+    filename = os.path.join(results_path, 'modes', tmp_str)
+    if os.path.exists(filename):
         m = get_data_from_file(filename)
     else:
-        raise TypeError('Modes must be a string to modes.npy')
+        tmp_str = f'freq_idx_f{freq_idx:08d}_m*.npy'
+        filename = os.path.join(results_path, 'modes', tmp_str)
+        modes = sorted(glob.glob(os.path.join(filename)))
+        nmodes = len(modes)
+
+        if nmodes > 0:
+            m = None
+            for idx, imode in enumerate(modes):
+                mode = np.load(imode)
+                if idx == 0:
+                    m = np.zeros((mode.shape)+(nmodes,), dtype=mode.dtype)
+                m[...,idx] = mode
     return m
 
 
@@ -200,7 +228,7 @@ def plot_eigs(eigs, title='', figsize=(12,8), show_axes=True,
 
 def plot_eigs_vs_frequency(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
-    equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+    equal_axes=False, figsize=(12,8), fontname=get_font(),
     fontsize=16, path='CWD', filename=None):
     '''
     Plot eigenvalues vs. frequency.
@@ -253,7 +281,7 @@ def plot_eigs_vs_frequency(
 
 def plot_eigs_vs_period(
     eigs, freq, title='', xticks=None, yticks=None, show_axes=True,
-    equal_axes=False, figsize=(12,8), fontname='Times New Roman',
+    equal_axes=False, figsize=(12,8), fontname=get_font(),
     fontsize=16, path='CWD', filename=None):
     '''
     Plot eigenvalues vs. period = 1 / freq.
@@ -313,7 +341,8 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
     limits_x1=(None,), limits_x2=(None,), fftshift=False,
     imaginary=False, plot_max=False, coastlines='', title='',
     xticks=None, yticks=None, cmap='coolwarm', figsize=(12,8),
-    equal_axes=False, path='CWD', filename=None, origin=None):
+    equal_axes=False, path='CWD', filename=None, origin=None, modes=None,
+    pdf=None, shift180=False):
     '''
     Plot SPOD modes for 2D problems at a given frequency `freq_req`.
 
@@ -358,7 +387,10 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
 
     # get modes at required frequency
     freq_val, freq_idx = find_nearest_freq(freq_req=freq_req, freq=freq)
-    modes = get_modes_at_freq(results_path=results_path, freq_idx=freq_idx)
+
+    # read modes from file, unless they have been passed
+    if modes is None:
+        modes = get_modes_at_freq(results_path=results_path, freq_idx=freq_idx)
 
     # if domain dimensions have not been passed, use data dimensions
     if x1 is None and x2 is None:
@@ -372,10 +404,16 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
     x1 = x1[limits_x1]
     x2 = x2[limits_x2]
 
+    if shift180:
+        x1 -= 180
+
     ## loop over variables and modes
     for var_id in vars_idx:
 
         for mode_id in modes_idx:
+
+            if mode_id >= modes.shape[-1]:
+                continue
 
             ## initialize figure
             fig = plt.figure(
@@ -384,6 +422,9 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
 
             ## extract mode
             mode = np.squeeze(modes[:,:,var_id,mode_id])
+
+            if shift180:
+                mode = np.hstack((mode[:,mode.shape[1]//2:], mode[:,:mode.shape[1]//2]))
 
             ## check dimensions
             if mode.ndim != 2:
@@ -487,7 +528,9 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
             if filename:
                 basename, ext = splitext(filename)
                 tmp_name = f'{basename}_var{var_id}_mode{mode_id}{ext}'
-            _save_show_plots(tmp_name, path, plt)
+            _save_show_plots(tmp_name, path, plt, pdf=pdf)
+    if shift180:
+        x1 += 180
 
 # def plot_2d_mode_slice_vs_time(results_path, freq_req, freq,
 #     vars_idx=[0], modes_idx=[0], x1=None, x2=None, max_each_mode=False,
@@ -1200,7 +1243,7 @@ def generate_2d_subplot(
     :param str filename: if specified, the plot is saved at `filename`.
         Default is None.
     '''
-    csfont = {'fontname':'Times New Roman'}
+    csfont = {'fontname':get_font()}
     multiplier = 10 ** N_round
     max_val = np.ceil (np.max(var1.real) * multiplier) / multiplier
     min_val = np.floor(np.min(var1.real) * multiplier) / multiplier
@@ -1441,9 +1484,11 @@ def _check_vars(vars_idx):
         raise TypeError('`vars_idx` must be a list or tuple')
     return vars_idx
 
-def _save_show_plots(filename, path, plt):
+def _save_show_plots(filename, path, plt, pdf = None):
     # save or show plots
-    if filename:
+    if pdf:
+        pdf.savefig()
+    elif filename:
         if path == 'CWD': path = CWD
         plt.savefig(os.path.join(path,filename), dpi=200)
         plt.close()

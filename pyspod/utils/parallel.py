@@ -132,7 +132,7 @@ def distribute_data(data, comm):
 def distribute_dimension(data, max_axis, comm):
     """
     Distribute desired spatial dimension, splitting partitions
-    by value // comm.size, with remaind = value % comm.size
+    by value // comm.size, with remainder = value % comm.size
     """
     ## distribute largest spatial dimension based on data
     if comm is not None:
@@ -155,7 +155,7 @@ def _blockdist(N, size, rank):
     q, r = divmod(N, size)
     n = q + (1 if r > rank else 0)
     s = rank * q + min(rank, r)
-    return (n, s)
+    return (n, s) if rank < size else (0, 0)
 
 
 def allreduce(data, comm):

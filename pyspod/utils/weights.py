@@ -108,7 +108,7 @@ def apply_normalization(
     :param int method: normalization method. Default is 'variance'.
     :param MPI.Comm comm: MPI communicator.
 
-    :return: the nomralized weights.
+    :return: the normalized weights.
     :rtype: numpy.ndarray
     '''
 
