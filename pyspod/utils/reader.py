@@ -27,6 +27,7 @@ class reader_1stage():
         self._nv = nv
         self._data = None
         self._flattened = False
+
         ## if user passes a single dataset, make it a list
         if not isinstance(data_list, list): data_list = [data_list]
         self._data_list = data_list
@@ -62,8 +63,6 @@ class reader_1stage():
         del data
 
     def get_data(self, ts = None):
-        # return self.old_get_data()
-
         if ts is None:
             return self.get_data_for_time(0, self.nt)
         else:
@@ -99,7 +98,6 @@ class reader_1stage():
 
                 d_idx = [np.s_[:]]*len(d.shape)
                 d_idx[0] = np.s_[read_js-cum_read:read_je-cum_read]
-                # print(f'{d_idx = :} and {d.shape = :}')
                 data[tuple(data_idx)] = d[tuple(d_idx)]
 
                 cum_read += read_je-read_js
@@ -159,15 +157,13 @@ class reader_1stage():
 # This reader is meant for reading data where time is the first dimension.
 #
 # In that case, files are first read based on time:
-#   each process has complete data for a limited time range.
+#   each process has complete spatial data for a limited time range.
 # In the second stage, the data is redistributed using MPI based on spatial dimensions:
-#   each process has complete data for a subset of the largest spatial dimension.
+#   each process has complete data for a subset of space.
 #
-# The resulting distribution should be identical to the one produced by distribute_data,
-#   but since the reads here are contiguous, it can be 15x faster for certain filesystems
 ########################################################################################
 class reader_2stage():
-    def __init__(self, data_list, xdim, dtype, comm, nv, variables, ndft = -1, nreaders = None, nchunks = 3, nblocks = 3):
+    def __init__(self, data_list, xdim, dtype, comm, nv, variables, nreaders = None, nchunks = 3, nblocks = 3):
         assert comm is not None, "2-stage reader requires MPI"
 
         st = time.time()
@@ -179,7 +175,6 @@ class reader_2stage():
         self._shape = None
         self._max_axes = None
         self._variables = variables
-        self._n_dft = ndft
         self._nreaders = min(nreaders,comm.size) if nreaders else comm.size
         self._nchunks = nchunks
         self._nblocks = nblocks
@@ -190,7 +185,6 @@ class reader_2stage():
         # check required (optional) arguments
         assert variables is not None, 'Variable(s) has to be provided for the 2-stage reader'
         assert isinstance(variables,list), 'Variable(s) has to be provided as a list'
-        assert ndft != -1, 'ndft has to be provided for the 2-stage reader'
 
         # data_list should be a list of filenames
         if comm.rank == 0:
@@ -418,12 +412,6 @@ class reader_2stage():
             return data_dict
         else:
             return self.get_data_for_time(ts, ts+1)
-
-    # TODO: how is overlap handled?
-    def read_block(self, iblk):
-        time_first = iblk*self._n_dft
-        time_last = min((iblk+1)*self._n_dft, self._shape[0])
-        return self.get_data_for_time(time_first, time_last)
 
     @property
     def nt(self):
@@ -719,11 +707,6 @@ class reader_mat():
             return data_dict
         else:
             return self.get_data_for_time(ts, ts+1)
-
-    def read_block(self, iblk):
-        time_first = iblk*self._n_dft
-        time_last = min((iblk+1)*self._n_dft, self._shape[0])
-        return self.get_data_for_time(time_first, time_last)
 
     @property
     def nt(self):
