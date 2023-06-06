@@ -193,7 +193,7 @@ def test_parallel_distribute_2phase():
     # 2 phase distribution
     xdim = 2
     nv = 1
-    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 2, nblocks = 3)
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 2, nblocks = 3)
     data_dict = reader.get_data()
     maxAxis = reader.max_axis
     globShape = reader.xshape
@@ -236,7 +236,7 @@ def test_parallel_distribute_2phase_chunks():
     # 2 phase distribution
     xdim = 2
     nv = 1
-    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 2, nblocks = 3)
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 2, nblocks = 3)
     data_dict = reader.get_data()
     maxAxis = reader.max_axis
     globShape = reader.xshape
@@ -250,7 +250,7 @@ def test_parallel_distribute_2phase_chunks():
         v = d["v"]
         data_np[s:e,...] = v[:,...,0]
 
-    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 6, nblocks = 3)
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 6, nblocks = 3)
     data_dict = reader.get_data()
     maxAxis = reader.max_axis
     globShape = reader.xshape
@@ -262,7 +262,7 @@ def test_parallel_distribute_2phase_chunks():
         v = d["v"]
         data_np2[s:e,...] = v[:,...,0]
 
-    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], ndft = 1, nchunks = 3, nblocks = 6)
+    reader = utils_reader_2stage([data_file], xdim, np.float32, comm, nv, ['slip_potency'], nchunks = 3, nblocks = 6)
     data_dict = reader.get_data()
     maxAxis = reader.max_axis
     globShape = reader.xshape
