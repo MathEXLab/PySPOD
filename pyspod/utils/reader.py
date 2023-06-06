@@ -228,7 +228,7 @@ class reader_2stage():
 
         self._nx = np.prod(self._shape[1:-1])
         self._dim = len(self._shape)
-        self._xdim = 1
+        self._xdim = self._dim-2
         self._xshape = self._shape[1:-1]
         self._local_shape = None
         utils_par.pr0(f'--- init finished in {time.time()-st:.2f} s', comm)
@@ -284,7 +284,7 @@ class reader_2stage():
 
         utils_par.pr0(f'\t\t I/O took {time.time()-stime} seconds', comm)
 
-        # redistribute the data using MPI (nprocs * gatherv) - gather all times for a spatial slice
+        # redistribute the data using MPI - gather all times for a spatial slice
         #
         # size of data to receive (only used by the root rank)
         # each process receives   n0: every other process's len(time)
@@ -301,7 +301,7 @@ class reader_2stage():
 
         # mpi4py with MPI >= 4 does not have the limitation of INT32_MAX elements
         if not use_padding:
-            utils_par.pr0(f'\t\t Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
+            utils_par.pr0(f'\t\t Using Irecv/Isend with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
 
             # Copy is needed to make the array contiguous
             ztime = time.time()
@@ -334,14 +334,14 @@ class reader_2stage():
 
         # pad to max dimensions and create a datatype to work around the INT32_MAX limitation
         else:
-            utils_par.pr0(f'\t\t Using Igatherv with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
+            utils_par.pr0(f'\t\t Using Irecv/Isend with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
 
             ztime = time.time()
             s_msgs = {}
 
             for irank in range(mpi_size):
                 nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
-                recvcounts[irank]    = nt*self._nv#*max_dist_xyz
+                recvcounts[irank]    = nt*self._nv
 
                 irank_n_xyz, irank_s_xyz = utils_par._blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = np.zeros((input_data.shape[0],max_dist_xyz,input_data.shape[2]),dtype=self._dtype)
@@ -471,7 +471,7 @@ class reader_2stage():
 ########################################################################################
 class reader_mat():
     def __init__(self, data_list, xdim, dtype, comm, nv):
-        assert comm is not None, "MATLAB reader requires MPI (for now)"
+        assert comm is not None, "MATLAB reader currently requires MPI"
 
         st = time.time()
         self._dtype = dtype
@@ -518,7 +518,7 @@ class reader_mat():
             nchunks = int((nt*size_per_ts)/comm.size/mb_per_chunk_per_reader)
             nchunks = max(nchunks,1)
             nchunks = min(nchunks, math.ceil(nt/comm.size))
-            print(f'TEST overwriting nchunks to {nchunks}')
+            print(f'I/O: Using {nchunks} chunks ({mb_per_chunk_per_reader} MB per chunk per reader)')
 
         self._nchunks = comm.bcast(nchunks, root=0)
 
@@ -562,7 +562,6 @@ class reader_mat():
             read_je = min(d_je, je)
 
             if read_je > read_js:
-                #print(f'rank {mpi_rank} opening file {f}')
                 with h5py.File(f, "r") as ff:
                     group_key = list(ff.keys())[0]
                     data = ff.get(group_key)
@@ -575,11 +574,10 @@ class reader_mat():
 
                     del data
                     cum_read += 1
-                    #print(f'rank {mpi_rank} closed file {f}')
 
             cum_t = cum_t + 1 # one step per file
 
-        # redistribute the data using MPI (nprocs * gatherv) - gather all times for a spatial slice
+        # redistribute the data using MPI - gather all times for a spatial slice
         #
         # size of data to receive (only used by the root rank)
         # each process receives   n0: every other process's len(time)
@@ -596,7 +594,7 @@ class reader_mat():
 
         # mpi4py with MPI >= 4 does not have the limitation of INT32_MAX elements
         if not use_padding:
-            utils_par.pr0(f'\t\t Using Igatherv with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
+            utils_par.pr0(f'\t\t Using Irecv/Isend with float/double datatype (MPI-4 available or number of elements < INT32_MAX)', comm)
 
             # Copy is needed to make the array contiguous
             ztime = time.time()
@@ -629,7 +627,7 @@ class reader_mat():
 
         # pad to max dimensions and create a datatype to work around the INT32_MAX limitation
         else:
-            utils_par.pr0(f'\t\t Using Igatherv with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
+            utils_par.pr0(f'\t\t Using Irecv/Isend with a custom data type (MPI-4 not available and number of elements >= INT32_MAX)', comm)
 
             ztime = time.time()
             s_msgs = {}
