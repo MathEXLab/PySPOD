@@ -195,7 +195,7 @@ class Standard(Base):
         st = time.time()
         M = [None]*self._n_freq
         for f in range(0,self._n_freq):
-            Q_hat_f = np.squeeze(Q_hats[f])#np.squeeze(Q_hat[f,:,:])#.astype(complex)
+            Q_hat_f = np.squeeze(Q_hats[f])
             M[f] = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
         del Q_hat_f
         M = np.stack(M)
@@ -380,15 +380,13 @@ class Standard(Base):
                 read_here_e = min(v_e, end)
                 read_here_cnt = read_here_e - read_here_s
 
-                # print(f'LBL key {k} contains {v_s}:{v_e} while i need {start}:{end}')
                 if read_here_cnt > 0:
-                    # print(f'LBL key {k} contains {v_s}:{v_e} while i need {start}:{end} - will read {read_here_s}:{read_here_e} to {cnt}:{cnt+read_here_cnt}')
                     vals = v["v"]
                     Q_blk[cnt:cnt+read_here_cnt,...] = vals[read_here_s-v_s:read_here_e-v_s,...]
                     cnt += read_here_cnt
                     bstart += read_here_cnt
 
-            assert cnt == end-start, f'Not enough data read: cnt {cnt} != end-start {end-start}'
+            assert cnt == end-start, f'Not enough data read: cnt ({cnt}) != end-start ({end-start})'
 
             # delete blocks that are no longer needed
             keys_to_del = []

@@ -17,7 +17,7 @@ CWD = os.getcwd()
 B2GB = 9.313225746154785e-10
 
 
-# TODO: it seems that this function does not work with arrays written by readers with flattening
+
 def check_orthogonality(results_dir, mode_idx1, mode_idx2,
     freq_idx, dtype='double', savedir=None, comm=None):
     '''

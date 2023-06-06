@@ -64,7 +64,7 @@ class Base():
         self._reuse_blocks = params.get('reuse_blocks', False)
         # save fft block if required
         self._savefft = params.get('savefft', False)
-        # save frequencies to disk/memory
+        # save frequencies to disk if required
         self._savefreq_disk = params.get('savefreq_disk', True)
         self._savefreq_disk2 = params.get('savefreq_disk2', False)
         # consider all frequencies; if false single-sided spectrum considered
@@ -435,7 +435,6 @@ class Base():
         if not streaming:
             self.data = self._reader.get_data()
 
-        # TODO: how do we calculate mean, weights and normalize if streaming data?
         if streaming:
             self.data = self._reader.get_data(0)
 
@@ -449,8 +448,6 @@ class Base():
         if not streaming:
             st = time.time()
             if not isinstance(self.data,np.ndarray) and not isinstance(self.data,dict): self.data = self.data.values
-            # if (self._nv == 1) and (self.data.ndim != self._xdim + 2):
-            #     self.data = self.data[...,np.newaxis]
             self._pr0(f'- loaded data into memory: {time.time() - st} s.')
         st = time.time()
 
@@ -552,9 +549,9 @@ class Base():
             self._weights_name = self._weights_tmp['weights_name']
             if np.size(self._weights) != int(self.nx * self.nv):
                 raise ValueError(
-                    'parameter ``weights`` must have the '
-                    'same size as flattened data spatial '
-                    'dimensions, that is: ', int(self.nx * self.nv), np.size(self._weights))
+                    'parameter ``weights``', np.size(self._weights),
+                    'must have the same size as flattened data spatial '
+                    'dimensions, that is: ', int(self.nx * self.nv))
         else:
             self._weights = np.ones(self._xshape+(self._nv,))
             self._weights_name = 'uniform'
@@ -899,17 +896,14 @@ class Base():
         See method implementation in the postproc module.
         '''
 
-        comm = self._comm
-        modes = None
-
-        if comm is None or comm.rank == 0:
+        if self._comm is None or self._comm.rank == 0:
             post.plot_2d_modes_at_frequency(
                 self.savedir_sim, freq_req=freq_req, freq=freq,
                 vars_idx=vars_idx, modes_idx=modes_idx, x1=x1, x2=x2,
                 fftshift=fftshift, imaginary=imaginary, plot_max=plot_max,
                 coastlines=coastlines, title=title, xticks=xticks, yticks=yticks,
                 figsize=figsize, equal_axes=equal_axes, path=self.savedir_sim,
-                filename=filename, modes=modes, pdf=pdf, shift180=shift180)
+                filename=filename, modes=None, pdf=pdf, shift180=shift180)
 
 
     def plot_2d_mode_slice_vs_time(self, freq_req, freq, vars_idx=[0],
@@ -1070,7 +1064,7 @@ class Base():
                         modes_idx=[mode],
                         vars_idx=[0],
                         pdf=pdf,
-                        shift180=True)
+                        shift180=shift180)
 
     # --------------------------------------------------------------------------
 

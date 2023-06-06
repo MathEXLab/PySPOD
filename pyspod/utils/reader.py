@@ -13,7 +13,6 @@ except:
 # for MATLAB files
 import h5py
 
-# TODO: implement a streaming reader
 
 ########################################################################################
 # 1-stage reader

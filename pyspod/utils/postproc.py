@@ -14,7 +14,6 @@ mpl.rc('figure', max_open_warning = 0)
 from os.path import splitext
 from scipy.io import loadmat
 
-
 # Current, parent and file paths
 CWD = os.getcwd()
 CF = os.path.realpath(__file__)
@@ -22,7 +21,10 @@ CFD = os.path.dirname(CF)
 plot_support = os.path.join(CFD, '../', 'plotting_support')
 
 # ---------------------------------------------------------------------------
+
 # default fonts
+# ---------------------------------------------------------------------------
+
 def get_font():
     available_fonts = [f.name for f in matplotlib.font_manager.fontManager.ttflist]
     if 'Times New Roman' in available_fonts:
