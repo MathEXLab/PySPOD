@@ -222,13 +222,13 @@ class reader_2stage():
             size_per_ts = np.prod(self._shape[1:])*item_size/1024/1024
             nchunks = int((nt*size_per_ts)/comm.size/mb_per_chunk_per_reader)
             nchunks = max(nchunks,1)
-            print(f'TEST overwriting nchunks to {nchunks}')
+            print(f'I/O: Using {nchunks} chunks ({mb_per_chunk_per_reader} MB per chunk per reader)')
 
         self._nchunks = comm.bcast(nchunks, root=0)
 
         self._nx = np.prod(self._shape[1:-1])
         self._dim = len(self._shape)
-        self._xdim = self._dim-2
+        self._xdim = 1
         self._xshape = self._shape[1:-1]
         self._local_shape = None
         utils_par.pr0(f'--- init finished in {time.time()-st:.2f} s', comm)
