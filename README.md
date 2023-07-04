@@ -36,18 +36,31 @@
 
 In this package we implement two versions of SPOD, both available as **parallel and distributed** (i.e. they can run on multiple cores/nodes on large-scale HPC machines) via [mpi4py](https://github.com/mpi4py/mpi4py): 
 
-  - **spod_standard**: this is the **batch** algorithm as described in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
-  - **spod_streaming**: that is the **streaming** algorithm presented in [(Schmidt and Towne 2019)](schmidt-and-towne-2019).
+  - **spod_standard**: this is the **batch** algorithm as described in [(Schmidt and Towne, 2019)](https://doi.org/10.1017/jfm.2018.283).
+  - **spod_streaming**: that is the **streaming** algorithm presented in [(Schmidt and Towne, 2019)](https://doi.org/10.1017/jfm.2018.283).
 
-We additionally implement the calculation of time coefficients and the reconstruction of the data, given a set of modes $\phi$ and coefficients *a*, as explained in [] and []. The library comes with a package to emulating the reduced space, that is to forecasting the time coefficients using neural networks, as described in [].
+We additionally implement the calculation of time coefficients and the reconstruction of the data, given a set of modes $\phi$ and coefficients *a*, as explained in [(Chu and Schmidt, 2021)](10.1007/s00162-021-00588-6) and [(Nekkanti and Schmidt, 2021)](https://doi.org/10.1017/jfm.2021.681). The library comes with a package to emulating the reduced space, that is to forecasting the time coefficients using neural networks, as described in [Lario et al., 2022](https://doi.org/10.1016/j.jcp.2022.111475).
 
 To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tutorials/README.md).
 
 For additional information, you can also consult the PySPOD website: [**https://mathe-lab.github.io/PySPOD/**](https://mathe-lab.github.io/PySPOD/).
 
+## How to cite this work
+
+Current reference to the PySPOD library is:  
+@article{mengaldo2021pyspod,
+  title={Pyspod: A python package for spectral proper orthogonal decomposition (spod)},
+  author={Mengaldo, Gianmarco and Maulik, Romit},
+  journal={Journal of Open Source Software},
+  volume={6},
+  number={60},
+  pages={2862},
+  year={2021}
+}
+
 ## What data can we apply SPOD to?
 
-SPOD can be applied to **wide-sense stationary data**, that is **ergodic processes**. Examples of these arise in different fields, including **fluidmechanics**, and **weather** and **climate**, among others. 
+SPOD can be applied to **wide-sense stationary data**. Examples of these arise in different fields, including **fluidmechanics**, and **weather** and **climate**, among others. 
 
 ## How do I install the library?
 
@@ -59,8 +72,6 @@ If you want to download and install the latest version from `main`:
 python3 setup.py install
 ```
 
-
-
 > To allow for parallel capabilities, you need to have installed an MPI distribution in your machine. Currently MPI distributions tested are [Open MPI](https://www.open-mpi.org), and [Mpich](https://www.mpich.org). Note that the library will still work in **serial** (no parallel capabilities), if you **do not have MPI**.
 
 
@@ -69,7 +80,7 @@ python3 setup.py install
 
 Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for a publication and you want it to be advertised here.
 
-- A. Lario, R. Maulik, G. Rozza, G. Mengaldo, [Neural-Network learning of SPOD latent space](https://arxiv.org/abs/2110.09218)
+- A. Lario, R. Maulik, G. Rozza, G. Mengaldo, [Neural-Network learning of SPOD latent space]([https://arxiv.org/abs/2110.09218](https://doi.org/10.1016/j.jcp.2022.111475))
 
 ## Authors and contributors
 
@@ -79,6 +90,7 @@ Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for
 
 Current active contributors include:
 
+  * [M. Rogowski](https://mrogowski.github.io), King Abdullah University of Science and Technology (Saudi Arabia).
   * [L. Dalcin](https://cemse.kaust.edu.sa/ecrc/people/person/lisandro-dalcin), King Abdullah University of Science and Technology (Saudi Arabia).
   * [R. Maulik](https://romit-maulik.github.io), Argonne National Laboratory (US).
   * [A. Lario](https://www.math.sissa.it/users/andrea-lario), SISSA (Italy)
