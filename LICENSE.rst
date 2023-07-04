@@ -1,4 +1,4 @@
-Copyright (c) 2022 Gianmarco Mengaldo
+Copyright (c) 2022-2025 Gianmarco Mengaldo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
