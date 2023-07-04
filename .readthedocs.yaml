@@ -12,7 +12,6 @@ build:
 python:
    install:
      - path: .[docs]
-     - requirements: conf/requirements-docs.txt
 
 sphinx:
    configuration: docs/source/conf.py
