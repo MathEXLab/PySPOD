@@ -46,24 +46,19 @@ To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tu
 For additional information, you can also consult the PySPOD website: [**https://mathe-lab.github.io/PySPOD/**](https://mathe-lab.github.io/PySPOD/).
 
 ## How to cite this work
-
 Current reference to the PySPOD library is:  
+
+```bash
 @article{mengaldo2021pyspod,
-
-  title={Pyspod: A python package for spectral proper orthogonal decomposition (spod)},
-
+  title={Pyspod: A python package for spectral proper orthogonal decomposition (spod)}
   author={Mengaldo, Gianmarco and Maulik, Romit},
-  
   journal={Journal of Open Source Software},
-  
   volume={6},
-  
   number={60},
-  
   pages={2862},
-  
   year={2021}
 }
+```
 
 ## What data can we apply SPOD to?
 
