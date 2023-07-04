@@ -49,12 +49,19 @@ For additional information, you can also consult the PySPOD website: [**https://
 
 Current reference to the PySPOD library is:  
 @article{mengaldo2021pyspod,
+
   title={Pyspod: A python package for spectral proper orthogonal decomposition (spod)},
+
   author={Mengaldo, Gianmarco and Maulik, Romit},
+  
   journal={Journal of Open Source Software},
+  
   volume={6},
+  
   number={60},
+  
   pages={2862},
+  
   year={2021}
 }
 
