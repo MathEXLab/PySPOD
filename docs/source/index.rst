@@ -12,11 +12,11 @@ Welcome to PySPOD's documentation!
 
 
 
-* The **GitHub repository** of this package can be found at `PySPOD <https://github.com/mathe-lab/PySPOD>`_ along installation instructions, and how to get started.
+* The **GitHub repository** of this package can be found at `PySPOD <https://github.com/MathEXLab/PySPOD>`_ along installation instructions, and how to get started.
 
-* **Tutorials** can be found at `PySPOD-Tutorials <https://github.com/mathe-lab/PySPOD/tree/main/tutorials>`_
+* **Tutorials** can be found at `PySPOD-Tutorials <https://github.com/MathEXLab/PySPOD/tree/main/tutorials>`_
 
-* The package uses `github actions`_ for **continuous integration**.
+* The package uses `GitHub Actions <https://github.com/MathEXLab/PySPOD/actions>`_ for **continuous integration**.
 
 
 
