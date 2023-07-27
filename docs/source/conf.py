@@ -28,22 +28,23 @@ def pkg_version():
     here = os.path.dirname(__file__)
     pardir = [os.path.pardir] * 2
     topdir = os.path.join(here, *pardir)
-    srcdir = os.path.join(topdir, 'PySPOD')
-    with open(os.path.join(srcdir, 'pyspod', '__init__.py')) as f:
+    with open(os.path.join(topdir, 'pyspod', '__init__.py')) as f:
         m = re.search(r"__version__\s*=\s*'(.*)'", f.read())
         return m.groups()[0]
 
 project = 'PySPOD: Python SPOD'
-package = project.lower()
-author = "Gianmarco Mengaldo, Lisandro Dalcin, Romit Maulik, Andrea Lario"
+package = 'pyspod'
+author = ', '.join([
+    'Gianmarco Mengaldo',
+    'Marcin Rogowski',
+    'Lisandro Dalcin',
+    'Romit Maulik',
+    'Andrea Lario',
+])
 copyright = f'{_today.year}, {author}'
 
 release = pkg_version()
 version = release.rsplit('.', 1)[0]
-
-release = pkg_version()
-version = release.rsplit('.', 1)[0]
-
 
 
 # -- General configuration ---------------------------------------------------
@@ -118,7 +119,7 @@ autoclass_content = 'both'
 
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+# language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -169,8 +170,9 @@ viewcode_import = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'bizstyle'
-html_theme = "sphinx_rtd_theme"
+html_theme = (
+    'sphinx_rtd_theme' if 'sphinx_rtd_theme' in extensions else 'default'
+)
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -178,7 +180,7 @@ html_theme = "sphinx_rtd_theme"
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

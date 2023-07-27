@@ -141,7 +141,7 @@ class Base():
         Get the number of spatial dimensions of the data matrix.
 
         :return: number of spatial dimensions of the data matrix.
-        :rtype: tuple(int,)
+        :rtype: tuple[int]
         '''
         return self._xdim
 
@@ -152,7 +152,7 @@ class Base():
         Get the spatial shape of the data matrix.
 
         :return: spatial shape of the data matrix.
-        :rtype: tuple(int,)
+        :rtype: tuple[int]
         '''
         return self._xshape
 
@@ -195,7 +195,7 @@ class Base():
         Get the weights used to compute the inner product.
 
         :return: weight matrix used to compute the inner product.
-        :rtype: np.ndarray
+        :rtype: numpy.ndarray
         '''
         return self._weights
 

@@ -15,7 +15,7 @@ class Streaming(Base):
     Class that implements a distributed streaming version of the
     Spectral Proper Orthogonal Decomposition algorithm to the input data.
 
-    The computation is performed on the `data` passed
+    The computation is performed on the data passed
     to the `fit` method of the `Streaming` class, derived
     from the `Base` class.
     '''
