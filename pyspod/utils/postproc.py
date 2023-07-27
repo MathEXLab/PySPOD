@@ -1,4 +1,7 @@
-'''Derived module from spodbase.py for classic spod.'''
+'''Various postprocessing utilities.
+
+.. default-role:: autolink
+'''
 
 # import standard python packages
 import os
@@ -41,11 +44,11 @@ def find_nearest_freq(freq_req, freq):
     Get nearest frequency to requested `freq_req`
     given an array of frequencies `freq`.
 
-    :param double freq_req: requested frequency.
-    :param np.ndarray freq: array of frequencies.
+    :param float freq_req: requested frequency.
+    :param numpy.ndarray freq: array of frequencies.
 
     :return: the nearest frequency to the `freq_req` requested and its id.
-    :rtype: double, int
+    :rtype: tuple[float, int]
     '''
     freq = np.asarray(freq)
     idx = (np.abs(freq - freq_req)).argmin()
@@ -56,12 +59,12 @@ def find_nearest_coords(coords, x, data_space_dim):
     '''
     Get nearest data coordinates to requested coordinates `coords`.
 
-    :param np.ndarray coords: coordinate requested.
+    :param numpy.ndarray coords: coordinate requested.
     :param list x: data coordinates.
     :param int: spatial dimension of the data.
 
     :return: the nearest coordinate to the `coords` requested and its id.
-    :rtype: numpy.ndarray, int
+    :rtype: tuple[numpy.ndarray, int]
     '''
     coords = np.asarray(coords)
     if isinstance(x, list):
@@ -347,7 +350,7 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
     Plot SPOD modes for 2D problems at a given frequency `freq_req`.
 
     :param str results_path: file containing 2D SPOD modes.
-    :param double freq_req: frequency to be plotted.
+    :param float freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
     :param int or sequence(int) vars_idx: variables to be plotted.
         Default, the first variable is plotted.
@@ -540,7 +543,7 @@ def plot_2d_modes_at_frequency(results_path, freq_req,
 #     Plot the time evolution of SPOD mode slices for 2D problems.
 #
 #     :param str results_path: file containing 2D SPOD modes.
-#     :param double freq_req: frequency to be plotted.
+#     :param float freq_req: frequency to be plotted.
 #     :param numpy.ndarray freq: frequency array.
 #     :param int or sequence(int) vars_idx: variables to be plotted. \
 #         Default, the first variable is plotted.
@@ -748,7 +751,7 @@ def plot_3d_modes_slice_at_frequency(
     Plot SPOD modes for 3D problems at a given frequency `freq_req`.
 
     :param str results_path: file containing 3D SPOD modes.
-    :param double freq_req: frequency to be plotted.
+    :param float freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
     :param int or sequence(int) vars_idx: variables to be plotted.
         Default, the first variable is plotted.
@@ -941,7 +944,7 @@ def plot_mode_tracers(
     Plot SPOD mode tracers for nD problems at given frequency `freq_req`.
 
     :param str results_path: file containing nD SPOD modes.
-    :param double freq_req: frequency to be plotted.
+    :param float freq_req: frequency to be plotted.
     :param numpy.ndarray freq: frequency array.
     :param list(tuple(*),) coords_list: list
         of tuples containing coordinates to be plotted.

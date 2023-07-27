@@ -35,32 +35,32 @@ SPOD base
 ---------
 
 .. automodule:: pyspod.spod.base
-	:members: Base
+   :members: Base
 
 
 SPOD standard
 -------------
 
 .. automodule:: pyspod.spod.standard
-	:members: Standard
+   :members: Standard
 
 
 SPOD streaming
 --------------
 
 .. automodule:: pyspod.spod.streaming
-	:members: Streaming
+   :members: Streaming
 
 
 SPOD utils
 ----------
 
-.. automodule:: pyspod.spod/utils
-	:members: check_orthogonality,
-    compute_coeffs_op,
-    compute_coeffs_conv,
-    compute_reconstruction
-
+.. automodule:: pyspod.spod.utils
+   :members:
+      check_orthogonality,
+      compute_coeffs_op,
+      compute_coeffs_conv,
+      compute_reconstruction
 
 
 Utils module
@@ -71,27 +71,28 @@ Postprocessing
 --------------
 
 .. automodule:: pyspod.utils.postproc
-	:members: find_nearest_freq,
-			  find_nearest_coords,
-			  get_modes_at_freq,
-			  get_mode_from_file,
-			  plot_eigs,
-			  plot_eigs_vs_frequency,
-			  plot_eigs_vs_period,
-			  plot_2d_modes_at_frequency,
-			  plot_2d_mode_slice_vs_time,
-			  plot_3d_modes_slice_at_frequency,
-			  plot_mode_tracers,
-			  plot_2d_data,
-			  plot_data_tracers,
-			  generate_2d_data_video
+   :members:
+      find_nearest_freq,
+      find_nearest_coords,
+      get_modes_at_freq,
+      get_data_from_file,
+      plot_eigs,
+      plot_eigs_vs_frequency,
+      plot_eigs_vs_period,
+      plot_2d_modes_at_frequency,
+      plot_3d_modes_slice_at_frequency,
+      plot_mode_tracers,
+      plot_2d_data,
+      plot_data_tracers,
+      generate_2d_data_video
 
 
 Weights
 --------------
 
 .. automodule:: pyspod.utils.weights
-	:members: geo_trapz_2D,
-			  geo_trapz_3D,
-			  custom,
-			  apply_normalization
+   :members:
+      geo_trapz_2D,
+      geo_trapz_3D,
+      custom,
+      apply_normalization

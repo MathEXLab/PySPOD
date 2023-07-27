@@ -1,6 +1,6 @@
 '''
 Base module for the SPOD:
-    - `fit` method must be implemented in inherited classes
+    - The `Base.fit` method must be implemented in inherited classes
 '''
 from __future__ import division
 
@@ -122,6 +122,16 @@ class Base():
         if self._savefreq_disk:
             assert self._savefreq_disk2 == False, 'savefreq_disk2 and savefreq_disk cannot be both True'
 
+
+    def fit(self, data_list, *args, **kwargs):
+        '''
+        Fit the data using SPOD.
+
+        :param list data_list: list containing data matrices for which
+            to compute the SPOD.
+
+        '''
+        raise NotImplementedError  # pragma: no cover
 
     # basic getters
     # --------------------------------------------------------------------------
@@ -371,7 +381,7 @@ class Base():
         Get the weights used to compute the inner product.
 
         :return: weight matrix used to compute the inner product.
-        :rtype: np.ndarray
+        :rtype: numpy.ndarray
         '''
         return self._weights
 
