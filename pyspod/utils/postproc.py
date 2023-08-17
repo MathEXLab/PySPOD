@@ -19,9 +19,8 @@ from scipy.io import loadmat
 
 # Current, parent and file paths
 CWD = os.getcwd()
-CF = os.path.realpath(__file__)
-CFD = os.path.dirname(CF)
-plot_support = os.path.join(CFD, '../', 'plotting_support')
+CFD = os.path.dirname(os.path.realpath(__file__))
+plot_support = os.path.join(CFD, 'plotting_support')
 
 # ---------------------------------------------------------------------------
 
