@@ -21,8 +21,8 @@
     <img alt="Build Status" src="https://github.com/MathEXLab/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
   </a>
 
-  <a href="https://codecov.io/gh/MathEXLab.github.io/PySPOD" > 
-   <img src="https://codecov.io/gh/MathEXLab.github.io/PySPOD/branch/main/graph/badge.svg?token=JWA0OIMK2J"/> 
+  <a href="https://app.codecov.io/gh/MathEXLab/PySPOD" > 
+   <img src="https://app.codecov.io/gh/MathEXLab/PySPOD/branch/main/graph/badge.svg?token=JWA0OIMK2J"/> 
    </a>
 
   <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MathEXLab.github.io/PySPOD&amp;utm_campaign=Badge_Grade">
