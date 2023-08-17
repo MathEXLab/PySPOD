@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="http://mathe-lab.github.io/PySPOD/" target="_blank" >
+  <a href="http://MathEXLab.github.io/PySPOD/" target="_blank" >
     <img alt="Python Spectral Proper Orthogonal Decomposition" src="readme/PySPOD_logo2.png" width="200" />
   </a>
 </p>
@@ -9,7 +9,7 @@
     <img alt="JOSS Paper" src="https://joss.theoj.org/papers/10.21105/joss.02862/status.svg">
   </a>
 
-  <a href="https://github.com/mathe-lab/PySPOD/LICENSE" target="_blank">
+  <a href="https://github.com/MathEXLab.github.io/PySPOD/LICENSE" target="_blank">
     <img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square">
   </a>
 
@@ -17,15 +17,15 @@
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
   </a>
 
-  <a href="https://github.com/mathe-lab/PySPOD/actions/workflows/continuous-integration.yml" target="_blank">
-    <img alt="Build Status" src="https://github.com/mathe-lab/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
+  <a href="https://github.com/MathEXLab.github.io/PySPOD/actions/workflows/continuous-integration.yml" target="_blank">
+    <img alt="Build Status" src="https://github.com/MathEXLab.github.io/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
   </a>
 
-  <a href="https://codecov.io/gh/mathe-lab/PySPOD" > 
-   <img src="https://codecov.io/gh/mathe-lab/PySPOD/branch/main/graph/badge.svg?token=JWA0OIMK2J"/> 
+  <a href="https://codecov.io/gh/MathEXLab.github.io/PySPOD" > 
+   <img src="https://codecov.io/gh/MathEXLab.github.io/PySPOD/branch/main/graph/badge.svg?token=JWA0OIMK2J"/> 
    </a>
 
-  <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mathe-lab/PySPOD&amp;utm_campaign=Badge_Grade">
+  <a href="https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MathEXLab.github.io/PySPOD&amp;utm_campaign=Badge_Grade">
     <img src="https://app.codacy.com/project/badge/Grade/7ac24e711aea47df806ad52ab067e3a6"/>
   </a>
 </p>
