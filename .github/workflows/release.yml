@@ -1,4 +1,4 @@
-name: cd-sdist
+name: release
 
 permissions:
   contents: read
