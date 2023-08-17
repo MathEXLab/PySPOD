@@ -17,8 +17,8 @@
     <img src="https://badge.fury.io/py/pyspod.svg" alt="PyPI version" height="18">
   </a>
 
-  <a href="https://github.com/MathEXLab.github.io/PySPOD/actions/workflows/continuous-integration.yml" target="_blank">
-    <img alt="Build Status" src="https://github.com/MathEXLab.github.io/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
+  <a href="https://github.com/MathEXLab/PySPOD/actions/workflows/continuous-integration.yml" target="_blank">
+    <img alt="Build Status" src="https://github.com/MathEXLab/PySPOD/actions/workflows/continuous-integration.yml/badge.svg?branch=main">	  
   </a>
 
   <a href="https://codecov.io/gh/MathEXLab.github.io/PySPOD" > 
