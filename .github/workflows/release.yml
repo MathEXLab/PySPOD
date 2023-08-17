@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  sdist:
+  distribution:
     runs-on: ubuntu-latest
 
     steps:
