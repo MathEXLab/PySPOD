@@ -2,8 +2,8 @@
 layout: page
 title: Tutorials
 tagline: Some tutorials to highlight PySPOD usage
-permalink: /tutorials.html
-ref: tutorials
+permalink: /tutorial3.html
+ref: tutorial3
 order: 2
 ---
 
