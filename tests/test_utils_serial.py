@@ -83,6 +83,7 @@ def test_io_yaml_required():
     except OSError as e:
         pass
 
+
 def test_io_yaml_optional():
     ## --------------------------------------------------------------
     variables = ['slip_potency']
@@ -111,7 +112,6 @@ def test_io_yaml_optional():
         shutil.rmtree(os.path.join(CWD,'spod_results'))
     except OSError as e:
         pass
-
 
 def test_postproc_2d():
     ## --------------------------------------------------------------

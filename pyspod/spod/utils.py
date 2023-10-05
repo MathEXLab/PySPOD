@@ -604,6 +604,7 @@ def _oblique_projection(phir, weights, data, tol, svd=False,
         coeffs = M_inv @ Q
         del M_inv
         del Q, M
+
     return coeffs
 
 
