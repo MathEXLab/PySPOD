@@ -22,17 +22,17 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
-          - macos-12
+          - ubuntu-latest
+          - macos-latest
         mpi:
           - mpich
           - openmpi
         py:
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
           - "3.11"
+          # - "3.12"
 
     steps:
     - name: Configure hostname
@@ -89,10 +89,11 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
-          - macos-12
+          - ubuntu-latest
+          - macos-latest
         py:
           - "3.11"
+          # - "3.12"
 
     steps:
 
