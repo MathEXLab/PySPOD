@@ -139,7 +139,10 @@ class Standard(Base):
             dtype=self._complex)
 
         ## compute standard spod
-        self._compute_standard_spod(Q_hats)
+        # self._compute_standard_spod(Q_hats)
+        
+        ## quantum switch experiments
+        self._compute_standard_qspod(Q_hats)
 
         # store and save results
         self._store_and_save()
@@ -161,6 +164,7 @@ class Standard(Base):
             + self._n_dft, self._nt) - self._n_dft
 
         Q_blk = self._get_block(offset, offset+self._n_dft)
+        print(f'{Q_blk.shape=:}')
 
         # Subtract longtime or provided mean
         Q_blk -= self._t_mean
@@ -187,6 +191,8 @@ class Standard(Base):
             Q_blk_hat = (self._win_weight / self._n_dft) * np.fft.fft(Q_blk, axis=0)[0:self._n_freq,:]
         return Q_blk_hat, offset
 
+
+
     def _compute_standard_spod(self, Q_hats):
         '''Compute standard SPOD.'''
 
@@ -196,6 +202,7 @@ class Standard(Base):
         M = [None]*self._n_freq
         for f in range(0,self._n_freq):
             Q_hat_f = np.squeeze(Q_hats[f])
+            print(f'{Q_hat_f.shape=:}')
             M[f] = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
         del Q_hat_f
         M = np.stack(M)
@@ -206,8 +213,8 @@ class Standard(Base):
         ## compute eigenvalues and eigenvectors
         L, V = la.eig(M)
         L = np.real_if_close(L, tol=1000000)
+        print(f'{M.shape=:}')
         del M
-
 
         # reorder eigenvalues and eigenvectors
         ## double non-zero freq and non-Nyquist
@@ -224,11 +231,18 @@ class Standard(Base):
         L_diag = np.sqrt(self._n_blocks) * np.sqrt(L)
         L_diag_inv = 1. / L_diag
 
+        print(f'{L.shape=:}')
+        print(f'{V.shape=:}')
+        
         if not self._savefreq_disk2:
             for f in range(0,self._n_freq):
                 s0 = time.time()
                 ## compute
+                print(f'{Q_hats[f].shape=:}')
+                print(f'{V[f,...].shape=:}')
+                print(f'{L_diag_inv[f,None,:].shape=:}') 
                 phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
+                print(f'{phi.shape=:}') 
                 phi = phi[...,0:self._n_modes_save]
                 del Q_hats[f]
 
@@ -249,7 +263,6 @@ class Standard(Base):
                 self._pr0(
                     f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
                     f'Elapsed time: {(time.time() - s0):.5f} s.')
-
 
         ####################################
         ####################################
@@ -358,11 +371,95 @@ class Standard(Base):
 
         # get eigenvalues and confidence intervals
         self._eigs = np.abs(L)
-
         fac_lower = 2 * self._n_blocks / self._xi2_lower
         fac_upper = 2 * self._n_blocks / self._xi2_upper
         self._eigs_c[...,0] = self._eigs * fac_lower
         self._eigs_c[...,1] = self._eigs * fac_upper
+            
+
+
+    def _compute_standard_qspod(self, Q_hats):
+        '''Compute standard SPOD.'''
+        comm = self._comm
+
+        # compute inner product in frequency space, for given frequency
+        st = time.time()
+        M = [None]*self._n_freq
+        for f in range(0,self._n_freq):
+            Q_hat_f = np.squeeze(Q_hats[f])
+            ## add quantum perturbation if required
+            print(self.quantum_perturbation)
+            if self.quantum_perturbation:
+                print('-------- ADDING QUANTUM PERTURBATION ---------')
+                print(f'{Q_hat_f.shape=:}')
+                ## column norms
+                norms = np.linalg.norm(Q_hat_f, axis=0)
+                ## noise for quantum
+                mu = 0; std = 1; n_elements = Q_hat_f.shape[1]
+                noise = np.random.normal(mu,std,n_elements)
+                print(f'{norms.shape=:}')
+                print(f'{noise.shape=:}')
+                norms_noise = norms + noise # additive
+                print(f'{norms_noise.shape=:}')
+                # norms_noise = norms * noise # multiplicative
+                Q_hat_f_normalized = Q_hat_f / norms
+                print(f'{Q_hat_f_normalized.shape=:}')
+                Q_hat_f = (Q_hat_f_normalized) * norms_noise
+                print(f'{Q_hat_f.shape=:}')
+            M[f] = Q_hat_f.conj().T @ (Q_hat_f * self._weights) / self._n_blocks
+        del Q_hat_f
+        M = np.stack(M)
+        M = utils_par.allreduce(data=M, comm=self._comm)
+        self._pr0(f'- M computation: {time.time() - st} s.')
+        st = time.time()
+
+        ## compute eigenvalues and eigenvectors
+        L, V = la.eig(M)
+        L = np.real_if_close(L, tol=1000000)
+        del M
+
+        # reorder eigenvalues and eigenvectors
+        ## double non-zero freq and non-Nyquist
+        for f, Lf in enumerate(L):
+            idx = np.argsort(Lf)[::-1]
+            L[f,:] = L[f,idx]
+            vf = V[f,...]
+            vf = vf[:,idx]
+            V[f] = vf
+        self._pr0(f'- Eig computation: {time.time() - st} s.')
+        st = time.time()
+
+        # compute spatial modes for given frequency
+        L_diag = np.sqrt(self._n_blocks) * np.sqrt(L)
+        L_diag_inv = 1. / L_diag
+
+        if not self._savefreq_disk2:
+            for f in range(0,self._n_freq):
+                s0 = time.time()
+                ## compute
+                phi = np.matmul(Q_hats[f], V[f,...] * L_diag_inv[f,None,:])
+                phi = phi[...,0:self._n_modes_save]
+                del Q_hats[f]
+
+                sstime = time.time()
+                ## save modes
+                if self._savefreq_disk:
+                    filename = f'freq_idx_{f:08d}.npy'
+                    p_modes = os.path.join(self._modes_dir, filename)
+
+                    shape = [*self._xshape,self._nv,self._n_modes_save]
+
+                    if comm:
+                        shape[self._max_axis] = -1
+
+                    phi.shape = shape
+                    utils_par.npy_save(self._comm, p_modes, phi, axis=self._max_axis)
+
+                self._pr0(
+                    f'freq: {f+1}/{self._n_freq};  (f = {self._freq[f]:.5f});  '
+                    f'Elapsed time: {(time.time() - s0):.5f} s.')
+
+
 
     def _get_block(self, start, end):
         if isinstance(self.data, dict):

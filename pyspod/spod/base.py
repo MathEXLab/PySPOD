@@ -77,6 +77,8 @@ class Base():
         self._n_modes_save = params.get('n_modes_save', 1e10)
         # default datatype is double
         self._dtype = params.get('dtype', 'double')
+        # perturbation for quantum experiments
+        self._quantum_perturbation = params.get('quantum_perturbation', False)
         # where to save data
         self._savedir = params.get('savedir', os.path.join(CWD,'spod_results'))
         self._savedir = os.path.join(CWD, self._savedir)
@@ -384,6 +386,14 @@ class Base():
         :rtype: numpy.ndarray
         '''
         return self._weights
+    
+
+    @property
+    def quantum_perturbation(self):
+        '''
+        Get the quantum_perturbation used to compute the inner product.
+        '''
+        return self._quantum_perturbation
 
     # --------------------------------------------------------------------------
     # common methods
