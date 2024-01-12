@@ -46,7 +46,16 @@ To see how to use the **PySPOD** package, you can look at the [**Tutorials**](tu
 For additional information, you can also consult the PySPOD website: [**http://www.mathexlab.com/PySPOD/**](http://www.mathexlab.com/PySPOD/).
 
 ## How to cite this work
-Current reference to the PySPOD library is:  
+Current references to the PySPOD library is:  
+
+```bash
+@article{rogowski2023unlocking,
+  title={Unlocking massively parallel spectral proper orthogonal decompositions in the PySPOD package},
+  author={Rogowski, Marcin and Yeung, Brandon CY and Schmidt, Oliver T and Maulik, Romit and Dalcin, Lisandro and Parsani, Matteo and Mengaldo, Gianmarco},
+  journal={arXiv preprint arXiv:2309.11808},
+  year={2023}
+}
+```
 
 ```bash
 @article{mengaldo2021pyspod,
