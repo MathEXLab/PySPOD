@@ -6,7 +6,7 @@ ref: team
 order: 1
 ---
 
-Developed by the [Mathematical Engineering Laboratory](https://github.com/mathe-lab)
+Developed by the [Mathematical Engineering Laboratory](https://github.com/MathEXLab/)
 based at [National University of Singapore (NUS)](https://www.nus.edu.sg),
 and led by [Dr Gianmarco Mengaldo](https://cde.nus.edu.sg/me/staff/gianmarco-mengaldo/).
 

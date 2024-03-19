@@ -5,6 +5,7 @@ tagline: 2D multivariate ENSO index (MEI) using ECMWF ERA-20C data
 permalink: /tutorials/tutorial3.html
 ref: tutorials/tutorial3
 order: 2
+use_math: true
 ---
 
 ## Preliminaries
