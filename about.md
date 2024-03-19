@@ -6,7 +6,6 @@ permalink: /about.html
 ref: about
 order: 0
 use_math: true
-math_engine: mathjax
 ---
 
 
@@ -87,9 +86,7 @@ To see how to use the **PySPOD** package, you can look at the
 SPOD can be applied to wide-sense stationary data, that is ergodic
 processes. Examples of these arise in different fields, including
 fluidmechanics, and weather and climate, among others. An example
-of ergodic data can be found in [**Tutorial 1**](./tutorials/tutorial1),
-and [**Tutorial 2**](./tutorials/tutorial2).
-
+of ergodic data can be found in [**Tutorial 1**](./tutorials/tutorial1), [**Tutorial 2**](./tutorials/tutorial2) or [**Tutorial 3**](./tutorials/tutorial3).
 
 
 [Go to the Home Page]({{ '/' | absolute_url }})

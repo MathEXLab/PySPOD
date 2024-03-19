@@ -5,6 +5,7 @@ tagline: 2D total precipitation from the ERA Interim dataset
 permalink: /tutorials/tutorial2.html
 ref: tutorials/tutorial2
 order: 2
+use_math: true
 ---
 
 ## Preliminaries
@@ -38,10 +39,25 @@ represent the total precipitation field at different time instants.
 The time step is 12 hours, and it is sampled every day, in the period
 2008 to 2017 at 03:00, and 15:00.
 
-|![](./figures/tutorial2/data_video.mp4)|
-|:--:|
-|<span style="color:#858986;"> Animation of the **total precipitation** field data used in this tutorial.</span>|
 
+<table>
+    <thead>
+        <tr>
+            <th>
+                <video controls="true" width="100%"> 
+                    <source src="../figures/tutorial2/data_video.mp4" type="video/mp4"/> 
+                </video>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center">
+                <span style="color:#858986;"> Animation of the <strong>total precipitation</strong> field data used in this tutorial.</span>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
 ## 1. Load libraries, data and parameters
 
@@ -105,7 +121,7 @@ spod = standard.fit(data_list=data)
 
 where `params`, `comm`, `weights` and `data`, have all been defined above.
 The `spod_standard` class implements the SPOD batch algorithm, as described
-in [About](./about). We can alternatively choose the streaming algorithm,
+in [About](../about.html). We can alternatively choose the streaming algorithm,
 by writing
 
 ```python

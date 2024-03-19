@@ -2,8 +2,8 @@
 layout: page
 title: Tutorials
 tagline: Some tutorials to highlight PySPOD usage
-permalink: /tutorial3.html
-ref: tutorial3
+permalink: /tutorials.html
+ref: tutorials
 order: 2
 ---
 
@@ -14,7 +14,7 @@ usage of the PySPOD library, and its capabilities:
 
 [Tutorial 2: 2D total precipitation from the ERA Interim dataset](./tutorials/tutorial2)
 
-
+[Tutorial 3:2D multivariate ENSO index (MEI) using ECMWF ERA-20C data](./tutorials/tutorial3)
 
 
 [Go to the Home Page]({{ '/' | absolute_url }})

@@ -27,7 +27,7 @@ to make sure the library is fully functional.
 
 - To learn what SPOD is and for what is useful for go to [About](./about).
 
-- To learn how to setup a run with PySPOD, go to [Tutorials](./tutorials).
+- To learn how to setup a run with PySPOD, go to [Tutorials](./tutorials.html).
 
 - To checkout the team developing PySPOD, go to [Team](./team).
 

@@ -5,6 +5,7 @@ tagline: 2D pressure fluctuations in a turbulent jet
 permalink: /tutorials/tutorial1.html
 ref: tutorials/tutorial1
 order: 2
+use_math: true
 ---
 
 ## Preliminaries
@@ -37,10 +38,25 @@ In detail, the dataset consists of 1000 flow realizations
 which represent the pressure field at different time instants.
 The time step is 0.01 seconds.
 
-|![](./figures/tutorial1/data_video.mp4)|
-|:--:|
-|<span style="color:#858986;"> **Animation of the data used in this tutorial.**</span>|
 
+<table>
+    <thead>
+        <tr>
+            <th>
+                <video controls="true" width="100%"> 
+                    <source src="../figures/tutorial1/data_video.mp4" type="video/mp4"/> 
+                </video>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center">
+                <span style="color:#858986;"> <strong>Animation of the data used in this tutorial.</strong></span>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
 ## 1. Load libraries, data and parameters
 
@@ -101,7 +117,7 @@ spod = standard.fit(data_list=data)
 
 where `params`, `comm`, and `data` have all been defined above.
 The `spod_standard` class implements the SPOD batch algorithm,
-as described in [About](./about). We can alternatively choose
+as described in [About](/about). We can alternatively choose
 the streaming algorithm, by writing
 
 ```python
