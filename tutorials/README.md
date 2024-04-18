@@ -34,10 +34,10 @@ pressure (MSL), zonal component of the surface wind (U10), meridional component
 of the surface wind (V10), sea surface temperature (SST), 2-meter temperature
 (T2M), and total cloud cover (TCC), on a 2D longitude-latitude grid.
 
-#### [Tutorial: 3D Quasi-Bienniel Oscillation](climate/ERA20C_QBO_3D/ERA20C_QBO_3D.ipynb)
+#### [Tutorial: 3D Quasi-Biennial Oscillation](climate/ERA20C_QBO_3D/ERA20C_QBO_3D.ipynb)
 
 This tutorial shows how to download data from an ECMWF reanalysis dataset (ERA20C),
 and use **PySPOD** to identify spatio-temporal coherent structured in univariate
-3D data. In particular, we seek to identify the Quasi-Bienniel Oscillation (QBO).
+3D data. In particular, we seek to identify the Quasi-Biennial Oscillation (QBO).
 The data is composed by the monthly-averages of the zonal-mean zonal winds
 on a 3D longitude, latitude, pressure-levels grid.
