@@ -22,14 +22,9 @@ from pyspod.emulation.base import Base
 
 # set seeds
 from numpy.random import seed; seed(1)
-tf.compat.v1.set_random_seed(2)
-
-# start session
-session_conf = tf.compat.v1.ConfigProto(
-    intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-session = tf.compat.v1.Session(
-    graph=tf.compat.v1.get_default_graph(), config=session_conf)
-tf.compat.v1.keras.backend.set_session(session)
+tf.random.set_seed(2)
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
 
 
 
@@ -173,7 +168,7 @@ class Neural_Nets(Base):
         ## compute real part
         cnt = 0
         name_tmp = 'real'+str(idx)
-        name_real = os.path.join(self._savedir, name_tmp+'__weights.h5')
+        name_real = os.path.join(self._savedir, name_tmp+'.weights.h5')
         self.model.load_weights(name_real)
         for t in tqdm(range(n_seq_in,nt,n_seq_out), desc='inference_real'):
             idx_x[cnt,...] = np.arange(t-n_seq_in, t)
@@ -188,7 +183,7 @@ class Neural_Nets(Base):
         if not np.isreal(data_in).all():
             cnt = 0
             name_tmp = 'imag'+str(idx)
-            name_imag = os.path.join(self._savedir, name_tmp+'__weights.h5')
+            name_imag = os.path.join(self._savedir, name_tmp+'.weights.h5')
             self.model.load_weights(name_imag)
             for t in tqdm(range(n_seq_in,nt,n_seq_out), desc='inference_imag'):
                 idx_x[cnt,...] = np.arange(t-n_seq_in, t)
@@ -213,7 +208,7 @@ class Neural_Nets(Base):
         valid_data_ip, valid_data_op = self.extract_sequences(data=data_valid)
 
         # training
-        name_filepath = os.path.join(self._savedir, name+'__weights.h5')
+        name_filepath = os.path.join(self._savedir, name+'.weights.h5')
         cb_chk = tf.keras.callbacks.ModelCheckpoint(
             name_filepath,
             monitor='loss',
