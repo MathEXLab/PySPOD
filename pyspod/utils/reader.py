@@ -278,7 +278,7 @@ class reader_2stage():
                             vals = dvars[var].values
                             input_data[cum_read:cum_read+read_cnt,:,idx] = vals.reshape(vals.shape[0],-1)#.copy()
                             del vals
-                            cum_read = cum_read + read_cnt
+                        cum_read = cum_read + read_cnt
 
             cum_t = cum_t + (v[1]-v[0])
 
