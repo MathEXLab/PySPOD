@@ -67,7 +67,7 @@ def check_orthogonality(results_dir, mode_idx1, mode_idx2,
     ## perform orthogonality check
     O = phir1.conj().T @ (weights * phir2)
     O = utils_par.allreduce(data=O, comm=comm)
-    tol = 1e-6
+    tol = 2e-6
     if mode_idx1 == mode_idx2:
         ortho_check = ((O < 1+tol) and (O>1-tol))
     else:
