@@ -49,11 +49,25 @@ For additional information, you can also consult the PySPOD website: [**http://w
 Current references to the PySPOD library is:  
 
 ```bash
-@article{rogowski2023unlocking,
+@article{rogowski2024unlocking,
   title={Unlocking massively parallel spectral proper orthogonal decompositions in the PySPOD package},
   author={Rogowski, Marcin and Yeung, Brandon CY and Schmidt, Oliver T and Maulik, Romit and Dalcin, Lisandro and Parsani, Matteo and Mengaldo, Gianmarco},
-  journal={arXiv preprint arXiv:2309.11808},
-  year={2023}
+  journal={Computer Physics Communications},
+  pages={109246},
+  year={2024},
+  publisher={Elsevier}
+}
+```
+
+```bash
+@article{lario2022neural,
+  title={Neural-network learning of SPOD latent dynamics},
+  author={Lario, Andrea and Maulik, Romit and Schmidt, Oliver T and Rozza, Gianluigi and Mengaldo, Gianmarco},
+  journal={Journal of Computational Physics},
+  volume={468},
+  pages={111475},
+  year={2022},
+  publisher={Elsevier}
 }
 ```
 
