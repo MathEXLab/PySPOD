@@ -161,7 +161,7 @@ def _blockdist(N, size, rank):
 def allreduce(data, comm):
     if comm is not None:
         MPI = _get_module_MPI(comm)
-        data = data.newbyteorder('=')
+        data = data.view(data.dtype.newbyteorder('='))
         data_reduced = np.zeros_like(data)
         comm.Barrier()
         comm.Allreduce(data, data_reduced, op=MPI.SUM)
@@ -187,7 +187,7 @@ def npy_save(comm, filename, array, axis=0):
     if comm is not None:
         MPI = _get_module_MPI(comm)
         dtlib = _get_module_dtlib(comm)
-        array = array.newbyteorder('=')
+        array = array.view(array.dtype.newbyteorder('='))
         array = np.asarray(array)
         dtype = array.dtype
         shape = array.shape
