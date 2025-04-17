@@ -4,7 +4,7 @@ import sys
 import cdsapi
 import xarray as xr
 
-def download_era5_monthly(year_start=1940, year_end=2024, output_file='ERA5_monthly_1940_2024.nc'):
+def download_era5_monthly(year_start, year_end, output_file):
     # Setup the CDS API client
     client = cdsapi.Client()
 
