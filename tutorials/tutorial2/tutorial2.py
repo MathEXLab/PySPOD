@@ -43,6 +43,7 @@ except:
 ## -------------------------------------------------------------------
 ## data
 data_file = os.path.join(CFD, '../../tests/data/', 'era_interim_data.nc')
+print('Reading data from: ', data_file)
 ds = utils_io.read_data(data_file=data_file)
 print(ds)
 ## we extract time, longitude and latitude
@@ -137,7 +138,7 @@ if rank == 0:
         path=results_dir, x1=x1, x2=x2, coastlines='centred',
         equal_axes=True)
     
-    print("Plotting data...")
+    print("Plotting raw data...")
     ## plot data
     data_plot = spod.get_data(data.values)
     post.plot_2d_data(data_plot, time_idx=[0,10], filename='data.jpg',
@@ -146,7 +147,7 @@ if rank == 0:
     post.plot_data_tracers(data_plot, coords_list=[(5,0.5)],
         time_limits=[0,nt], path=results_dir, filename='data_tracers.jpg')
     
-    print("Generating video...")
+    print("Generating video from raw data...")
     post.generate_2d_data_video(
         data_plot, sampling=5, time_limits=[0,nt],
         x1=x1, x2=x2, coastlines='centred',
