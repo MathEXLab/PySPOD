@@ -5,6 +5,8 @@ import sys
 import numpy as np
 
 # Current, parent and file paths
+script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+os.chdir(script_dir)
 CWD = os.getcwd()
 CFD = os.path.abspath('')
 
@@ -133,14 +135,14 @@ if rank == 0:
         equal_axes=True)
 
     ## plot data
-    data = spod.get_data(data)
-    post.plot_2d_data(data, time_idx=[0,10], filename='data.jpg',
+    data_plot = spod.get_data(data.values)
+    post.plot_2d_data(data_plot, time_idx=[0,10], filename='data.jpg',
         path=results_dir, x1=x1, x2=x2, coastlines='centred',
         equal_axes=True)
-    post.plot_data_tracers(data, coords_list=[(5,0.5)],
+    post.plot_data_tracers(data_plot, coords_list=[(5,0.5)],
         time_limits=[0,nt], path=results_dir, filename='data_tracers.jpg')
     post.generate_2d_data_video(
-        data, sampling=5, time_limits=[0,nt],
+        data_plot, sampling=5, time_limits=[0,nt],
         x1=x1, x2=x2, coastlines='centred',
         path=results_dir, filename='data_movie1.mp4')
     ## -------------------------------------------------------------
