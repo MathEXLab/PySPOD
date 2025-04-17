@@ -84,6 +84,7 @@ print(f'flag = {flag},  ortho = {ortho}')
 ## -------------------------------------------------------------------
 ## compute coefficients
 ## -------------------------------------------------------------------
+print("Start coefficients computation.")
 file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
     data=data, results_dir=results_dir, comm=comm)
 ## -------------------------------------------------------------------
@@ -93,6 +94,7 @@ file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
 ## -------------------------------------------------------------------
 ## compute reconstruction
 ## -------------------------------------------------------------------
+print("Start reconstruction.")
 file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
     coeffs_dir=coeffs_dir, time_idx=[0,1,2,3,4,5,6,7,8,9,10],
     comm=comm)
@@ -102,6 +104,7 @@ file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
 
 ## only rank 0
 if rank == 0:
+    print("Plotting...")
     ## plot eigenvalues
     spod.plot_eigs(filename='eigs.jpg')
     spod.plot_eigs_vs_frequency(filename='eigs_freq.jpg')
@@ -133,7 +136,8 @@ if rank == 0:
     post.plot_2d_data(recons, time_idx=[0,10], filename='recons.jpg',
         path=results_dir, x1=x1, x2=x2, coastlines='centred',
         equal_axes=True)
-
+    
+    print("Plotting data...")
     ## plot data
     data_plot = spod.get_data(data.values)
     post.plot_2d_data(data_plot, time_idx=[0,10], filename='data.jpg',
@@ -141,6 +145,8 @@ if rank == 0:
         equal_axes=True)
     post.plot_data_tracers(data_plot, coords_list=[(5,0.5)],
         time_limits=[0,nt], path=results_dir, filename='data_tracers.jpg')
+    
+    print("Generating video...")
     post.generate_2d_data_video(
         data_plot, sampling=5, time_limits=[0,nt],
         x1=x1, x2=x2, coastlines='centred',
