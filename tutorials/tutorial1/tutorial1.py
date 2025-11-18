@@ -6,7 +6,8 @@ import numpy as np
 
 # Current, parent and file paths
 CWD = os.getcwd()
-CFD = os.path.abspath('')
+CF  = os.path.realpath(__file__)
+CFD = os.path.dirname(CF)
 
 # project libraries
 sys.path.append(os.path.join(CFD,"../../"))
@@ -57,7 +58,7 @@ params['time_step'] = dt
 ## -------------------------------------------------------------------
 ## compute spod modes and check orthogonality
 ## -------------------------------------------------------------------
-standard  = spod_standard (params=params, comm=comm)
+standard  = spod_standard(params=params, comm=comm)
 streaming = spod_streaming(params=params, comm=comm)
 spod = standard.fit(data_list=data)
 results_dir = spod.savedir_sim
@@ -124,6 +125,7 @@ if rank == 0:
         path=results_dir, x1=x2, x2=x1, equal_axes=True)
 
     ## plot data
+    print('Path of results:', results_dir)
     data = spod.get_data(data)
     post.plot_2d_data(data, time_idx=[0,10], filename='data.jpg',
         path=results_dir, x1=x2, x2=x1, equal_axes=True)

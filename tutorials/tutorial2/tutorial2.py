@@ -5,6 +5,8 @@ import sys
 import numpy as np
 
 # Current, parent and file paths
+script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+os.chdir(script_dir)
 CWD = os.getcwd()
 CFD = os.path.abspath('')
 
@@ -41,6 +43,7 @@ except:
 ## -------------------------------------------------------------------
 ## data
 data_file = os.path.join(CFD, '../../tests/data/', 'era_interim_data.nc')
+print('Reading data from: ', data_file)
 ds = utils_io.read_data(data_file=data_file)
 print(ds)
 ## we extract time, longitude and latitude
@@ -82,6 +85,7 @@ print(f'flag = {flag},  ortho = {ortho}')
 ## -------------------------------------------------------------------
 ## compute coefficients
 ## -------------------------------------------------------------------
+print("Start coefficients computation.")
 file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
     data=data, results_dir=results_dir, comm=comm)
 ## -------------------------------------------------------------------
@@ -91,6 +95,7 @@ file_coeffs, coeffs_dir = utils_spod.compute_coeffs_op(
 ## -------------------------------------------------------------------
 ## compute reconstruction
 ## -------------------------------------------------------------------
+print("Start reconstruction.")
 file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
     coeffs_dir=coeffs_dir, time_idx=[0,1,2,3,4,5,6,7,8,9,10],
     comm=comm)
@@ -100,6 +105,7 @@ file_dynamics, coeffs_dir = utils_spod.compute_reconstruction(
 
 ## only rank 0
 if rank == 0:
+    print("Plotting...")
     ## plot eigenvalues
     spod.plot_eigs(filename='eigs.jpg')
     spod.plot_eigs_vs_frequency(filename='eigs_freq.jpg')
@@ -131,16 +137,19 @@ if rank == 0:
     post.plot_2d_data(recons, time_idx=[0,10], filename='recons.jpg',
         path=results_dir, x1=x1, x2=x2, coastlines='centred',
         equal_axes=True)
-
+    
+    print("Plotting raw data...")
     ## plot data
-    data = spod.get_data(data)
-    post.plot_2d_data(data, time_idx=[0,10], filename='data.jpg',
+    data_plot = spod.get_data(data.values)
+    post.plot_2d_data(data_plot, time_idx=[0,10], filename='data.jpg',
         path=results_dir, x1=x1, x2=x2, coastlines='centred',
         equal_axes=True)
-    post.plot_data_tracers(data, coords_list=[(5,0.5)],
+    post.plot_data_tracers(data_plot, coords_list=[(5,0.5)],
         time_limits=[0,nt], path=results_dir, filename='data_tracers.jpg')
+    
+    print("Generating video from raw data...")
     post.generate_2d_data_video(
-        data, sampling=5, time_limits=[0,nt],
+        data_plot, sampling=5, time_limits=[0,nt],
         x1=x1, x2=x2, coastlines='centred',
         path=results_dir, filename='data_movie1.mp4')
     ## -------------------------------------------------------------
