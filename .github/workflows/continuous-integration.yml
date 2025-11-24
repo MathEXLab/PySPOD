@@ -43,7 +43,7 @@ jobs:
       run:  echo 127.0.0.1 `hostname` | sudo tee -a /etc/hosts > /dev/null
 
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Setup MPI (${{ matrix.mpi }})
       uses: mpi4py/setup-mpi@v1
@@ -101,7 +101,7 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Use Python ${{ matrix.py }}
       uses: actions/setup-python@v6
