@@ -92,7 +92,9 @@ python3 setup.py install
 
 Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for a publication and you want it to be advertised here.
 
-- A. Lario, R. Maulik, G. Rozza, G. Mengaldo, [Neural-Network learning of SPOD latent space](https://doi.org/10.1016/j.jcp.2022.111475)
+- D.J. Lusher, A. Sansica, N.D. Sandham, J. Meng, B. Siklosi, A. Hashimoto. [OpenSBLI v3.0: High-fidelity multi-block transonic aerofoil CFD simulations using domain specific languages on GPUs](http://doi.org/10.1016/j.cpc.2024.109406) Computer Physics Communications (2025).
+- D.J. Lusher, A. Sansica, A. Hashimoto. [Implicit large eddy simulations of three-dimensional turbulent transonic buffet on wide-span infinite wings](https://doi.org/10.1017/jfm.2025.48) Journal of Fluid Mechanics (2025).
+- A. Lario, R. Maulik, G. Rozza, G. Mengaldo, [Neural-Network learning of SPOD latent space](https://doi.org/10.1016/j.jcp.2022.111475), Journal of Computational Physics (2022).
 
 ## Authors and contributors
 
