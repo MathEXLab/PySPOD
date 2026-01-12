@@ -58,19 +58,6 @@ Current references to the PySPOD library is:
   publisher={Elsevier}
 }
 ```
-
-```bash
-@article{lario2022neural,
-  title={Neural-network learning of SPOD latent dynamics},
-  author={Lario, Andrea and Maulik, Romit and Schmidt, Oliver T and Rozza, Gianluigi and Mengaldo, Gianmarco},
-  journal={Journal of Computational Physics},
-  volume={468},
-  pages={111475},
-  year={2022},
-  publisher={Elsevier}
-}
-```
-
 ```bash
 @article{mengaldo2021pyspod,
   title={Pyspod: A python package for spectral proper orthogonal decomposition (spod)},
@@ -105,7 +92,7 @@ python3 setup.py install
 
 Please, [contact me](mailto:gianmarco.mengaldo@gmail.com) if you used PySPOD for a publication and you want it to be advertised here.
 
-- A. Lario, R. Maulik, G. Rozza, G. Mengaldo, [Neural-Network learning of SPOD latent space]([https://arxiv.org/abs/2110.09218](https://doi.org/10.1016/j.jcp.2022.111475))
+- A. Lario, R. Maulik, G. Rozza, G. Mengaldo, [Neural-Network learning of SPOD latent space](https://doi.org/10.1016/j.jcp.2022.111475)
 
 ## Authors and contributors
 
