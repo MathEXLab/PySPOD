@@ -14,5 +14,5 @@ optional:
   - reuse_blocks     : False
   - savefft          : False
   - dtype            : 'double'
-  - savedir          : 'spod_results'
+  - savedir          : 'results'
   - fullspectrum     : False
