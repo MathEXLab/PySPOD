@@ -164,7 +164,7 @@ todo_include_todos = True
 # classes and attributes. As side effects, this option ... ???
 # If false, ... ???.
 # The default is True.
-viewcode_import = True
+viewcode_follow_imported_members = True
 
 # -- Options for HTML output ----------------------------------------------
 
