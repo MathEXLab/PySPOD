@@ -5,6 +5,9 @@ import numpy  as np
 from pathlib import Path
 
 # Current, parent and file paths
+
+# Current, parent and file paths
+
 CWD = os.getcwd()
 CF  = os.path.realpath(__file__)
 CFD = os.path.dirname(CF)
@@ -19,12 +22,12 @@ import pyspod.utils.weights  as utils_weights
 CWD = os.getcwd()
 
 # Inspect and load data
-file = os.path.join(CFD, 'E20C_MONTHLYMEAN00_1900_2010_MEI.nc')
+file = os.path.join(CFD, 'ERA5_monthly_1940_2024.nc')
 ds = xr.open_dataset(file)
 print(ds)
 
 # we extract time, longitude and latitude
-t = np.array(ds['time'])
+t = np.array(ds['valid_time'])
 x1 = np.array(ds['longitude'])
 x2 = np.array(ds['latitude'])
 nt = t.shape[0]
@@ -83,7 +86,7 @@ modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 
 freq = spod.freq*24
 spod.plot_eigs_vs_frequency(freq=freq)
-spod.plot_eigs_vs_period(freq=freq, xticks=[1, 7, 30, 365, 1825])
+spod.plot_eigs_vs_period(freq=freq, xticks=[30, 365, 1825])
 spod.plot_2d_modes_at_frequency(
     freq_req=freq_found,
     freq=freq,

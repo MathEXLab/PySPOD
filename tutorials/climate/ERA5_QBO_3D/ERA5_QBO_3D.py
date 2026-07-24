@@ -19,15 +19,15 @@ import pyspod.utils.weights  as utils_weights
 CWD = os.getcwd()
 
 # Inspect and load data
-file = os.path.join(CFD, 'E20C_MONTHLYMEAN00_1900_2010_U131128_3D.nc')
+file = os.path.join(CFD, 'ERA5_u3d_monthly_1940_2024.nc')
 ds = xr.open_dataset(file)
 print(ds)
 
 # we extract time, longitude and latitude
-t = np.array(ds['time'])
+t = np.array(ds['valid_time'])
 x1 = np.array(ds['longitude'])
 x2 = np.array(ds['latitude'])
-x3 = np.array(ds['level'])
+x3 = np.array(ds['pressure_level'])
 nt = t.shape[0]
 print('shape of t (time): ', t.shape)
 print('shape of x1 (longitude): ', x1.shape)
@@ -47,7 +47,7 @@ print('shape of data matrix X: ', X.shape)
 params = dict()
 
 # -- required parameters
-params['time_step'   ] = 744                # data time-sampling
+params['time_step'   ] = 1020               # data time-sampling
 params['n_space_dims'] = X[0,...,0].ndim    # number of spatial dimensions (longitude and latitude)
 params['n_variables' ] = len(variables)     # number of variables
 params['n_dft'       ] = np.ceil(12 * 12)   # length of FFT blocks (100 time-snapshots)
@@ -77,14 +77,14 @@ SPOD_analysis = spod_standard(
 spod = SPOD_analysis.fit(data_list=X)
 
 # Show results
-T_approx = 744 # approximate period (in days)
+T_approx = 1020 # approximate period (in days)
 freq_found, freq_idx = spod.find_nearest_freq(freq_req=1/T_approx, freq=spod.freq)
 modes_at_freq = spod.get_modes_at_freq(freq_idx=freq_idx)
 
 freq = spod.freq*24
 spod.plot_eigs()
 spod.plot_eigs_vs_frequency(freq=freq)
-spod.plot_eigs_vs_period   (freq=freq, xticks=[1, 7, 30, 365, 740, 1825])
+spod.plot_eigs_vs_period   (freq=freq, xticks=[30, 365, 740, 1825])
 spod.plot_3d_modes_slice_at_frequency(
     freq_req=freq_found,
     freq=freq,
