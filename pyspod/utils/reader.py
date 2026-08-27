@@ -162,6 +162,15 @@ class reader_1stage():
 #   each process has complete data for a subset of space.
 #
 ########################################################################################
+def _inspect_file_metadata(filename, variable):
+    with xr.open_dataset(filename, cache=False) as dataset:
+        data = dataset[variable]
+        shape = data.shape
+        dtype = data.dtype
+
+    size_gb = os.path.getsize(filename) / 1024 / 1024 / 1024
+    return shape, dtype, size_gb
+
 class reader_2stage():
     def __init__(self, data_list, xdim, dtype, comm, nv, variables, nreaders = None, nchunks = 3, nblocks = 3):
         assert comm is not None, "2-stage reader requires MPI"
@@ -195,20 +204,48 @@ class reader_2stage():
         self._max_axes = np.array([1,0]) # time is the first dimension (not listed), then nvar, then the spatial dimension
         nt = 0
         shape = None
-        if comm.rank == 0:
-            for f in data_list:
-                d = xr.open_dataset(f,cache=False)[variables[0]]
-                # make sure that all files have the same spatial shape
-                if shape is not None:
-                    assert d.shape[1:] == shape[1:], f'File {f} has different shape than the previous ones'
-                shape = d.shape
-                self._file_time[f] = (nt, nt+shape[0])
-                nt += shape[0]
-                if d.dtype != 'float32' and d.dtype != 'float64':
-                    self._is_real = False
-                d.close()
-                self._files_size += os.path.getsize(f)/1024/1024/1024 # GB
+        
+        # Number of ranks used to inspect file metadata
+        metadata_nreaders = min(self._nreaders, len(data_list))
+        
+        local_infos = []
+        
+        # Distribute files across reader ranks
+        if comm.rank < metadata_nreaders:
+            for i in range(comm.rank, len(data_list), metadata_nreaders):
+                f = data_list[i]
+                file_shape, file_dtype, file_size = _inspect_file_metadata(f, variables[0])
+                local_infos.append((i, f, file_shape, str(file_dtype), file_size))
+        
+        # Gather metadata on rank 0
+        all_infos = comm.gather(local_infos, root=0)
 
+        if comm.rank == 0:
+            infos = []
+            for rank_infos in all_infos:
+                infos.extend(rank_infos)
+        
+            # Restore the original file order
+            infos.sort(key=lambda x: x[0])
+        
+            nt = 0
+            shape = None
+            
+            for _, f, file_shape, file_dtype, file_size in infos:
+                # Make sure that all files have the same spatial shape
+                if shape is not None:
+                    assert file_shape[1:] == shape[1:], f'File {f} has different shape than the previous ones'
+
+                shape = file_shape
+
+                self._file_time[f] = (nt, nt + file_shape[0])
+                nt += file_shape[0]
+        
+                if file_dtype != 'float32' and file_dtype != 'float64':
+                    self._is_real = False
+        
+                self._files_size += file_size
+        
             self._shape = (nt,) + shape[1:] + (self._nv,)
 
         self._shape     = comm.bcast(self._shape,     root=0)
