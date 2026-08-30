@@ -162,6 +162,15 @@ class reader_1stage():
 #   each process has complete data for a subset of space.
 #
 ########################################################################################
+def _inspect_file_metadata(filename, variable):
+    with xr.open_dataset(filename, cache=False) as dataset:
+        data = dataset[variable]
+        shape = data.shape
+        dtype = data.dtype
+
+    size_gb = os.path.getsize(filename) / 1024 / 1024 / 1024
+    return shape, dtype, size_gb
+
 class reader_2stage():
     def __init__(self, data_list, xdim, dtype, comm, nv, variables, nreaders = None, nchunks = 3, nblocks = 3):
         assert comm is not None, "2-stage reader requires MPI"
@@ -195,20 +204,42 @@ class reader_2stage():
         self._max_axes = np.array([1,0]) # time is the first dimension (not listed), then nvar, then the spatial dimension
         nt = 0
         shape = None
-        if comm.rank == 0:
-            for f in data_list:
-                d = xr.open_dataset(f,cache=False)[variables[0]]
-                # make sure that all files have the same spatial shape
-                if shape is not None:
-                    assert d.shape[1:] == shape[1:], f'File {f} has different shape than the previous ones'
-                shape = d.shape
-                self._file_time[f] = (nt, nt+shape[0])
-                nt += shape[0]
-                if d.dtype != 'float32' and d.dtype != 'float64':
-                    self._is_real = False
-                d.close()
-                self._files_size += os.path.getsize(f)/1024/1024/1024 # GB
+                
+        local_infos = []
 
+        # Distribute files across reader ranks
+        count, start = utils_par.blockdist(len(data_list), comm.size, comm.rank)
+        for i in range(start, start + count):
+            f = data_list[i]
+            file_shape, file_dtype, file_size = _inspect_file_metadata(f, variables[0])
+            local_infos.append((f, file_shape, str(file_dtype), file_size))
+
+        # Gather metadata on rank 0
+        all_infos = comm.gather(local_infos, root=0)
+
+        if comm.rank == 0:
+            infos = []
+            for rank_infos in all_infos:
+                infos.extend(rank_infos)
+
+            nt = 0
+            shape = None
+            
+            for f, file_shape, file_dtype, file_size in infos:
+                # Make sure that all files have the same spatial shape
+                if shape is not None:
+                    assert file_shape[1:] == shape[1:], f'File {f} has different shape than the previous ones'
+
+                shape = file_shape
+
+                self._file_time[f] = (nt, nt + file_shape[0])
+                nt += file_shape[0]
+        
+                if file_dtype != 'float32' and file_dtype != 'float64':
+                    self._is_real = False
+        
+                self._files_size += file_size
+        
             self._shape = (nt,) + shape[1:] + (self._nv,)
 
         self._shape     = comm.bcast(self._shape,     root=0)
@@ -244,12 +275,12 @@ class reader_2stage():
         n_all_xyz = np.prod(self._shape[1:-1]) # product of spatial dimensions
 
         # first distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
-        n_dist_time, s_dist_time = utils_par._blockdist(te-ts, self._nreaders, mpi_rank)
+        n_dist_time, s_dist_time = utils_par.blockdist(te-ts, self._nreaders, mpi_rank)
         js = ts + s_dist_time
         je = ts + s_dist_time+n_dist_time
 
         # allocate local data
-        n_dist_xyz, _ = utils_par._blockdist(n_all_xyz, mpi_size, mpi_rank)
+        n_dist_xyz, _ = utils_par.blockdist(n_all_xyz, mpi_size, mpi_rank)
         self._local_shape = n_dist_xyz
 
         cum_t = 0
@@ -290,7 +321,7 @@ class reader_2stage():
         # each process receives   n0: every other process's len(time)
         #                       x n1: own slice of n_all_xyz OR process 0-sized slice of n_all_xyz (when padding is used)
 
-        max_dist_xyz, _ = utils_par._blockdist(n_all_xyz, mpi_size, 0) # proc 0 has the largest number of elements
+        max_dist_xyz, _ = utils_par.blockdist(n_all_xyz, mpi_size, 0) # proc 0 has the largest number of elements
         max_dist_time = comm.allreduce(n_dist_time, op=MPI.MAX)
 
         use_padding = False if MPI.VERSION >= 4 or max_dist_time*mpi_size*max_dist_xyz*self._nv < np.iinfo(np.int32).max else True
@@ -309,10 +340,10 @@ class reader_2stage():
 
             offset = np.zeros(mpi_size+1, dtype=np.int32)
             for irank in range(mpi_size):
-                nt,           _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
+                nt,           _ = utils_par.blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
                 offset[irank+1] = offset[irank] + nt
 
-                n_irank, s_irank = utils_par._blockdist(n_all_xyz, mpi_size, irank)
+                n_irank, s_irank = utils_par.blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = input_data[:,s_irank:s_irank+n_irank,:].copy()
 
             del input_data
@@ -340,10 +371,10 @@ class reader_2stage():
             s_msgs = {}
 
             for irank in range(mpi_size):
-                nt,                _ = utils_par._blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
+                nt,                _ = utils_par.blockdist(te-ts, self._nreaders, irank) # time (distributed on the reader)
                 recvcounts[irank]    = nt*self._nv
 
-                irank_n_xyz, irank_s_xyz = utils_par._blockdist(n_all_xyz, mpi_size, irank)
+                irank_n_xyz, irank_s_xyz = utils_par.blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = np.zeros((input_data.shape[0],max_dist_xyz,input_data.shape[2]),dtype=self._dtype)
                 s_msgs[irank][:,:irank_n_xyz,:] = (input_data[:,irank_s_xyz:irank_s_xyz+irank_n_xyz,:]) # nmax-sized and 0-padded (if needed) array
             del input_data
@@ -383,7 +414,7 @@ class reader_2stage():
 
             for chunk in range(0,nchunks):
 
-                t_n, t_s = utils_par._blockdist(self.nt, nchunks, chunk)
+                t_n, t_s = utils_par.blockdist(self.nt, nchunks, chunk)
                 t_e = t_s + t_n
 
                 x = self.get_data_for_time(t_s,t_e)
@@ -391,7 +422,7 @@ class reader_2stage():
                 for blk in range(0,nblks):
                     blk_idx = chunk*nblks + blk
 
-                    blk_t_n, blk_t_s = utils_par._blockdist(t_e-t_s, nblks, blk)
+                    blk_t_n, blk_t_s = utils_par.blockdist(t_e-t_s, nblks, blk)
                     blk_t_e = blk_t_s + blk_t_n
 
                     data_dict[blk_idx] = {}
@@ -541,12 +572,12 @@ class reader_mat():
         n_all_xyz = np.prod(self._shape[1:-1]) # product of spatial dimensions
 
         # fist distribute by the time dimension to maximize contiguous reads and minimize the number of readers per file
-        n_dist_time, s_dist_time = utils_par._blockdist(te-ts, mpi_size, mpi_rank)
+        n_dist_time, s_dist_time = utils_par.blockdist(te-ts, mpi_size, mpi_rank)
         js = ts + s_dist_time
         je = ts + s_dist_time+n_dist_time
 
         # allocate local data
-        n_dist_xyz, _ = utils_par._blockdist(n_all_xyz, mpi_size, mpi_rank)
+        n_dist_xyz, _ = utils_par.blockdist(n_all_xyz, mpi_size, mpi_rank)
         self._local_shape = n_dist_xyz
 
         cum_t = 0
@@ -583,7 +614,7 @@ class reader_mat():
         # each process receives   n0: every other process's len(time)
         #                       x n1: own slice of n_all_xyz OR process 0-sized slice of n_all_xyz (when padding is used)
 
-        max_dist_xyz, _ = utils_par._blockdist(n_all_xyz, mpi_size, 0) # proc 0 has the largest number of elements
+        max_dist_xyz, _ = utils_par.blockdist(n_all_xyz, mpi_size, 0) # proc 0 has the largest number of elements
         max_dist_time = comm.allreduce(n_dist_time, op=MPI.MAX)
 
         use_padding = False if MPI.VERSION >= 4 or max_dist_time*mpi_size*max_dist_xyz*self._nv < np.iinfo(np.int32).max else True
@@ -602,10 +633,10 @@ class reader_mat():
 
             offset = np.zeros(mpi_size+1, dtype=np.int32)
             for irank in range(mpi_size):
-                nt,           _ = utils_par._blockdist(te-ts, mpi_size, irank) # time (distributed on the reader)
+                nt,           _ = utils_par.blockdist(te-ts, mpi_size, irank) # time (distributed on the reader)
                 offset[irank+1] = offset[irank] + nt
 
-                n_irank, s_irank = utils_par._blockdist(n_all_xyz, mpi_size, irank)
+                n_irank, s_irank = utils_par.blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = input_data[:,s_irank:s_irank+n_irank,:].copy()
 
             del input_data
@@ -633,10 +664,10 @@ class reader_mat():
             s_msgs = {}
 
             for irank in range(mpi_size):
-                nt,                _ = utils_par._blockdist(te-ts, mpi_size, irank) # time (distributed on the reader)
+                nt,                _ = utils_par.blockdist(te-ts, mpi_size, irank) # time (distributed on the reader)
                 recvcounts[irank]    = nt*self._nv#*max_dist_xyz
 
-                irank_n_xyz, irank_s_xyz = utils_par._blockdist(n_all_xyz, mpi_size, irank)
+                irank_n_xyz, irank_s_xyz = utils_par.blockdist(n_all_xyz, mpi_size, irank)
                 s_msgs[irank] = np.zeros((input_data.shape[0],max_dist_xyz,input_data.shape[2]),dtype=self._dtype)
                 s_msgs[irank][:,:irank_n_xyz,:] = (input_data[:,irank_s_xyz:irank_s_xyz+irank_n_xyz,:]) # nmax-sized and 0-padded (if needed) array
             del input_data
@@ -676,7 +707,7 @@ class reader_mat():
 
             for chunk in range(0,nchunks):
 
-                t_n, t_s = utils_par._blockdist(self.nt, nchunks, chunk)
+                t_n, t_s = utils_par.blockdist(self.nt, nchunks, chunk)
                 t_e = t_s + t_n
 
                 x = self.get_data_for_time(t_s,t_e)
@@ -684,7 +715,7 @@ class reader_mat():
                 for blk in range(0,nblks):
                     blk_idx = chunk*nblks + blk
 
-                    blk_t_n, blk_t_s = utils_par._blockdist(t_e-t_s, nblks, blk)
+                    blk_t_n, blk_t_s = utils_par.blockdist(t_e-t_s, nblks, blk)
                     blk_t_e = blk_t_s + blk_t_n
 
                     data_dict[blk_idx] = {}
