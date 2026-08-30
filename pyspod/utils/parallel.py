@@ -73,7 +73,7 @@ def create_subcomm(comm):
     # import sys
     # sys.stdout.flush()
     # N = 7
-    # n, s = _blockdist(N, dims[0], coords[0])
+    # n, s = blockdist(N, dims[0], coords[0])
     # for i in range(s, s+n):
     #     val = subcomm.allreduce(rank)
     # subcomm.Free()
@@ -93,7 +93,7 @@ def distribute(data, comm):
         shape = data.shape
         index = [np.s_[:]] * len(shape)
         N = shape[max_axis]
-        n, s = _blockdist(N, size, rank)
+        n, s = blockdist(N, size, rank)
         index[max_axis] = np.s_[s:s+n]
         index = tuple(index)
         data = data[index]
@@ -119,7 +119,7 @@ def distribute_data(data, comm):
         shape = data.shape
         index = [np.s_[:]] * len(shape)
         N = shape[max_axis+1]
-        n, s = _blockdist(N, size, rank)
+        n, s = blockdist(N, size, rank)
         index[max_axis+1] = np.s_[s:s+n]
         index = tuple(index)
         data = data[index]
@@ -141,7 +141,7 @@ def distribute_dimension(data, max_axis, comm):
         shape = data.shape
         index = [np.s_[:]] * len(shape)
         N = shape[max_axis]
-        n, s = _blockdist(N, size, rank)
+        n, s = blockdist(N, size, rank)
         index[max_axis] = np.s_[s:s+n]
         index = tuple(index)
         data = data[index]
@@ -151,7 +151,7 @@ def distribute_dimension(data, max_axis, comm):
     return data
 
 
-def _blockdist(N, size, rank):
+def blockdist(N, size, rank):
     q, r = divmod(N, size)
     n = q + (1 if r > rank else 0)
     s = rank * q + min(rank, r)
